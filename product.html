@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asior</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0b0a08;
+    --ink: #f5f3ee;
+    --muted: #a89f8f;
+    --line: #2b2822;
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 1px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  img { display: block; max-width: 100%; }
+
+  .teaser-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    z-index: 11;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .teaser-bar a {
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+    transition: color 0.3s ease;
+  }
+
+  .teaser-bar a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.3s ease;
+  }
+
+  .teaser-bar a:hover { color: var(--ink); }
+  .teaser-bar a:hover::after { width: 100%; }
+
+  header {
+    position: fixed;
+    top: 34px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 40px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 300;
+    z-index: 10;
+    color: var(--ink);
+  }
+
+  header .mark { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
+  header nav { display: flex; gap: 36px; }
+  header nav a { position: relative; padding-bottom: 6px; }
+
+  header nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  header nav a:hover::after { width: 100%; }
+
+  header nav a.cart-link { display: inline-flex; align-items: center; }
+
+  .page-top-space { height: 144px; }
+
+  /* ---------- product detail ---------- */
+  .pd {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 40px 14vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  .pd-media {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  .pd-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pd-media .ph {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+  }
+
+  .pd-media .ph span {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-info { padding-top: 8px; }
+
+  .pd-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .pd-price {
+    font-family: var(--font-mono);
+    margin-top: 14px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .pd-price .compare {
+    text-decoration: line-through;
+    opacity: 0.6;
+    margin-right: 10px;
+  }
+
+  .pd-sizes { margin-top: 30px; }
+
+  .pd-size-group { margin-bottom: 18px; }
+
+  .pd-size-label {
+    font-family: var(--font-mono);
+    margin-bottom: 12px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-size-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .pd-size {
+    position: relative;
+    min-width: 46px;
+    height: 42px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    background: none;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+  }
+
+  .pd-size:hover { border-color: var(--ink); }
+
+  .pd-size.selected {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .pd-size.unavailable {
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  .pd-size.unavailable:hover { border-color: var(--line); }
+
+  .pd-size.unavailable::after {
+    content: '';
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: 50%;
+    height: 1px;
+    background: var(--muted);
+    transform: rotate(-16deg);
+  }
+
+  .pd-qty {
+    margin-top: 34px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .pd-qty button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--line);
+    background: none;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .pd-qty span { font-size: 13px; min-width: 16px; text-align: center; }
+
+  .pd-actions { margin-top: 28px; }
+
+  .pd-add {
+    position: relative;
+    background: none;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 30px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+
+  .pd-add:hover { opacity: 0.75; }
+
+  .pd-add[disabled] {
+    opacity: 0.35;
+    border-color: var(--muted);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  .pd-add[disabled]:hover { opacity: 0.35; }
+
+  .pd-desc {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  .pd-desc-label {
+    font-family: var(--font-mono);
+    margin-bottom: 14px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-desc p, .pd-desc ul {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .pd-desc p + p { margin-top: 12px; }
+  .pd-desc ul { list-style: none; }
+  .pd-desc li { position: relative; padding-left: 16px; }
+  .pd-desc li + li { margin-top: 8px; }
+  .pd-desc li::before { content: '-'; position: absolute; left: 0; color: var(--muted); }
+
+  .pd-ship {
+    margin-top: 24px;
+  }
+
+  .pd-ship summary {
+    cursor: pointer;
+    list-style: none;
+    position: relative;
+    padding: 12px 20px 12px 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    transition: color 0.3s ease;
+  }
+
+  .pd-ship summary::-webkit-details-marker { display: none; }
+  .pd-ship summary:hover { color: var(--ink); }
+
+  .pd-ship summary::after {
+    content: '+';
+    position: absolute;
+    right: 2px;
+    top: 10px;
+    font-family: var(--font-body);
+    font-size: 15px;
+  }
+
+  .pd-ship[open] summary::after { content: '\2212'; }
+
+  .pd-ship-body {
+    padding: 4px 0 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .pd-ship-body p + p { margin-top: 10px; }
+
+  .pd-stock-note {
+    display: none;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .pd-stock-note.show { display: block; }
+
+  .pd-confirm {
+    display: none;
+    margin-top: 16px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-confirm.show { display: block; }
+  .pd-confirm a { text-decoration: underline; color: var(--ink); }
+
+  .pd-note {
+    margin-top: 34px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ---------- related / recently viewed ---------- */
+  .rel-section {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 40px 10vh;
+  }
+
+  .rel-label {
+    font-family: var(--font-mono);
+    margin-bottom: 20px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .rel-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .rel-item {
+    display: block;
+    aspect-ratio: 3 / 4;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  .rel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .rel-item .ph {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+  }
+
+  .rel-item:hover img { transform: scale(1.04); }
+
+  .rel-item .rel-name {
+    position: absolute;
+    left: 10px;
+    bottom: 8px;
+    right: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.45);
+  }
+
+  @media (max-width: 640px) {
+    .rel-grid { grid-template-columns: repeat(2, 1fr); }
+    .rel-section { padding: 0 20px 8vh; }
+  }
+
+  .not-found {
+    min-height: 40vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+  }
+
+  .not-found a { text-decoration: underline; }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    text-align: center;
+    padding: 56px 24px 48px;
+  }
+
+  footer .fmark {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  footer .fmeta {
+    font-family: var(--font-mono);
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  footer .fmeta a { position: relative; }
+
+  footer .fmeta a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  footer .fmeta a:hover::after { width: 100%; }
+
+  footer .social {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  footer .social a {
+    display: inline-flex;
+    color: var(--muted);
+    transition: color 0.3s ease;
+  }
+
+  footer .social a:hover { color: var(--ink); }
+  footer .social svg { width: 16px; height: 16px; display: block; }
+
+  footer .policy-links {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  footer .policy-links a { transition: color 0.3s ease; }
+  footer .policy-links a:hover { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .pd { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header .mark { font-size: 12px; }
+    header nav { gap: 16px; }
+    .pd { padding: 0 20px 10vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+    .hero, .quick-links, .signup, .product, .look {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <header>
+    <a class="mark" href="index.html">Asior</a>
+    <nav>
+      <a href="shop.html">Shop</a>
+      <a href="collection.html">New Arrivals</a>
+      <a href="community.html">Community</a>
+      <a href="contact.html">Contact</a>
+      <a href="manufacturing.html">Manufacturing</a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+    </nav>
+  </header>
+
+  <div class="page-top-space"></div>
+
+  <div id="pd-root"></div>
+  <div id="rel-root"></div>
+
+  <footer id="order">
+    <div class="fmark">Asior</div>
+    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="social">
+      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+      </a>
+    </div>
+    <div class="policy-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="account.html">Account</a>
+    </div>
+  </footer>
+
+<script>
+  // ---------------------------------------------------------------
+  // Shopify Storefront API: fill in SHOPIFY_STOREFRONT_TOKEN to go live.
+  //   1. Shopify Admin -> Settings -> Apps and sales channels -> Develop apps
+  //   2. Create an app -> Configuration -> Storefront API -> enable it,
+  //      check the product read + cart read/write scopes -> Save -> Install
+  //   3. API credentials tab -> copy the "Storefront API access token"
+  //   4. Paste it below. Domain is already filled in (confirmed via the
+  //      asiorclothing.com/admin -> myshopify.com redirect).
+  // Until a token is set, everything falls back to the local-only cart
+  // below so the site keeps working exactly as it does right now.
+  // ---------------------------------------------------------------
+  const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
+  const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
+  const SHOPIFY_API_VERSION = '2024-10';
+  const SHOPIFY_LIVE = Boolean(SHOPIFY_STOREFRONT_TOKEN);
+
+  // Checks every variant of the current product in one request so stock
+  // always reflects real Shopify inventory instead of a hardcoded flag that
+  // would go stale the moment something sells or restocks. If the request
+  // fails we leave availability as initially rendered (fail open) rather
+  // than falsely claiming something is sold out.
+  async function checkAvailabilityBatch(variantIds) {
+    const data = await shopifyFetch(
+      `query($ids: [ID!]!) { nodes(ids: $ids) { ... on ProductVariant { id availableForSale } } }`,
+      { ids: variantIds }
+    );
+    const map = {};
+    data.nodes.forEach(n => { if (n) map[n.id] = n.availableForSale; });
+    return map;
+  }
+
+  async function shopifyFetch(query, variables = {}) {
+    const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+    const json = await res.json();
+    if (json.errors) throw new Error(json.errors.map(e => e.message).join(', '));
+    return json.data;
+  }
+
+  async function getOrCreateCart() {
+    const existingId = localStorage.getItem('shopify_cart_id');
+    if (existingId) {
+      const data = await shopifyFetch(
+        `query($id: ID!) { cart(id: $id) { id checkoutUrl } }`,
+        { id: existingId }
+      );
+      if (data.cart) return data.cart;
+    }
+    const data = await shopifyFetch(`mutation { cartCreate { cart { id checkoutUrl } } }`);
+    localStorage.setItem('shopify_cart_id', data.cartCreate.cart.id);
+    return data.cartCreate.cart;
+  }
+
+  async function addToShopifyCart(variantId, qty) {
+    const cart = await getOrCreateCart();
+    const data = await shopifyFetch(
+      `mutation($cartId: ID!, $lines: [CartLineInput!]!) {
+        cartLinesAdd(cartId: $cartId, lines: $lines) {
+          cart { id checkoutUrl totalQuantity }
+        }
+      }`,
+      { cartId: cart.id, lines: [{ merchandiseId: variantId, quantity: qty }] }
+    );
+    return data.cartLinesAdd.cart;
+  }
+  // ---------------------------------------------------------------
+
+  // Real product data pulled live from the Storefront API on 2026-07-19.
+  // Every variant below (size, and color+size for Ja-yu) is a real Shopify
+  // variant ID with its own real price/compare-at/availability, nothing
+  // here is a guess. Single-variant products (the 4 new-arrival pieces)
+  // just have one entry in `variants` with an empty `options` object.
+  //
+  // Flagged, not silently fixed:
+  //  - JAG Crewneck / JAG Sweats have a compare-at price ($30) LOWER than
+  //    the real price ($45) on every size, backwards from normal sale
+  //    pricing, so no strikethrough is shown for these two until that's
+  //    confirmed/fixed in Shopify Admin.
+  //  - Holes Tee's price is still $0/unset in Shopify itself; showing the
+  //    real $38.99 price here per Sathvik, but Shopify Admin still needs
+  //    updating so checkout charges the right amount.
+  const PRODUCTS = {
+    'tee': {
+      name: 'Holes Tee', img: 'images/look-01.jpg', category: 'tops',
+      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48933139874009', price: 38.99 }],
+    },
+    'polo': {
+      name: 'Scripture Polo', img: 'images/shop-polo.jpg', category: 'tops',
+      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48948385579225', price: 40.99 }],
+    },
+    'shorts-oatmeal': {
+      name: 'JAG Shorts', img: 'images/look-06.jpg', category: 'bottoms',
+      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48948477788377', price: 35.99 }],
+    },
+    'shorts-black': {
+      name: 'ASR Shorts', img: 'images/shop-shorts-black.jpg', category: 'bottoms',
+      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48948470579417', price: 35.99 }],
+    },
+    'jayu-blossom-tee': {
+      name: 'Ja-yu Blossom Tee', img: 'images/shop-jayu-blossom.jpg', category: 'tops',
+      description: ['100% Cotton', 'High Quality', 'Fast Shipping', '290+ GSM Heavy-Weight Garment'],
+      optionNames: ['Color', 'Size'],
+      variants: [
+        { options: { Color: 'Black', Size: 'S' }, variantId: 'gid://shopify/ProductVariant/46711966236889', price: 30, comparePrice: 40 },
+        { options: { Color: 'Black', Size: 'M' }, variantId: 'gid://shopify/ProductVariant/46711966269657', price: 30, comparePrice: 40 },
+        { options: { Color: 'Black', Size: 'L' }, variantId: 'gid://shopify/ProductVariant/46711966302425', price: 30, comparePrice: 40 },
+        { options: { Color: 'White', Size: 'S' }, variantId: 'gid://shopify/ProductVariant/46711966335193', price: 30, comparePrice: 40 },
+        { options: { Color: 'White', Size: 'M' }, variantId: 'gid://shopify/ProductVariant/46711966367961', price: 30, comparePrice: 40 },
+        { options: { Color: 'White', Size: 'L' }, variantId: 'gid://shopify/ProductVariant/46711966400729', price: 30, comparePrice: 40 },
+      ],
+    },
+    'jag-crewneck': {
+      name: 'JAG Crewneck', img: 'images/shop-jag-crewneck.png', category: 'tops',
+      description: [
+        'Heavyweight crewneck with a soft fleece interior for a comfortable, warm feel without being too bulky. Holds its shape well and doesn’t feel thin or cheap.',
+        'Relaxed fit through the body with slightly dropped shoulders for a clean, modern look. Ribbed cuffs and waistband keep it structured without feeling tight.',
+        'High quality jaguar chenille embroidery that won’t get damaged after washing. Fits true to size. Size up for a more oversized fit.',
+      ],
+      optionNames: ['Size'],
+      variants: [
+        { options: { Size: 'XS' }, variantId: 'gid://shopify/ProductVariant/48484204282073', price: 45 },
+        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/48484204183769', price: 45 },
+        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/48484204216537', price: 45 },
+        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/48484204249305', price: 45 },
+      ],
+    },
+    'jag-set': {
+      name: 'JAG Set', img: 'images/shop-jag-set.png', category: 'sets',
+      optionNames: ['Size'],
+      variants: [
+        { options: { Size: 'XS' }, variantId: 'gid://shopify/ProductVariant/48485378556121', price: 80, comparePrice: 90 },
+        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/48485378588889', price: 90 },
+        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/48485378621657', price: 90 },
+        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/48485378654425', price: 90 },
+      ],
+    },
+    'jag-sweats': {
+      name: 'JAG Sweats', img: 'images/shop-jag-sweats.jpg', category: 'bottoms',
+      description: [
+        'Heavyweight sweats with a soft, brushed interior for all-day comfort. The fabric is thick enough to hold its shape but still breathable, so you can wear them year-round.',
+        'Relaxed fit with a slight taper at the ankle for a clean look: not too baggy, not too tight. Elastic waistband with adjustable drawstrings for a secure fit.',
+        'Deep pockets that actually hold your phone and essentials without sagging.',
+      ],
+      optionNames: ['Size'],
+      variants: [
+        { options: { Size: 'XS' }, variantId: 'gid://shopify/ProductVariant/48484204118233', price: 45 },
+        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/48484204052697', price: 45 },
+        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/48484204085465', price: 45 },
+        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/48484204019929', price: 45 },
+      ],
+    },
+    'kova-lotus-tee': {
+      name: 'Kova Eternal Lotus Tee', img: 'images/shop-kova-lotus.jpg', category: 'tops',
+      description: ['100% Cotton', '250+ GSM', 'Standard unisex fit', 'Front: "KOVA" wordmark', 'Back: large lotus illustration + "UNFORGETTABLE" typography', 'Kova tag detail on hem'],
+      optionNames: ['Size'],
+      variants: [
+        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/46711576035545', price: 30, comparePrice: 40 },
+        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/46711601823961', price: 30, comparePrice: 40 },
+        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/46711601856729', price: 30, comparePrice: 40 },
+      ],
+    },
+  };
+
+  const CATEGORY_LABELS = { tops: 'Tops', bottoms: 'Bottoms', sets: 'Sets' };
+
+  const id = new URLSearchParams(location.search).get('id');
+  const product = PRODUCTS[id];
+  const root = document.getElementById('pd-root');
+
+  if (!product) {
+    root.innerHTML = `
+      <div class="not-found">
+        <div>That piece isn't in the catalog.</div>
+        <a href="shop.html">Back to Shop All</a>
+      </div>`;
+  } else {
+    document.title = product.name + ' | Asior';
+
+    const hasOptions = Array.isArray(product.optionNames) && product.optionNames.length > 0;
+    // every variant starts "available" (optimistic) until the live batch
+    // check below resolves, matching the fail-open philosophy elsewhere
+    // on this page: never claim sold out without a real, current answer.
+    product.variants.forEach(v => { v.available = true; });
+
+    function findVariant(selection) {
+      return product.variants.find(v =>
+        product.optionNames.every(name => v.options[name] === selection[name])
+      );
+    }
+
+    // default selection = first in-stock variant, or just the first
+    // variant if literally everything is sold out
+    const defaultVariant = product.variants.find(v => v.available) || product.variants[0];
+    const selection = hasOptions ? { ...defaultVariant.options } : {};
+
+    const media = product.img
+      ? `<img src="${product.img}" alt="${product.name}">`
+      : `<div class="ph"><span>Image coming soon</span></div>`;
+
+    // Real shipping/return terms as of 2026-07-20, confirmed with Sathvik:
+    // USPS, 1-2 business day processing, US-only for now. The 14-day
+    // return/exchange window and who covers return shipping is a policy
+    // he asked me to propose on the business's behalf, not a pre-existing
+    // fact, flagged as such when this was reported back to him.
+    const shipHTML = `
+      <details class="pd-ship">
+        <summary>Shipping &amp; Returns</summary>
+        <div class="pd-ship-body">
+          <p>Ships within 1-2 business days via USPS. Delivery typically takes 2-5 business days after that. Shipping within the US only for now.</p>
+          <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
+        </div>
+      </details>`;
+
+    const descHTML = product.description
+      ? `<div class="pd-desc">
+          <div class="pd-desc-label">Description</div>
+          ${
+            product.description.length && product.description[0].length < 60 && product.description.length > 2
+              ? `<ul>${product.description.map(line => `<li>${line}</li>`).join('')}</ul>`
+              : product.description.map(p => `<p>${p}</p>`).join('')
+          }
+        </div>
+        ${shipHTML}`
+      : shipHTML;
+
+    root.innerHTML = `
+      <div class="pd">
+        <div class="pd-media">${media}</div>
+        <div class="pd-info">
+          <h1 class="pd-name">${product.name}</h1>
+          <div class="pd-price" id="pdPrice"></div>
+          <div class="pd-buy" id="pdBuy">
+            ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
+            <div class="pd-qty">
+              <button type="button" id="qtyDown">-</button>
+              <span id="qtyVal">1</span>
+              <button type="button" id="qtyUp">+</button>
+            </div>
+            <div class="pd-actions">
+              <button class="pd-add" id="addBtn">Add to Cart</button>
+              <div class="pd-confirm" id="addConfirm">Added, <a href="cart.html">view cart</a></div>
+            </div>
+            <p class="pd-stock-note" id="pdStockNote"></p>
+          </div>
+          <p class="pd-note" id="pdNote">${
+            SHOPIFY_LIVE
+              ? 'Ships in 1-2 business days via USPS. No account needed at checkout.'
+              : "Checkout isn't connected yet, this site will link to Shopify checkout directly once that's set up."
+          }</p>
+          ${descHTML}
+        </div>
+      </div>`;
+
+    function currentVariant() {
+      return hasOptions ? findVariant(selection) : product.variants[0];
+    }
+
+    function renderPrice() {
+      const v = currentVariant();
+      const priceEl = document.getElementById('pdPrice');
+      if (v.priceUnset) {
+        priceEl.textContent = 'Price coming soon';
+      } else {
+        priceEl.innerHTML = `${v.comparePrice ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
+      }
+    }
+
+    function renderSizes() {
+      if (!hasOptions) return;
+      const wrap = document.getElementById('pdSizes');
+      wrap.innerHTML = product.optionNames.map(name => {
+        const values = [...new Set(product.variants.map(v => v.options[name]))];
+        const row = values.map(val => {
+          const v = findVariant({ ...selection, [name]: val });
+          const isSelected = selection[name] === val;
+          const isAvailable = v ? v.available : false;
+          return `<button type="button" class="pd-size${isSelected ? ' selected' : ''}${!isAvailable ? ' unavailable' : ''}" data-option="${name}" data-value="${val}">${val}</button>`;
+        }).join('');
+        return `<div class="pd-size-group"><div class="pd-size-label">${name}</div><div class="pd-size-row">${row}</div></div>`;
+      }).join('');
+
+      wrap.querySelectorAll('.pd-size').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.classList.contains('unavailable')) return;
+          selection[btn.dataset.option] = btn.dataset.value;
+          renderSizes();
+          renderPrice();
+          renderAddButton();
+        });
+      });
+    }
+
+    function renderAddButton() {
+      const v = currentVariant();
+      const btn = document.getElementById('addBtn');
+      if (!v || !v.available) {
+        btn.textContent = 'Sold Out';
+        btn.disabled = true;
+      } else {
+        btn.textContent = 'Add to Cart';
+        btn.disabled = false;
+      }
+    }
+
+    renderPrice();
+    renderSizes();
+    renderAddButton();
+
+    let qty = 1;
+    const qtyVal = document.getElementById('qtyVal');
+    document.getElementById('qtyDown').addEventListener('click', () => {
+      qty = Math.max(1, qty - 1);
+      qtyVal.textContent = qty;
+    });
+    document.getElementById('qtyUp').addEventListener('click', () => {
+      qty += 1;
+      qtyVal.textContent = qty;
+    });
+
+    document.getElementById('addBtn').addEventListener('click', async () => {
+      const v = currentVariant();
+      if (!v || !v.available) return;
+      const btn = document.getElementById('addBtn');
+      const confirmEl = document.getElementById('addConfirm');
+
+      if (SHOPIFY_LIVE) {
+        btn.disabled = true;
+        try {
+          await addToShopifyCart(v.variantId, qty);
+          confirmEl.innerHTML = 'Added to cart. <a href="cart.html">View cart</a>';
+          confirmEl.classList.add('show');
+        } catch (err) {
+          confirmEl.textContent = 'Something went wrong adding that. Try again.';
+          confirmEl.classList.add('show');
+        }
+        btn.disabled = false;
+        return;
+      }
+
+      // Local fallback: no live Shopify connection yet.
+      const cart = JSON.parse(localStorage.getItem('asior_cart') || '[]');
+      const lineId = hasOptions ? `${id}:${v.variantId}` : id;
+      const existing = cart.find(item => item.id === lineId);
+      if (existing) existing.qty += qty;
+      else cart.push({ id: lineId, qty });
+      localStorage.setItem('asior_cart', JSON.stringify(cart));
+      confirmEl.innerHTML = 'Added to cart. <a href="cart.html">View cart</a>';
+      confirmEl.classList.add('show');
+    });
+
+    // Live stock check: one batched request covering every variant of
+    // this product, so "Sold Out" always reflects current Shopify
+    // inventory instead of a hardcoded flag that would go stale the
+    // moment stock changes.
+    if (SHOPIFY_LIVE) {
+      checkAvailabilityBatch(product.variants.map(v => v.variantId)).then(map => {
+        product.variants.forEach(v => {
+          if (v.variantId in map) v.available = map[v.variantId];
+        });
+        renderSizes();
+        renderAddButton();
+        renderStockNote();
+      }).catch(() => {
+        // if the availability check itself fails, leave availability as
+        // initially rendered rather than falsely claiming sold out
+      });
+    }
+
+    // Honest, real-inventory urgency: only fires when genuinely true (2 or
+    // fewer sizes actually left in stock), never a made-up countdown.
+    function renderStockNote() {
+      if (!hasOptions) return;
+      const total = product.variants.length;
+      const availableCount = product.variants.filter(v => v.available).length;
+      const note = document.getElementById('pdStockNote');
+      if (availableCount > 0 && availableCount <= 2 && availableCount < total) {
+        note.textContent = availableCount === 1
+          ? 'Only 1 size left in stock.'
+          : `Only ${availableCount} sizes left in stock.`;
+        note.classList.add('show');
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // Personalization: real browsing history only, nothing fabricated.
+    // "You Might Also Like" is a rule-based same-category match, framed
+    // around whatever category this visitor has actually been looking at
+    // most (from real localStorage history) when there's enough signal
+    // to say so. "Recently Viewed" is literally the products this browser
+    // has looked at, read back from localStorage. No fake urgency, no
+    // invented activity, no numbers we can't back up.
+    // ---------------------------------------------------------------
+    function renderTiles(ids) {
+      return ids.map(pid => {
+        const p = PRODUCTS[pid];
+        const media = p.img ? `<img src="${p.img}" alt="${p.name}">` : `<div class="ph"></div>`;
+        return `<a class="rel-item" href="product.html?id=${pid}">${media}<div class="rel-name">${p.name}</div></a>`;
+      }).join('');
+    }
+
+    const relRoot = document.getElementById('rel-root');
+    let relHTML = '';
+
+    const priorViews = JSON.parse(localStorage.getItem('asior_viewed') || '[]').filter(pid => PRODUCTS[pid]);
+
+    const related = Object.keys(PRODUCTS)
+      .filter(pid => pid !== id && PRODUCTS[pid].category === product.category)
+      .slice(0, 4);
+
+    if (related.length > 0) {
+      // Personalize the label using this visitor's real browsing history,
+      // most specific signal first: a single recent view gets called out
+      // by name, a pattern across several views gets the category framed
+      // back to them. Falls back to a plain label with no history at all.
+      // Still just describing what actually happened, nothing invented.
+      const lastViewed = priorViews.find(pid => pid !== id);
+      const sameCategoryViews = priorViews.filter(pid => PRODUCTS[pid].category === product.category).length;
+      let relLabel = 'You Might Also Like';
+      if (priorViews.length === 1 && lastViewed) {
+        relLabel = `Since You Looked At ${PRODUCTS[lastViewed].name}`;
+      } else if (priorViews.length >= 2 && sameCategoryViews / priorViews.length > 0.5) {
+        relLabel = `More ${CATEGORY_LABELS[product.category] || ''}, Picked For You`;
+      }
+      relHTML += `
+        <section class="rel-section">
+          <div class="rel-label">${relLabel}</div>
+          <div class="rel-grid">${renderTiles(related)}</div>
+        </section>`;
+    }
+
+    // Complete the Fit: an honest cross-category pairing (tops paired with
+    // bottoms and vice versa) so a visitor looking at one piece sees how
+    // it could actually be worn, not just more of the same category.
+    const pairCategory = product.category === 'bottoms' ? 'tops' : product.category === 'tops' ? 'bottoms' : null;
+    const pairs = pairCategory
+      ? Object.keys(PRODUCTS).filter(pid => pid !== id && PRODUCTS[pid].category === pairCategory).slice(0, 4)
+      : [];
+
+    if (pairs.length > 0) {
+      relHTML += `
+        <section class="rel-section">
+          <div class="rel-label">Complete The Fit</div>
+          <div class="rel-grid">${renderTiles(pairs)}</div>
+        </section>`;
+    }
+
+    const viewed = priorViews.filter(pid => pid !== id).slice(0, 4);
+
+    if (viewed.length > 0) {
+      relHTML += `
+        <section class="rel-section">
+          <div class="rel-label">Recently Viewed</div>
+          <div class="rel-grid">${renderTiles(viewed)}</div>
+        </section>`;
+    }
+
+    relRoot.innerHTML = relHTML;
+
+    // record this view for next time (most-recent-first, deduped, capped)
+    const history = [id, ...priorViews.filter(pid => pid !== id)].slice(0, 8);
+    localStorage.setItem('asior_viewed', JSON.stringify(history));
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cart | Asior</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0b0a08;
+    --ink: #f5f3ee;
+    --muted: #a89f8f;
+    --line: #2b2822;
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 1px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  img { display: block; max-width: 100%; }
+
+  .teaser-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    z-index: 11;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .teaser-bar a {
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+    transition: color 0.3s ease;
+  }
+
+  .teaser-bar a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.3s ease;
+  }
+
+  .teaser-bar a:hover { color: var(--ink); }
+  .teaser-bar a:hover::after { width: 100%; }
+
+  header {
+    position: fixed;
+    top: 34px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 40px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 300;
+    z-index: 10;
+    color: var(--ink);
+  }
+
+  header .mark { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
+  header nav { display: flex; gap: 36px; }
+  header nav a { position: relative; padding-bottom: 6px; }
+
+  header nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  header nav a:hover::after { width: 100%; }
+
+  header nav a.cart-link { display: inline-flex; align-items: center; }
+
+  .page-top-space { height: 144px; }
+
+  .rail-label {
+    font-family: var(--font-mono);
+    margin-bottom: 26px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  /* ---------- cart ---------- */
+  .cart-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 40px 14vh;
+  }
+
+  .cart-empty {
+    padding: 6vh 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .cart-empty a { text-decoration: underline; color: var(--ink); }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: 76px 1fr auto auto;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .cart-item .thumb {
+    width: 76px;
+    height: 96px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .cart-item .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cart-item .thumb .ph {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+  }
+
+  .cart-item .name {
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+
+  .cart-item .price {
+    font-family: var(--font-mono);
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .cart-item .qty {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .cart-item .remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .cart-item .remove:hover { color: var(--ink); }
+
+  .cart-summary {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+  }
+
+  .cart-summary .amount { font-family: var(--font-mono); font-size: 16px; }
+
+  .cart-note {
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .cart-trust {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .cart-klaviyo {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .cart-klaviyo-label {
+    font-family: var(--font-mono);
+    margin-bottom: 16px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .cart-signup-form {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .cart-signup-form input {
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 2px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--ink);
+    outline: none;
+    min-width: 150px;
+    transition: border-color 0.3s ease;
+  }
+
+  .cart-signup-form input::placeholder { color: var(--muted); }
+  .cart-signup-form input:focus { border-color: var(--ink); }
+
+  .cart-signup-form button {
+    position: relative;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    padding-bottom: 6px;
+  }
+
+  .cart-signup-form button::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  .cart-signup-form button:hover::after { width: 100%; }
+  .cart-signup-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  .cart-signup-confirm {
+    display: none;
+    margin-top: 10px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .cart-signup-confirm.show { display: block; }
+
+  .checkout-btn {
+    margin-top: 24px;
+    width: 100%;
+    background: none;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 16px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+
+  .checkout-btn:hover { opacity: 0.75; }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    text-align: center;
+    padding: 56px 24px 48px;
+  }
+
+  footer .fmark { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; }
+
+  footer .fmeta {
+    font-family: var(--font-mono);
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  footer .fmeta a { position: relative; }
+
+  footer .fmeta a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  footer .fmeta a:hover::after { width: 100%; }
+
+  footer .social {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  footer .social a { display: inline-flex; color: var(--muted); transition: color 0.3s ease; }
+  footer .social a:hover { color: var(--ink); }
+  footer .social svg { width: 16px; height: 16px; display: block; }
+
+  footer .policy-links {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  footer .policy-links a { transition: color 0.3s ease; }
+  footer .policy-links a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header .mark { font-size: 12px; }
+    header nav { gap: 16px; }
+    .cart-wrap { padding: 0 20px 10vh; }
+    .cart-item { grid-template-columns: 60px 1fr auto; }
+    .cart-item .qty { grid-column: 2 / 3; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+    .hero, .quick-links, .signup, .product, .look {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <header>
+    <a class="mark" href="index.html">Asior</a>
+    <nav>
+      <a href="shop.html">Shop</a>
+      <a href="collection.html">New Arrivals</a>
+      <a href="community.html">Community</a>
+      <a href="contact.html">Contact</a>
+      <a href="manufacturing.html">Manufacturing</a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+    </nav>
+  </header>
+
+  <div class="page-top-space"></div>
+
+  <section class="cart-wrap">
+    <div class="rail-label">Cart</div>
+    <div id="cartRoot"></div>
+  </section>
+
+  <footer id="order">
+    <div class="fmark">Asior</div>
+    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="social">
+      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+      </a>
+    </div>
+    <div class="policy-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="account.html">Account</a>
+    </div>
+  </footer>
+
+<script>
+  // Same Shopify Storefront API config as product.html, paste the same
+  // token here to go live. See product.html's script for the full setup
+  // steps.
+  const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
+  const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
+  const SHOPIFY_API_VERSION = '2024-10';
+  const SHOPIFY_LIVE = Boolean(SHOPIFY_STOREFRONT_TOKEN);
+
+  // Klaviyo public Client API, no widget, no private key. Same two real
+  // lists the Email & SMS Popup form (UxDQrj) already feeds: email opt-in
+  // is its own list from step 1, SMS opt-in is a separate list from step
+  // 2, each list only takes a subscription for its own channel.
+  const KLAVIYO_PUBLIC_KEY = 'QV7rBB';
+  const KLAVIYO_EMAIL_LIST_ID = 'TFEDaD';
+  const KLAVIYO_SMS_LIST_ID = 'UiFFMg';
+
+  async function klaviyoSubscribeToList(listId, profileAttributes) {
+    const res = await fetch(`https://a.klaviyo.com/client/subscriptions/?company_id=${KLAVIYO_PUBLIC_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'revision': '2024-10-15' },
+      body: JSON.stringify({
+        data: {
+          type: 'subscription',
+          attributes: { profile: { data: { type: 'profile', attributes: profileAttributes } } },
+          relationships: { list: { data: { type: 'list', id: listId } } },
+        },
+      }),
+    });
+    if (!res.ok) throw new Error('Klaviyo subscribe failed');
+  }
+
+  async function klaviyoSubscribe(email, phone) {
+    // Verified directly against the live API: no "subscriptions" field
+    // exists on this endpoint's schema at all, it defaults to MARKETING
+    // consent for whichever contact field (email/phone_number) is present
+    // the moment you subscribe them to a list. Adding one 400s.
+    //
+    // Email is the required, primary action, if this fails the whole
+    // signup is treated as failed.
+    await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email });
+
+    // Phone is optional. A failure here (bad number, etc.) shouldn't undo
+    // the email signup that already succeeded.
+    if (phone) {
+      try {
+        await klaviyoSubscribeToList(KLAVIYO_SMS_LIST_ID, { email, phone_number: phone });
+      } catch (err) {
+        // swallow, email subscribe already succeeded
+      }
+    }
+  }
+
+  function bindCartSignupForm() {
+    const form = document.getElementById('cartSignupForm');
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('cartSignupBtn');
+      const confirmEl = document.getElementById('cartSignupConfirm');
+      const email = document.getElementById('cartSignupEmail').value;
+      const phone = document.getElementById('cartSignupPhone').value;
+
+      btn.disabled = true;
+      try {
+        await klaviyoSubscribe(email, phone);
+        form.style.display = 'none';
+        confirmEl.textContent = "You're in. Check your inbox for your code.";
+        confirmEl.classList.add('show');
+      } catch (err) {
+        confirmEl.textContent = 'Something went wrong, try again in a moment.';
+        confirmEl.classList.add('show');
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function shopifyFetch(query, variables = {}) {
+    const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+    const json = await res.json();
+    if (json.errors) throw new Error(json.errors.map(e => e.message).join(', '));
+    return json.data;
+  }
+
+  async function getShopifyCart() {
+    const id = localStorage.getItem('shopify_cart_id');
+    if (!id) return null;
+    const data = await shopifyFetch(`
+      query($id: ID!) {
+        cart(id: $id) {
+          id
+          checkoutUrl
+          cost { subtotalAmount { amount currencyCode } }
+          lines(first: 50) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    title
+                    price { amount currencyCode }
+                    image { url }
+                    product { title }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `, { id });
+    return data.cart;
+  }
+
+  async function removeShopifyLine(lineId) {
+    const cartId = localStorage.getItem('shopify_cart_id');
+    await shopifyFetch(`
+      mutation($cartId: ID!, $lineIds: [ID!]!) {
+        cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { id } }
+      }
+    `, { cartId, lineIds: [lineId] });
+  }
+
+  async function renderLive() {
+    const root = document.getElementById('cartRoot');
+    const cart = await getShopifyCart();
+
+    if (!cart || cart.lines.edges.length === 0) {
+      root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
+      return;
+    }
+
+    const rows = cart.lines.edges.map(({ node }) => {
+      const v = node.merchandise;
+      const media = v.image ? `<img src="${v.image.url}" alt="${v.product.title}">` : `<div class="ph"></div>`;
+      return `
+        <div class="cart-item">
+          <div class="thumb">${media}</div>
+          <div>
+            <div class="name">${v.product.title}</div>
+            <div class="price">$${v.price.amount}</div>
+          </div>
+          <div class="qty">Qty ${node.quantity}</div>
+          <button class="remove" data-line="${node.id}">Remove</button>
+        </div>`;
+    }).join('');
+
+    root.innerHTML = `
+      ${rows}
+      <div class="cart-summary">
+        <span>Subtotal</span>
+        <span class="amount">$${cart.cost.subtotalAmount.amount}</span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+      <div class="cart-trust">
+        <span>Ships in 1-2 business days via USPS (US only for now).</span>
+        <span>No account needed, check out as a guest.</span>
+      </div>
+      <div class="cart-klaviyo">
+        <div class="cart-klaviyo-label">Get 10% Off Your First Order</div>
+        <form class="cart-signup-form" id="cartSignupForm">
+          <input type="email" id="cartSignupEmail" placeholder="Email" required>
+          <input type="tel" id="cartSignupPhone" placeholder="Phone (optional)">
+          <button type="submit" id="cartSignupBtn">Sign Up</button>
+        </form>
+        <div class="cart-signup-confirm" id="cartSignupConfirm">You're in. Check your inbox for your code.</div>
+      </div>
+    `;
+
+    document.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await removeShopifyLine(btn.getAttribute('data-line'));
+        renderLive();
+      });
+    });
+
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+      location.href = cart.checkoutUrl;
+    });
+    bindCartSignupForm();
+  }
+
+  // Same corrected real data as product.html, kept in sync manually
+  // since there's no shared module in a no-build static site. This only
+  // matters for the local-fallback cart; the live cart (renderLive below)
+  // reads names/prices/images straight from Shopify's own cart object
+  // instead, so it's self-correcting regardless of what's listed here.
+  const PRODUCTS = {
+    'tee': { name: 'Holes Tee', img: 'images/look-01.jpg', price: 38.99 },
+    'polo': { name: 'Scripture Polo', img: 'images/shop-polo.jpg', price: 40.99 },
+    'shorts-oatmeal': { name: 'JAG Shorts', img: 'images/look-06.jpg', price: 35.99 },
+    'shorts-black': { name: 'ASR Shorts', img: 'images/shop-shorts-black.jpg', price: 35.99 },
+    'jayu-blossom-tee': { name: 'Ja-yu Blossom Tee', img: 'images/shop-jayu-blossom.jpg', price: 30, comparePrice: 40 },
+    'jag-crewneck': { name: 'JAG Crewneck', img: 'images/shop-jag-crewneck.png', price: 45 },
+    'jag-set': { name: 'JAG Set', img: 'images/shop-jag-set.png', price: 80, comparePrice: 90 },
+    'jag-sweats': { name: 'JAG Sweats', img: 'images/shop-jag-sweats.jpg', price: 45 },
+    'kova-lotus-tee': { name: 'Kova Eternal Lotus Tee', img: 'images/shop-kova-lotus.jpg', price: 30, comparePrice: 40 },
+  };
+
+  function loadCart() {
+    return JSON.parse(localStorage.getItem('asior_cart') || '[]');
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem('asior_cart', JSON.stringify(cart));
+  }
+
+  function render() {
+    const cart = loadCart().filter(item => PRODUCTS[item.id]);
+    const root = document.getElementById('cartRoot');
+
+    if (cart.length === 0) {
+      root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
+      return;
+    }
+
+    let subtotal = 0;
+    let hasUnpriced = false;
+
+    const rows = cart.map(item => {
+      const p = PRODUCTS[item.id];
+      const media = p.img ? `<img src="${p.img}" alt="${p.name}">` : `<div class="ph"></div>`;
+      let priceText = 'Price coming soon';
+      if (p.price) {
+        subtotal += p.price * item.qty;
+        priceText = `$${p.price}`;
+      } else {
+        hasUnpriced = true;
+      }
+      return `
+        <div class="cart-item">
+          <div class="thumb">${media}</div>
+          <div>
+            <div class="name">${p.name}</div>
+            <div class="price">${priceText}</div>
+          </div>
+          <div class="qty">Qty ${item.qty}</div>
+          <button class="remove" data-id="${item.id}">Remove</button>
+        </div>`;
+    }).join('');
+
+    root.innerHTML = `
+      ${rows}
+      <div class="cart-summary">
+        <span>Subtotal</span>
+        <span class="amount">$${subtotal}</span>
+      </div>
+      ${hasUnpriced ? '<div class="cart-note">Some items don’t have pricing yet and aren’t included in the subtotal.</div>' : ''}
+      <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+      <div class="cart-trust">
+        <span>Ships in 1-2 business days via USPS (US only for now).</span>
+        <span>No account needed, check out as a guest.</span>
+      </div>
+      <div class="cart-klaviyo">
+        <div class="cart-klaviyo-label">Get 10% Off Your First Order</div>
+        <form class="cart-signup-form" id="cartSignupForm">
+          <input type="email" id="cartSignupEmail" placeholder="Email" required>
+          <input type="tel" id="cartSignupPhone" placeholder="Phone (optional)">
+          <button type="submit" id="cartSignupBtn">Sign Up</button>
+        </form>
+        <div class="cart-signup-confirm" id="cartSignupConfirm">You're in. Check your inbox for your code.</div>
+      </div>
+    `;
+
+    document.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        saveCart(loadCart().filter(item => item.id !== id));
+        render();
+      });
+    });
+
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+      location.href = 'checkout.html';
+    });
+    bindCartSignupForm();
+  }
+
+  if (SHOPIFY_LIVE) {
+    renderLive();
+  } else {
+    render();
+  }
+</script>
+
+</body>
+</html>

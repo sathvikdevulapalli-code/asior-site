@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manufacturing | Asior</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0b0a08;
+    --ink: #f5f3ee;
+    --muted: #a89f8f;
+    --line: #2b2822;
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 1px solid var(--ink);
+    outline-offset: 4px;
+  }
+
+  img { display: block; max-width: 100%; }
+
+  .teaser-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    z-index: 11;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .teaser-bar a {
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+    transition: color 0.3s ease;
+  }
+
+  .teaser-bar a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.3s ease;
+  }
+
+  .teaser-bar a:hover { color: var(--ink); }
+  .teaser-bar a:hover::after { width: 100%; }
+
+  header {
+    position: fixed;
+    top: 34px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 40px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 300;
+    z-index: 10;
+    color: var(--ink);
+  }
+
+  header .mark { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
+  header nav { display: flex; gap: 36px; }
+  header nav a { position: relative; padding-bottom: 6px; }
+
+  header nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  header nav a:hover::after { width: 100%; }
+
+  header nav a.cart-link { display: inline-flex; align-items: center; }
+
+  .page-top-space { height: 144px; }
+
+  .rail-label {
+    font-family: var(--font-mono);
+    margin-bottom: 26px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  /* ---------- intro ---------- */
+  .mfg-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 40px 8vh;
+    text-align: center;
+  }
+
+  .mfg-headline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.8rem, 4.2vw, 2.8rem);
+    line-height: 1.2;
+  }
+
+  .mfg-sub {
+    max-width: 560px;
+    margin: 22px auto 0;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* ---------- how it works ---------- */
+  .mfg-steps {
+    max-width: 900px;
+    margin: 8vh auto 10vh;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 36px;
+  }
+
+  .mfg-step .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .mfg-step .step-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .mfg-step .step-body {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ---------- form ---------- */
+  .mfg-form-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 40px 16vh;
+  }
+
+  .mfg-form {
+    margin-top: 4vh;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .mfg-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .mfg-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .mfg-field .hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .mfg-field input,
+  .mfg-field select,
+  .mfg-field textarea {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 2px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink);
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+  }
+
+  .mfg-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23a89f8f' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+    background-size: 10px 7px;
+    padding-right: 18px;
+  }
+
+  .mfg-field select option { background: var(--bg); color: var(--ink); }
+
+  .mfg-field textarea { min-height: 84px; }
+
+  .mfg-field input:focus,
+  .mfg-field select:focus,
+  .mfg-field textarea:focus { border-color: var(--ink); }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .chip-row input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .chip-row label {
+    margin: 0;
+    padding: 9px 14px;
+    border: 1px solid var(--line);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+  }
+
+  .chip-row input[type="checkbox"]:checked + label {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .chip-row input[type="checkbox"]:focus-visible + label {
+    outline: 1px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .mfg-submit {
+    align-self: flex-start;
+    position: relative;
+    margin-top: 4px;
+    background: none;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 30px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+
+  .mfg-submit:hover { opacity: 0.75; }
+
+  .mfg-confirm {
+    display: none;
+    margin-top: 4vh;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .mfg-confirm.show { display: block; }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    text-align: center;
+    padding: 56px 24px 48px;
+  }
+
+  footer .fmark { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; }
+
+  footer .fmeta {
+    font-family: var(--font-mono);
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  footer .fmeta a { position: relative; }
+
+  footer .fmeta a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 0.4s ease;
+  }
+
+  footer .fmeta a:hover::after { width: 100%; }
+
+  footer .social {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  footer .social a { display: inline-flex; color: var(--muted); transition: color 0.3s ease; }
+  footer .social a:hover { color: var(--ink); }
+  footer .social svg { width: 16px; height: 16px; display: block; }
+
+  footer .policy-links {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  footer .policy-links a { transition: color 0.3s ease; }
+  footer .policy-links a:hover { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .mfg-steps { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header .mark { font-size: 12px; }
+    header nav { gap: 16px; }
+    .mfg-intro { padding: 0 20px 6vh; }
+    .mfg-steps { padding: 0 20px; margin: 6vh auto 8vh; }
+    .mfg-form-wrap { padding: 0 20px 12vh; }
+    .mfg-row { grid-template-columns: 1fr; gap: 30px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <header>
+    <a class="mark" href="index.html">Asior</a>
+    <nav>
+      <a href="shop.html">Shop</a>
+      <a href="collection.html">New Arrivals</a>
+      <a href="community.html">Community</a>
+      <a href="contact.html">Contact</a>
+      <a href="manufacturing.html">Manufacturing</a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+    </nav>
+  </header>
+
+  <div class="page-top-space"></div>
+
+  <section class="mfg-intro">
+    <div class="rail-label">Manufacturing</div>
+    <h1 class="mfg-headline">Get your own line manufactured.</h1>
+    <p class="mfg-sub">Asior is produced start to finish through a real production pipeline: fabric sourcing, decoration, quality control, the whole process. We open that same pipeline to other brands who want their own gear made right. Tell us what you're building below and you'll hear back directly from us with a quote.</p>
+  </section>
+
+  <section class="mfg-steps">
+    <div class="mfg-step">
+      <div class="num">01</div>
+      <div class="step-title">Tell us the specs</div>
+      <div class="step-body">Garment type, quantity, fabric, decoration method, budget, whatever you know so far. Not sure on something? Say so, we'll help you figure it out.</div>
+    </div>
+    <div class="mfg-step">
+      <div class="num">02</div>
+      <div class="step-title">We review it</div>
+      <div class="step-body">We go through your submission and work out what it actually takes to build what you're describing, at the quantity and budget you have in mind.</div>
+    </div>
+    <div class="mfg-step">
+      <div class="num">03</div>
+      <div class="step-title">Get a quote by email</div>
+      <div class="step-body">You'll hear back directly from us with real pricing and next steps, no bots, no automated reply.</div>
+    </div>
+  </section>
+
+  <section class="mfg-form-wrap">
+    <!-- No real backend exists for structured intake, so this reuses the
+         same real Shopify contact endpoint as contact.html: contact[name]
+         and contact[email] go through as themselves, and every other
+         answer on this form gets compiled into contact[body] right before
+         submit (see the script below) so the whole submission lands as one
+         readable message in Shopify Admin -> Inbox, same as any other
+         contact form message. -->
+    <form class="mfg-form" id="mfgForm" method="post" action="https://asiorclothing.com/contact#contact_form" target="mfg-target">
+      <input type="hidden" name="form_type" value="contact">
+      <input type="hidden" name="utf8" value="&#10003;">
+      <input type="hidden" name="contact[body]" id="compiledBody">
+
+      <div class="mfg-row">
+        <div class="mfg-field">
+          <label for="mfg-name">Name</label>
+          <input type="text" id="mfg-name" name="contact[name]" required>
+        </div>
+        <div class="mfg-field">
+          <label for="mfg-email">Email</label>
+          <input type="email" id="mfg-email" name="contact[email]" required>
+        </div>
+      </div>
+
+      <div class="mfg-field">
+        <label for="mfg-brand">Brand / Company Name</label>
+        <input type="text" id="mfg-brand" name="brand" placeholder="Optional, if you have one yet">
+      </div>
+
+      <div class="mfg-field">
+        <label>Garment Type</label>
+        <div class="chip-row">
+          <input type="checkbox" id="g-tee" name="garmentType" value="T-Shirts"><label for="g-tee">T-Shirts</label>
+          <input type="checkbox" id="g-hoodie" name="garmentType" value="Hoodies"><label for="g-hoodie">Hoodies</label>
+          <input type="checkbox" id="g-crew" name="garmentType" value="Crewnecks"><label for="g-crew">Crewnecks</label>
+          <input type="checkbox" id="g-polo" name="garmentType" value="Polos"><label for="g-polo">Polos</label>
+          <input type="checkbox" id="g-shorts" name="garmentType" value="Shorts"><label for="g-shorts">Shorts</label>
+          <input type="checkbox" id="g-sweats" name="garmentType" value="Sweatpants"><label for="g-sweats">Sweatpants</label>
+          <input type="checkbox" id="g-jacket" name="garmentType" value="Jackets"><label for="g-jacket">Jackets</label>
+          <input type="checkbox" id="g-other" name="garmentType" value="Other"><label for="g-other">Other</label>
+        </div>
+      </div>
+
+      <div class="mfg-row">
+        <div class="mfg-field">
+          <label for="mfg-quantity">Estimated Quantity</label>
+          <select id="mfg-quantity" name="quantity">
+            <option value="">Select one</option>
+            <option>25-50</option>
+            <option>50-100</option>
+            <option>100-250</option>
+            <option>250-500</option>
+            <option>500+</option>
+            <option>Not sure yet</option>
+          </select>
+        </div>
+        <div class="mfg-field">
+          <label for="mfg-timeline">Timeline</label>
+          <select id="mfg-timeline" name="timeline">
+            <option value="">Select one</option>
+            <option>ASAP</option>
+            <option>Within 1 month</option>
+            <option>2-3 months</option>
+            <option>Flexible</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mfg-row">
+        <div class="mfg-field">
+          <label for="mfg-fabric">Fabric / Material</label>
+          <select id="mfg-fabric" name="fabric">
+            <option value="">Select one</option>
+            <option>100% Cotton</option>
+            <option>Cotton Blend</option>
+            <option>Fleece / Heavyweight</option>
+            <option>Performance / Poly</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+        <div class="mfg-field">
+          <label for="mfg-decoration">Decoration Method</label>
+          <select id="mfg-decoration" name="decoration">
+            <option value="">Select one</option>
+            <option>Screen Print</option>
+            <option>Embroidery</option>
+            <option>DTG</option>
+            <option>Puff Print</option>
+            <option>Patches</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mfg-field">
+        <label for="mfg-budget">Budget</label>
+        <input type="text" id="mfg-budget" name="budget" placeholder="Per piece or total, whatever you have in mind">
+      </div>
+
+      <div class="mfg-field">
+        <label for="mfg-logo">Logo &amp; Branding Details</label>
+        <textarea id="mfg-logo" name="logoDetails" placeholder="Your brand name, logo, and where you want it placed"></textarea>
+      </div>
+
+      <div class="mfg-field">
+        <label for="mfg-design">Design References</label>
+        <textarea id="mfg-design" name="designNotes" placeholder="Describe the look you're going for, or reference other pieces"></textarea>
+        <span class="hint">No file upload here yet, once you submit, reply to our confirmation email with any images or tech packs.</span>
+      </div>
+
+      <div class="mfg-field">
+        <label for="mfg-notes">Anything Else</label>
+        <textarea id="mfg-notes" name="additionalNotes"></textarea>
+      </div>
+
+      <button type="submit" class="mfg-submit">Submit Request</button>
+    </form>
+    <iframe name="mfg-target" style="display:none" aria-hidden="true"></iframe>
+    <div class="mfg-confirm" id="mfgConfirm">Request sent. You'll get a quote back directly from us by email.</div>
+  </section>
+
+  <footer id="order">
+    <div class="fmark">Asior</div>
+    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="social">
+      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+      </a>
+    </div>
+    <div class="policy-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="account.html">Account</a>
+    </div>
+  </footer>
+
+<script>
+  const mfgForm = document.getElementById('mfgForm');
+  const mfgConfirm = document.getElementById('mfgConfirm');
+  const compiledBody = document.getElementById('compiledBody');
+
+  function fieldValue(name) {
+    const el = mfgForm.querySelector(`[name="${name}"]`);
+    return el && el.value ? el.value : 'Not specified';
+  }
+
+  function checkedValues(name) {
+    const values = [...mfgForm.querySelectorAll(`[name="${name}"]:checked`)].map(el => el.value);
+    return values.length ? values.join(', ') : 'Not specified';
+  }
+
+  // Compile every answer into one readable message right before the form
+  // actually submits, since Shopify's native contact form only has a
+  // name/email/body field, there's nowhere else for structured answers to
+  // go. Letting the submit continue (no preventDefault) is what actually
+  // sends it to Shopify, same pattern as contact.html.
+  mfgForm.addEventListener('submit', () => {
+    compiledBody.value = [
+      `Brand / Company: ${fieldValue('brand') !== 'Not specified' ? fieldValue('brand') : 'Not specified'}`,
+      `Garment Type: ${checkedValues('garmentType')}`,
+      `Estimated Quantity: ${fieldValue('quantity')}`,
+      `Timeline: ${fieldValue('timeline')}`,
+      `Fabric / Material: ${fieldValue('fabric')}`,
+      `Decoration Method: ${fieldValue('decoration')}`,
+      `Budget: ${fieldValue('budget')}`,
+      `Logo & Branding Details: ${fieldValue('logoDetails')}`,
+      `Design References: ${fieldValue('designNotes')}`,
+      `Anything Else: ${fieldValue('additionalNotes')}`,
+    ].join('\n');
+
+    setTimeout(() => {
+      mfgForm.style.display = 'none';
+      mfgConfirm.classList.add('show');
+    }, 500);
+  });
+</script>
+
+</body>
+</html>
