@@ -193,8 +193,14 @@
     filter: brightness(1.03);
   }
 
-  .product .name {
+  .name-row {
     margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .product .name {
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
@@ -215,17 +221,14 @@
   }
 
   .preorder-tag {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    z-index: 2;
-    background: rgba(11, 10, 8, 0.72);
-    color: var(--ink);
+    flex: none;
+    border: 1px solid var(--muted);
+    color: var(--muted);
     font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 5px 8px;
+    padding: 3px 7px;
     border-radius: 2px;
   }
 
@@ -452,10 +455,12 @@
       <a class="product" href="product.html?id=${p.handle}">
         <div class="product-img">
           ${p.img ? `<img src="${p.img}" alt="Asior ${p.name}">` : ''}
-          ${p.isPreorder ? `<div class="preorder-tag">Preorder</div>` : ''}
           <div class="price-badge">${p.priceLabel}</div>
         </div>
-        <div class="name">${p.name}</div>
+        <div class="name-row">
+          <div class="name">${p.name}</div>
+          ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
+        </div>
       </a>`).join('');
 
     const items = grid.querySelectorAll('.product');
