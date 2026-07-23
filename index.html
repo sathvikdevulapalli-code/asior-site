@@ -491,8 +491,8 @@
         <img src="images/look-01.jpg" alt="Asior Holes Tee">
       </div>
       <div class="signup-content">
-        <div class="rail-label">Early Access &amp; Discounts</div>
-        <p class="signup-line">Sign up for 10% off your first order, plus early access to new drops.</p>
+        <div class="rail-label" id="signupRailLabel">Early Access &amp; Discounts</div>
+        <p class="signup-line" id="signupLine">Sign up for 10% off your first order, plus early access to new drops.</p>
         <!-- Real signup: calls Klaviyo's public Client API directly (no
              widget), same real list your Email & SMS Popup form feeds. -->
         <form class="signup-form-custom" id="signupForm">
@@ -574,6 +574,77 @@
     }
   }
 
+  // Lightweight, honest A/B testing: assign a sticky variant per test name
+  // (localStorage, so a visitor keeps seeing the same version), track real
+  // outcomes via the same Klaviyo Events API the Summer Collection poll
+  // uses. Built as a small reusable pair so the next test (add-to-cart
+  // copy, checkout flow, etc.) doesn't need this rebuilt from scratch.
+  function getVariant(testName) {
+    const key = `asior_ab_${testName}`;
+    let variant = localStorage.getItem(key);
+    if (!variant) {
+      variant = Math.random() < 0.5 ? 'A' : 'B';
+      localStorage.setItem(key, variant);
+    }
+    return variant;
+  }
+
+  function getAnonId() {
+    let id = localStorage.getItem('asior_anon_id');
+    if (!id) {
+      id = 'anon-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      localStorage.setItem('asior_anon_id', id);
+    }
+    return id;
+  }
+
+  async function trackABEvent(testName, variant, eventName) {
+    try {
+      await fetch(`https://a.klaviyo.com/client/events/?company_id=${KLAVIYO_PUBLIC_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'revision': '2024-10-15' },
+        body: JSON.stringify({
+          data: {
+            type: 'event',
+            attributes: {
+              properties: { test: testName, variant },
+              metric: { data: { type: 'metric', attributes: { name: `AB Test: ${eventName}` } } },
+              profile: { data: { type: 'profile', attributes: { anonymous_id: getAnonId() } } },
+            },
+          },
+        }),
+      });
+    } catch (err) {
+      // tracking failures shouldn't block the actual signup flow
+    }
+  }
+
+  // Test 1: does leading with the discount ("10% off") convert better than
+  // leading with exclusivity ("be first")? Same real perks either way, just
+  // different emphasis. Check the "AB Test: Impression" vs "AB Test:
+  // Conversion" events in Klaviyo, filtered by variant, once there's enough
+  // volume to compare.
+  const SIGNUP_CTA_COPY = {
+    A: {
+      label: 'Early Access &amp; Discounts',
+      line: 'Sign up for 10% off your first order, plus early access to new drops.',
+      button: 'Unlock 10% Off',
+    },
+    B: {
+      label: 'Join The List',
+      line: 'Be first. Early access to every drop, plus 10% off when you join.',
+      button: 'Join The List',
+    },
+  };
+
+  const signupTestName = 'homepage_signup_cta';
+  const signupVariant = getVariant(signupTestName);
+  const signupCopy = SIGNUP_CTA_COPY[signupVariant];
+  document.getElementById('signupRailLabel').innerHTML = signupCopy.label;
+  document.getElementById('signupLine').textContent = signupCopy.line;
+  document.getElementById('signupBtn').textContent = signupCopy.button;
+  trackABEvent(signupTestName, signupVariant, 'Impression');
+
   const signupForm = document.getElementById('signupForm');
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -585,6 +656,7 @@
     btn.disabled = true;
     try {
       await klaviyoSubscribe(email, phone);
+      trackABEvent(signupTestName, signupVariant, 'Conversion');
       signupForm.style.display = 'none';
       confirmEl.textContent = "You're in. Check your inbox for your code.";
       confirmEl.classList.add('show');
