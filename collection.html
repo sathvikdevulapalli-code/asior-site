@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>New Arrivals | Asior</title>
+<title>Summer Collection | Asior</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -128,6 +128,30 @@
     color: var(--muted);
   }
 
+  /* ---------- intro ---------- */
+  .teaser-intro {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 0 40px 6vh;
+    text-align: center;
+  }
+
+  .teaser-headline {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.2;
+  }
+
+  .teaser-sub {
+    max-width: 46ch;
+    margin: 18px auto 0;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
   /* ---------- product grid ---------- */
   .shop {
     padding: 0 40px 14vh;
@@ -158,7 +182,7 @@
     background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
   }
 
-  .price-badge {
+  .coming-tag {
     position: absolute;
     right: 10px;
     bottom: 10px;
@@ -168,6 +192,7 @@
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.05em;
+    text-transform: uppercase;
     padding: 5px 8px;
     border-radius: 2px;
   }
@@ -193,6 +218,55 @@
     text-transform: uppercase;
     color: var(--ink);
   }
+
+  /* ---------- poll ---------- */
+  .poll { margin-top: 14px; }
+
+  .poll-question {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .poll-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .poll-btn {
+    flex: 1;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 9px 0;
+    cursor: pointer;
+    transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+  }
+
+  .poll-btn:hover { border-color: var(--ink); }
+
+  .poll-btn.voted {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .poll-btn[disabled] { cursor: not-allowed; }
+  .poll-btn[disabled]:not(.voted) { opacity: 0.4; }
+
+  .poll-thanks {
+    display: none;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .poll.answered .poll-buttons { display: none; }
+  .poll.answered .poll-thanks { display: block; }
 
   /* ---------- footer ---------- */
   footer {
@@ -277,6 +351,7 @@
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
     header nav { gap: 16px; }
+    .teaser-intro { padding: 0 20px 5vh; }
     .shop { padding: 0 20px 10vh; }
     .shop-grid { grid-template-columns: 1fr; gap: 14px; }
   }
@@ -300,7 +375,7 @@
     <a class="mark" href="index.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
-      <a href="collection.html">New Arrivals</a>
+      <a href="collection.html">Summer Collection</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
@@ -310,27 +385,81 @@
 
   <div class="page-top-space"></div>
 
-  <!-- These 4 pieces are the new drop, same set appears at the top of
-       Shop All. -->
-  <section class="shop" id="new-arrivals">
-    <div class="rail-label">New Arrivals</div>
-    <div class="shop-grid">
-      <a class="product" href="product.html?id=tee">
-        <div class="product-img"><img src="images/look-01.jpg" alt="Asior Holes Tee"><div class="price-badge">$38.99</div></div>
+  <section class="teaser-intro">
+    <div class="rail-label">Summer Collection</div>
+    <h1 class="teaser-headline">Coming this summer.</h1>
+    <p class="teaser-sub">A first look at the next drop, nothing's live yet. Vote on each piece, it genuinely helps us decide what to make more of before we order it.</p>
+  </section>
+
+  <!-- These 4 pieces exist in Shopify but are intentionally kept Draft
+       until the drop is ready, which means the Storefront API can't see
+       them at all (that's how Draft works, not a bug). So this page is
+       the one deliberately static exception on the site: real photos,
+       but no live price/stock data behind it. Once the drop goes live,
+       Sathvik switches these products to Active and this page gets
+       rebuilt to pull them in live like everything else. -->
+  <section class="shop">
+    <div class="shop-grid" id="teaserGrid">
+      <div class="product" data-product="Holes Tee">
+        <div class="product-img">
+          <img src="images/look-01.jpg" alt="Asior Holes Tee">
+          <div class="coming-tag">Coming Soon</div>
+        </div>
         <div class="name">Holes Tee</div>
-      </a>
-      <a class="product" href="product.html?id=polo">
-        <div class="product-img"><img src="images/shop-polo.jpg" alt="Asior Scripture Polo"><div class="price-badge">$40.99</div></div>
+        <div class="poll" data-product="Holes Tee">
+          <div class="poll-question">Would you buy this?</div>
+          <div class="poll-buttons">
+            <button type="button" class="poll-btn" data-vote="yes">Yes</button>
+            <button type="button" class="poll-btn" data-vote="no">No</button>
+          </div>
+          <div class="poll-thanks">Thanks, noted.</div>
+        </div>
+      </div>
+      <div class="product" data-product="Scripture Polo">
+        <div class="product-img">
+          <img src="images/shop-polo.jpg" alt="Asior Scripture Polo">
+          <div class="coming-tag">Coming Soon</div>
+        </div>
         <div class="name">Scripture Polo</div>
-      </a>
-      <a class="product" href="product.html?id=shorts-oatmeal">
-        <div class="product-img"><img src="images/look-06.jpg" alt="Asior JAG Shorts"><div class="price-badge">$35.99</div></div>
+        <div class="poll" data-product="Scripture Polo">
+          <div class="poll-question">Would you buy this?</div>
+          <div class="poll-buttons">
+            <button type="button" class="poll-btn" data-vote="yes">Yes</button>
+            <button type="button" class="poll-btn" data-vote="no">No</button>
+          </div>
+          <div class="poll-thanks">Thanks, noted.</div>
+        </div>
+      </div>
+      <div class="product" data-product="JAG Shorts">
+        <div class="product-img">
+          <img src="images/look-06.jpg" alt="Asior JAG Shorts">
+          <div class="coming-tag">Coming Soon</div>
+        </div>
         <div class="name">JAG Shorts</div>
-      </a>
-      <a class="product" href="product.html?id=shorts-black">
-        <div class="product-img"><img src="images/shop-shorts-black.jpg" alt="Asior ASR Shorts"><div class="price-badge">$35.99</div></div>
+        <div class="poll" data-product="JAG Shorts">
+          <div class="poll-question">Would you buy this?</div>
+          <div class="poll-buttons">
+            <button type="button" class="poll-btn" data-vote="yes">Yes</button>
+            <button type="button" class="poll-btn" data-vote="no">No</button>
+          </div>
+          <div class="poll-thanks">Thanks, noted.</div>
+        </div>
+      </div>
+      <div class="product" data-product="ASR Shorts">
+        <div class="product-img">
+          <img src="images/shop-shorts-black.jpg" alt="Asior ASR Shorts">
+          <div class="coming-tag">Coming Soon</div>
+        </div>
         <div class="name">ASR Shorts</div>
-      </a>
+        <div class="poll" data-product="ASR Shorts">
+          <div class="poll-question">Would you buy this?</div>
+          <div class="poll-buttons">
+            <button type="button" class="poll-btn" data-vote="yes">Yes</button>
+            <button type="button" class="poll-btn" data-vote="no">No</button>
+          </div>
+          <div class="poll-thanks">Thanks, noted.</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -363,6 +492,66 @@
     });
   }, { threshold: 0.2 });
   products.forEach(p => observer.observe(p));
+
+  // Real poll, real aggregate data: each vote is a genuine Klaviyo event
+  // (public Client API, same one the signup forms use), viewable in
+  // Klaviyo's dashboard under the "Drop Feedback" metric. Not a fake
+  // localStorage counter pretending to speak for everyone, localStorage
+  // here only remembers that *this* browser already voted so it can't
+  // double-submit on a refresh.
+  const KLAVIYO_PUBLIC_KEY = 'QV7rBB';
+
+  function getAnonId() {
+    let id = localStorage.getItem('asior_anon_id');
+    if (!id) {
+      id = 'anon-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      localStorage.setItem('asior_anon_id', id);
+    }
+    return id;
+  }
+
+  async function sendPollVote(productName, vote) {
+    await fetch(`https://a.klaviyo.com/client/events/?company_id=${KLAVIYO_PUBLIC_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'revision': '2024-10-15' },
+      body: JSON.stringify({
+        data: {
+          type: 'event',
+          attributes: {
+            properties: { product: productName, vote },
+            metric: { data: { type: 'metric', attributes: { name: 'Drop Feedback' } } },
+            profile: { data: { type: 'profile', attributes: { anonymous_id: getAnonId() } } },
+          },
+        },
+      }),
+    });
+  }
+
+  const votedKey = (name) => `asior_voted_${name}`;
+
+  document.querySelectorAll('.poll').forEach(poll => {
+    const productName = poll.dataset.product;
+    const already = localStorage.getItem(votedKey(productName));
+    if (already) {
+      poll.classList.add('answered');
+      poll.querySelector('.poll-thanks').textContent = 'Thanks, already counted your vote.';
+    }
+
+    poll.querySelectorAll('.poll-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        poll.querySelectorAll('.poll-btn').forEach(b => b.disabled = true);
+        btn.classList.add('voted');
+        try {
+          await sendPollVote(productName, btn.dataset.vote);
+          localStorage.setItem(votedKey(productName), btn.dataset.vote);
+          poll.classList.add('answered');
+        } catch (err) {
+          poll.querySelectorAll('.poll-btn').forEach(b => b.disabled = false);
+          btn.classList.remove('voted');
+        }
+      });
+    });
+  });
 </script>
 
 </body>

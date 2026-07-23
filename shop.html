@@ -214,6 +214,30 @@
     padding-top: 24px;
   }
 
+  .preorder-tag {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 2;
+    background: rgba(11, 10, 8, 0.72);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 8px;
+    border-radius: 2px;
+  }
+
+  .shop-empty {
+    display: none;
+    padding: 6vh 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .shop-empty.show { display: block; }
+
   /* ---------- footer ---------- */
   footer {
     border-top: 1px solid var(--line);
@@ -320,7 +344,7 @@
     <a class="mark" href="index.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
-      <a href="collection.html">New Arrivals</a>
+      <a href="collection.html">Summer Collection</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
@@ -330,50 +354,13 @@
 
   <div class="page-top-space"></div>
 
-  <!-- Everything on asiorclothing.com, new arrivals first. -->
+  <!-- Every Active product in the real Shopify catalog, fetched live on
+       load. Add, remove, or change something in Shopify Admin and this
+       page reflects it automatically, nothing here is hardcoded. -->
   <section class="shop" id="shop">
     <div class="rail-label">Shop All</div>
-    <div class="shop-grid">
-      <a class="product" href="product.html?id=tee">
-        <div class="product-img"><img src="images/look-01.jpg" alt="Asior Holes Tee"><div class="price-badge">$38.99</div></div>
-        <div class="name">Holes Tee</div>
-      </a>
-      <a class="product" href="product.html?id=polo">
-        <div class="product-img"><img src="images/shop-polo.jpg" alt="Asior Scripture Polo"><div class="price-badge">$40.99</div></div>
-        <div class="name">Scripture Polo</div>
-      </a>
-      <a class="product" href="product.html?id=shorts-oatmeal">
-        <div class="product-img"><img src="images/look-06.jpg" alt="Asior JAG Shorts"><div class="price-badge">$35.99</div></div>
-        <div class="name">JAG Shorts</div>
-      </a>
-      <a class="product" href="product.html?id=shorts-black">
-        <div class="product-img"><img src="images/shop-shorts-black.jpg" alt="Asior ASR Shorts"><div class="price-badge">$35.99</div></div>
-        <div class="name">ASR Shorts</div>
-      </a>
-
-      <div class="divider-label">More from the catalog</div>
-
-      <a class="product" href="product.html?id=jayu-blossom-tee">
-        <div class="product-img"><img src="images/shop-jayu-blossom.jpg" alt="Asior Ja-yu Blossom Tee"><div class="price-badge"><span class="compare">$40</span>$30</div></div>
-        <div class="name">Ja-yu Blossom Tee</div>
-      </a>
-      <a class="product" href="product.html?id=jag-crewneck">
-        <div class="product-img"><img src="images/shop-jag-crewneck.png" alt="Asior JAG Crewneck"><div class="price-badge">$45</div></div>
-        <div class="name">JAG Crewneck</div>
-      </a>
-      <a class="product" href="product.html?id=jag-set">
-        <div class="product-img"><img src="images/shop-jag-set.png" alt="Asior JAG Set"><div class="price-badge">From $80</div></div>
-        <div class="name">JAG Set</div>
-      </a>
-      <a class="product" href="product.html?id=jag-sweats">
-        <div class="product-img"><img src="images/shop-jag-sweats.jpg" alt="Asior JAG Sweats"><div class="price-badge">$45</div></div>
-        <div class="name">JAG Sweats</div>
-      </a>
-      <a class="product" href="product.html?id=kova-lotus-tee">
-        <div class="product-img"><img src="images/shop-kova-lotus.jpg" alt="Asior Kova Eternal Lotus Tee"><div class="price-badge"><span class="compare">$40</span>$30</div></div>
-        <div class="name">Kova Eternal Lotus Tee</div>
-      </a>
-    </div>
+    <div class="shop-grid" id="shopGrid"></div>
+    <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
   </section>
 
   <footer id="order">
@@ -395,16 +382,101 @@
   </footer>
 
 <script>
-  const products = document.querySelectorAll('.product');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('in'), (i % 4) * 100);
-        observer.unobserve(entry.target);
-      }
+  const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
+  const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
+  const SHOPIFY_API_VERSION = '2024-10';
+
+  async function shopifyFetch(query, variables = {}) {
+    const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({ query, variables }),
     });
-  }, { threshold: 0.2 });
-  products.forEach(p => observer.observe(p));
+    const json = await res.json();
+    if (json.errors) throw new Error(json.errors.map(e => e.message).join(', '));
+    return json.data;
+  }
+
+  // Real, live catalog, same as product.html. Whatever's Active in
+  // Shopify shows here; Draft products are absent from the response
+  // entirely, so they just don't appear rather than erroring.
+  async function fetchCatalog() {
+    const data = await shopifyFetch(`{
+      products(first: 50) {
+        edges {
+          node {
+            title
+            handle
+            featuredImage { url }
+            variants(first: 20) {
+              edges { node { price { amount } compareAtPrice { amount } } }
+            }
+          }
+        }
+      }
+    }`);
+    return data.products.edges.map(e => {
+      const node = e.node;
+      const prices = node.variants.edges.map(v => parseFloat(v.node.price.amount));
+      const compares = node.variants.edges
+        .map(v => v.node.compareAtPrice ? parseFloat(v.node.compareAtPrice.amount) : null)
+        .filter(Boolean);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+      return {
+        handle: node.handle,
+        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+        img: node.featuredImage ? node.featuredImage.url : null,
+        isPreorder: /\[preorder\]/i.test(node.title),
+        priceLabel: minPrice === maxPrice
+          ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
+          : `From $${minPrice}`,
+      };
+    });
+  }
+
+  function renderGrid(catalog) {
+    const grid = document.getElementById('shopGrid');
+    const empty = document.getElementById('shopEmpty');
+
+    if (catalog.length === 0) {
+      empty.classList.add('show');
+      return;
+    }
+
+    grid.innerHTML = catalog.map(p => `
+      <a class="product" href="product.html?id=${p.handle}">
+        <div class="product-img">
+          ${p.img ? `<img src="${p.img}" alt="Asior ${p.name}">` : ''}
+          ${p.isPreorder ? `<div class="preorder-tag">Preorder</div>` : ''}
+          <div class="price-badge">${p.priceLabel}</div>
+        </div>
+        <div class="name">${p.name}</div>
+      </a>`).join('');
+
+    const items = grid.querySelectorAll('.product');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('in'), (i % 4) * 100);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    items.forEach(p => observer.observe(p));
+  }
+
+  fetchCatalog()
+    .then(renderGrid)
+    .catch(() => {
+      // fail open and honest, no fake stock left standing
+      document.getElementById('shopEmpty').textContent = "Couldn't load the shop right now, try refreshing.";
+      document.getElementById('shopEmpty').classList.add('show');
+    });
 </script>
 
 </body>

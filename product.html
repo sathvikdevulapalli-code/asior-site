@@ -157,6 +157,19 @@
 
   .pd-info { padding-top: 8px; }
 
+  .pd-preorder-badge {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 4px 9px;
+    border: 1px solid var(--muted);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   .pd-name {
     font-family: var(--font-display);
     font-size: clamp(1.6rem, 3vw, 2.2rem);
@@ -561,7 +574,7 @@
     <a class="mark" href="index.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
-      <a href="collection.html">New Arrivals</a>
+      <a href="collection.html">Summer Collection</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
@@ -594,35 +607,17 @@
 
 <script>
   // ---------------------------------------------------------------
-  // Shopify Storefront API: fill in SHOPIFY_STOREFRONT_TOKEN to go live.
-  //   1. Shopify Admin -> Settings -> Apps and sales channels -> Develop apps
-  //   2. Create an app -> Configuration -> Storefront API -> enable it,
-  //      check the product read + cart read/write scopes -> Save -> Install
-  //   3. API credentials tab -> copy the "Storefront API access token"
-  //   4. Paste it below. Domain is already filled in (confirmed via the
-  //      asiorclothing.com/admin -> myshopify.com redirect).
-  // Until a token is set, everything falls back to the local-only cart
-  // below so the site keeps working exactly as it does right now.
+  // Shopify Storefront API. Everything on this page (name, price, images,
+  // sizes, stock, description) is fetched live from the real catalog on
+  // every page load, nothing is hardcoded. Add a product in Shopify Admin
+  // and it works here automatically; set one to Draft and it disappears
+  // cleanly (shows the "not in the catalog" state) instead of erroring,
+  // since Draft products are simply absent from this query entirely.
   // ---------------------------------------------------------------
   const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
   const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
   const SHOPIFY_API_VERSION = '2024-10';
   const SHOPIFY_LIVE = Boolean(SHOPIFY_STOREFRONT_TOKEN);
-
-  // Checks every variant of the current product in one request so stock
-  // always reflects real Shopify inventory instead of a hardcoded flag that
-  // would go stale the moment something sells or restocks. If the request
-  // fails we leave availability as initially rendered (fail open) rather
-  // than falsely claiming something is sold out.
-  async function checkAvailabilityBatch(variantIds) {
-    const data = await shopifyFetch(
-      `query($ids: [ID!]!) { nodes(ids: $ids) { ... on ProductVariant { id availableForSale } } }`,
-      { ids: variantIds }
-    );
-    const map = {};
-    data.nodes.forEach(n => { if (n) map[n.id] = n.availableForSale; });
-    return map;
-  }
 
   async function shopifyFetch(query, variables = {}) {
     const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
@@ -666,122 +661,93 @@
   }
   // ---------------------------------------------------------------
 
-  // Real product data pulled live from the Storefront API on 2026-07-19.
-  // Every variant below (size, and color+size for Ja-yu) is a real Shopify
-  // variant ID with its own real price/compare-at/availability, nothing
-  // here is a guess. Single-variant products (the 4 new-arrival pieces)
-  // just have one entry in `variants` with an empty `options` object.
-  //
-  // Flagged, not silently fixed:
-  //  - JAG Crewneck / JAG Sweats have a compare-at price ($30) LOWER than
-  //    the real price ($45) on every size, backwards from normal sale
-  //    pricing, so no strikethrough is shown for these two until that's
-  //    confirmed/fixed in Shopify Admin.
-  //  - Holes Tee's price is still $0/unset in Shopify itself; showing the
-  //    real $38.99 price here per Sathvik, but Shopify Admin still needs
-  //    updating so checkout charges the right amount.
-  const PRODUCTS = {
-    'tee': {
-      name: 'Holes Tee', img: 'images/look-01.jpg', category: 'tops',
-      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48933139874009', price: 38.99 }],
-    },
-    'polo': {
-      name: 'Scripture Polo', img: 'images/shop-polo.jpg', category: 'tops',
-      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48948385579225', price: 40.99 }],
-    },
-    'shorts-oatmeal': {
-      name: 'JAG Shorts', img: 'images/look-06.jpg', category: 'bottoms',
-      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48948477788377', price: 35.99 }],
-    },
-    'shorts-black': {
-      name: 'ASR Shorts', img: 'images/shop-shorts-black.jpg', category: 'bottoms',
-      variants: [{ options: {}, variantId: 'gid://shopify/ProductVariant/48948470579417', price: 35.99 }],
-    },
-    'jayu-blossom-tee': {
-      name: 'Ja-yu Blossom Tee', img: 'images/shop-jayu-blossom.jpg', category: 'tops',
-      description: ['100% Cotton', 'High Quality', 'Fast Shipping', '290+ GSM Heavy-Weight Garment'],
-      optionNames: ['Color', 'Size'],
-      variants: [
-        { options: { Color: 'Black', Size: 'S' }, variantId: 'gid://shopify/ProductVariant/46711966236889', price: 30, comparePrice: 40 },
-        { options: { Color: 'Black', Size: 'M' }, variantId: 'gid://shopify/ProductVariant/46711966269657', price: 30, comparePrice: 40 },
-        { options: { Color: 'Black', Size: 'L' }, variantId: 'gid://shopify/ProductVariant/46711966302425', price: 30, comparePrice: 40 },
-        { options: { Color: 'White', Size: 'S' }, variantId: 'gid://shopify/ProductVariant/46711966335193', price: 30, comparePrice: 40 },
-        { options: { Color: 'White', Size: 'M' }, variantId: 'gid://shopify/ProductVariant/46711966367961', price: 30, comparePrice: 40 },
-        { options: { Color: 'White', Size: 'L' }, variantId: 'gid://shopify/ProductVariant/46711966400729', price: 30, comparePrice: 40 },
-      ],
-    },
-    'jag-crewneck': {
-      name: 'JAG Crewneck', img: 'images/shop-jag-crewneck.png', category: 'tops',
-      description: [
-        'Heavyweight crewneck with a soft fleece interior for a comfortable, warm feel without being too bulky. Holds its shape well and doesn’t feel thin or cheap.',
-        'Relaxed fit through the body with slightly dropped shoulders for a clean, modern look. Ribbed cuffs and waistband keep it structured without feeling tight.',
-        'High quality jaguar chenille embroidery that won’t get damaged after washing. Fits true to size. Size up for a more oversized fit.',
-      ],
-      optionNames: ['Size'],
-      variants: [
-        { options: { Size: 'XS' }, variantId: 'gid://shopify/ProductVariant/48484204282073', price: 45 },
-        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/48484204183769', price: 45 },
-        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/48484204216537', price: 45 },
-        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/48484204249305', price: 45 },
-      ],
-    },
-    'jag-set': {
-      name: 'JAG Set', img: 'images/shop-jag-set.png', category: 'sets',
-      optionNames: ['Size'],
-      variants: [
-        { options: { Size: 'XS' }, variantId: 'gid://shopify/ProductVariant/48485378556121', price: 80, comparePrice: 90 },
-        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/48485378588889', price: 90 },
-        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/48485378621657', price: 90 },
-        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/48485378654425', price: 90 },
-      ],
-    },
-    'jag-sweats': {
-      name: 'JAG Sweats', img: 'images/shop-jag-sweats.jpg', category: 'bottoms',
-      description: [
-        'Heavyweight sweats with a soft, brushed interior for all-day comfort. The fabric is thick enough to hold its shape but still breathable, so you can wear them year-round.',
-        'Relaxed fit with a slight taper at the ankle for a clean look: not too baggy, not too tight. Elastic waistband with adjustable drawstrings for a secure fit.',
-        'Deep pockets that actually hold your phone and essentials without sagging.',
-      ],
-      optionNames: ['Size'],
-      variants: [
-        { options: { Size: 'XS' }, variantId: 'gid://shopify/ProductVariant/48484204118233', price: 45 },
-        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/48484204052697', price: 45 },
-        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/48484204085465', price: 45 },
-        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/48484204019929', price: 45 },
-      ],
-    },
-    'kova-lotus-tee': {
-      name: 'Kova Eternal Lotus Tee', img: 'images/shop-kova-lotus.jpg', category: 'tops',
-      description: ['100% Cotton', '250+ GSM', 'Standard unisex fit', 'Front: "KOVA" wordmark', 'Back: large lotus illustration + "UNFORGETTABLE" typography', 'Kova tag detail on hem'],
-      optionNames: ['Size'],
-      variants: [
-        { options: { Size: 'S' }, variantId: 'gid://shopify/ProductVariant/46711576035545', price: 30, comparePrice: 40 },
-        { options: { Size: 'M' }, variantId: 'gid://shopify/ProductVariant/46711601823961', price: 30, comparePrice: 40 },
-        { options: { Size: 'L' }, variantId: 'gid://shopify/ProductVariant/46711601856729', price: 30, comparePrice: 40 },
-      ],
-    },
-  };
+  // Fetch the whole live, Active catalog once per page load. Draft
+  // products are simply absent from this response, that's how Shopify's
+  // Storefront API works, so a product going Draft just makes it vanish
+  // cleanly from every part of the site that reads from this list, no
+  // special-casing needed and nothing to break.
+  async function fetchCatalog() {
+    const data = await shopifyFetch(`{
+      products(first: 50) {
+        edges {
+          node {
+            title
+            handle
+            descriptionHtml
+            featuredImage { url }
+            options { name values }
+            variants(first: 20) {
+              edges {
+                node {
+                  id
+                  availableForSale
+                  price { amount }
+                  compareAtPrice { amount }
+                  selectedOptions { name value }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`);
+    return data.products.edges.map(e => normalizeProduct(e.node));
+  }
 
-  const CATEGORY_LABELS = { tops: 'Tops', bottoms: 'Bottoms', sets: 'Sets' };
+  function descriptionFromHtml(html) {
+    if (!html) return null;
+    const paragraphs = html
+      .split(/<\/p>|<br\s*\/?>/i)
+      .map(p => p.replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean);
+    return paragraphs.length ? paragraphs : null;
+  }
 
-  const id = new URLSearchParams(location.search).get('id');
-  const product = PRODUCTS[id];
+  function normalizeProduct(node) {
+    const optionNames = node.options.map(o => o.name).filter(n => n !== 'Title');
+    const variants = node.variants.edges.map(e => {
+      const v = e.node;
+      const options = {};
+      v.selectedOptions.forEach(so => { if (so.name !== 'Title') options[so.name] = so.value; });
+      return {
+        options,
+        variantId: v.id,
+        price: parseFloat(v.price.amount),
+        comparePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null,
+        available: v.availableForSale,
+      };
+    });
+    const isPreorder = /\[preorder\]/i.test(node.title);
+    return {
+      handle: node.handle,
+      name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+      img: node.featuredImage ? node.featuredImage.url : null,
+      description: descriptionFromHtml(node.descriptionHtml),
+      optionNames,
+      variants,
+      isPreorder,
+    };
+  }
+
+  const CATALOG_ROOT_ID = new URLSearchParams(location.search).get('id');
   const root = document.getElementById('pd-root');
+  const relRoot = document.getElementById('rel-root');
 
-  if (!product) {
-    root.innerHTML = `
-      <div class="not-found">
-        <div>That piece isn't in the catalog.</div>
-        <a href="shop.html">Back to Shop All</a>
-      </div>`;
-  } else {
+  fetchCatalog().then(catalog => {
+    const product = catalog.find(p => p.handle === CATALOG_ROOT_ID);
+
+    if (!product) {
+      root.innerHTML = `
+        <div class="not-found">
+          <div>That piece isn't in the catalog.</div>
+          <a href="shop.html">Back to Shop All</a>
+        </div>`;
+      return;
+    }
+
     document.title = product.name + ' | Asior';
 
-    const hasOptions = Array.isArray(product.optionNames) && product.optionNames.length > 0;
-    // every variant starts "available" (optimistic) until the live batch
-    // check below resolves, matching the fail-open philosophy elsewhere
-    // on this page: never claim sold out without a real, current answer.
-    product.variants.forEach(v => { v.available = true; });
+    const hasOptions = product.optionNames.length > 0;
 
     function findVariant(selection) {
       return product.variants.find(v =>
@@ -789,8 +755,6 @@
       );
     }
 
-    // default selection = first in-stock variant, or just the first
-    // variant if literally everything is sold out
     const defaultVariant = product.variants.find(v => v.available) || product.variants[0];
     const selection = hasOptions ? { ...defaultVariant.options } : {};
 
@@ -798,11 +762,6 @@
       ? `<img src="${product.img}" alt="${product.name}">`
       : `<div class="ph"><span>Image coming soon</span></div>`;
 
-    // Real shipping/return terms as of 2026-07-20, confirmed with Sathvik:
-    // USPS, 1-2 business day processing, US-only for now. The 14-day
-    // return/exchange window and who covers return shipping is a policy
-    // he asked me to propose on the business's behalf, not a pre-existing
-    // fact, flagged as such when this was reported back to him.
     const shipHTML = `
       <details class="pd-ship">
         <summary>Shipping &amp; Returns</summary>
@@ -828,6 +787,7 @@
       <div class="pd">
         <div class="pd-media">${media}</div>
         <div class="pd-info">
+          ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
           <h1 class="pd-name">${product.name}</h1>
           <div class="pd-price" id="pdPrice"></div>
           <div class="pd-buy" id="pdBuy">
@@ -838,15 +798,15 @@
               <button type="button" id="qtyUp">+</button>
             </div>
             <div class="pd-actions">
-              <button class="pd-add" id="addBtn">Add to Cart</button>
+              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
               <div class="pd-confirm" id="addConfirm">Added, <a href="cart.html">view cart</a></div>
             </div>
             <p class="pd-stock-note" id="pdStockNote"></p>
           </div>
           <p class="pd-note" id="pdNote">${
-            SHOPIFY_LIVE
-              ? 'Ships in 1-2 business days via USPS. No account needed at checkout.'
-              : "Checkout isn't connected yet, this site will link to Shopify checkout directly once that's set up."
+            product.isPreorder
+              ? "You'll be charged now and it ships as soon as this drop is ready. Ships in 1-2 business days via USPS after that."
+              : 'Ships in 1-2 business days via USPS. No account needed at checkout.'
           }</p>
           ${descHTML}
         </div>
@@ -859,11 +819,8 @@
     function renderPrice() {
       const v = currentVariant();
       const priceEl = document.getElementById('pdPrice');
-      if (v.priceUnset) {
-        priceEl.textContent = 'Price coming soon';
-      } else {
-        priceEl.innerHTML = `${v.comparePrice ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
-      }
+      if (!v) { priceEl.textContent = 'Price coming soon'; return; }
+      priceEl.innerHTML = `${v.comparePrice && v.comparePrice > v.price ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
     }
 
     function renderSizes() {
@@ -898,7 +855,7 @@
         btn.textContent = 'Sold Out';
         btn.disabled = true;
       } else {
-        btn.textContent = 'Add to Cart';
+        btn.textContent = product.isPreorder ? 'Preorder' : 'Add to Cart';
         btn.disabled = false;
       }
     }
@@ -906,6 +863,7 @@
     renderPrice();
     renderSizes();
     renderAddButton();
+    renderStockNote();
 
     let qty = 1;
     const qtyVal = document.getElementById('qtyVal');
@@ -924,48 +882,17 @@
       const btn = document.getElementById('addBtn');
       const confirmEl = document.getElementById('addConfirm');
 
-      if (SHOPIFY_LIVE) {
-        btn.disabled = true;
-        try {
-          await addToShopifyCart(v.variantId, qty);
-          confirmEl.innerHTML = 'Added to cart. <a href="cart.html">View cart</a>';
-          confirmEl.classList.add('show');
-        } catch (err) {
-          confirmEl.textContent = 'Something went wrong adding that. Try again.';
-          confirmEl.classList.add('show');
-        }
-        btn.disabled = false;
-        return;
+      btn.disabled = true;
+      try {
+        await addToShopifyCart(v.variantId, qty);
+        confirmEl.innerHTML = 'Added to cart. <a href="cart.html">View cart</a>';
+        confirmEl.classList.add('show');
+      } catch (err) {
+        confirmEl.textContent = 'Something went wrong adding that. Try again.';
+        confirmEl.classList.add('show');
       }
-
-      // Local fallback: no live Shopify connection yet.
-      const cart = JSON.parse(localStorage.getItem('asior_cart') || '[]');
-      const lineId = hasOptions ? `${id}:${v.variantId}` : id;
-      const existing = cart.find(item => item.id === lineId);
-      if (existing) existing.qty += qty;
-      else cart.push({ id: lineId, qty });
-      localStorage.setItem('asior_cart', JSON.stringify(cart));
-      confirmEl.innerHTML = 'Added to cart. <a href="cart.html">View cart</a>';
-      confirmEl.classList.add('show');
+      btn.disabled = false;
     });
-
-    // Live stock check: one batched request covering every variant of
-    // this product, so "Sold Out" always reflects current Shopify
-    // inventory instead of a hardcoded flag that would go stale the
-    // moment stock changes.
-    if (SHOPIFY_LIVE) {
-      checkAvailabilityBatch(product.variants.map(v => v.variantId)).then(map => {
-        product.variants.forEach(v => {
-          if (v.variantId in map) v.available = map[v.variantId];
-        });
-        renderSizes();
-        renderAddButton();
-        renderStockNote();
-      }).catch(() => {
-        // if the availability check itself fails, leave availability as
-        // initially rendered rather than falsely claiming sold out
-      });
-    }
 
     // Honest, real-inventory urgency: only fires when genuinely true (2 or
     // fewer sizes actually left in stock), never a made-up countdown.
@@ -984,44 +911,30 @@
 
     // ---------------------------------------------------------------
     // Personalization: real browsing history only, nothing fabricated.
-    // "You Might Also Like" is a rule-based same-category match, framed
-    // around whatever category this visitor has actually been looking at
-    // most (from real localStorage history) when there's enough signal
-    // to say so. "Recently Viewed" is literally the products this browser
-    // has looked at, read back from localStorage. No fake urgency, no
-    // invented activity, no numbers we can't back up.
+    // "Recently Viewed" is literally the products this browser has looked
+    // at, read back from localStorage. "You Might Also Like" is the rest
+    // of the live catalog. No fake urgency, no invented activity.
     // ---------------------------------------------------------------
-    function renderTiles(ids) {
-      return ids.map(pid => {
-        const p = PRODUCTS[pid];
+    function renderTiles(products) {
+      return products.map(p => {
         const media = p.img ? `<img src="${p.img}" alt="${p.name}">` : `<div class="ph"></div>`;
-        return `<a class="rel-item" href="product.html?id=${pid}">${media}<div class="rel-name">${p.name}</div></a>`;
+        return `<a class="rel-item" href="product.html?id=${p.handle}">${media}<div class="rel-name">${p.name}</div></a>`;
       }).join('');
     }
 
-    const relRoot = document.getElementById('rel-root');
     let relHTML = '';
 
-    const priorViews = JSON.parse(localStorage.getItem('asior_viewed') || '[]').filter(pid => PRODUCTS[pid]);
+    const priorViews = JSON.parse(localStorage.getItem('asior_viewed') || '[]')
+      .filter(handle => handle !== product.handle)
+      .map(handle => catalog.find(p => p.handle === handle))
+      .filter(Boolean);
 
-    const related = Object.keys(PRODUCTS)
-      .filter(pid => pid !== id && PRODUCTS[pid].category === product.category)
-      .slice(0, 4);
+    const related = catalog.filter(p => p.handle !== product.handle).slice(0, 4);
 
     if (related.length > 0) {
-      // Personalize the label using this visitor's real browsing history,
-      // most specific signal first: a single recent view gets called out
-      // by name, a pattern across several views gets the category framed
-      // back to them. Falls back to a plain label with no history at all.
-      // Still just describing what actually happened, nothing invented.
-      const lastViewed = priorViews.find(pid => pid !== id);
-      const sameCategoryViews = priorViews.filter(pid => PRODUCTS[pid].category === product.category).length;
-      let relLabel = 'You Might Also Like';
-      if (priorViews.length === 1 && lastViewed) {
-        relLabel = `Since You Looked At ${PRODUCTS[lastViewed].name}`;
-      } else if (priorViews.length >= 2 && sameCategoryViews / priorViews.length > 0.5) {
-        relLabel = `More ${CATEGORY_LABELS[product.category] || ''}, Picked For You`;
-      }
+      const relLabel = priorViews.length === 1
+        ? `Since You Looked At ${priorViews[0].name}`
+        : 'You Might Also Like';
       relHTML += `
         <section class="rel-section">
           <div class="rel-label">${relLabel}</div>
@@ -1029,38 +942,29 @@
         </section>`;
     }
 
-    // Complete the Fit: an honest cross-category pairing (tops paired with
-    // bottoms and vice versa) so a visitor looking at one piece sees how
-    // it could actually be worn, not just more of the same category.
-    const pairCategory = product.category === 'bottoms' ? 'tops' : product.category === 'tops' ? 'bottoms' : null;
-    const pairs = pairCategory
-      ? Object.keys(PRODUCTS).filter(pid => pid !== id && PRODUCTS[pid].category === pairCategory).slice(0, 4)
-      : [];
-
-    if (pairs.length > 0) {
-      relHTML += `
-        <section class="rel-section">
-          <div class="rel-label">Complete The Fit</div>
-          <div class="rel-grid">${renderTiles(pairs)}</div>
-        </section>`;
-    }
-
-    const viewed = priorViews.filter(pid => pid !== id).slice(0, 4);
-
-    if (viewed.length > 0) {
+    if (priorViews.length > 0) {
       relHTML += `
         <section class="rel-section">
           <div class="rel-label">Recently Viewed</div>
-          <div class="rel-grid">${renderTiles(viewed)}</div>
+          <div class="rel-grid">${renderTiles(priorViews.slice(0, 4))}</div>
         </section>`;
     }
 
     relRoot.innerHTML = relHTML;
 
     // record this view for next time (most-recent-first, deduped, capped)
-    const history = [id, ...priorViews.filter(pid => pid !== id)].slice(0, 8);
+    const history = [product.handle, ...JSON.parse(localStorage.getItem('asior_viewed') || '[]').filter(h => h !== product.handle)].slice(0, 8);
     localStorage.setItem('asior_viewed', JSON.stringify(history));
-  }
+  }).catch(() => {
+    // Fail open, honestly: if the live fetch itself fails (network,
+    // Shopify hiccup), say so instead of pretending the product doesn't
+    // exist or leaving a blank page.
+    root.innerHTML = `
+      <div class="not-found">
+        <div>Couldn't load this product right now. Try refreshing.</div>
+        <a href="shop.html">Back to Shop All</a>
+      </div>`;
+  });
 </script>
 
 </body>
