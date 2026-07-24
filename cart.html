@@ -452,7 +452,6 @@
   const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
   const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
   const SHOPIFY_API_VERSION = '2024-10';
-  const SHOPIFY_LIVE = Boolean(SHOPIFY_STOREFRONT_TOKEN);
 
   // Klaviyo public Client API, no widget, no private key. Same two real
   // lists the Email & SMS Popup form (UxDQrj) already feeds: email opt-in
@@ -635,107 +634,13 @@
     bindCartSignupForm();
   }
 
-  // Same corrected real data as product.html, kept in sync manually
-  // since there's no shared module in a no-build static site. This only
-  // matters for the local-fallback cart; the live cart (renderLive below)
-  // reads names/prices/images straight from Shopify's own cart object
-  // instead, so it's self-correcting regardless of what's listed here.
-  const PRODUCTS = {
-    'tee': { name: 'Holes Tee', img: 'images/look-01.jpg', price: 38.99 },
-    'polo': { name: 'Scripture Polo', img: 'images/shop-polo.jpg', price: 40.99 },
-    'shorts-oatmeal': { name: 'JAG Shorts', img: 'images/look-06.jpg', price: 35.99 },
-    'shorts-black': { name: 'ASR Shorts', img: 'images/shop-shorts-black.jpg', price: 35.99 },
-    'jayu-blossom-tee': { name: 'Ja-yu Blossom Tee', img: 'images/shop-jayu-blossom.jpg', price: 30, comparePrice: 40 },
-    'jag-crewneck': { name: 'JAG Crewneck', img: 'images/shop-jag-crewneck.png', price: 45 },
-    'jag-set': { name: 'JAG Set', img: 'images/shop-jag-set.png', price: 80, comparePrice: 90 },
-    'jag-sweats': { name: 'JAG Sweats', img: 'images/shop-jag-sweats.jpg', price: 45 },
-    'kova-lotus-tee': { name: 'Kova Eternal Lotus Tee', img: 'images/shop-kova-lotus.jpg', price: 30, comparePrice: 40 },
-  };
-
-  function loadCart() {
-    return JSON.parse(localStorage.getItem('asior_cart') || '[]');
-  }
-
-  function saveCart(cart) {
-    localStorage.setItem('asior_cart', JSON.stringify(cart));
-  }
-
-  function render() {
-    const cart = loadCart().filter(item => PRODUCTS[item.id]);
-    const root = document.getElementById('cartRoot');
-
-    if (cart.length === 0) {
-      root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
-      return;
-    }
-
-    let subtotal = 0;
-    let hasUnpriced = false;
-
-    const rows = cart.map(item => {
-      const p = PRODUCTS[item.id];
-      const media = p.img ? `<img src="${p.img}" alt="${p.name}">` : `<div class="ph"></div>`;
-      let priceText = 'Price coming soon';
-      if (p.price) {
-        subtotal += p.price * item.qty;
-        priceText = `$${p.price}`;
-      } else {
-        hasUnpriced = true;
-      }
-      return `
-        <div class="cart-item">
-          <div class="thumb">${media}</div>
-          <div>
-            <div class="name">${p.name}</div>
-            <div class="price">${priceText}</div>
-          </div>
-          <div class="qty">Qty ${item.qty}</div>
-          <button class="remove" data-id="${item.id}">Remove</button>
-        </div>`;
-    }).join('');
-
-    root.innerHTML = `
-      ${rows}
-      <div class="cart-summary">
-        <span>Subtotal</span>
-        <span class="amount">$${subtotal}</span>
-      </div>
-      ${hasUnpriced ? '<div class="cart-note">Some items don’t have pricing yet and aren’t included in the subtotal.</div>' : ''}
-      <button class="checkout-btn" id="checkoutBtn">Checkout</button>
-      <div class="cart-trust">
-        <span>Ships in 1-2 business days via USPS (US only for now).</span>
-        <span>No account needed, check out as a guest.</span>
-      </div>
-      <div class="cart-klaviyo">
-        <div class="cart-klaviyo-label">Get 10% Off Your First Order</div>
-        <form class="cart-signup-form" id="cartSignupForm">
-          <input type="email" id="cartSignupEmail" placeholder="Email" required>
-          <input type="tel" id="cartSignupPhone" placeholder="Phone (optional)">
-          <button type="submit" id="cartSignupBtn">Sign Up</button>
-        </form>
-        <div class="cart-signup-confirm" id="cartSignupConfirm">You're in. Check your inbox for your code.</div>
-      </div>
+  renderLive().catch(() => {
+    // Fail open, honestly: if the live Shopify fetch itself fails
+    // (network, API hiccup), say so instead of leaving a blank cart.
+    document.getElementById('cartRoot').innerHTML = `
+      <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> with what you wanted and we'll sort it out.</div>
     `;
-
-    document.querySelectorAll('.remove').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        saveCart(loadCart().filter(item => item.id !== id));
-        render();
-      });
-    });
-
-    document.getElementById('checkoutBtn').addEventListener('click', () => {
-      location.href = 'checkout.html';
-    });
-    bindCartSignupForm();
-  }
-
-  if (SHOPIFY_LIVE) {
-    renderLive();
-  } else {
-    render();
-  }
+  });
 </script>
 
 </body>
