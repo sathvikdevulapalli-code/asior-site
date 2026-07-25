@@ -144,6 +144,20 @@
     text-decoration: underline;
   }
 
+  .account a.account-btn {
+    display: inline-block;
+    margin-top: 32px;
+    border: 1px solid var(--ink);
+    padding: 14px 32px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .account a.account-btn:hover { opacity: 0.75; }
+
   /* ---------- footer ---------- */
   footer {
     border-top: 1px solid var(--line);
@@ -239,13 +253,13 @@
 
   <div class="page-top-space"></div>
 
-  <!-- Deliberately not a fake sign-in form, collecting a username/password
-       into a form with no real backend is worse than just being honest
-       that accounts aren't wired up yet. This becomes a real Shopify
-       customer-account page once the Storefront API is connected. -->
+  <!-- Real Shopify customer accounts (account.asiorclothing.com), not a
+       custom login form, real order history/tracking, no backend of our
+       own needed. -->
   <section class="account">
     <div class="rail-label">Account</div>
-    <p>Sign-in isn't connected yet. This will work once the site is linked to Shopify customer accounts. For order status in the meantime, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a>.</p>
+    <p>Sign in to view your order history and track a shipment.</p>
+    <a class="account-btn" href="https://account.asiorclothing.com/">Sign In</a>
   </section>
 
   <footer id="order">
