@@ -501,6 +501,12 @@
   // double-submit on a refresh.
   const KLAVIYO_PUBLIC_KEY = 'QV7rBB';
 
+  // Same votes also land in a Google Sheet as a plain running log, easier
+  // to read at a glance than digging through Klaviyo's metric dashboard.
+  // Best-effort only, Klaviyo above is the record of truth for whether a
+  // vote actually succeeded.
+  const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw3zToyidIhAhag96CAE2l0YAXb3pUKUkylNbaILdQxFmkKWY6zUKpdtCkye6WB99rSLQ/exec';
+
   function getAnonId() {
     let id = localStorage.getItem('asior_anon_id');
     if (!id) {
@@ -525,6 +531,16 @@
         },
       }),
     });
+
+    try {
+      await fetch(SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ product: productName, vote }),
+      });
+    } catch (err) {
+      // swallow, Klaviyo above already has the real record of this vote
+    }
   }
 
   const votedKey = (name) => `asior_voted_${name}`;
