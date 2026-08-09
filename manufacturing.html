@@ -606,7 +606,7 @@
   // sends it to Shopify, same pattern as contact.html.
   mfgForm.addEventListener('submit', () => {
     compiledBody.value = [
-      `Brand / Company: ${fieldValue('brand') !== 'Not specified' ? fieldValue('brand') : 'Not specified'}`,
+      `Brand / Company: ${fieldValue('brand')}`,
       `Garment Type: ${checkedValues('garmentType')}`,
       `Estimated Quantity: ${fieldValue('quantity')}`,
       `Timeline: ${fieldValue('timeline')}`,
