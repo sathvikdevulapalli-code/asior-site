@@ -1,0 +1,11 @@
+{
+  "name": "asior-site",
+  "private": true,
+  "description": "Asior storefront — static HTML on the Shopify Storefront API.",
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

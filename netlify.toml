@@ -1,3 +1,8 @@
+# NOTE: asiorclothing.com is served by VERCEL, not Netlify — see
+# vercel.json, which is the config that actually runs in production.
+# This file is kept in sync so the site still builds correctly if it is
+# ever deployed to Netlify too.
+
 [build]
   publish = "."
   # Generates /products/<handle>.html with real <head> + Product JSON-LD,
