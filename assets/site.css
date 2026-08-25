@@ -1,0 +1,389 @@
+/* ===================================================================
+   Asior — shared foundation.
+
+   Every page loads this. It owns the design tokens, the reset, the
+   teaser bar, the header, the rail label, form fields and the footer,
+   i.e. everything that was previously copy-pasted into all ten HTML
+   files. Page-specific styling still lives in that page's own <style>
+   block; only things that are genuinely identical across pages belong
+   here.
+
+   Fonts are loaded via <link> in each page's <head>, not @import, so
+   the browser can start fetching them without parsing CSS first.
+   =================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #0b0a08;
+  --ink: #f5f3ee;
+  --muted: #a89f8f;
+
+  /* Two line colours, deliberately.
+
+     --line is a decorative hairline: section dividers, card edges.
+     At 1.35:1 it is intentionally almost subliminal, which is the
+     point of the look, and decorative separators are not "user
+     interface components" under WCAG 1.4.11, so they are exempt from
+     the 3:1 rule.
+
+     --field-line is for the boundary of anything you can actually
+     type in or press. Those ARE 1.4.11 components, and the old
+     shared value failed it badly: our forms mark the input with a
+     bottom border and nothing else, so at 1.35:1 a low-vision user
+     could not see where to type. 3.39:1 against --bg, and it keeps
+     the warm grey hue of --muted so nothing looks bolted on. */
+  --line: #2b2822;
+  --field-line: #6b6459;
+
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* Motion tokens. Built-in CSS easings are too weak to read as
+     intentional; these are the stronger variants used site-wide.
+     --ease-out for anything entering or responding to a press,
+     --ease-inout for on-screen movement, --ease-img for the slow
+     photographic scale on product imagery. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-inout: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-img: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Removes the 300ms double-tap-zoom delay on taps without disabling
+   pinch zoom (which would be an accessibility failure). */
+a, button, input, select, textarea, summary, label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Stops single-word orphans on the short display headings this site
+   uses throughout. */
+h1, h2, h3 { text-wrap: balance; }
+
+/* Prices and quantities line up column-to-column. */
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* Visible only to screen readers. Used for labels on inputs whose
+   visual design is placeholder-only. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: first thing a keyboard user reaches, hidden until focused. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 30;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-radius: 2px;
+  transition: top 180ms var(--ease-out);
+}
+
+.skip-link:focus { top: 8px; }
+
+/* Headings targeted by an anchor shouldn't hide under the fixed header. */
+:target { scroll-margin-top: 130px; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+img { display: block; max-width: 100%; }
+
+/* ---------- teaser bar ---------- */
+.teaser-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  z-index: 11;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.teaser-bar a {
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+  padding-bottom: 2px;
+  transition: color 0.3s ease;
+}
+
+.teaser-bar a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--ink);
+  transition: width 250ms var(--ease-out);
+}
+
+.teaser-bar a:hover { color: var(--ink); }
+.teaser-bar a:hover::after { width: 100%; }
+
+/* ---------- header ---------- */
+header {
+  position: fixed;
+  top: 34px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 40px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 300;
+  z-index: 10;
+  color: var(--ink);
+}
+
+header .mark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+header nav {
+  display: flex;
+  gap: 36px;
+}
+
+header nav a {
+  position: relative;
+  padding-bottom: 6px;
+}
+
+header nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--ink);
+  transition: width 300ms var(--ease-out);
+}
+
+header nav a:hover::after { width: 100%; }
+
+header nav a.cart-link { display: inline-flex; align-items: center; position: relative; }
+
+/* Live cart count, populated by site.js from the real Shopify cart.
+   Hidden entirely at zero rather than showing a "0" badge. */
+.cart-count {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  margin-left: 5px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 500;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+
+.cart-count.show { opacity: 1; transform: scale(1); }
+
+.page-top-space { height: 144px; }
+
+/* ---------- rail label ----------
+   The mono uppercase label that opens most pages. It is an <h1> on
+   page-level use so the document actually has a heading; the class
+   carries all the styling so h1/h2/div all look identical. */
+.rail-label {
+  font-family: var(--font-mono);
+  margin-bottom: 26px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 300;
+  color: var(--muted);
+}
+
+/* ---------- form fields ----------
+   Shared across the signup, contact and quote forms. The visible
+   boundary is --field-line so the field is findable; focus swaps it
+   to full --ink rather than only relying on the outline ring. */
+.field {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--field-line);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 10px 2px;
+  transition: border-color 200ms var(--ease-out);
+}
+
+.field::placeholder { color: var(--muted); }
+.field:hover { border-bottom-color: var(--muted); }
+.field:focus { outline: none; border-bottom-color: var(--ink); }
+.field:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+
+/* ---------- consent copy ----------
+   Sits directly under any form that captures a phone number. Small,
+   but never hidden behind a disclosure: consent has to be visible at
+   the point of collection to count. */
+.consent {
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 46ch;
+  margin-top: 14px;
+}
+
+.consent a { text-decoration: underline; text-underline-offset: 2px; }
+.consent a:hover { color: var(--ink); }
+
+/* ---------- pressable ----------
+   Any button that isn't purely textual gets real press feedback. */
+.pressable { transition: transform 160ms var(--ease-out); }
+.pressable:active { transform: scale(0.97); }
+
+/* ---------- footer ---------- */
+footer {
+  border-top: 1px solid var(--line);
+  text-align: center;
+  padding: 56px 24px 48px;
+}
+
+footer .fmark {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+footer .fmeta {
+  font-family: var(--font-mono);
+  margin-top: 10px;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+footer .fmeta a { position: relative; }
+
+footer .fmeta a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 1px;
+  background: var(--ink);
+  transition: width 300ms var(--ease-out);
+}
+
+footer .fmeta a:hover::after { width: 100%; }
+
+footer .social {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+footer .social a {
+  display: inline-flex;
+  color: var(--muted);
+  transition: color 0.3s ease;
+}
+
+footer .social a:hover { color: var(--ink); }
+
+footer .social svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+footer .policy-links {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+footer .policy-links a { transition: color 0.3s ease; }
+footer .policy-links a:hover { color: var(--ink); }
+
+@media (max-width: 640px) {
+  header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+  header .mark { font-size: 12px; }
+  header nav {
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    min-width: 0;
+    max-width: calc(100vw - 130px);
+  }
+  header nav::-webkit-scrollbar { display: none; }
+  .page-top-space { height: 118px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

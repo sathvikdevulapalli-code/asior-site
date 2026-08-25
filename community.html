@@ -4,147 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community | Asior</title>
+<meta name="description" content="Asior worn by the people who buy it — community photos and what customers say about the fit and quality.">
+<meta name="theme-color" content="#0b0a08">
+<link rel="canonical" href="https://asiorclothing.com/community.html">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Community | Asior">
+<meta property="og:description" content="Asior worn by the people who buy it — community photos and what customers say about the fit and quality.">
+<meta property="og:url" content="https://asiorclothing.com/community.html">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Fonts via <link>, not @import inside a style block: an @import means the
+     browser has to download and parse the CSS before it even discovers
+     the font request. Weight 200 was requested site-wide and used
+     nowhere, so it is not requested here. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #0b0a08;
-    --ink: #f5f3ee;
-    --muted: #a89f8f;
-    --line: #2b2822;
-    --font-display: 'Unbounded', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-body);
-    overflow-x: hidden;
-  }
-
-  a { color: inherit; text-decoration: none; }
-
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible {
-    outline: 1px solid var(--ink);
-    outline-offset: 4px;
-  }
-
-  img { display: block; max-width: 100%; }
-
-  /* ---------- header ---------- */
-  .teaser-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 34px;
-    z-index: 11;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .teaser-bar a {
-    color: inherit;
-    text-decoration: none;
-    position: relative;
-    padding-bottom: 2px;
-    transition: color 0.3s ease;
-  }
-
-  .teaser-bar a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.3s ease;
-  }
-
-  .teaser-bar a:hover { color: var(--ink); }
-  .teaser-bar a:hover::after { width: 100%; }
-
-  header {
-    position: fixed;
-    top: 34px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 32px 40px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 300;
-    z-index: 10;
-    color: var(--ink);
-  }
-
-  header .mark {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  header nav {
-    display: flex;
-    gap: 36px;
-  }
-
-  header nav a {
-    position: relative;
-    padding-bottom: 6px;
-  }
-
-  header nav a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.4s ease;
-  }
-
-  header nav a:hover::after {
-    width: 100%;
-  }
-
-  header nav a.cart-link { display: inline-flex; align-items: center; }
-
-  /* ---------- page top space ---------- */
-  .page-top-space { height: 144px; }
-
-  /* ---------- lookbook grid ---------- */
-  .rail-label {
-    font-family: var(--font-mono);
-    margin-bottom: 26px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 300;
-    color: var(--muted);
-  }
-
   .lookbook {
     padding: 0 40px 9vh;
     max-width: 1180px;
@@ -164,7 +50,7 @@
     border-radius: 2px;
     opacity: 0;
     transform: translateY(24px);
-    transition: opacity 0.9s ease, transform 0.9s ease;
+    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
   }
 
   .look.in { opacity: 1; transform: translateY(0); }
@@ -174,12 +60,14 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
   }
 
-  .look:hover img {
-    transform: scale(1.035);
-    filter: brightness(1.03);
+  @media (hover: hover) and (pointer: fine) {
+    .look:hover img {
+      transform: scale(1.035);
+      filter: brightness(1.03);
+    }
   }
 
   /* ---------- testimonials ---------- */
@@ -201,89 +89,11 @@
     color: var(--ink);
   }
 
-  /* ---------- footer ---------- */
-  footer {
-    border-top: 1px solid var(--line);
-    text-align: center;
-    padding: 56px 24px 48px;
-  }
-
-  footer .fmark {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-  }
-
-  footer .fmeta {
-    font-family: var(--font-mono);
-    margin-top: 10px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 300;
-  }
-
-  footer .fmeta a {
-    position: relative;
-  }
-
-  footer .fmeta a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.4s ease;
-  }
-
-  footer .fmeta a:hover::after {
-    width: 100%;
-  }
-
-  footer .social {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  footer .social a {
-    display: inline-flex;
-    color: var(--muted);
-    transition: color 0.3s ease;
-  }
-
-  footer .social a:hover {
-    color: var(--ink);
-  }
-
-  footer .social svg {
-    width: 16px;
-    height: 16px;
-    display: block;
-  }
-
-  footer .policy-links {
-    margin-top: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  footer .policy-links a { transition: color 0.3s ease; }
-  footer .policy-links a:hover { color: var(--ink); }
-
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; }
+    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
+    header nav::-webkit-scrollbar { display: none; }
     .lookbook { padding: 0 20px 6vh; }
     .gallery { grid-template-columns: 1fr; gap: 14px; }
     .testimonials { padding: 3vh 20px 10vh; }
@@ -304,12 +114,13 @@
 </head>
 <body>
 
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
   <header>
     <a class="mark" href="index.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
-      <a href="collection.html">Summer Collection</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
@@ -319,27 +130,31 @@
 
   <div class="page-top-space"></div>
 
+  <main id="main">
+
   <section class="lookbook" id="look">
-    <div class="rail-label">Community</div>
+    <h1 class="rail-label">Community</h1>
     <div class="gallery">
-      <div class="look"><img src="images/look-01.jpg" alt="Asior look 01"></div>
-      <div class="look"><img src="images/look-02.jpg" alt="Asior look 02"></div>
-      <div class="look"><img src="images/look-03.jpg" alt="Asior look 03"></div>
-      <div class="look"><img src="images/look-04.jpg" alt="Asior look 04"></div>
-      <div class="look"><img src="images/look-05.jpg" alt="Asior look 05"></div>
-      <div class="look"><img src="images/look-06.jpg" alt="Asior look 06"></div>
+      <div class="look"><img src="images/look-01.jpg" alt="Asior look 01" width="800" height="1200" fetchpriority="high" decoding="async"></div>
+      <div class="look"><img src="images/look-02.jpg" alt="Asior look 02" width="800" height="1200" loading="lazy" decoding="async"></div>
+      <div class="look"><img src="images/look-03.jpg" alt="Asior look 03" width="800" height="1200" loading="lazy" decoding="async"></div>
+      <div class="look"><img src="images/look-04.jpg" alt="Asior look 04" width="800" height="1200" loading="lazy" decoding="async"></div>
+      <div class="look"><img src="images/look-05.jpg" alt="Asior look 05" width="800" height="1200" loading="lazy" decoding="async"></div>
+      <div class="look"><img src="images/look-06.jpg" alt="Asior look 06" width="800" height="1200" loading="lazy" decoding="async"></div>
     </div>
   </section>
 
   <!-- Real customer quotes, pulled from the "Worn by the Community"
        section on the live asiorclothing.com, not written for this page. -->
   <section class="testimonials">
-    <div class="rail-label">Worn by the Community</div>
+    <h2 class="rail-label">Worn by the Community</h2>
     <div class="quotes">
       <p class="quote">"Insane quality and the fit is perfect, feels premium as soon as you put it on."</p>
       <p class="quote">"Clean design and super comfortable. Easily one of my favorite pieces right now."</p>
     </div>
   </section>
+
+  </main>
 
   <footer id="order">
     <div class="fmark">Asior</div>
@@ -359,12 +174,13 @@
     </div>
   </footer>
 
+<script src="assets/site.js"></script>
 <script>
   const looks = document.querySelectorAll('.look');
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
       if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('in'), i * 120);
+        setTimeout(() => entry.target.classList.add("in"), i * 60);
         observer.unobserve(entry.target);
       }
     });

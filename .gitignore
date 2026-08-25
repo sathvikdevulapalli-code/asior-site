@@ -1,0 +1,7 @@
+# Generated at deploy time by scripts/build.js. Netlify regenerates these
+# on every build, and the build fails the deploy if it can't — so a
+# successful deploy always has them.
+/products/
+/sitemap.xml
+
+.DS_Store
