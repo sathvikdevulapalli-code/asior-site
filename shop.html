@@ -119,18 +119,6 @@
     color: var(--ink);
   }
 
-  .divider-label {
-    grid-column: 1 / -1;
-    margin: 10px 0 4px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    opacity: 0.7;
-    border-top: 1px solid var(--line);
-    padding-top: 24px;
-  }
-
   .preorder-tag {
     flex: none;
     border: 1px solid var(--muted);
@@ -166,11 +154,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      transition-duration: 0.001ms !important;
-    }
-    .hero, .quick-links, .signup, .product, .look {
+    .product {
       opacity: 1 !important;
       transform: none !important;
     }

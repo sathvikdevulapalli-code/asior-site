@@ -133,13 +133,6 @@
 
   .cart-summary .amount { font-family: var(--font-mono); font-size: 16px; }
 
-  .cart-note {
-    margin-top: 6px;
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-
   .cart-trust {
     margin-top: 14px;
     display: flex;
@@ -266,11 +259,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      transition-duration: 0.001ms !important;
-    }
-    .hero, .quick-links, .signup, .product, .look, .cart-wrap {
+    .signup, .cart-wrap {
       opacity: 1 !important;
       transform: none !important;
     }
