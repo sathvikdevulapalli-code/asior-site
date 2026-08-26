@@ -1,2 +1,28 @@
+# NOTE: asiorclothing.com is served by VERCEL, not Netlify — see
+# vercel.json, which is the config that actually runs in production.
+# This file is kept in sync so the site still builds correctly if it is
+# ever deployed to Netlify too.
+
 [build]
   publish = "."
+  # Generates /products/<handle>.html with real <head> + Product JSON-LD,
+  # writes sitemap.xml, and syncs the Shopify policy text into the two
+  # policy pages. Zero dependencies, so there's no install step.
+  command = "node scripts/build.js"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Hashed Shopify CDN images and our own static assets can be cached hard.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
+
+# Old shared links (/product.html?id=handle) keep working; the page sets
+# its own canonical to the /products/ URL so ranking consolidates there.

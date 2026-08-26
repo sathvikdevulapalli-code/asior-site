@@ -3,131 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop All | Asior</title>
+<title>Shop All Drops | Asior</title>
+<meta name="description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
+<meta name="theme-color" content="#0b0a08">
+<link rel="canonical" href="https://asiorclothing.com/shop.html">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Shop All Drops | Asior">
+<meta property="og:description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
+<meta property="og:url" content="https://asiorclothing.com/shop.html">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Fonts via <link>, not @import inside a style block: an @import means the
+     browser has to download and parse the CSS before it even discovers
+     the font request. Weight 200 was requested site-wide and used
+     nowhere, so it is not requested here. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #0b0a08;
-    --ink: #f5f3ee;
-    --muted: #a89f8f;
-    --line: #2b2822;
-    --font-display: 'Unbounded', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-body);
-    overflow-x: hidden;
-  }
-
-  a { color: inherit; text-decoration: none; }
-
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible {
-    outline: 1px solid var(--ink);
-    outline-offset: 4px;
-  }
-
-  img { display: block; max-width: 100%; }
-
-  /* ---------- header ---------- */
-  .teaser-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 34px;
-    z-index: 11;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .teaser-bar a {
-    color: inherit;
-    text-decoration: none;
-    position: relative;
-    padding-bottom: 2px;
-    transition: color 0.3s ease;
-  }
-
-  .teaser-bar a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.3s ease;
-  }
-
-  .teaser-bar a:hover { color: var(--ink); }
-  .teaser-bar a:hover::after { width: 100%; }
-
-  header {
-    position: fixed;
-    top: 34px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 32px 40px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 300;
-    z-index: 10;
-    color: var(--ink);
-  }
-
-  header .mark { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
-  header nav { display: flex; gap: 36px; }
-  header nav a { position: relative; padding-bottom: 6px; }
-
-  header nav a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.4s ease;
-  }
-
-  header nav a:hover::after { width: 100%; }
-
-  header nav a.cart-link { display: inline-flex; align-items: center; }
-
-  /* ---------- page top space ---------- */
-  .page-top-space { height: 144px; }
-
-  .rail-label {
-    font-family: var(--font-mono);
-    margin-bottom: 26px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 300;
-    color: var(--muted);
+  @media (hover: hover) and (pointer: fine) {
+    header nav a:hover::after { width: 100%; }
   }
 
   /* ---------- shop grid ---------- */
@@ -147,7 +53,7 @@
     display: block;
     opacity: 0;
     transform: translateY(24px);
-    transition: opacity 0.9s ease, transform 0.9s ease;
+    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
   }
 
   .product.in { opacity: 1; transform: translateY(0); }
@@ -158,6 +64,7 @@
     overflow: hidden;
     border-radius: 2px;
     background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    transition: transform 160ms var(--ease-out);
   }
 
   .price-badge {
@@ -185,13 +92,17 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
   }
 
-  .product:hover .product-img img {
-    transform: scale(1.035);
-    filter: brightness(1.03);
+  @media (hover: hover) and (pointer: fine) {
+    .product:hover .product-img img {
+      transform: scale(1.035);
+      filter: brightness(1.03);
+    }
   }
+
+  .product:active .product-img { transform: scale(0.985); }
 
   .name-row {
     margin-top: 14px;
@@ -241,81 +152,6 @@
 
   .shop-empty.show { display: block; }
 
-  /* ---------- footer ---------- */
-  footer {
-    border-top: 1px solid var(--line);
-    text-align: center;
-    padding: 56px 24px 48px;
-  }
-
-  footer .fmark {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-  }
-
-  footer .fmeta {
-    font-family: var(--font-mono);
-    margin-top: 10px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 300;
-  }
-
-  footer .fmeta a { position: relative; }
-
-  footer .fmeta a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.4s ease;
-  }
-
-  footer .fmeta a:hover::after { width: 100%; }
-
-  footer .social {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  footer .social a {
-    display: inline-flex;
-    color: var(--muted);
-    transition: color 0.3s ease;
-  }
-
-  footer .social a:hover {
-    color: var(--ink);
-  }
-
-  footer .social svg {
-    width: 16px;
-    height: 16px;
-    display: block;
-  }
-
-  footer .policy-links {
-    margin-top: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  footer .policy-links a { transition: color 0.3s ease; }
-  footer .policy-links a:hover { color: var(--ink); }
-
   @media (max-width: 900px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -323,7 +159,8 @@
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; }
+    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
+    header nav::-webkit-scrollbar { display: none; }
     .shop { padding: 0 20px 10vh; }
     .shop-grid { grid-template-columns: 1fr; gap: 14px; }
   }
@@ -338,16 +175,22 @@
       transform: none !important;
     }
   }
+
+  /* Recently-viewed rail. Hidden until there is real history to show. */
+  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 0 40px 12vh; }
+  .shop-recent.show { display: block; }
+  @media (max-width: 640px) { .shop-recent { padding: 0 20px 8vh; } }
 </style>
 </head>
 <body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
   <header>
     <a class="mark" href="index.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
-      <a href="collection.html">Summer Collection</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
@@ -357,14 +200,20 @@
 
   <div class="page-top-space"></div>
 
+  <main id="main">
+
   <!-- Every Active product in the real Shopify catalog, fetched live on
        load. Add, remove, or change something in Shopify Admin and this
        page reflects it automatically, nothing here is hardcoded. -->
   <section class="shop" id="shop">
-    <div class="rail-label">Shop All</div>
+    <h1 class="rail-label">Shop All</h1>
     <div class="shop-grid" id="shopGrid"></div>
     <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
   </section>
+
+  <section class="shop-recent" id="shopRecent"></section>
+
+  </main>
 
   <footer id="order">
     <div class="fmark">Asior</div>
@@ -384,38 +233,24 @@
     </div>
   </footer>
 
+<script src="assets/site.js"></script>
 <script>
-  const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
-  const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
-  const SHOPIFY_API_VERSION = '2024-10';
+  // Storefront plumbing lives in assets/site.js.
+  const A = window.Asior;
 
-  async function shopifyFetch(query, variables = {}) {
-    const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-    const json = await res.json();
-    if (json.errors) throw new Error(json.errors.map(e => e.message).join(', '));
-    return json.data;
-  }
-
-  // Real, live catalog, same as product.html. Whatever's Active in
-  // Shopify shows here; Draft products are absent from the response
-  // entirely, so they just don't appear rather than erroring.
+  // Real, live catalog. Whatever's Active in Shopify shows here; Draft
+  // products are absent from the response entirely, so they just don't
+  // appear rather than erroring.
   async function fetchCatalog() {
-    const data = await shopifyFetch(`{
+    const data = await A.shopifyFetch(`{
       products(first: 50) {
         edges {
           node {
             title
             handle
-            featuredImage { url }
+            featuredImage { ${A.IMAGE_FIELDS} }
             variants(first: 20) {
-              edges { node { price { amount } compareAtPrice { amount } } }
+              edges { node { availableForSale price { amount } compareAtPrice { amount } } }
             }
           }
         }
@@ -423,9 +258,10 @@
     }`);
     return data.products.edges.map(e => {
       const node = e.node;
-      const prices = node.variants.edges.map(v => parseFloat(v.node.price.amount));
-      const compares = node.variants.edges
-        .map(v => v.node.compareAtPrice ? parseFloat(v.node.compareAtPrice.amount) : null)
+      const variants = node.variants.edges.map(v => v.node);
+      const prices = variants.map(v => parseFloat(v.price.amount));
+      const compares = variants
+        .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
         .filter(Boolean);
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
@@ -433,8 +269,9 @@
       return {
         handle: node.handle,
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-        img: node.featuredImage ? node.featuredImage.url : null,
+        image: node.featuredImage,
         isPreorder: /\[preorder\]/i.test(node.title),
+        soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
         priceLabel: minPrice === maxPrice
           ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
           : `From $${minPrice}`,
@@ -442,45 +279,78 @@
     });
   }
 
+  function card(p, eager) {
+    // Sold out is stated on the tile rather than discovered after a
+    // click. Honest, and it stops a dead-end journey.
+    const media = p.image
+      ? A.imgTag(p.image, {
+          alt: 'Asior ' + p.name,
+          eager: eager,
+          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
+        })
+      : '';
+    return `
+      <a class="product" href="/products/${p.handle}.html">
+        <div class="product-img">
+          ${media}
+          <div class="price-badge tnum">${p.priceLabel}</div>
+        </div>
+        <div class="name-row">
+          <div class="name">${A.escapeHtml(p.name)}</div>
+          ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
+          ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
+        </div>
+      </a>`;
+  }
+
   function renderGrid(catalog) {
     const grid = document.getElementById('shopGrid');
     const empty = document.getElementById('shopEmpty');
 
-    if (catalog.length === 0) {
-      empty.classList.add('show');
-      return;
-    }
+    if (catalog.length === 0) { empty.classList.add('show'); return; }
 
-    grid.innerHTML = catalog.map(p => `
-      <a class="product" href="product.html?id=${p.handle}">
-        <div class="product-img">
-          ${p.img ? `<img src="${p.img}" alt="Asior ${p.name}">` : ''}
-          <div class="price-badge">${p.priceLabel}</div>
-        </div>
-        <div class="name-row">
-          <div class="name">${p.name}</div>
-          ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
-        </div>
-      </a>`).join('');
+    // The first row is the LCP candidate, so it loads eagerly; the rest
+    // are lazy. Never lazy-load the largest above-the-fold image.
+    grid.innerHTML = catalog.map((p, i) => card(p, i < 3)).join('');
 
     const items = grid.querySelectorAll('.product');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
         if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('in'), (i % 4) * 100);
+          setTimeout(() => entry.target.classList.add('in'), (i % 4) * 60);
           observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.2 });
     items.forEach(p => observer.observe(p));
+
+    renderRecentlyViewed(catalog);
+  }
+
+  // Personalisation from real browsing history only — the pieces this
+  // browser has actually opened, newest first. Nothing shown if there's
+  // no history, and never anything invented.
+  function renderRecentlyViewed(catalog) {
+    const seen = A.getViewed()
+      .map(h => catalog.find(p => p.handle === h))
+      .filter(Boolean)
+      .slice(0, 4);
+    if (seen.length < 2) return;
+
+    const section = document.getElementById('shopRecent');
+    section.innerHTML = `
+      <h2 class="rail-label">Pick Up Where You Left Off</h2>
+      <div class="shop-grid">${seen.map(p => card(p, false)).join('')}</div>`;
+    section.classList.add('show');
   }
 
   fetchCatalog()
     .then(renderGrid)
     .catch(() => {
       // fail open and honest, no fake stock left standing
-      document.getElementById('shopEmpty').textContent = "Couldn't load the shop right now, try refreshing.";
-      document.getElementById('shopEmpty').classList.add('show');
+      const empty = document.getElementById('shopEmpty');
+      empty.textContent = "Couldn't load the shop right now, try refreshing.";
+      empty.classList.add('show');
     });
 </script>
 

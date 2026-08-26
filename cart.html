@@ -4,126 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cart | Asior</title>
+<meta name="description" content="Your Asior cart.">
+<meta name="theme-color" content="#0b0a08">
+<link rel="canonical" href="https://asiorclothing.com/cart.html">
+<!-- No search value, and the cart renders a different page per session. -->
+<meta name="robots" content="noindex, follow">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cart | Asior">
+<meta property="og:description" content="Your Asior cart.">
+<meta property="og:url" content="https://asiorclothing.com/cart.html">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Fonts via <link>, not @import inside a style block: an @import means the
+     browser has to download and parse the CSS before it even discovers
+     the font request. Weight 200 was requested site-wide and used
+     nowhere, so it is not requested here. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #0b0a08;
-    --ink: #f5f3ee;
-    --muted: #a89f8f;
-    --line: #2b2822;
-    --font-display: 'Unbounded', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'IBM Plex Mono', monospace;
+  @media (hover: hover) and (pointer: fine) {
+    header nav a:hover::after { width: 100%; }
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-body);
-    overflow-x: hidden;
-  }
-
-  a { color: inherit; text-decoration: none; }
-
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible {
-    outline: 1px solid var(--ink);
-    outline-offset: 4px;
-  }
-
-  img { display: block; max-width: 100%; }
-
-  .teaser-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 34px;
-    z-index: 11;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .teaser-bar a {
-    color: inherit;
-    text-decoration: none;
-    position: relative;
-    padding-bottom: 2px;
-    transition: color 0.3s ease;
-  }
-
-  .teaser-bar a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.3s ease;
-  }
-
-  .teaser-bar a:hover { color: var(--ink); }
-  .teaser-bar a:hover::after { width: 100%; }
-
-  header {
-    position: fixed;
-    top: 34px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 32px 40px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 300;
-    z-index: 10;
-    color: var(--ink);
-  }
-
-  header .mark { font-family: var(--font-display); font-weight: 600; font-size: 13px; }
-  header nav { display: flex; gap: 36px; }
-  header nav a { position: relative; padding-bottom: 6px; }
-
-  header nav a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.4s ease;
-  }
-
-  header nav a:hover::after { width: 100%; }
-
-  header nav a.cart-link { display: inline-flex; align-items: center; }
-
-  .page-top-space { height: 144px; }
-
-  .rail-label {
-    font-family: var(--font-mono);
-    margin-bottom: 26px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-weight: 300;
-    color: var(--muted);
+  @keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   /* ---------- cart ---------- */
@@ -131,6 +48,7 @@
     max-width: 760px;
     margin: 0 auto;
     padding: 0 40px 14vh;
+    animation: pageFadeIn 700ms var(--ease-out);
   }
 
   .cart-empty {
@@ -196,10 +114,14 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 200ms var(--ease-out), transform 140ms var(--ease-out);
   }
 
-  .cart-item .remove:hover { color: var(--ink); }
+  @media (hover: hover) and (pointer: fine) {
+    .cart-item .remove:hover { color: var(--ink); }
+  }
+
+  .cart-item .remove:active { transform: scale(0.94); }
 
   .cart-summary {
     margin-top: 30px;
@@ -256,13 +178,12 @@
   .cart-signup-form input {
     background: none;
     border: none;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--field-line);
     padding: 8px 2px;
     font-family: var(--font-body);
     font-size: 13px;
     font-weight: 300;
     color: var(--ink);
-    outline: none;
     min-width: 150px;
     transition: border-color 0.3s ease;
   }
@@ -282,6 +203,7 @@
     color: var(--ink);
     cursor: pointer;
     padding-bottom: 6px;
+    transition: transform 160ms var(--ease-out);
   }
 
   .cart-signup-form button::after {
@@ -292,10 +214,14 @@
     width: 0;
     height: 1px;
     background: var(--ink);
-    transition: width 0.4s ease;
+    transition: width 300ms var(--ease-out);
   }
 
-  .cart-signup-form button:hover::after { width: 100%; }
+  @media (hover: hover) and (pointer: fine) {
+    .cart-signup-form button:hover::after { width: 100%; }
+  }
+
+  .cart-signup-form button:not([disabled]):active { transform: scale(0.96); }
   .cart-signup-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
 
   .cart-signup-confirm {
@@ -320,74 +246,20 @@
     text-transform: uppercase;
     padding: 16px;
     cursor: pointer;
-    transition: opacity 0.3s ease;
+    transition: opacity 200ms var(--ease-out), transform 160ms var(--ease-out);
   }
 
-  .checkout-btn:hover { opacity: 0.75; }
-
-  /* ---------- footer ---------- */
-  footer {
-    border-top: 1px solid var(--line);
-    text-align: center;
-    padding: 56px 24px 48px;
+  @media (hover: hover) and (pointer: fine) {
+    .checkout-btn:hover { opacity: 0.75; }
   }
 
-  footer .fmark { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; }
-
-  footer .fmeta {
-    font-family: var(--font-mono);
-    margin-top: 10px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 300;
-  }
-
-  footer .fmeta a { position: relative; }
-
-  footer .fmeta a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 0.4s ease;
-  }
-
-  footer .fmeta a:hover::after { width: 100%; }
-
-  footer .social {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  footer .social a { display: inline-flex; color: var(--muted); transition: color 0.3s ease; }
-  footer .social a:hover { color: var(--ink); }
-  footer .social svg { width: 16px; height: 16px; display: block; }
-
-  footer .policy-links {
-    margin-top: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  footer .policy-links a { transition: color 0.3s ease; }
-  footer .policy-links a:hover { color: var(--ink); }
+  .checkout-btn:active { transform: scale(0.985); }
 
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; }
+    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
+    header nav::-webkit-scrollbar { display: none; }
     .cart-wrap { padding: 0 20px 10vh; }
     .cart-item { grid-template-columns: 60px 1fr auto; }
     .cart-item .qty { grid-column: 2 / 3; }
@@ -398,7 +270,7 @@
       animation-duration: 0.001ms !important;
       transition-duration: 0.001ms !important;
     }
-    .hero, .quick-links, .signup, .product, .look {
+    .hero, .quick-links, .signup, .product, .look, .cart-wrap {
       opacity: 1 !important;
       transform: none !important;
     }
@@ -407,12 +279,13 @@
 </head>
 <body>
 
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
   <header>
     <a class="mark" href="index.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
-      <a href="collection.html">Summer Collection</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
@@ -422,10 +295,14 @@
 
   <div class="page-top-space"></div>
 
+  <main id="main">
+
   <section class="cart-wrap">
-    <div class="rail-label">Cart</div>
+    <h1 class="rail-label">Cart</h1>
     <div id="cartRoot"></div>
   </section>
+
+  </main>
 
   <footer id="order">
     <div class="fmark">Asior</div>
@@ -445,57 +322,13 @@
     </div>
   </footer>
 
+<script src="assets/site.js"></script>
 <script>
-  // Same Shopify Storefront API config as product.html, paste the same
-  // token here to go live. See product.html's script for the full setup
-  // steps.
-  const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
-  const SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
-  const SHOPIFY_API_VERSION = '2024-10';
-
-  // Klaviyo public Client API, no widget, no private key. Same two real
-  // lists the Email & SMS Popup form (UxDQrj) already feeds: email opt-in
-  // is its own list from step 1, SMS opt-in is a separate list from step
-  // 2, each list only takes a subscription for its own channel.
-  const KLAVIYO_PUBLIC_KEY = 'QV7rBB';
-  const KLAVIYO_EMAIL_LIST_ID = 'TFEDaD';
-  const KLAVIYO_SMS_LIST_ID = 'UiFFMg';
-
-  async function klaviyoSubscribeToList(listId, profileAttributes) {
-    const res = await fetch(`https://a.klaviyo.com/client/subscriptions/?company_id=${KLAVIYO_PUBLIC_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'revision': '2024-10-15' },
-      body: JSON.stringify({
-        data: {
-          type: 'subscription',
-          attributes: { profile: { data: { type: 'profile', attributes: profileAttributes } } },
-          relationships: { list: { data: { type: 'list', id: listId } } },
-        },
-      }),
-    });
-    if (!res.ok) throw new Error('Klaviyo subscribe failed');
-  }
-
-  async function klaviyoSubscribe(email, phone) {
-    // Verified directly against the live API: no "subscriptions" field
-    // exists on this endpoint's schema at all, it defaults to MARKETING
-    // consent for whichever contact field (email/phone_number) is present
-    // the moment you subscribe them to a list. Adding one 400s.
-    //
-    // Email is the required, primary action, if this fails the whole
-    // signup is treated as failed.
-    await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email });
-
-    // Phone is optional. A failure here (bad number, etc.) shouldn't undo
-    // the email signup that already succeeded.
-    if (phone) {
-      try {
-        await klaviyoSubscribeToList(KLAVIYO_SMS_LIST_ID, { email, phone_number: phone });
-      } catch (err) {
-        // swallow, email subscribe already succeeded
-      }
-    }
-  }
+  // Storefront + Klaviyo plumbing lives in assets/site.js. The SMS
+  // consent copy shown next to the phone field is what makes the
+  // marketing subscription this triggers legitimate — see site.js.
+  const A = window.Asior;
+  const klaviyoSubscribe = A.klaviyoSubscribe;
 
   function bindCartSignupForm() {
     const form = document.getElementById('cartSignupForm');
@@ -521,19 +354,7 @@
     });
   }
 
-  async function shopifyFetch(query, variables = {}) {
-    const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-    const json = await res.json();
-    if (json.errors) throw new Error(json.errors.map(e => e.message).join(', '));
-    return json.data;
-  }
+  const shopifyFetch = A.shopifyFetch;
 
   async function getShopifyCart() {
     const id = localStorage.getItem('shopify_cart_id');
@@ -586,7 +407,7 @@
 
     const rows = cart.lines.edges.map(({ node }) => {
       const v = node.merchandise;
-      const media = v.image ? `<img src="${v.image.url}" alt="${v.product.title}">` : `<div class="ph"></div>`;
+      const media = v.image ? `<img src="${v.image.url}" alt="${v.product.title}" width="${v.image.width || 300}" height="${v.image.height || 400}" loading="lazy" decoding="async">` : `<div class="ph"></div>`;
       return `
         <div class="cart-item">
           <div class="thumb">${media}</div>
@@ -613,11 +434,23 @@
       <div class="cart-klaviyo">
         <div class="cart-klaviyo-label">Get 10% Off Your First Order</div>
         <form class="cart-signup-form" id="cartSignupForm">
-          <input type="email" id="cartSignupEmail" placeholder="Email" required>
-          <input type="tel" id="cartSignupPhone" placeholder="Phone (optional)">
+          <label class="sr-only" for="cartSignupEmail">Email address</label>
+          <input type="email" id="cartSignupEmail" name="email" placeholder="Email"
+                 autocomplete="email" spellcheck="false" required>
+          <label class="sr-only" for="cartSignupPhone">Phone number (optional)</label>
+          <input type="tel" id="cartSignupPhone" name="phone" placeholder="Phone (optional)"
+                 autocomplete="tel" inputmode="tel">
           <button type="submit" id="cartSignupBtn">Sign Up</button>
         </form>
-        <div class="cart-signup-confirm" id="cartSignupConfirm">You're in. Check your inbox for your code.</div>
+        <p class="consent">
+          Email only? Leave the phone field blank. By giving your number you agree to
+          receive recurring automated marketing texts from Asior at that number.
+          Consent is not a condition of any purchase. Message frequency varies and
+          message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
+          <a href="privacy-policy.html">Privacy Policy</a> and
+          <a href="terms-of-service.html">Terms of Service</a>.
+        </p>
+        <div class="cart-signup-confirm" id="cartSignupConfirm" role="status" aria-live="polite">You're in. Check your inbox for your code.</div>
       </div>
     `;
 

@@ -1,0 +1,13 @@
+# Asior — https://asiorclothing.com
+#
+# Never disallow /assets/: this site renders its catalog client-side, and
+# blocking the CSS/JS would stop Googlebot rendering the pages at all.
+
+User-agent: *
+Allow: /
+
+# No search value, and both generate per-session states.
+Disallow: /cart.html
+Disallow: /account.html
+
+Sitemap: https://asiorclothing.com/sitemap.xml
