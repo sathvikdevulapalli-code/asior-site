@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior — The Jaguar Drop, September 7</title>
-<meta name="description" content="The Asior Jaguar drop lands September 7. Sign up for early access — limited run, made in small batches, gone once it sells out.">
+<meta name="description" content="The Asior Jaguar drop lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://asiorclothing.com/">
 
@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Asior — The Jaguar Drop, September 7">
-<meta property="og:description" content="The Asior Jaguar drop lands September 7. Sign up for early access — limited run, made in small batches, gone once it sells out.">
+<meta property="og:description" content="The Asior Jaguar drop lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
@@ -21,17 +21,17 @@
 <meta property="og:image:alt" content="Asior — the Jaguar drop, September 7">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- Two faces, one weight each. Great Vibes is the wordmark only — it is
-     the closest match on Google Fonts to the Asior script embroidered on
-     the garments themselves, so the site and the clothes finally sign
-     their name the same way. Archivo Narrow 700 carries every heading,
+<!-- Two faces, one weight each. Yellowtail is the wordmark only — a bold
+     brush script matching the heavier Asior logo on the sweat shorts,
+     rather than the fine calligraphic one on the tee, so the site and the
+     clothes sign their name the same way. Archivo Narrow 700 carries every heading,
      label and button; body copy is system Helvetica and costs nothing.
      Unbounded / Inter / IBM Plex Mono are not requested at all.
      Fonts via <link>, not @import: an @import would make the browser
      parse the CSS before it even discovers the font request. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Archivo+Narrow:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Archivo+Narrow:wght@700&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <style>
@@ -64,7 +64,7 @@
        wordmark and nothing else: a script set in caps, or set as a
        button label, looks broken. --font-display is every heading,
        label and button, always uppercase. Body copy stays Helvetica. */
-    --font-brand: 'Great Vibes', 'Snell Roundhand', cursive;
+    --font-brand: 'Yellowtail', 'Snell Roundhand', cursive;
     --font-display: 'Archivo Narrow', 'Arial Narrow', Helvetica, Arial, sans-serif;
     --font-body: Helvetica, Arial, sans-serif;
     --font-mono: var(--font-display);
@@ -131,8 +131,8 @@
     font-family: var(--font-brand);
     font-weight: 400;
     text-transform: none;
-    font-size: clamp(3.5rem, 11vw, 6rem);
-    line-height: 1.15;
+    font-size: clamp(3.25rem, 10vw, 5.25rem);
+    line-height: 1.2;
     letter-spacing: 0;
     color: var(--ink);
   }
@@ -190,10 +190,22 @@
   .countdown.done { display: none; }
 
   /* ---------- early access ----------
-     No section heading and no explanatory line above the form. "Dropping
-     soon" and the button's own label already say what this is for, and
-     anything more is writing for its own sake on a page with one job. */
+     Still no section heading — the countdown above and the button below
+     already say what this is. One line earns its place, because it is the
+     only thing on the page that answers "what do I get for this". */
   .signup { margin-top: clamp(30px, 5vh, 46px); }
+
+  .lede {
+    max-width: 40ch;
+    margin: 0 auto 20px;
+    font-size: 14px;
+    line-height: 1.5rem;
+    color: var(--ink);
+  }
+
+  /* Consent has to be legible, not just present — it is muted and small,
+     but it is never hidden behind a toggle. */
+  .consent { margin: 16px auto 0; text-align: center; }
 
   .drop h2 {
     font-family: var(--font-display);
@@ -330,7 +342,7 @@
   footer .fmark {
     font-family: var(--font-brand);
     font-weight: 400;
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1.3;
     letter-spacing: 0;
     text-transform: none;
@@ -371,23 +383,42 @@
       <!-- id kept as "signup": every other page on the site still links
            to index.html#signup. -->
       <section class="signup" id="signup">
-        <!-- Real signup: calls Klaviyo's public Client API directly (no
-             widget), same real list the Email &amp; SMS popup form feeds.
+        <!-- The offer, in one line. 10% off the first order is the same
+             offer the rest of the site has always run, not a new promise
+             invented for this page — but it only stays true if the Klaviyo
+             welcome flow that sends the code is LIVE, not sitting in Draft.
+             Check that before this goes out. -->
+        <p class="lede">First access to the drop, plus 10% off your first order.</p>
 
-             EMAIL ONLY, on purpose. The phone field is gone, and the seven
-             lines of TCPA consent copy that legally had to sit under it went
-             with it — that block was most of the writing on the page. Putting
-             SMS capture back means putting that copy back: 47 CFR 64.1200(f)
-             requires prior express WRITTEN consent, visible at the point of
-             collection, and Klaviyo subscribes a number to a MARKETING list
-             the moment it is submitted. There is no compliant version of this
-             form that takes a phone number quietly. -->
+        <!-- Real signup: calls Klaviyo's public Client API directly (no
+             widget), same real lists the Email &amp; SMS popup form feeds.
+             Email goes to the email list; a phone number, if given, also
+             goes to the SMS list. -->
         <form class="form" id="signupForm">
           <label class="sr-only" for="signupEmail">Email address</label>
           <input type="email" id="signupEmail" name="email" placeholder="Email"
                  autocomplete="email" spellcheck="false" required>
+          <label class="sr-only" for="signupPhone">Phone number (optional)</label>
+          <input type="tel" id="signupPhone" name="phone" placeholder="Phone (optional)"
+                 autocomplete="tel" inputmode="tel">
           <button type="submit" id="signupBtn">Get Early Access</button>
         </form>
+
+        <!-- TCPA consent, and it is not optional. 47 CFR 64.1200(f) requires
+             prior express WRITTEN consent for marketing texts; the clause most
+             brands miss is the "not a condition of purchase" disclosure. It has
+             to be visible at the point of collection, so it is never hidden
+             behind a toggle. Klaviyo subscribes the number to a MARKETING list
+             the moment it is submitted, so this copy is what makes that
+             legitimate. Trimmed as far as it goes and no further — have the
+             final wording reviewed by a lawyer. -->
+        <p class="consent" id="signupConsent">
+          By entering your number you agree to receive recurring automated marketing
+          texts from Asior at that number. Consent is not a condition of any purchase.
+          Message frequency varies and message &amp; data rates may apply. Reply STOP to
+          cancel, HELP for help. See our <a href="privacy-policy.html">Privacy Policy</a>
+          and <a href="terms-of-service.html">Terms of Service</a>.
+        </p>
 
         <div class="confirm" id="signupConfirm" role="status" aria-live="polite"></div>
       </section>
@@ -481,21 +512,27 @@
 
   const signupForm = document.getElementById('signupForm');
   const signupBtn = document.getElementById('signupBtn');
+  const signupConsent = document.getElementById('signupConsent');
   const signupConfirm = document.getElementById('signupConfirm');
+  const signupLede = document.querySelector('.lede');
 
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     signupBtn.disabled = true;
     const email = document.getElementById('signupEmail').value;
+    const phone = document.getElementById('signupPhone').value;
 
     try {
-      // Second argument is the phone number; this page never collects one.
-      await A.klaviyoSubscribe(email);
+      // Email is the required part. A bad phone number fails quietly inside
+      // klaviyoSubscribe rather than undoing a signup that already worked.
+      await A.klaviyoSubscribe(email, phone);
       // Fire and forget — klaviyoTrack swallows its own failures, and a
       // missing analytics event must never look like a failed signup.
       A.klaviyoTrack('Early Access Signup', { drop: DROP_NAME }, { email: email });
       signupForm.style.display = 'none';
-      signupConfirm.textContent = "You're on the list. Watch your inbox.";
+      signupConsent.style.display = 'none';
+      signupLede.style.display = 'none';
+      signupConfirm.textContent = "You're in. Check your inbox for your code.";
     } catch (err) {
       signupConfirm.textContent = 'Something went wrong — try again in a moment.';
       signupBtn.disabled = false;
