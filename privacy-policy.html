@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Privacy Policy | Asior</title>
 <meta name="description" content="How Asior collects, uses and protects your personal information, including email and SMS marketing preferences.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://asiorclothing.com/privacy-policy.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -27,7 +27,7 @@
      nowhere, so it is not requested here. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Archivo+Narrow:wght@700&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <style>
@@ -73,11 +73,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      transition-duration: 0.001ms !important;
-    }
-    .hero, .quick-links, .signup, .product, .look, .legal {
+    .legal {
       opacity: 1 !important;
       transform: none !important;
     }
@@ -112,22 +108,56 @@
     font-size: 12.5px; font-weight: 300; color: var(--muted);
   }
   .policy-body th { color: var(--ink); font-weight: 500; }
+
+  /* ---------- locked-store overrides ----------
+     This page is only reachable from the locked landing page, so it
+     wears the same drop theme: true black, Archivo Narrow for the
+     wordmark and headings, plain Helvetica for the body. Same tokens as
+     index.html — if the store reopens on this theme they move up into
+     assets/site.css and these three blocks come out. */
+  :root {
+    --bg: #000000;
+    --ink: #f2f2f0;
+    --muted: #8f8f8a;
+    --line: #1e1e1c;
+    --field-line: #6f6f6a;
+
+    --font-brand: 'Yellowtail', 'Snell Roundhand', cursive;
+    --font-display: 'Archivo Narrow', 'Arial Narrow', Helvetica, Arial, sans-serif;
+    --font-body: Helvetica, Arial, sans-serif;
+    --font-mono: var(--font-display);
+  }
+
+  /* Same script wordmark as the landing page, so the two pages you can
+     actually reach sign their name the same way. */
+  header .mark {
+    font-family: var(--font-brand);
+    font-weight: 400;
+    font-size: 24px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* header sits at top:34px site-wide to clear the teaser bar; with no
+     teaser bar it goes flush, and the spacer that reserves room for both
+     shrinks to match. */
+  header { top: 0; }
+  .page-top-space { height: 104px; }
+
+  @media (max-width: 640px) {
+    .page-top-space { height: 84px; }
+  }
 </style>
 </head>
 <body>
 
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <!-- No nav and no teaser bar: this page is only reachable from the
+       locked landing page, and the point of that page is that there is
+       nowhere else to go. The wordmark leads back to it and that's all. -->
   <header>
     <a class="mark" href="index.html">Asior</a>
-    <nav>
-      <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
-    </nav>
   </header>
 
   <div class="page-top-space"></div>

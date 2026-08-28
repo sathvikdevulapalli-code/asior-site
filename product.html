@@ -152,23 +152,6 @@
   /* Restated next to the buy button, where the decision actually happens.
      The FTC Mail Order Rule expects a stated shipping expectation on
      advance-purchase items, so this line is compliance as well as UX. */
-  .pd-preorder-notice {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    border-left: 2px solid var(--ink);
-    border-radius: 2px;
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--muted);
-  }
-
-  .pd-preorder-notice b {
-    color: var(--ink);
-    font-weight: 500;
-  }
 
   .pd-name {
     font-family: var(--font-display);
@@ -393,28 +376,6 @@
     margin-bottom: 12px;
   }
 
-  .pd-size-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .pd-size-table th,
-  .pd-size-table td {
-    padding: 8px 10px 8px 0;
-    text-align: left;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .pd-size-table th {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
   .pd-stock-note {
     display: none;
     margin-top: 14px;
@@ -532,17 +493,6 @@
     header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
     header nav::-webkit-scrollbar { display: none; }
     .pd { padding: 0 20px 10vh; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      transition-duration: 0.001ms !important;
-    }
-    .hero, .quick-links, .signup, .product, .look {
-      opacity: 1 !important;
-      transform: none !important;
-    }
   }
 
   /* ---------- facts row ----------
