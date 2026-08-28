@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asior — The Jaguar Drop, Coming Soon</title>
-<meta name="description" content="The Asior Jaguar drop lands soon. Sign up for early access — limited run, made in small batches, gone once it sells out.">
+<title>Asior — The Jaguar Drop, September 7</title>
+<meta name="description" content="The Asior Jaguar drop lands September 7. Sign up for early access — limited run, made in small batches, gone once it sells out.">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://asiorclothing.com/">
 
@@ -12,23 +12,26 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Asior — The Jaguar Drop, Coming Soon">
-<meta property="og:description" content="The Asior Jaguar drop lands soon. Sign up for early access — limited run, made in small batches, gone once it sells out.">
+<meta property="og:title" content="Asior — The Jaguar Drop, September 7">
+<meta property="og:description" content="The Asior Jaguar drop lands September 7. Sign up for early access — limited run, made in small batches, gone once it sells out.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — the Jaguar drop, coming soon">
+<meta property="og:image:alt" content="Asior — the Jaguar drop, September 7">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- One webfont, one weight. Unbounded / Inter / IBM Plex Mono are not
-     requested on this page at all — the drop theme uses Archivo Narrow for
-     display and plain system Helvetica for body copy, which costs nothing
-     to download. Fonts via <link>, not @import: an @import would make the
-     browser parse the CSS before it even discovers the font request. -->
+<!-- Two faces, one weight each. Great Vibes is the wordmark only — it is
+     the closest match on Google Fonts to the Asior script embroidered on
+     the garments themselves, so the site and the clothes finally sign
+     their name the same way. Archivo Narrow 700 carries every heading,
+     label and button; body copy is system Helvetica and costs nothing.
+     Unbounded / Inter / IBM Plex Mono are not requested at all.
+     Fonts via <link>, not @import: an @import would make the browser
+     parse the CSS before it even discovers the font request. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Archivo+Narrow:wght@700&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <style>
@@ -57,8 +60,11 @@
     --line: #1e1e1c;
     --field-line: #6f6f6a;  /* 4.1:1 — these ARE 1.4.11 components */
 
-    /* Display face, every heading / button / label, always uppercase.
-       Body copy — anything you read as a sentence — stays Helvetica. */
+    /* Three roles, kept separate on purpose. --font-brand is the
+       wordmark and nothing else: a script set in caps, or set as a
+       button label, looks broken. --font-display is every heading,
+       label and button, always uppercase. Body copy stays Helvetica. */
+    --font-brand: 'Great Vibes', 'Snell Roundhand', cursive;
     --font-display: 'Archivo Narrow', 'Arial Narrow', Helvetica, Arial, sans-serif;
     --font-body: Helvetica, Arial, sans-serif;
     --font-mono: var(--font-display);
@@ -116,17 +122,18 @@
   }
 
   /* ---------- wordmark ----------
-     Archivo Narrow 700, which is Peace and War's heading face, at close
-     to the size they actually set it: their whole page tops out at 24px
-     type. A billboard wordmark is the opposite of that page, so this is
-     a mark rather than a hero. */
+     The brand script, set as the brand actually writes it: mixed case,
+     no tracking, letters joined. A script needs more size than a
+     grotesque to read at all, and it needs the line-height for the
+     ascender swash on the A and the descender on the r — at 1.0 they
+     get clipped. */
   .wordmark {
-    font-family: var(--font-display);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: clamp(2rem, 6vw, 3.25rem);
-    line-height: 1;
-    letter-spacing: 0.06em;
+    font-family: var(--font-brand);
+    font-weight: 400;
+    text-transform: none;
+    font-size: clamp(3.5rem, 11vw, 6rem);
+    line-height: 1.15;
+    letter-spacing: 0;
     color: var(--ink);
   }
 
@@ -139,6 +146,48 @@
     text-transform: uppercase;
     color: var(--muted);
   }
+
+  /* ---------- countdown ----------
+     Digits change; nothing moves. No flip, no fade, no separators. The
+     figures are tabular and each cell has a floor width so the row
+     doesn't jitter every time the seconds roll from 9 to 10. */
+  .countdown {
+    display: flex;
+    justify-content: center;
+    gap: clamp(18px, 5vw, 34px);
+    margin-top: 24px;
+  }
+
+  .cd-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 46px;
+  }
+
+  .cd-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .cd-label {
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Past the date there is nothing left to count to, and a row of
+     zeros reads worse than no row at all. */
+  .countdown.done { display: none; }
 
   /* ---------- early access ----------
      No section heading and no explanatory line above the form. "Dropping
@@ -279,10 +328,12 @@
   footer { padding: 40px 24px 44px; }
 
   footer .fmark {
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-family: var(--font-brand);
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.3;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   @media (max-width: 749px) {
@@ -299,10 +350,23 @@
 
     <div class="wrap">
       <h1 class="wordmark">Asior</h1>
-      <!-- Swap this line for the real date once it's locked, e.g.
-           "Dropping 04.11.26". Until then it stays vague on purpose —
-           an announced date that slips costs more than it earns. -->
-      <p class="status">Dropping soon</p>
+
+      <!-- The date is written into the served HTML rather than printed by
+           the countdown script, so it survives JS being off and so
+           crawlers and link previews can read it. Keep it in step with
+           DROP_AT at the foot of this file — that constant is what drives
+           the numbers below. -->
+      <p class="status">Dropping September 7</p>
+
+      <!-- Dashes, not zeros, before the script runs: a countdown showing
+           00 00 00 00 looks like the drop has already been and gone. -->
+      <div class="countdown" id="countdown" role="timer" aria-live="off"
+           aria-label="Time remaining until the drop">
+        <div class="cd-cell"><span class="cd-num" id="cdDays">--</span><span class="cd-label">Days</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdHours">--</span><span class="cd-label">Hrs</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdMins">--</span><span class="cd-label">Min</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">Sec</span></div>
+      </div>
 
       <!-- id kept as "signup": every other page on the site still links
            to index.html#signup. -->
@@ -380,6 +444,40 @@
   // instead of blasting the whole list. Change it when the next one is
   // teased.
   const DROP_NAME = 'Jaguar';
+
+  // The drop as one fixed instant, not a date string the browser gets to
+  // interpret in whatever timezone the visitor happens to be in. -05:00
+  // is Central on 7 September, which is where Asior runs, so everyone
+  // worldwide counts down to the same moment. Change the time here if it
+  // isn't going live at midnight — and update the visible date line in
+  // the markup above to match.
+  const DROP_AT = new Date('2026-09-07T00:00:00-05:00');
+
+  const countdown = document.getElementById('countdown');
+  const cdDays = document.getElementById('cdDays');
+  const cdHours = document.getElementById('cdHours');
+  const cdMins = document.getElementById('cdMins');
+  const cdSecs = document.getElementById('cdSecs');
+  const pad = (n) => String(n).padStart(2, '0');
+
+  function tick() {
+    const left = DROP_AT - Date.now();
+    if (left <= 0) {
+      // Nothing left to count to. The date line above still reads true on
+      // the day; actually unlocking the store is a person's job.
+      countdown.classList.add('done');
+      clearInterval(cdTimer);
+      return;
+    }
+    const total = Math.floor(left / 1000);
+    cdDays.textContent = pad(Math.floor(total / 86400));
+    cdHours.textContent = pad(Math.floor(total / 3600) % 24);
+    cdMins.textContent = pad(Math.floor(total / 60) % 60);
+    cdSecs.textContent = pad(total % 60);
+  }
+
+  const cdTimer = setInterval(tick, 1000);
+  tick();
 
   const signupForm = document.getElementById('signupForm');
   const signupBtn = document.getElementById('signupBtn');
