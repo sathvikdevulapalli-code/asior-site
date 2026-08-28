@@ -83,21 +83,19 @@
     flex-direction: column;
   }
 
-  /* Jaguar print, laid over the black just at the threshold of visible.
-     It is the drop's motif, so the page wears it instead of announcing
-     it. Fixed, so it reads as the surface the page sits on. */
+  /* Jaguar print, at the very bottom of the page's tonal range: the
+     motif is meant to be felt as a grain in the black, not seen as a
+     pattern. Small tile and 0.022 opacity — if you can name the animal
+     without looking for it, it's turned up too far. */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image: url('images/swatch.jpg');
-    /* Small enough that the rosettes read as a weave rather than as six
-       big blobs behind the wordmark, faint enough that you notice it
-       second, after the type. */
-    background-size: 170px;
+    background-size: 150px;
     background-repeat: repeat;
     filter: grayscale(1);
-    opacity: 0.045;
+    opacity: 0.022;
     pointer-events: none;
     z-index: 0;
   }
@@ -117,38 +115,23 @@
     text-align: center;
   }
 
-  /* ---------- wordmark ---------- */
+  /* ---------- wordmark ----------
+     Archivo Narrow 700, which is Peace and War's heading face, at close
+     to the size they actually set it: their whole page tops out at 24px
+     type. A billboard wordmark is the opposite of that page, so this is
+     a mark rather than a hero. */
   .wordmark {
     font-family: var(--font-display);
     font-weight: 700;
     text-transform: uppercase;
-    font-size: clamp(3.25rem, 15vw, 8rem);
-    line-height: 0.9;
-    letter-spacing: 0.02em;
+    font-size: clamp(2rem, 6vw, 3.25rem);
+    line-height: 1;
+    letter-spacing: 0.06em;
     color: var(--ink);
   }
 
-  /* The one decorative element on the page: a band of the jaguar print
-     under the wordmark, masked out at both ends so it reads as a woven
-     tape and not as a cropped photograph. The print has to be scaled
-     down to ~60px for the rosettes to be legible at this height — at
-     the swatch's native size a 22px band catches one blurred blob and
-     looks like a rendering artefact. Lifted slightly out of the black
-     so it's visible as print; still nowhere near the wordmark's weight. */
-  .jag-rule {
-    height: 22px;
-    max-width: 420px;
-    margin: 24px auto 0;
-    background-image: url('images/swatch.jpg');
-    background-size: 60px;
-    background-repeat: repeat;
-    filter: grayscale(1) brightness(1.15) contrast(1.2);
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent);
-  }
-
   .status {
-    margin-top: 22px;
+    margin-top: 18px;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 12px;
@@ -157,10 +140,12 @@
     color: var(--muted);
   }
 
-  /* ---------- early access ---------- */
-  .signup { margin-top: clamp(36px, 6vh, 60px); }
+  /* ---------- early access ----------
+     No section heading and no explanatory line above the form. "Dropping
+     soon" and the button's own label already say what this is for, and
+     anything more is writing for its own sake on a page with one job. */
+  .signup { margin-top: clamp(30px, 5vh, 46px); }
 
-  .signup h2,
   .drop h2 {
     font-family: var(--font-display);
     font-weight: 700;
@@ -170,17 +155,9 @@
     color: var(--ink);
   }
 
-  .lede {
-    max-width: 38ch;
-    margin: 12px auto 0;
-    font-size: 14px;
-    line-height: 1.5rem;
-    color: var(--muted);
-  }
-
   .form {
     max-width: 340px;
-    margin: 24px auto 0;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -221,8 +198,6 @@
   }
 
   .form button[disabled] { opacity: 0.45; cursor: not-allowed; }
-
-  .consent { margin: 16px auto 0; text-align: center; }
 
   /* Kept in the DOM at all times so the live region is there to announce
      into; :empty is what hides it, not a class toggle. */
@@ -300,8 +275,7 @@
 
   /* ---------- footer ----------
      Only what has to be here: how to reach Asior, where the brand posts,
-     and the two policies the SMS consent copy above is required to link
-     to. No route back into the store. */
+     and the two policies. No route back into the store. */
   footer { padding: 40px 24px 44px; }
 
   footer .fmark {
@@ -312,7 +286,7 @@
   }
 
   @media (max-width: 749px) {
-    .signup h2, .drop h2 { font-size: 20px; }
+    .drop h2 { font-size: 20px; }
     .showcase { padding-left: 15px; }
     .shot { width: 180px; }
     .track { margin-top: 19px; height: 3px; }
@@ -325,7 +299,6 @@
 
     <div class="wrap">
       <h1 class="wordmark">Asior</h1>
-      <div class="jag-rule" aria-hidden="true"></div>
       <!-- Swap this line for the real date once it's locked, e.g.
            "Dropping 04.11.26". Until then it stays vague on purpose —
            an announced date that slips costs more than it earns. -->
@@ -334,36 +307,23 @@
       <!-- id kept as "signup": every other page on the site still links
            to index.html#signup. -->
       <section class="signup" id="signup">
-        <h2>Early Access</h2>
-        <p class="lede">Sign up and you get the drop before it goes public.</p>
-
         <!-- Real signup: calls Klaviyo's public Client API directly (no
-             widget), same real list the Email &amp; SMS popup form feeds. -->
+             widget), same real list the Email &amp; SMS popup form feeds.
+
+             EMAIL ONLY, on purpose. The phone field is gone, and the seven
+             lines of TCPA consent copy that legally had to sit under it went
+             with it — that block was most of the writing on the page. Putting
+             SMS capture back means putting that copy back: 47 CFR 64.1200(f)
+             requires prior express WRITTEN consent, visible at the point of
+             collection, and Klaviyo subscribes a number to a MARKETING list
+             the moment it is submitted. There is no compliant version of this
+             form that takes a phone number quietly. -->
         <form class="form" id="signupForm">
           <label class="sr-only" for="signupEmail">Email address</label>
           <input type="email" id="signupEmail" name="email" placeholder="Email"
                  autocomplete="email" spellcheck="false" required>
-          <label class="sr-only" for="signupPhone">Phone number (optional)</label>
-          <input type="tel" id="signupPhone" name="phone" placeholder="Phone (optional)"
-                 autocomplete="tel" inputmode="tel">
           <button type="submit" id="signupBtn">Get Early Access</button>
         </form>
-
-        <!-- TCPA consent. 47 CFR 64.1200(f) requires prior express WRITTEN
-             consent for marketing texts, and the clause most brands miss is
-             the "not a condition of purchase" disclosure. This has to be
-             visible at the point of collection, so it is never hidden behind
-             a disclosure toggle. Klaviyo subscribes the number to a MARKETING
-             list the moment it is submitted, so this copy is what makes that
-             legitimate. Have the final wording reviewed by a lawyer. -->
-        <p class="consent" id="signupConsent">
-          Email only? Leave the phone field blank. By giving your number you agree to
-          receive recurring automated marketing texts from Asior at that number.
-          Consent is not a condition of any purchase. Message frequency varies and
-          message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
-          <a href="privacy-policy.html">Privacy Policy</a> and
-          <a href="terms-of-service.html">Terms of Service</a>.
-        </p>
 
         <div class="confirm" id="signupConfirm" role="status" aria-live="polite"></div>
       </section>
@@ -388,7 +348,7 @@
     <div class="wrap">
       <section class="drop">
         <h2>The Jaguar Drop</h2>
-        <p>Limited run, made in small batches. Once it sells out, it's gone.</p>
+        <p>Once it sells out, it's gone.</p>
       </section>
     </div>
 
@@ -423,22 +383,20 @@
 
   const signupForm = document.getElementById('signupForm');
   const signupBtn = document.getElementById('signupBtn');
-  const signupConsent = document.getElementById('signupConsent');
   const signupConfirm = document.getElementById('signupConfirm');
 
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     signupBtn.disabled = true;
     const email = document.getElementById('signupEmail').value;
-    const phone = document.getElementById('signupPhone').value;
 
     try {
-      await A.klaviyoSubscribe(email, phone);
+      // Second argument is the phone number; this page never collects one.
+      await A.klaviyoSubscribe(email);
       // Fire and forget — klaviyoTrack swallows its own failures, and a
       // missing analytics event must never look like a failed signup.
       A.klaviyoTrack('Early Access Signup', { drop: DROP_NAME }, { email: email });
       signupForm.style.display = 'none';
-      signupConsent.style.display = 'none';
       signupConfirm.textContent = "You're on the list. Watch your inbox.";
     } catch (err) {
       signupConfirm.textContent = 'Something went wrong — try again in a moment.';
