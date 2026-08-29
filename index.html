@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asior — The Jaguar Drop, September 7</title>
-<meta name="description" content="The Asior Jaguar drop lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
+<title>Asior — The Fall Collection, September 7</title>
+<meta name="description" content="The Asior Fall Collection lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://asiorclothing.com/">
 
@@ -12,13 +12,13 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Asior — The Jaguar Drop, September 7">
-<meta property="og:description" content="The Asior Jaguar drop lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
+<meta property="og:title" content="Asior — The Fall Collection, September 7">
+<meta property="og:description" content="The Asior Fall Collection lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — the Jaguar drop, September 7">
+<meta property="og:image:alt" content="Asior — the Fall Collection, September 7">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Two faces, one weight each. Yellowtail is the wordmark only — a bold
@@ -34,6 +34,33 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Archivo+Narrow:wght@700&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+
+<!-- A/B test bucketing — deliberately inline, deliberately before the
+     stylesheet. This has to run before the browser paints, or the visitor
+     watches the control copy snap to the variant: the one piece of motion
+     on a page that switches every transition off on purpose. It writes the
+     same localStorage key that assets/site.js reads back through
+     A.getVariant, so the bucket is decided once here and stays sticky
+     across visits instead of being re-rolled further down the page.
+     try/catch because blocked storage (private mode, "block all cookies")
+     makes a plain localStorage read throw — that must fall through to the
+     control, not throw before anything has rendered. -->
+<script>
+  (function () {
+    var variant = 'A';
+    try {
+      var key = 'asior_ab_signup_copy';
+      var stored = localStorage.getItem(key);
+      if (stored === 'A' || stored === 'B') {
+        variant = stored;
+      } else {
+        variant = Math.random() < 0.5 ? 'A' : 'B';
+        localStorage.setItem(key, variant);
+      }
+    } catch (err) { /* storage blocked: control copy, and never counted */ }
+    document.documentElement.setAttribute('data-ab', variant);
+  })();
+</script>
 <style>
   /* ===================================================================
      Drop landing page — deliberately locked.
@@ -53,7 +80,7 @@
   :root {
     /* True black, not the warm near-black the rest of the site uses:
        the drop is black-on-black, and #0b0a08 reads brown next to the
-       greyscale jaguar print. */
+       greyscale collection print. */
     --bg: #000000;
     --ink: #f2f2f0;
     --muted: #8f8f8a;   /* 6.0:1 on black */
@@ -89,8 +116,8 @@
     flex-direction: column;
   }
 
-  /* Jaguar print, at the very bottom of the page's tonal range: the
-     motif is meant to be felt as a grain in the black, not seen as a
+  /* The collection print, at the very bottom of the page's tonal range:
+     the motif is meant to be felt as a grain in the black, not seen as a
      pattern. Small tile and 0.022 opacity — if you can name the animal
      without looking for it, it's turned up too far. */
   body::before {
@@ -206,6 +233,16 @@
   /* Consent has to be legible, not just present — it is muted and small,
      but it is never hidden behind a toggle. */
   .consent { margin: 16px auto 0; text-align: center; }
+
+  /* ---------- A/B test: signup copy ----------
+     Both variants ship in the served HTML and the cascade picks one,
+     rather than JS rewriting textContent after load. Control is the
+     default: with JS off there is no data-ab attribute at all, and a
+     visitor still gets one complete correct page instead of both
+     variants stacked on top of each other. */
+  .ab-b { display: none; }
+  [data-ab="B"] .ab-a { display: none; }
+  [data-ab="B"] .ab-b { display: inline; }
 
   .drop h2 {
     font-family: var(--font-display);
@@ -388,7 +425,10 @@
              invented for this page — but it only stays true if the Klaviyo
              welcome flow that sends the code is LIVE, not sitting in Draft.
              Check that before this goes out. -->
-        <p class="lede">First access to the drop, plus 10% off your first order.</p>
+        <p class="lede">
+          <span class="ab-a">First access to the drop, plus 10% off your first order.</span>
+          <span class="ab-b">10% off your first order, plus first access to the Fall Collection.</span>
+        </p>
 
         <!-- Real signup: calls Klaviyo's public Client API directly (no
              widget), same real lists the Email &amp; SMS popup form feeds.
@@ -401,7 +441,10 @@
           <label class="sr-only" for="signupPhone">Phone number (optional)</label>
           <input type="tel" id="signupPhone" name="phone" placeholder="Phone (optional)"
                  autocomplete="tel" inputmode="tel">
-          <button type="submit" id="signupBtn">Get Early Access</button>
+          <button type="submit" id="signupBtn">
+            <span class="ab-a">Get Early Access</span>
+            <span class="ab-b">Get My 10% Off</span>
+          </button>
         </form>
 
         <!-- TCPA consent, and it is not optional. 47 CFR 64.1200(f) requires
@@ -429,12 +472,12 @@
          from the keyboard, which an overflow container isn't by default in
          every browser. -->
     <section class="showcase">
-      <div class="strip" id="strip" tabindex="0" role="region" aria-label="The Jaguar drop">
-        <div class="shot"><img src="images/look-01.jpg" alt="Black Asior tee with jaguar-print patches, worn with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-02.jpg" alt="Black Asior polo with jaguar-print collar and cuff trim" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-04.jpg" alt="Two looks in all black — jaguar-print tees with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
+      <div class="strip" id="strip" tabindex="0" role="region" aria-label="The Fall Collection">
+        <div class="shot"><img src="images/look-01.jpg" alt="Black Asior tee with animal-print patches, worn with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
+        <div class="shot"><img src="images/look-02.jpg" alt="Black Asior polo with animal-print collar and cuff trim" width="800" height="1200" loading="lazy" decoding="async"></div>
+        <div class="shot"><img src="images/look-04.jpg" alt="Two looks in all black — animal-print tees with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
         <div class="shot"><img src="images/look-05.jpg" alt="Back of a black Asior tee with the script logo in white" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-06.jpg" alt="Asior sweat shorts with a jaguar-print side stripe" width="674" height="1200" loading="lazy" decoding="async"></div>
+        <div class="shot"><img src="images/look-06.jpg" alt="Asior sweat shorts with an animal-print side stripe" width="674" height="1200" loading="lazy" decoding="async"></div>
         <div class="shot"><img src="images/look-03.jpg" alt="Two looks — black Asior tees with Asior sweat shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
       </div>
       <div class="track" id="stripTrack" aria-hidden="true"><div class="thumb" id="stripThumb"></div></div>
@@ -442,7 +485,7 @@
 
     <div class="wrap">
       <section class="drop">
-        <h2>The Jaguar Drop</h2>
+        <h2>The Fall Collection</h2>
         <p>Once it sells out, it's gone.</p>
       </section>
     </div>
@@ -474,7 +517,22 @@
   // event as a property, so a flow can target "signed up for THIS drop"
   // instead of blasting the whole list. Change it when the next one is
   // teased.
-  const DROP_NAME = 'Jaguar';
+  const DROP_NAME = 'Fall Collection';
+
+  // ---- A/B test: which signup copy converts better ----
+  // The bucket was already chosen and painted by the inline script in
+  // <head>; this reads that same decision back out of storage so the copy
+  // on screen and the copy named in the event stream can never disagree.
+  //
+  // Exposure fires once per page view against the anonymous id, and the
+  // conversion below reuses that same id — that pairing is the whole
+  // point, because it makes the rate divisible per variant in Klaviyo:
+  //   conversion = "AB Test: Signed Up" / "AB Test: Viewed", split by
+  //   the `variant` property.
+  const AB_TEST = 'signup_copy';
+  const AB_VARIANT = A.getVariant(AB_TEST);
+
+  A.trackABEvent(AB_TEST, AB_VARIANT, 'Viewed');
 
   // The drop as one fixed instant, not a date string the browser gets to
   // interpret in whatever timezone the visitor happens to be in. -05:00
@@ -528,7 +586,16 @@
       await A.klaviyoSubscribe(email, phone);
       // Fire and forget — klaviyoTrack swallows its own failures, and a
       // missing analytics event must never look like a failed signup.
-      A.klaviyoTrack('Early Access Signup', { drop: DROP_NAME }, { email: email });
+      // The variant rides along on the real signup event too, so the
+      // existing per-drop flow can segment on it without joining across
+      // two metrics.
+      A.klaviyoTrack('Early Access Signup',
+        { drop: DROP_NAME, ab_test: AB_TEST, ab_variant: AB_VARIANT },
+        { email: email });
+      // The other half of the funnel pair started by the exposure event
+      // above. Email is attached here because by this point we have one,
+      // which lets Klaviyo stitch the anonymous view to the known profile.
+      A.trackABEvent(AB_TEST, AB_VARIANT, 'Signed Up', { email: email });
       signupForm.style.display = 'none';
       signupConsent.style.display = 'none';
       signupLede.style.display = 'none';
