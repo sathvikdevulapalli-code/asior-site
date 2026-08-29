@@ -258,19 +258,39 @@
   }
 
   /* Sticky per-visitor variant, so somebody doesn't see the copy change
-     under them on a second visit. */
+     under them on a second visit.
+
+     Guarded, because this now gates copy that is actually visible on the
+     drop page. Safari's private mode and "block all cookies" both make
+     localStorage throw on plain access, and an unguarded read here would
+     take the rest of the page script down with it. A visitor we cannot
+     bucket durably is shown the control and simply never counted, which
+     skews the sample slightly toward A but never shows a broken page.
+
+     A page that must not flicker decides its variant inline in <head>
+     and writes this same key before first paint — see index.html. This
+     reads that decision back rather than re-rolling it, so the two never
+     disagree. The stored value is validated rather than merely tested
+     for presence: anything other than 'A' or 'B' is re-rolled. */
   function getVariant(testName) {
     var key = 'asior_ab_' + testName;
-    var variant = localStorage.getItem(key);
-    if (!variant) {
-      variant = Math.random() < 0.5 ? 'A' : 'B';
-      localStorage.setItem(key, variant);
+    try {
+      var variant = localStorage.getItem(key);
+      if (variant !== 'A' && variant !== 'B') {
+        variant = Math.random() < 0.5 ? 'A' : 'B';
+        localStorage.setItem(key, variant);
+      }
+      return variant;
+    } catch (err) {
+      return 'A';
     }
-    return variant;
   }
 
-  function trackABEvent(testName, variant, eventName) {
-    return klaviyoTrack('AB Test: ' + eventName, { test: testName, variant: variant });
+  /* profileAttributes is optional: exposure events are anonymous (all we
+     have at that point is the anon id), while a conversion can pass the
+     email so Klaviyo ties the result to a real profile. */
+  function trackABEvent(testName, variant, eventName, profileAttributes) {
+    return klaviyoTrack('AB Test: ' + eventName, { test: testName, variant: variant }, profileAttributes);
   }
 
   // -----------------------------------------------------------------
