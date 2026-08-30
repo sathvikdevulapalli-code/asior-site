@@ -243,7 +243,7 @@
      The grain, the animal print and the drifting light this page used to
      draw on a canvas are all in the footage now, so that whole layer is
      gone rather than doubled up. */
-  .atmos, .atmos-grade {
+  .atmos, .atmos-still, .atmos-grade {
     position: fixed;
     inset: 0;
     pointer-events: none;
@@ -259,10 +259,30 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    /* Painted under the film so the letterbox, the moment before the
-       first frame decodes, and the poster's own edges are all the same
-       black as the page. */
-    background: var(--black);
+    /* Hidden until the film is genuinely running. The poster used to be a
+       poster="" attribute, which is what let iOS draw its own play button
+       over the top whenever autoplay was refused — the "click to play"
+       control that should never have been on this page. With no poster
+       and no controls there is nothing for the browser to decorate: the
+       element is invisible until the 'playing' event fires, and the still
+       layer below stands in until then. If autoplay is refused outright
+       (Low Power Mode, Safari's per-site Never Auto-Play), the page is a
+       still photograph rather than a video with a button on it. */
+    opacity: 0;
+    transition: opacity 500ms var(--ease-cut);
+  }
+
+  .atmos.is-playing { opacity: 1; }
+
+  /* The first frame of the same graded film, as a plain background image.
+     Covers the moment before the film decodes and, if it never plays, is
+     what the page simply stays as. */
+  .atmos-still {
+    z-index: 0;
+    background-image: url('video/gate-poster.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: var(--black);
   }
 
   /* Two gradients doing two different jobs. The first is a soft scrim
@@ -1081,18 +1101,19 @@
        audio track at all either way. playsinline stops iOS taking the
        video fullscreen. If autoplay is refused anyway (iOS Low Power Mode
        does this), the poster stays up and the page is simply a still. -->
-  <video class="atmos" id="atmos" poster="video/gate-poster.jpg"
+  <div class="atmos-still" aria-hidden="true"></div>
+  <video class="atmos" id="atmos"
          autoplay muted loop playsinline preload="auto"
          disablepictureinpicture disableremoteplayback
          aria-hidden="true" tabindex="-1">
-    <!-- VP9 first: same grade, 534KB against the MP4's 953KB, and it is
-         what Chrome, Firefox and Android will take. Safari from 14.1 and
-         iOS from 17.4 read it too; every older Safari reports that it
-         cannot, and the browser moves down to the H.264 file on its own.
-         Order matters — a browser commits to the first source it can play
-         and never reconsiders — so the smaller file has to be listed
-         first and the universally-supported one second. -->
-    <source src="video/gate.webm" type="video/webm">
+    <!-- H.264 only, deliberately. The VP9/WebM file that used to be listed
+         first was smaller, but Safari's WebM support is partial: it will
+         report that it can play the file, commit to that source, and then
+         fail to start it — and a browser never reconsiders once it has
+         picked a source. That is what left the film sitting behind a play
+         button on Mac and iOS. H.264 Main is hardware-decoded on
+         everything and cannot be picked wrongly, because it is the only
+         thing here to pick. The extra ~137KB buys playback that works. -->
     <source src="video/gate.mp4" type="video/mp4">
   </video>
   <div class="atmos-grade" aria-hidden="true"></div>
@@ -1705,6 +1726,18 @@
 
     ['loadeddata', 'canplay', 'canplaythrough', 'stalled', 'suspend'].forEach((ev) => {
       video.addEventListener(ev, want);
+    });
+
+    // Only reveal the element once frames are actually moving. Before this
+    // fires the still layer is what is on screen, so a refused autoplay
+    // looks like a photograph rather than a broken video.
+    video.addEventListener('playing', () => {
+      settled = true;
+      video.classList.add('is-playing');
+    });
+
+    video.addEventListener('pause', () => {
+      if (reduceMotion.matches) video.classList.remove('is-playing');
     });
 
     // Coming back to the tab is the single most reliable moment to get
