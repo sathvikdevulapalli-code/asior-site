@@ -274,6 +274,10 @@
 
   .atmos.is-playing { opacity: 1; }
 
+  /* [hidden] is a UA rule and .atmos is an author rule, so without this
+     the canvas would lay itself over the film even while hidden. */
+  .atmos[hidden] { display: none; }
+
   /* The first frame of the same graded film, as a plain background image.
      Covers the moment before the film decodes and, if it never plays, is
      what the page simply stays as. */
@@ -1102,19 +1106,33 @@
        video fullscreen. If autoplay is refused anyway (iOS Low Power Mode
        does this), the poster stays up and the page is simply a still. -->
   <div class="atmos-still" aria-hidden="true"></div>
+  <!-- Painted into only when the browser refuses to play the video
+       outright. See the note on the pump in the script below. -->
+  <canvas class="atmos" id="atmosCanvas" aria-hidden="true" hidden></canvas>
   <video class="atmos" id="atmos"
          autoplay muted loop playsinline preload="auto"
          disablepictureinpicture disableremoteplayback
          aria-hidden="true" tabindex="-1">
-    <!-- H.264 only, deliberately. The VP9/WebM file that used to be listed
-         first was smaller, but Safari's WebM support is partial: it will
-         report that it can play the file, commit to that source, and then
-         fail to start it — and a browser never reconsiders once it has
-         picked a source. That is what left the film sitting behind a play
-         button on Mac and iOS. H.264 Main is hardware-decoded on
-         everything and cannot be picked wrongly, because it is the only
-         thing here to pick. The extra ~137KB buys playback that works. -->
-    <source src="video/gate.mp4" type="video/mp4">
+    <!-- Both formats, MP4 first, each with an explicit codec string.
+
+         Order matters because a browser commits to the first source it
+         believes it can play and never reconsiders. Listing VP9/WebM
+         first is what put the film behind a play button on Mac and iOS:
+         Safari's WebM support is partial, it claimed the file and then
+         would not start it.
+
+         But MP4 alone is not safe either. Firefox on Windows gets H.264
+         from the operating system rather than bundling it, and a Windows
+         install without the media feature pack has no H.264 at all — on
+         those machines an MP4-only page has nothing to play. WebM is
+         bundled with Firefox everywhere, so it covers exactly that gap.
+
+         The codecs= strings are what make the fallback work: the browser
+         decides from the type, not by trying, so a precise string lets a
+         browser without H.264 skip the MP4 honestly and take the WebM.
+         Left as bare video/mp4 it may claim the file and then fail. -->
+    <source src="video/gate.mp4" type='video/mp4; codecs="avc1.4D401E"'>
+    <source src="video/gate.webm" type='video/webm; codecs="vp9"'>
   </video>
   <div class="atmos-grade" aria-hidden="true"></div>
 
@@ -1705,69 +1723,142 @@
   // ===================================================================
   (function backdrop() {
     const video = document.getElementById('atmos');
+    const canvas = document.getElementById('atmosCanvas');
     if (!video) return;
 
-    // Autoplay is refused far more often than it is blocked outright, and
-    // the refusals are all timing: the element is not ready yet, the tab
-    // was in the background when the page loaded, the network stalled
-    // mid-buffer, iOS came out of Low Power Mode. A single play() call on
-    // load loses every one of those, which is why the film sometimes just
-    // sat on its poster. So: ask on every event that means "you might be
-    // able to play now", and treat a rejection as normal rather than as
-    // an error.
+    // ---- 1. keep asking to play -------------------------------------
+    // Autoplay is refused far more often than it is blocked, and the
+    // refusals are all timing: element not ready, tab backgrounded at
+    // load, network stalled mid-buffer, iOS leaving Low Power Mode. One
+    // play() call on load loses every one of those.
     let settled = false;
 
     function want() {
       if (reduceMotion.matches) { video.pause(); return; }
-      if (!video.paused) { settled = true; return; }
+      if (!video.paused) return;
       const p = video.play();
-      if (p && p.catch) p.catch(() => { /* refused — another event will retry */ });
+      if (p && p.catch) p.catch(() => { /* refused — the pump below covers it */ });
     }
 
     ['loadeddata', 'canplay', 'canplaythrough', 'stalled', 'suspend'].forEach((ev) => {
       video.addEventListener(ev, want);
     });
-
-    // Only reveal the element once frames are actually moving. Before this
-    // fires the still layer is what is on screen, so a refused autoplay
-    // looks like a photograph rather than a broken video.
-    video.addEventListener('playing', () => {
-      settled = true;
-      video.classList.add('is-playing');
-    });
-
-    video.addEventListener('pause', () => {
-      if (reduceMotion.matches) video.classList.remove('is-playing');
-    });
-
-    // Coming back to the tab is the single most reliable moment to get
-    // permission, because it is a real user action on this page.
     document.addEventListener('visibilitychange', () => { if (!document.hidden) want(); });
     window.addEventListener('pageshow', want);
-
-    // A first touch or key anywhere counts as the gesture iOS Low Power
-    // Mode wants. Not once-only: the first gesture can land before the
-    // file is ready, and then it is wasted.
     ['pointerdown', 'keydown'].forEach((ev) => {
       document.addEventListener(ev, want, { passive: true });
     });
 
-    // Belt and braces for the first few seconds, where most refusals
-    // happen. Stops as soon as it is actually playing, so this is not a
-    // timer that runs for the life of the page.
+    video.addEventListener('playing', () => {
+      settled = true;
+      stopPump();
+      video.classList.add('is-playing');
+    });
+
+    // ---- 2. make sure it picked a format it can actually decode ------
+    // Two things go wrong here and both were live bugs.
+    //
+    // First, browsers do not honour the codecs= parameter when choosing
+    // between <source>s — they match on the container alone. A browser
+    // with no H.264 still picks the MP4, then fails with
+    // DEMUXER_ERROR_NO_SUPPORTED_STREAMS and does not fall through to the
+    // WebM. That is Firefox on a Windows install without the media
+    // feature pack, among others.
+    //
+    // Second, the failure happens while the page is still parsing: the
+    // <video> is at the top of <body> with preload="auto", so it has
+    // already errored long before this script runs and an error listener
+    // alone never hears about it. So check the current state as well as
+    // listening for future failures.
+    const TYPES = [
+      ['video/gate.mp4', 'video/mp4; codecs="avc1.4D401E"'],
+      ['video/gate.webm', 'video/webm; codecs="vp9"'],
+    ];
+    let swapped = false;
+
+    video.addEventListener('error', ensureSource, true);
+
+    function ensureSource() {
+      if (swapped) return;
+      const failed = video.error
+        || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE;
+      if (!failed) return;
+      // Ask the browser directly rather than trusting its own pick.
+      const pick = TYPES.filter(function (t) { return video.canPlayType(t[1]); })
+                        .map(function (t) { return t[0]; })[0];
+      if (!pick || (video.currentSrc && video.currentSrc.indexOf(pick) !== -1)) return;
+      swapped = true;
+      video.src = pick;
+      video.load();
+      want();
+    }
+
+    // Runs now, for the failure that already happened during parsing.
+    ensureSource();
+
+    // ---- 3. if it decodes but will not play, pump it by hand ---------
+    // Edge's "Limit" media setting, Firefox's "Block Audio and Video" and
+    // Brave's default all refuse play() even for a silent video, and no
+    // page can make play() succeed against them. Drawing a paused video
+    // into a canvas is not playback and is not governed by that policy,
+    // so the film can still run: step currentTime, paint the frame, wait
+    // for the seek, repeat. ~15fps, which is plenty for footage moving
+    // this slowly, and it costs no extra download — it is the same file.
+    let pumping = false;
+    let cx = null;
+
+    function stopPump() {
+      pumping = false;
+      if (canvas) { canvas.hidden = true; canvas.classList.remove('is-playing'); }
+    }
+
+    function startPump() {
+      if (pumping || settled || reduceMotion.matches) return;
+      if (!canvas || !video.videoWidth || video.readyState < 2) return;
+      pumping = true;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      cx = cx || canvas.getContext('2d');
+      canvas.hidden = false;
+      requestAnimationFrame(() => canvas.classList.add('is-playing'));
+      step();
+    }
+
+    function step() {
+      if (!pumping) return;
+      try { cx.drawImage(video, 0, 0, canvas.width, canvas.height); } catch (err) { stopPump(); return; }
+      // Nothing to draw for a tab nobody is looking at.
+      if (document.hidden) { setTimeout(step, 400); return; }
+      const dur = video.duration || 8.5;
+      let next = video.currentTime + 1 / 15;
+      if (!isFinite(next) || next >= dur) next = 0;
+      // Self-paced by the seek itself, with a timeout in case 'seeked'
+      // never arrives — otherwise one dropped event stops the film.
+      let moved = false;
+      const onSeeked = () => { if (!moved) { moved = true; step(); } };
+      video.addEventListener('seeked', onSeeked, { once: true });
+      setTimeout(() => { if (!moved) { moved = true; video.removeEventListener('seeked', onSeeked); step(); } }, 250);
+      try { video.currentTime = next; } catch (err) { stopPump(); }
+    }
+
+    // Give real playback a fair chance first; only then fall back.
     let tries = 0;
     const poll = setInterval(() => {
-      if (settled || tries++ > 12 || reduceMotion.matches) { clearInterval(poll); return; }
-      if (video.paused) want(); else { settled = true; clearInterval(poll); }
+      if (settled || reduceMotion.matches) { clearInterval(poll); return; }
+      if (!video.paused) { settled = true; clearInterval(poll); return; }
+      want();
+      if (++tries >= 5) { clearInterval(poll); startPump(); }
     }, 400);
 
-    // If the file itself fails to decode there is nothing to retry, and
-    // the poster is already the fallback. Stop asking.
-    video.addEventListener('error', () => clearInterval(poll));
-
     function applyMotion() {
-      if (reduceMotion.matches) { video.pause(); video.removeAttribute('autoplay'); }
-      else want();
+      if (reduceMotion.matches) {
+        video.pause();
+        video.removeAttribute('autoplay');
+        stopPump();
+        video.classList.remove('is-playing');
+      } else {
+        want();
+      }
     }
 
     if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyMotion);
