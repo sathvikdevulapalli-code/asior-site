@@ -727,6 +727,18 @@
   .close:hover, .close:focus-visible { color: var(--black); }
   .close:hover b, .close:focus-visible b { color: rgba(var(--grey-900-rgb), 0.85); }
 
+  /* The shared close control and focus ring are drawn for a near-white
+     sheet, so on the black one they would be dark ink on black — the ring
+     invisible, the control nearly so. */
+  .sheet-look .close { color: rgba(var(--off-white-rgb), 0.85); }
+  .sheet-look .close b { color: rgba(var(--off-white-rgb), 0.6); }
+  .sheet-look .close:hover, .sheet-look .close:focus-visible { color: var(--white); }
+  .sheet-look .close:hover b, .sheet-look .close:focus-visible b { color: rgba(var(--off-white-rgb), 0.85); }
+
+  .sheet-look a:focus-visible,
+  .sheet-look button:focus-visible,
+  .sheet-look [tabindex]:focus-visible { outline-color: var(--white); }
+
   /* ---------- signup ---------- */
   .sheet-notify {
     width: min(430px, calc(100vw - 32px));
@@ -975,8 +987,18 @@
 
   .pass-msg:empty { display: none; }
 
-  /* ---------- lookbook ---------- */
+  /* ---------- lookbook ----------
+     The only sheet on a black ground. The other three cut to near-white
+     because they are interface — a form, two links, a passphrase — and the
+     hard change of surface is what marks them as a different mode. This
+     one is photography, and the clothes are almost entirely black: on a
+     near-white sheet every garment became a silhouette with a bright
+     border around it. On black the frames bleed into the page and the
+     print and texture are what you see. Everything inside it therefore
+     inverts too, which is what the overrides below are for. */
   .sheet-look {
+    background: var(--black);
+    color: var(--white);
     /* One gutter for the title, the strip and the counter, so the first
        look lines up under the first character of the title. */
     --gutter: clamp(18px, 4vw, 32px);
@@ -995,10 +1017,10 @@
     line-height: 1.7;
     letter-spacing: 0.2em;
     text-transform: lowercase;
-    color: rgba(var(--grey-900-rgb), 0.7);
+    color: rgba(var(--off-white-rgb), 0.72);
   }
 
-  .look-head b { font-weight: 400; color: var(--black); }
+  .look-head b { font-weight: 400; color: var(--white); }
 
   .look-body {
     flex: 1;
@@ -1034,7 +1056,7 @@
   }
 
   .strip::-webkit-scrollbar { display: none; }
-  .strip:focus-visible { outline: 1px solid var(--black); outline-offset: 4px; }
+  .strip:focus-visible { outline: 1px solid var(--white); outline-offset: 4px; }
 
   .shot {
     flex: 0 0 auto;
@@ -1045,9 +1067,10 @@
     width: auto;
     aspect-ratio: 2 / 3;
     overflow: hidden;
-    /* Held while the photo decodes, so opening the lookbook doesn't show
-       an empty white screen with nothing in it. */
-    background: #E4E1DA;
+    /* Held while the photo decodes. Barely off the sheet's own black, so
+       an unloaded frame reads as a gap in the row rather than a bright
+       rectangle punched into the page. */
+    background: #17171A;
   }
 
   .shot img { width: 100%; height: 100%; object-fit: cover; }
@@ -1059,11 +1082,11 @@
     font-family: var(--mono);
     font-size: 10px;
     letter-spacing: 0.2em;
-    color: rgba(var(--grey-900-rgb), 0.7);
+    color: rgba(var(--off-white-rgb), 0.72);
     font-variant-numeric: tabular-nums;
   }
 
-  .look-foot b { font-weight: 400; color: var(--black); }
+  .look-foot b { font-weight: 400; color: var(--white); }
 
   /* Below this the 2/3 crop at full height is wider than the screen, so
      width has to lead instead and the height follows. */
