@@ -54,6 +54,7 @@
      has parsed that far. crossorigin is required even same-origin: font
      fetches are always CORS-mode, and a preload without it is made in the
      wrong mode, ignored, and quietly fetched a second time. -->
+<link rel="preload" href="fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/courier-prime-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
@@ -102,6 +103,19 @@
   })();
 </script>
 <style>
+  /* Anton carries the wordmark and nothing else. A display face earns its
+     place on exactly one element: it is drawn for size, has a single
+     weight, and its tight condensed fit is what lets the mark sit large
+     without crowding the frame — the same qualities that make it wrong
+     for a 10px label. Text and UI stay on Inter Tight below. */
+  @font-face {
+    font-family: 'Anton';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/anton-latin.woff2') format('woff2');
+  }
+
   /* Inter Tight ships as a single variable file covering the whole 400-700
      axis, so every weight this page uses costs one request. No
      unicode-range: with one subset self-hosted there is nothing to switch
@@ -179,6 +193,7 @@
        Both are loaded in <head>; the fallbacks are the nearest system
        equivalents so a failed font request degrades to the previous look
        rather than to Times. */
+    --display: 'Anton', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
     --sans: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     --mono: 'Courier Prime', 'Courier New', Courier, monospace;
 
@@ -264,7 +279,7 @@
          is taken down hard and flat rather than by the ellipse below,
          which reaches the bottom edge too weakly to protect it. */
       linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
-      radial-gradient(ellipse 46% 42% at 50% 47%, rgba(var(--black-rgb), 0.80), rgba(var(--black-rgb), 0) 76%),
+      radial-gradient(ellipse 46% 52% at 50% 46%, rgba(var(--black-rgb), 0.88), rgba(var(--black-rgb), 0) 92%),
       radial-gradient(ellipse 76% 72% at 50% 50%, rgba(var(--black-rgb), 0) 44%, rgba(var(--black-rgb), 0.96) 100%);
   }
 
@@ -278,7 +293,7 @@
     .atmos-grade {
       background:
         linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
-        radial-gradient(ellipse 76% 36% at 50% 47%, rgba(var(--black-rgb), 0.82), rgba(var(--black-rgb), 0) 78%),
+        radial-gradient(ellipse 82% 50% at 50% 46%, rgba(var(--black-rgb), 0.88), rgba(var(--black-rgb), 0) 92%),
         radial-gradient(ellipse 96% 62% at 50% 50%, rgba(var(--black-rgb), 0) 42%, rgba(var(--black-rgb), 0.96) 100%);
     }
   }
@@ -333,7 +348,7 @@
     line-height: 1;
     letter-spacing: 0.22em;
     text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.76);
+    color: rgba(var(--off-white-rgb), 0.82);
   }
 
   /* ---------- countdown ----------
@@ -372,7 +387,7 @@
     line-height: 1;
     letter-spacing: 0.2em;
     text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.76);
+    color: rgba(var(--off-white-rgb), 0.82);
   }
 
   /* Past the date there is nothing left to count to, and a row of zeros
@@ -380,18 +395,32 @@
   .countdown.done { display: none; }
 
   /* ---------- wordmark ----------
-     The name, set as one tight block. The brief keeps the whole page to
-     two families, so the mark is Helvetica rather than the brush script
-     the site carried before — cased and tracked to read as a mark, not as
-     a heading. Optical tracking is negative because Helvetica caps at
-     this size set loose immediately, and 'ASIOR' has to hold together as
-     a single shape. */
+     Anton: a condensed display face with real weight to it, which is what
+     makes the mark read as a graphic rather than as a heading in the same
+     font as everything else. Condensed also buys height — the same width
+     of frame carries a much bigger mark — so the name can dominate the
+     screen without pushing at the edges.
+
+     Tracking is positive here, not negative. Anton's default fit is
+     already tight enough to close up at size, and letting a little air
+     between five heavy caps is what stops ASIOR reading as one solid
+     block instead of a name.
+
+     It is a <button>: clicking it opens the members' entrance. That is
+     meant to be unmarked, so it carries no visual affordance at all —
+     but it is a real button rather than a click handler on a heading, so
+     it can still be reached and used from a keyboard. */
   .wordmark {
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: clamp(3.4rem, 15vw, 8rem);
-    line-height: 0.9;
-    letter-spacing: -0.012em;
+    display: inline-block;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(4rem, 18vw, 9.5rem);
+    line-height: 0.86;
+    letter-spacing: 0.015em;
     text-transform: uppercase;
     color: var(--white);
     /* A very slow breath, well under the threshold where it reads as an
@@ -405,12 +434,57 @@
     50%      { opacity: 1; }
   }
 
-  /* ---------- the two actions ---------- */
+  /* ---------- the two actions ----------
+     The signup was a bare line of text before, indistinguishable from the
+     wordmark and the date above it, and nobody could tell it was the one
+     thing on the page you are meant to press. It is now a filled block:
+     the only solid shape on the whole gate, so it reads as the action
+     without needing a label that says so. Everything else here stays
+     text, which is what lets one button carry that weight. */
   .actions {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 18px;
+  }
+
+  .cta-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .cta {
+    display: inline-block;
+    background: var(--white);
+    color: var(--black);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(12px, 3.2vw, 13.5px);
+    line-height: 1;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    padding: 17px clamp(22px, 6vw, 34px);
+    border: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 140ms var(--ease-cut), box-shadow 240ms var(--ease-cut);
+  }
+
+  .cta:hover { box-shadow: 0 0 0 4px rgba(var(--off-white-rgb), 0.18); }
+  .cta:active { transform: scale(0.978); }
+
+  /* What you are actually handing over and what you get back, in the
+     system voice. It sits under the button rather than inside it because
+     a button label should be the action, not the terms. */
+  .cta-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.82);
   }
 
   .action {
@@ -432,7 +506,7 @@
   .action-2 {
     font-size: 11px;
     letter-spacing: 0.18em;
-    color: rgba(var(--off-white-rgb), 0.78);
+    color: rgba(var(--off-white-rgb), 0.85);
     transition: color 260ms var(--ease-cut);
   }
 
@@ -708,7 +782,8 @@
   .form input:hover { border-color: rgba(var(--grey-800-rgb), 0.8); }
   .form input:focus { outline: none; border-color: var(--black); }
 
-  .form button {
+  .form button,
+  .pass-form button {
     width: 100%;
     margin-top: 4px;
     border: 1px solid var(--grey-900);
@@ -724,9 +799,12 @@
     transition: background-color 200ms var(--ease-cut), transform 140ms var(--ease-cut);
   }
 
-  .form button:hover { background: var(--black); }
-  .form button:active { transform: scale(0.985); }
-  .form button[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .form button:hover,
+  .pass-form button:hover { background: var(--black); }
+  .form button:active,
+  .pass-form button:active { transform: scale(0.985); }
+  .form button[disabled],
+  .pass-form button[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
 
   /* TCPA consent. Small, but never behind a disclosure — it has to be
      visible at the point of collection to count. site.css styles .consent
@@ -757,6 +835,121 @@
   }
 
   .confirm:empty { display: none; }
+
+  /* ---------- follow ----------
+     Two cards rather than two more text links, because this sheet exists
+     to make following feel like a destination rather than a footnote.
+     They are links, not embeds: a real Instagram feed needs the Basic
+     Display API and an access token that expires every 60 days, which is
+     a server-side job and a standing maintenance cost — see the note in
+     the markup. */
+  .sheet-follow {
+    width: min(440px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    padding: 52px clamp(22px, 5vw, 34px) clamp(24px, 4vw, 30px);
+    text-align: center;
+  }
+
+  .follow-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .fcard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid rgba(var(--grey-800-rgb), 0.55);
+    color: var(--black);
+    text-align: left;
+    transition: background-color 200ms var(--ease-cut), border-color 200ms var(--ease-cut);
+  }
+
+  .fcard:hover {
+    background: var(--grey-900);
+    border-color: var(--grey-900);
+    color: var(--white);
+  }
+
+  .fcard svg { width: 22px; height: 22px; flex: 0 0 auto; }
+
+  .fcard-txt { flex: 1; min-width: 0; }
+
+  /* Both are <span>, so without this the network and the handle run
+     together on one line instead of stacking. */
+  .fcard-net,
+  .fcard-at { display: block; }
+
+  .fcard-net {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* The handle is the thing people actually search for, so it is set in
+     the system face and never truncated into ambiguity. */
+  .fcard-at {
+    margin-top: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: rgba(var(--grey-900-rgb), 0.7);
+    overflow-wrap: anywhere;
+  }
+
+  .fcard:hover .fcard-at { color: rgba(var(--off-white-rgb), 0.8); }
+
+  .fcard-go {
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0.45;
+  }
+
+  .fcard:hover .fcard-go { opacity: 1; }
+
+  /* ---------- members' entrance ---------- */
+  .sheet-pass {
+    width: min(400px, calc(100vw - 32px));
+    padding: 52px clamp(22px, 5vw, 34px) clamp(24px, 4vw, 30px);
+    text-align: center;
+  }
+
+  .pass-form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+  .pass-form input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(var(--grey-800-rgb), 0.55);
+    color: var(--black);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-align: center;
+    padding: 14px;
+    transition: border-color 200ms var(--ease-cut);
+  }
+
+  .pass-form input::placeholder { color: rgba(var(--grey-900-rgb), 0.7); letter-spacing: 0.08em; }
+  .pass-form input:hover { border-color: rgba(var(--grey-800-rgb), 0.8); }
+  .pass-form input:focus { outline: none; border-color: var(--black); }
+
+  .pass-msg {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: rgba(var(--grey-900-rgb), 0.7);
+  }
+
+  .pass-msg:empty { display: none; }
 
   /* ---------- lookbook ---------- */
   .sheet-look {
@@ -922,20 +1115,29 @@
         <div class="cd-cell"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">sec</span></div>
       </div>
 
-      <h1 class="wordmark rise" style="--in: 380ms">Asior</h1>
+      <!-- The heading stays an <h1> for the document outline; the button
+           inside it is the members' entrance. Unmarked on purpose — it
+           looks like the wordmark and nothing else — but a real button,
+           so it is reachable from a keyboard rather than mouse-only. -->
+      <h1 class="wordmark-wrap rise" style="--in: 380ms">
+        <button type="button" class="wordmark" id="markBtn" aria-label="Asior — members' entrance">Asior</button>
+      </h1>
 
       <div class="actions rise" style="--in: 540ms">
-        <!-- Real hrefs, not buttons: with JS off these still open their
-             overlay through :target, and they stay shareable. The script
-             intercepts the click to avoid the jump to the anchor. -->
-        <!-- Fixed copy, not a variant. The A/B test on signup wording runs
-             on the lede and the button inside the sheet, which is where it
-             ran before this page was rebuilt; the gate link is the same
-             for everyone, so the test measures the form copy and nothing
-             else. -->
-        <a class="action" href="#signup" id="notifyLink">Early Access + 10% Off</a>
-        <a class="action action-2" href="https://www.instagram.com/asior_clothing/"
-           target="_blank" rel="noopener">@asior_clothing</a>
+        <div class="cta-group">
+          <!-- Real href, not a button: with JS off this still opens the
+               signup through :target, and it stays shareable. The script
+               intercepts the click to avoid the jump to the anchor.
+
+               Fixed copy, not a variant. The A/B test on signup wording
+               runs on the lede and the button inside the sheet, which is
+               where it ran before this page was rebuilt; the gate button
+               is the same for everyone, so the test measures the form
+               copy and nothing else. -->
+          <a class="cta" href="#signup" id="notifyLink">Early Access + 10% Off</a>
+          <p class="cta-sub">email&nbsp;+&nbsp;sms &nbsp;·&nbsp; first access to the drop</p>
+        </div>
+        <button type="button" class="action action-2" id="followLink">Follow</button>
       </div>
 
     </div>
@@ -946,7 +1148,6 @@
       <footer class="rise" style="--in: 820ms">
         <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a>
         <span class="meta-right">
-          <a href="https://www.tiktok.com/@asiorclothing" target="_blank" rel="noopener">tiktok</a>
           <a href="privacy-policy.html">privacy</a>
           <a href="terms-of-service.html">terms</a>
         </span>
@@ -1052,6 +1253,84 @@
            aria-hidden because the strip itself is already labelled and the
            counter would otherwise be read out on every scroll event. -->
       <div class="sheet-in look-foot" id="lookCount" aria-hidden="true"><b>01</b> / 06</div>
+    </div>
+  </div>
+
+  <!-- ================= follow =================
+       Links, not an embedded feed. A live Instagram grid needs the
+       Instagram Basic Display API, a server to hold the token, and a
+       refresh before it expires every 60 days — a standing maintenance
+       job on a site that is otherwise static files. If you want the real
+       grid later, that is the piece to build. -->
+  <div class="overlay" id="follow" hidden role="dialog" aria-modal="true" aria-label="Follow Asior">
+    <div class="overlay-scrim" data-close></div>
+
+    <div class="sheet sheet-follow" tabindex="-1">
+      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
+
+      <div class="sheet-in">
+        <p class="sheet-label">follow</p>
+        <p class="sheet-lede">Drop dates, fit pics and the studio, first.</p>
+
+        <div class="follow-cards">
+          <a class="fcard" href="https://www.instagram.com/asior_clothing/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="fcard-txt">
+              <span class="fcard-net">Instagram</span>
+              <span class="fcard-at">@asior_clothing</span>
+            </span>
+            <span class="fcard-go" aria-hidden="true">&rarr;</span>
+          </a>
+
+          <!-- Handle corrected: the account is @asiorclothing.com, dot and
+               all. TikTok allows periods in usernames, so the old
+               /@asiorclothing link was pointing at a different account (or
+               none). -->
+          <a class="fcard" href="https://www.tiktok.com/@asiorclothing.com" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/>
+            </svg>
+            <span class="fcard-txt">
+              <span class="fcard-net">TikTok</span>
+              <span class="fcard-at">@asiorclothing.com</span>
+            </span>
+            <span class="fcard-go" aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= members' entrance =================
+       NOT SECURITY. This is a static site: the store pages sit at their
+       own URLs and answer to anyone who types them, with or without this.
+       The passphrase is checked in the browser, so anyone who opens the
+       dev tools can read the code, and the SHA-256 below only keeps the
+       word itself from sitting in the source in plain text — it does not
+       make the store private. Treat it as a doorway for people you gave
+       the word to, not as a lock. Real gating needs the pages served
+       behind auth. -->
+  <div class="overlay" id="members" hidden role="dialog" aria-modal="true" aria-labelledby="passLede">
+    <div class="overlay-scrim" data-close></div>
+
+    <div class="sheet sheet-pass" tabindex="-1">
+      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
+
+      <div class="sheet-in">
+        <p class="sheet-label">members</p>
+        <p class="sheet-lede" id="passLede">The store is closed until the drop.</p>
+
+        <form class="pass-form" id="passForm">
+          <label class="sr-only" for="passInput">Passphrase</label>
+          <input type="password" id="passInput" placeholder="passphrase"
+                 autocomplete="off" autocapitalize="none" spellcheck="false" required>
+          <button type="submit" id="passBtn">Enter</button>
+        </form>
+
+        <div class="pass-msg" id="passMsg" role="status" aria-live="polite"></div>
+      </div>
     </div>
   </div>
 
@@ -1207,8 +1486,12 @@
 
   const notify = makeOverlay('signup');
   const lookbook = makeOverlay('lookbook');
+  const follow = makeOverlay('follow');
+  const members = makeOverlay('members');
   const notifyLink = document.getElementById('notifyLink');
   const lookbookLink = document.getElementById('lookbookLink');
+  const followLink = document.getElementById('followLink');
+  const markBtn = document.getElementById('markBtn');
 
   notifyLink.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1219,6 +1502,9 @@
     e.preventDefault();
     lookbook.openOverlay(lookbookLink);
   });
+
+  followLink.addEventListener('click', () => follow.openOverlay(followLink));
+  markBtn.addEventListener('click', () => members.openOverlay(markBtn));
 
   document.querySelectorAll('[data-close]').forEach((el) => {
     el.addEventListener('click', () => {
@@ -1261,6 +1547,7 @@
   function openFromHash() {
     if (location.hash === '#signup') notify.openOverlay(notifyLink);
     else if (location.hash === '#lookbook') lookbook.openOverlay(lookbookLink);
+    else if (location.hash === '#follow') follow.openOverlay(followLink);
   }
 
   openFromHash();
@@ -1308,6 +1595,61 @@
   });
 
   // ===================================================================
+  // Members' entrance
+  //
+  // Read the warning in the markup before touching this: it is a doorway,
+  // not a lock. The store pages are public URLs and stay public. All this
+  // does is stop the word itself sitting in the source in plain text.
+  //
+  // TO CHANGE THE PASSPHRASE, replace PASS_SHA below with the SHA-256 of
+  // the new one. In a terminal:
+  //     printf 'yourword' | shasum -a 256
+  // or in this page's own console:
+  //     crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourword'))
+  //       .then(b => console.log([...new Uint8Array(b)]
+  //         .map(x => x.toString(16).padStart(2,'0')).join('')))
+  //
+  // Current passphrase: asior2026
+  // ===================================================================
+  const PASS_SHA = '06e49f9482fb38c07a993bd7ac7147a153301973bacd76c5fe668cc1a29ea59c';
+  const MEMBERS_DEST = 'shop.html';
+
+  const passForm = document.getElementById('passForm');
+  const passInput = document.getElementById('passInput');
+  const passBtn = document.getElementById('passBtn');
+  const passMsg = document.getElementById('passMsg');
+
+  async function sha256Hex(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  passForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    passBtn.disabled = true;
+    passMsg.textContent = '';
+    try {
+      // crypto.subtle only exists in a secure context. Live and on
+      // localhost that is always true; over plain http it is not, and a
+      // thrown error here would look like a wrong password rather than a
+      // broken page.
+      if (!window.crypto || !crypto.subtle) throw new Error('no subtle crypto');
+      const hex = await sha256Hex(passInput.value.trim());
+      if (hex === PASS_SHA) {
+        passMsg.textContent = 'Opening the store…';
+        window.location.href = MEMBERS_DEST;
+        return;
+      }
+      passMsg.textContent = "That's not it. Try again.";
+    } catch (err) {
+      passMsg.textContent = 'Something went wrong — try again in a moment.';
+    }
+    passInput.value = '';
+    passInput.focus();
+    passBtn.disabled = false;
+  });
+
+  // ===================================================================
   // Lookbook position
   // ===================================================================
   const strip = document.getElementById('strip');
@@ -1342,39 +1684,62 @@
   // ===================================================================
   (function backdrop() {
     const video = document.getElementById('atmos');
+    if (!video) return;
 
-    // 1. Reduced motion. There is no CSS that stops a video playing, so
-    //    honouring the preference has to happen here. The poster is a
-    //    frame of the same graded film, so the page keeps its picture and
-    //    loses only the movement — which is the part being objected to.
+    // Autoplay is refused far more often than it is blocked outright, and
+    // the refusals are all timing: the element is not ready yet, the tab
+    // was in the background when the page loaded, the network stalled
+    // mid-buffer, iOS came out of Low Power Mode. A single play() call on
+    // load loses every one of those, which is why the film sometimes just
+    // sat on its poster. So: ask on every event that means "you might be
+    // able to play now", and treat a rejection as normal rather than as
+    // an error.
+    let settled = false;
+
+    function want() {
+      if (reduceMotion.matches) { video.pause(); return; }
+      if (!video.paused) { settled = true; return; }
+      const p = video.play();
+      if (p && p.catch) p.catch(() => { /* refused — another event will retry */ });
+    }
+
+    ['loadeddata', 'canplay', 'canplaythrough', 'stalled', 'suspend'].forEach((ev) => {
+      video.addEventListener(ev, want);
+    });
+
+    // Coming back to the tab is the single most reliable moment to get
+    // permission, because it is a real user action on this page.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) want(); });
+    window.addEventListener('pageshow', want);
+
+    // A first touch or key anywhere counts as the gesture iOS Low Power
+    // Mode wants. Not once-only: the first gesture can land before the
+    // file is ready, and then it is wasted.
+    ['pointerdown', 'keydown'].forEach((ev) => {
+      document.addEventListener(ev, want, { passive: true });
+    });
+
+    // Belt and braces for the first few seconds, where most refusals
+    // happen. Stops as soon as it is actually playing, so this is not a
+    // timer that runs for the life of the page.
+    let tries = 0;
+    const poll = setInterval(() => {
+      if (settled || tries++ > 12 || reduceMotion.matches) { clearInterval(poll); return; }
+      if (video.paused) want(); else { settled = true; clearInterval(poll); }
+    }, 400);
+
+    // If the file itself fails to decode there is nothing to retry, and
+    // the poster is already the fallback. Stop asking.
+    video.addEventListener('error', () => clearInterval(poll));
+
     function applyMotion() {
-      if (reduceMotion.matches) {
-        video.pause();
-        video.removeAttribute('autoplay');
-      } else if (video.paused) {
-        const p = video.play();
-        if (p) p.catch(() => { /* refused: the poster stands in */ });
-      }
+      if (reduceMotion.matches) { video.pause(); video.removeAttribute('autoplay'); }
+      else want();
     }
 
     if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyMotion);
     else if (reduceMotion.addListener) reduceMotion.addListener(applyMotion);
     applyMotion();
-
-    // 2. Autoplay that was refused rather than blocked outright. iOS Low
-    //    Power Mode and some data-saver modes reject the initial play()
-    //    but allow one started from a real gesture, so the first touch or
-    //    click anywhere on the gate retries it once. Nothing here is
-    //    required for the page to work: without it the poster simply
-    //    stays up.
-    function retryOnce() {
-      document.removeEventListener('pointerdown', retryOnce);
-      document.removeEventListener('keydown', retryOnce);
-      if (!reduceMotion.matches && video.paused) video.play().catch(() => {});
-    }
-
-    document.addEventListener('pointerdown', retryOnce, { once: true, passive: true });
-    document.addEventListener('keydown', retryOnce, { once: true });
   })();
 </script>
 
