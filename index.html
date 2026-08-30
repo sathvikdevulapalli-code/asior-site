@@ -1684,39 +1684,62 @@
   // ===================================================================
   (function backdrop() {
     const video = document.getElementById('atmos');
+    if (!video) return;
 
-    // 1. Reduced motion. There is no CSS that stops a video playing, so
-    //    honouring the preference has to happen here. The poster is a
-    //    frame of the same graded film, so the page keeps its picture and
-    //    loses only the movement — which is the part being objected to.
+    // Autoplay is refused far more often than it is blocked outright, and
+    // the refusals are all timing: the element is not ready yet, the tab
+    // was in the background when the page loaded, the network stalled
+    // mid-buffer, iOS came out of Low Power Mode. A single play() call on
+    // load loses every one of those, which is why the film sometimes just
+    // sat on its poster. So: ask on every event that means "you might be
+    // able to play now", and treat a rejection as normal rather than as
+    // an error.
+    let settled = false;
+
+    function want() {
+      if (reduceMotion.matches) { video.pause(); return; }
+      if (!video.paused) { settled = true; return; }
+      const p = video.play();
+      if (p && p.catch) p.catch(() => { /* refused — another event will retry */ });
+    }
+
+    ['loadeddata', 'canplay', 'canplaythrough', 'stalled', 'suspend'].forEach((ev) => {
+      video.addEventListener(ev, want);
+    });
+
+    // Coming back to the tab is the single most reliable moment to get
+    // permission, because it is a real user action on this page.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) want(); });
+    window.addEventListener('pageshow', want);
+
+    // A first touch or key anywhere counts as the gesture iOS Low Power
+    // Mode wants. Not once-only: the first gesture can land before the
+    // file is ready, and then it is wasted.
+    ['pointerdown', 'keydown'].forEach((ev) => {
+      document.addEventListener(ev, want, { passive: true });
+    });
+
+    // Belt and braces for the first few seconds, where most refusals
+    // happen. Stops as soon as it is actually playing, so this is not a
+    // timer that runs for the life of the page.
+    let tries = 0;
+    const poll = setInterval(() => {
+      if (settled || tries++ > 12 || reduceMotion.matches) { clearInterval(poll); return; }
+      if (video.paused) want(); else { settled = true; clearInterval(poll); }
+    }, 400);
+
+    // If the file itself fails to decode there is nothing to retry, and
+    // the poster is already the fallback. Stop asking.
+    video.addEventListener('error', () => clearInterval(poll));
+
     function applyMotion() {
-      if (reduceMotion.matches) {
-        video.pause();
-        video.removeAttribute('autoplay');
-      } else if (video.paused) {
-        const p = video.play();
-        if (p) p.catch(() => { /* refused: the poster stands in */ });
-      }
+      if (reduceMotion.matches) { video.pause(); video.removeAttribute('autoplay'); }
+      else want();
     }
 
     if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyMotion);
     else if (reduceMotion.addListener) reduceMotion.addListener(applyMotion);
     applyMotion();
-
-    // 2. Autoplay that was refused rather than blocked outright. iOS Low
-    //    Power Mode and some data-saver modes reject the initial play()
-    //    but allow one started from a real gesture, so the first touch or
-    //    click anywhere on the gate retries it once. Nothing here is
-    //    required for the page to work: without it the poster simply
-    //    stays up.
-    function retryOnce() {
-      document.removeEventListener('pointerdown', retryOnce);
-      document.removeEventListener('keydown', retryOnce);
-      if (!reduceMotion.matches && video.paused) video.play().catch(() => {});
-    }
-
-    document.addEventListener('pointerdown', retryOnce, { once: true, passive: true });
-    document.addEventListener('keydown', retryOnce, { once: true });
   })();
 </script>
 
