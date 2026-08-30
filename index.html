@@ -21,13 +21,50 @@
 <meta property="og:image:alt" content="Asior — the Fall Collection, September 7">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- No webfont request at all. The gate is set entirely in Helvetica and
-     Courier, both of which every target platform already has, so there is
-     no render-blocking stylesheet from fonts.googleapis.com and no FOUT on
-     the one element that matters most (the wordmark). The other pages on
-     the site still load their own faces in their own <head>. -->
+<!-- Two faces, both requested as real webfonts rather than left to the
+     system.
+
+     Helvetica is the reference for this page, and asking for it by name is
+     the one way to guarantee not getting it: it ships on macOS and almost
+     nowhere else, so Windows and Android fall through to Arial and Linux to
+     whatever grotesque is installed. The wordmark then looks like a
+     different logo on every third visitor's screen. Helvetica also has no
+     semi-bold — only Regular and Bold — so a weight of 600 has nothing to
+     land on and gets synthesised.
+
+     Inter Tight is a neo-grotesque cut for display sizes: same neutral
+     Helvetica skeleton, tighter default fit, and a real variable weight
+     axis, so 600 is an actual drawn semi-bold and the wordmark renders
+     identically everywhere. Courier Prime is Courier redrawn at a usable
+     weight — the typewriter character the system messages want, without
+     the hairline strokes that make real Courier New look broken at 10px.
+
+     Both are self-hosted rather than pulled from fonts.googleapis.com.
+     While the drop is closed this page IS the site, so its first paint is
+     the whole first impression, and a Google Fonts link puts a DNS
+     lookup, a TLS handshake and a stylesheet to a third party in front of
+     it — then a second host for the files themselves. Served from here
+     they are two requests on a connection the browser has already opened,
+     they cannot be broken by an outage nobody here controls, and no
+     visitor is announced to Google for loading the homepage. Latin subset
+     only, which is the whole of this site's copy.
+
+     Preloaded because the @font-face rules live in the stylesheet below,
+     and the browser would otherwise not learn the files exist until it
+     has parsed that far. crossorigin is required even same-origin: font
+     fetches are always CORS-mode, and a preload without it is made in the
+     wrong mode, ignored, and quietly fetched a second time. -->
+<link rel="preload" href="fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/courier-prime-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+
+<!-- The film is deliberately NOT preloaded. rel=preload has no idea that
+     <video> picks between two <source>s, so it would fetch whichever one
+     is named here and the element would then fetch the other — about a
+     megabyte thrown away on every Chrome visit. The <video> sits at the
+     top of <body> with preload="auto" and starts loading a few
+     milliseconds later anyway. -->
 
 <!-- Runs before first paint, and does two things that both have to happen
      that early:
@@ -65,6 +102,30 @@
   })();
 </script>
 <style>
+  /* Inter Tight ships as a single variable file covering the whole 400-700
+     axis, so every weight this page uses costs one request. No
+     unicode-range: with one subset self-hosted there is nothing to switch
+     between, and anything outside it falls back per glyph anyway.
+     font-display: swap so the wordmark arrives late rather than never. */
+  @font-face {
+    font-family: 'Inter Tight';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('fonts/inter-tight-var-latin.woff2') format('woff2');
+  }
+
+  /* Only the regular weight: every <b> on this page is inside a monospace
+     run and is set back to 400 in the rules below, because those brackets
+     and figures are emphasised with colour rather than weight. */
+  @font-face {
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/courier-prime-400-latin.woff2') format('woff2');
+  }
+
   /* ===================================================================
      Drop gate — deliberately locked.
 
@@ -115,11 +176,11 @@
        drop date, confirmations — which is what makes those read as
        system messages rather than as brand voice.
 
-       600 is nominal: Helvetica and Arial both ship Regular and Bold
-       and no true semi-bold, so this resolves to Bold nearly everywhere.
-       That is the intended weight. */
-    --sans: Helvetica, 'Helvetica Neue', Arial, sans-serif;
-    --mono: 'Courier New', Courier, monospace;
+       Both are loaded in <head>; the fallbacks are the nearest system
+       equivalents so a failed font request degrades to the previous look
+       rather than to Times. */
+    --sans: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --mono: 'Courier Prime', 'Courier New', Courier, monospace;
 
     /* Overlays cut rather than dissolve, so they need an easing with a
        hard front edge, not the site's general-purpose one. */
@@ -152,36 +213,41 @@
      clipping is enough and doesn't move anything. */
   body.locked { overflow: hidden; }
 
-  /* ---------- the backdrop, in four fixed layers ----------
-     0  canvas    drifting monochrome smoke + film grain (script below)
-     1  print     the collection's own animal print, buried in the grain
-     2  grade     vignette to the edges, scrim under the centre column
-     3  content   type sitting directly on the footage, no panel behind it
+  /* ---------- the backdrop, in three fixed layers ----------
+     0  video    Asior's own panther film, graded and looping
+     1  grade    vignette to the edges, scrim under the centre column
+     2  content  type sitting directly on the footage, no panel behind it
 
-     Layer 2 is what makes layer 3 legible. The brief rules out putting a
-     card behind the type, and a moving backdrop with real near-white
-     highlights in it will otherwise drift a bright patch under the
-     wordmark; a soft, edgeless gradient is the colourist's answer rather
-     than the layout one, so contrast is held without a visible box. */
-  .atmos, .atmos-print, .atmos-grade {
+     Layer 1 is what makes layer 2 legible. There is no card behind the
+     type by design, and the footage cuts hard between near-black jungle
+     and blown-out light; a soft, edgeless gradient is the colourist's
+     answer rather than the layout one, so contrast is held without a
+     visible box. The film is graded down in the file as well — see the
+     note on the <video> element itself.
+
+     The grain, the animal print and the drifting light this page used to
+     draw on a canvas are all in the footage now, so that whole layer is
+     gone rather than doubled up. */
+  .atmos, .atmos-grade {
     position: fixed;
     inset: 0;
     pointer-events: none;
   }
 
-  .atmos { z-index: 0; width: 100%; height: 100%; display: block; }
-
-  /* The print is the drop's own fabric, run to greyscale and turned down
-     until it is a texture in the black rather than a pattern. If you can
-     name the animal without looking for it, it is up too far. */
-  .atmos-print {
-    z-index: 1;
-    background-image: url('images/swatch.jpg');
-    background-size: 190px;
-    background-repeat: repeat;
-    filter: grayscale(1) contrast(1.15);
-    opacity: 0.03;
-    mix-blend-mode: overlay;
+  /* object-fit: cover on a 4:3 source crops hard at both ends of the
+     aspect range — height on a wide desktop, width on a phone — which is
+     why the film was graded and framed as ambient texture rather than as
+     shots that have to hold their composition. */
+  .atmos {
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* Painted under the film so the letterbox, the moment before the
+       first frame decodes, and the poster's own edges are all the same
+       black as the page. */
+    background: var(--black);
   }
 
   /* Two gradients doing two different jobs. The first is a soft scrim
@@ -198,21 +264,21 @@
          is taken down hard and flat rather than by the ellipse below,
          which reaches the bottom edge too weakly to protect it. */
       linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
-      radial-gradient(ellipse 44% 36% at 50% 46%, rgba(var(--black-rgb), 0.76), rgba(var(--black-rgb), 0) 74%),
+      radial-gradient(ellipse 46% 42% at 50% 47%, rgba(var(--black-rgb), 0.80), rgba(var(--black-rgb), 0) 76%),
       radial-gradient(ellipse 76% 72% at 50% 50%, rgba(var(--black-rgb), 0) 44%, rgba(var(--black-rgb), 0.96) 100%);
   }
 
   /* The countdown row runs nearly edge to edge on a phone, so the scrim
      has to be wider and flatter than the one shaped for a landscape frame
-     — otherwise the last cell falls outside it. It is only widened, never
-     deepened: the light is moved out of the type's way in script (see
-     ySpread) rather than turned off, so a phone still gets the contrast
-     the whole page is built on. */
+     — otherwise the last cell falls outside it. Wider and flatter, not
+     deeper: cover-cropping a 4:3 film into a portrait frame already
+     throws most of the picture away, and dimming what survives would
+     leave a phone with a black rectangle instead of a backdrop. */
   @media (max-width: 700px) {
     .atmos-grade {
       background:
         linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
-        radial-gradient(ellipse 74% 30% at 50% 46%, rgba(var(--black-rgb), 0.78), rgba(var(--black-rgb), 0) 76%),
+        radial-gradient(ellipse 76% 36% at 50% 47%, rgba(var(--black-rgb), 0.82), rgba(var(--black-rgb), 0) 78%),
         radial-gradient(ellipse 96% 62% at 50% 50%, rgba(var(--black-rgb), 0) 42%, rgba(var(--black-rgb), 0.96) 100%);
     }
   }
@@ -267,7 +333,7 @@
     line-height: 1;
     letter-spacing: 0.22em;
     text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.62);
+    color: rgba(var(--off-white-rgb), 0.76);
   }
 
   /* ---------- countdown ----------
@@ -306,7 +372,7 @@
     line-height: 1;
     letter-spacing: 0.2em;
     text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.6);
+    color: rgba(var(--off-white-rgb), 0.76);
   }
 
   /* Past the date there is nothing left to count to, and a row of zeros
@@ -366,7 +432,7 @@
   .action-2 {
     font-size: 11px;
     letter-spacing: 0.18em;
-    color: rgba(var(--off-white-rgb), 0.64);
+    color: rgba(var(--off-white-rgb), 0.78);
     transition: color 260ms var(--ease-cut);
   }
 
@@ -792,7 +858,8 @@
 
   /* Nothing here should move for anyone who has asked the OS for less of
      it. site.css already collapses durations globally; these are the two
-     loops it can't reach, and the canvas loop is stopped in script. */
+     loops it can't reach. The film is the third, and no stylesheet can
+     stop a video — it is paused in script instead. */
   @media (prefers-reduced-motion: reduce) {
     .wordmark { animation: none; opacity: 1; }
     .strip { scroll-behavior: auto; }
@@ -801,11 +868,40 @@
 </head>
 <body>
 
-  <!-- The moving ground. Painted by script at the foot of this file; with
-       JS off it stays flat #0A0A0A, which is a legitimate version of this
-       page rather than a broken one. -->
-  <canvas class="atmos" id="atmos" aria-hidden="true"></canvas>
-  <div class="atmos-print" aria-hidden="true"></div>
+  <!-- The moving ground: Asior's own panther film.
+
+       Graded into the file rather than with a CSS filter, because a
+       filter on a full-screen video is re-applied every frame and is one
+       of the few things that will genuinely drop a phone below 60fps. The
+       grade desaturates to the palette's neutral range and pulls the top
+       end down hard: the source cuts to a full-frame white flash whose
+       average brightness hits 235, which would erase every word on this
+       page for as long as it held. Graded, the brightest frame averages
+       99, so the type clears AA against the worst frame in the film before
+       the scrim above it does anything.
+
+       It loops on a cut from black to black — the film opens and closes on
+       a held black frame — so there is no visible seam and no crossfade
+       needed.
+
+       muted is what makes autoplay legal in every browser; the file has no
+       audio track at all either way. playsinline stops iOS taking the
+       video fullscreen. If autoplay is refused anyway (iOS Low Power Mode
+       does this), the poster stays up and the page is simply a still. -->
+  <video class="atmos" id="atmos" poster="video/gate-poster.jpg"
+         autoplay muted loop playsinline preload="auto"
+         disablepictureinpicture disableremoteplayback
+         aria-hidden="true" tabindex="-1">
+    <!-- VP9 first: same grade, 534KB against the MP4's 953KB, and it is
+         what Chrome, Firefox and Android will take. Safari from 14.1 and
+         iOS from 17.4 read it too; every older Safari reports that it
+         cannot, and the browser moves down to the H.264 file on its own.
+         Order matters — a browser commits to the first source it can play
+         and never reconsiders — so the smaller file has to be listed
+         first and the universally-supported one second. -->
+    <source src="video/gate.webm" type="video/webm">
+    <source src="video/gate.mp4" type="video/mp4">
+  </video>
   <div class="atmos-grade" aria-hidden="true"></div>
 
   <main class="gate" id="main">
@@ -832,10 +928,12 @@
         <!-- Real hrefs, not buttons: with JS off these still open their
              overlay through :target, and they stay shareable. The script
              intercepts the click to avoid the jump to the anchor. -->
-        <a class="action" href="#signup" id="notifyLink">
-          <span class="ab-a">Notify me + 10% off</span>
-          <span class="ab-b">10% off + notify me</span>
-        </a>
+        <!-- Fixed copy, not a variant. The A/B test on signup wording runs
+             on the lede and the button inside the sheet, which is where it
+             ran before this page was rebuilt; the gate link is the same
+             for everyone, so the test measures the form copy and nothing
+             else. -->
+        <a class="action" href="#signup" id="notifyLink">Early Access + 10% Off</a>
         <a class="action action-2" href="https://www.instagram.com/asior_clothing/"
            target="_blank" rel="noopener">@asior_clothing</a>
       </div>
@@ -1239,294 +1337,44 @@
   // ===================================================================
   // Backdrop
   //
-  // A drifting monochrome smoke field with film grain over it, drawn
-  // rather than filmed — there is no footage in the repo, and this keeps
-  // the page at zero extra bytes and gives real control over the grade.
-  // If a shot ever gets made, this whole block is what a <video> replaces.
-  //
-  // The grade is the brief: a true #0A0A0A floor, highlights building
-  // additively toward near-white, nothing tinted. The bright blobs are
-  // kept off-centre so the wordmark never has to fight one.
-  //
-  // Cost control, because this runs for as long as the tab is open:
-  // the smoke is composed on a 200x120 buffer and upscaled (bilinear
-  // filtering is doing the softening for free), the backing store is
-  // capped at 1600px regardless of screen or DPR, the loop is throttled
-  // to 24fps, and it stops dead when the tab is hidden.
+  // The film does its own work — it autoplays, loops and is graded in the
+  // file. This is only the two things markup cannot express.
   // ===================================================================
-  (function atmosphere() {
-    const canvas = document.getElementById('atmos');
-    const ctx = canvas.getContext('2d', { alpha: false });
-    if (!ctx) return;
+  (function backdrop() {
+    const video = document.getElementById('atmos');
 
-    const BUF_W = 200;
-    const BUF_H = 120;
-    const MAX_W = 1600;
-    const FPS = 24;
-
-    const buf = document.createElement('canvas');
-    buf.width = BUF_W;
-    buf.height = BUF_H;
-    const bctx = buf.getContext('2d');
-
-    /* x/y are the blob's home position in buffer fractions, ax/ay how far
-       it wanders from it, sx/sy how fast, r its radius and l its peak
-       luminance. kx/ky stretch it into an ellipse and sr spins that
-       ellipse, both slowly.
-
-       Radii are deliberately small and the set is deliberately sparse.
-       Big overlapping blobs are what turn an additive field into one flat
-       mid-grey wash — the exact failure the brief is written against — so
-       most of the frame is meant to have nothing in it at all.
-
-       The stretch and spin are not decoration. A radial gradient drawn as
-       a circle reads as a lens flare, which is a camera artifact rather
-       than weather; stretched, turning, and crossed with a second lobe at
-       a different rate, the same gradient reads as a mass of smoke lit
-       from somewhere. That is why the near-white highlight is two blobs
-       (4 and 5) rather than one — their union is never the same shape
-       twice, and no single frame shows a circle. Both sit out in the band
-       the grade leaves alone, well clear of the wordmark. */
-    const BLOBS = [
-      { x: 0.30, y: 0.42, ax: 0.14, ay: 0.10, sx: 0.031, sy: 0.024, r: 0.30, l: 0.40, a0: 0.38, aa: 0.18, sa: 0.037, kx: 1.50, ky: 0.75, sr: 0.013 },
-      { x: 0.74, y: 0.64, ax: 0.13, ay: 0.11, sx: 0.023, sy: 0.033, r: 0.28, l: 0.34, a0: 0.34, aa: 0.20, sa: 0.028, kx: 1.35, ky: 0.80, sr: -0.010 },
-      { x: 0.24, y: 0.82, ax: 0.10, ay: 0.09, sx: 0.027, sy: 0.038, r: 0.16, l: 0.70, a0: 0.34, aa: 0.16, sa: 0.033, kx: 1.60, ky: 0.70, sr: 0.017 },
-      /* The hot pair wanders mostly sideways. Their vertical travel is
-         kept small and high on purpose: measured against the rendered
-         page, a wider ay let them drift down into the countdown row on a
-         portrait screen and took the digits to about 2:1 against their
-         own background. Light this bright has to stay out of the band the
-         type occupies rather than be scrimmed back down. */
-      { x: 0.80, y: 0.24, ax: 0.12, ay: 0.05, sx: 0.035, sy: 0.021, r: 0.13, l: 1.00, a0: 0.92, aa: 0.16, sa: 0.051, kx: 2.00, ky: 0.55, sr: 0.021 },
-      { x: 0.83, y: 0.27, ax: 0.07, ay: 0.04, sx: 0.019, sy: 0.043, r: 0.10, l: 0.94, a0: 0.72, aa: 0.18, sa: 0.029, kx: 1.30, ky: 0.82, sr: -0.026 },
-      { x: 0.52, y: 0.93, ax: 0.20, ay: 0.06, sx: 0.017, sy: 0.029, r: 0.20, l: 0.30, a0: 0.34, aa: 0.14, sa: 0.023, kx: 2.00, ky: 0.55, sr: 0.008 },
-    ];
-
-    // Each blob is a sprite baked once. Building a radial gradient per
-    // blob per frame is the obvious way to write this and about the most
-    // expensive thing you can do in a canvas loop.
-    //
-    // The falloff has a broad plateau in the middle rather than a spike at
-    // the centre. A gradient that peaks at a point puts a hot nucleus in
-    // the middle of every mass, and a hot nucleus is what makes a soft
-    // shape read as a lens flare no matter how far it has been stretched —
-    // lit smoke is bright across a volume, not at a coordinate. The tail
-    // is still steep, because five wide tails is the flat wash again by
-    // another route.
-    BLOBS.forEach((b) => {
-      const r = Math.max(2, Math.round(b.r * BUF_W));
-      const s = document.createElement('canvas');
-      s.width = s.height = r * 2;
-      const sctx = s.getContext('2d');
-      const v = Math.round(b.l * 255);
-      const rgb = v + ',' + v + ',' + v;
-      const g = sctx.createRadialGradient(r, r, 0, r, r, r);
-      g.addColorStop(0, 'rgba(' + rgb + ',0.72)');
-      g.addColorStop(0.20, 'rgba(' + rgb + ',0.60)');
-      g.addColorStop(0.50, 'rgba(' + rgb + ',0.20)');
-      g.addColorStop(0.78, 'rgba(' + rgb + ',0.05)');
-      g.addColorStop(1, 'rgba(' + rgb + ',0)');
-      sctx.fillStyle = g;
-      sctx.fillRect(0, 0, r * 2, r * 2);
-      b.sprite = s;
-      b.rpx = r;
-    });
-
-    // Scratch copy of the buffer, used to multiply the field by itself.
-    // See the crush in draw().
-    const crush = document.createElement('canvas');
-    crush.width = BUF_W;
-    crush.height = BUF_H;
-    const cctx = crush.getContext('2d');
-
-    // Pre-baked grain tiles, cycled. Generating noise per frame is a
-    // per-pixel JS loop over the whole canvas; six tiles cycled at half
-    // the frame rate is indistinguishable and effectively free.
-    //
-    // Values are squared, so the tile averages ~85 rather than ~128. The
-    // grain is composited additively, and a tile with a high mean lifts
-    // the black floor everywhere it lands — which would cost exactly the
-    // true black the rest of this is built to protect. Squaring also
-    // biases it toward sparse bright specks, which is what film grain in
-    // shadow actually looks like.
-    const grain = [];
-    for (let t = 0; t < 6; t++) {
-      const size = 96;
-      const c = document.createElement('canvas');
-      c.width = c.height = size;
-      const g = c.getContext('2d');
-      const img = g.createImageData(size, size);
-      const d = img.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const rnd = Math.random();
-        const v = (rnd * rnd * 255) | 0;
-        d[i] = d[i + 1] = d[i + 2] = v;
-        d[i + 3] = 255;
+    // 1. Reduced motion. There is no CSS that stops a video playing, so
+    //    honouring the preference has to happen here. The poster is a
+    //    frame of the same graded film, so the page keeps its picture and
+    //    loses only the movement — which is the part being objected to.
+    function applyMotion() {
+      if (reduceMotion.matches) {
+        video.pause();
+        video.removeAttribute('autoplay');
+      } else if (video.paused) {
+        const p = video.play();
+        if (p) p.catch(() => { /* refused: the poster stands in */ });
       }
-      g.putImageData(img, 0, 0);
-      grain.push(ctx.createPattern(c, 'repeat'));
     }
 
-    let w = 0;
-    let h = 0;
+    if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyMotion);
+    else if (reduceMotion.addListener) reduceMotion.addListener(applyMotion);
+    applyMotion();
 
-    /* How far the light is pushed away from the middle of the frame.
-       The blob positions are composed for a landscape screen, where the
-       type occupies a band across the centre and there is room either
-       side. Rotate that onto a phone and the same band covers most of the
-       frame while the light lands squarely on the countdown — but a
-       portrait frame has a lot of empty height above and below the copy,
-       which is exactly where the highlights should go instead. */
-    let ySpread = 1;
-
-    function resize() {
-      const rect = canvas.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      w = Math.min(Math.ceil(rect.width), MAX_W);
-      h = Math.max(1, Math.round(w * rect.height / rect.width));
-      canvas.width = w;
-      canvas.height = h;
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ySpread = rect.height > rect.width ? 1.6 : 1;
+    // 2. Autoplay that was refused rather than blocked outright. iOS Low
+    //    Power Mode and some data-saver modes reject the initial play()
+    //    but allow one started from a real gesture, so the first touch or
+    //    click anywhere on the gate retries it once. Nothing here is
+    //    required for the page to work: without it the poster simply
+    //    stays up.
+    function retryOnce() {
+      document.removeEventListener('pointerdown', retryOnce);
+      document.removeEventListener('keydown', retryOnce);
+      if (!reduceMotion.matches && video.paused) video.play().catch(() => {});
     }
 
-    let frame = 0;
-
-    function draw(t) {
-      // Smoke, composed small. 'lighter' so overlapping blobs build toward
-      // white instead of averaging into the flat mid-tone the brief is
-      // explicitly trying to get away from.
-      bctx.globalCompositeOperation = 'source-over';
-      bctx.globalAlpha = 1;
-      bctx.fillStyle = '#000';
-      bctx.fillRect(0, 0, BUF_W, BUF_H);
-      bctx.globalCompositeOperation = 'lighter';
-
-      for (const b of BLOBS) {
-        const x = (b.x + Math.sin(t * b.sx * 6.28) * b.ax) * BUF_W;
-        const yf = b.y + Math.cos(t * b.sy * 6.28) * b.ay;
-        const y = (0.5 + (yf - 0.5) * ySpread) * BUF_H;
-        // The stretch breathes as well as turning, so the silhouette keeps
-        // changing even while a blob is barely moving across the frame.
-        const k = 1 + Math.sin(t * b.sr * 9.4) * 0.26;
-        bctx.globalAlpha = Math.max(0, b.a0 + Math.sin(t * b.sa * 6.28) * b.aa);
-        bctx.save();
-        bctx.translate(x, y);
-        bctx.rotate(t * b.sr * 6.28);
-        bctx.scale(b.kx * k, b.ky / k);
-        bctx.drawImage(b.sprite, -b.rpx, -b.rpx);
-        bctx.restore();
-      }
-
-      // Smear. The field is drawn back over itself slightly turned, scaled
-      // and offset, which drags every mass into a tail pointing wherever
-      // the smear currently points. Two gradients that happen to line up
-      // into a circle on some frame come apart again here, so the shapes
-      // stay irregular over the whole cycle rather than only on the frames
-      // that were checked. The offset turns slowly, so the drift has a
-      // consistent direction at any given moment, the way blown smoke does.
-      cctx.globalCompositeOperation = 'copy';
-      cctx.globalAlpha = 1;
-      cctx.drawImage(buf, 0, 0);
-      const sa = t * 0.055;
-      bctx.globalCompositeOperation = 'lighter';
-      bctx.globalAlpha = 0.34;
-      bctx.save();
-      bctx.translate(BUF_W / 2 + Math.cos(sa) * 7, BUF_H / 2 + Math.sin(sa * 1.3) * 5);
-      bctx.rotate(Math.sin(sa * 0.7) * 0.10);
-      bctx.scale(1.07, 1.07);
-      bctx.drawImage(crush, -BUF_W / 2, -BUF_H / 2);
-      bctx.restore();
-
-      // The contrast curve, and the thing that makes this read as graded
-      // footage instead of a grey wash: multiplying the field by a copy of
-      // itself bends it toward v², which crushes the low end to true black
-      // while leaving the top end where it is. At 0.78 alpha the curve is
-      // v x (0.78v/255 + 0.22) — 255 stays 255, 128 falls to about 78, and
-      // 40 falls to 11. Additive light alone can only ever brighten, so
-      // without this pass nothing on the page is genuinely black.
-      cctx.globalCompositeOperation = 'copy';
-      cctx.globalAlpha = 1;
-      cctx.drawImage(buf, 0, 0);
-      bctx.globalCompositeOperation = 'multiply';
-      bctx.globalAlpha = 0.78;
-      bctx.drawImage(crush, 0, 0);
-
-      // Ground first, so the darkest areas of the page are a true #0A0A0A
-      // and not whatever the smoke happens to leave behind.
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#0A0A0A';
-      ctx.fillRect(0, 0, w, h);
-
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.drawImage(buf, 0, 0, w, h);
-
-      // Grain, jittered a few pixels each frame so the tile seam never
-      // sits still long enough to be seen as a repeat.
-      const jx = (Math.random() * 96) | 0;
-      const jy = (Math.random() * 96) | 0;
-      ctx.globalAlpha = 0.07;
-      ctx.fillStyle = grain[(frame >> 1) % grain.length];
-      ctx.translate(-jx, -jy);
-      ctx.fillRect(jx, jy, w, h);
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 1;
-    }
-
-    let raf = null;
-    let last = 0;
-
-    function loop(now) {
-      raf = requestAnimationFrame(loop);
-      if (now - last < 1000 / FPS) return;
-      last = now;
-      frame++;
-      draw(now / 1000);
-    }
-
-    function start() {
-      if (raf || reduceMotion.matches) return;
-      last = 0;
-      raf = requestAnimationFrame(loop);
-    }
-
-    function stop() {
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-    }
-
-    // Reduced motion gets the same picture, held still — the grade is the
-    // design, the drift is the decoration, and only the drift is the part
-    // anyone asked to be rid of.
-    function apply() {
-      stop();
-      if (reduceMotion.matches) draw(0);
-      else start();
-    }
-
-    let resizeTimer = null;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { resize(); if (reduceMotion.matches) draw(0); }, 150);
-    });
-
-    // Nothing to animate for a tab nobody is looking at.
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stop();
-      else if (!reduceMotion.matches) start();
-    });
-
-    // addEventListener on a MediaQueryList is the modern form; Safari
-    // below 14 only has addListener.
-    if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', apply);
-    else if (reduceMotion.addListener) reduceMotion.addListener(apply);
-
-    resize();
-    apply();
+    document.addEventListener('pointerdown', retryOnce, { once: true, passive: true });
+    document.addEventListener('keydown', retryOnce, { once: true });
   })();
 </script>
 

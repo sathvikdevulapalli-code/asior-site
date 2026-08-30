@@ -24,5 +24,13 @@
   [headers.values]
     Cache-Control = "public, max-age=604800, must-revalidate"
 
+# The gate's background film. Same week as the photography — it is a
+# fixed asset, and re-fetching ~1MB on every visit is the one thing that
+# would make this page expensive.
+[[headers]]
+  for = "/video/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
+
 # Old shared links (/product.html?id=handle) keep working; the page sets
 # its own canonical to the /products/ URL so ranking consolidates there.
