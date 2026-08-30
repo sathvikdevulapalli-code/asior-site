@@ -1091,9 +1091,17 @@
   /* Below this the 2/3 crop at full height is wider than the screen, so
      width has to lead instead and the height follows. */
   @media (max-width: 560px) {
-    /* Sized so a slice of the next look stays on screen — that sliver is
-       the only thing telling anyone the strip scrolls sideways. */
-    .shot { height: auto; width: min(340px, 84vw); }
+    /* Full-bleed on a phone. The gutter and the sliver of the next look
+       are worth their space on a desktop, where they frame the strip and
+       hint that it scrolls. At 390px they read as a black bar down one
+       side of every photograph — the frame competing with the picture
+       instead of holding it. Edge to edge, one look per screen, and the
+       counter is what says there are more.
+
+       The title and counter keep their gutter, so the type stays inset
+       while the photography runs to the edges. */
+    .strip { padding: 0; scroll-padding-left: 0; }
+    .shot { height: auto; width: 100vw; }
   }
 
   /* Nothing here should move for anyone who has asked the OS for less of
@@ -1318,13 +1326,12 @@
           <div class="shot"><img src="images/look-15.jpg" alt="Two looks — black tees with cream Asior sweat shorts, showing the animal-print side stripe" width="800" height="1200" loading="lazy" decoding="async"></div>
           <div class="shot"><img src="images/look-06.jpg" alt="Asior sweat shorts with an animal-print side stripe" width="800" height="1200" loading="lazy" decoding="async"></div>
         </div>
-        </div>
       </div>
 
       <!-- Where you are in the strip, as a count rather than a scrollbar.
            aria-hidden because the strip itself is already labelled and the
            counter would otherwise be read out on every scroll event. -->
-      <div class="sheet-in look-foot" id="lookCount" aria-hidden="true"><b>01</b> / 06</div>
+      <div class="sheet-in look-foot" id="lookCount" aria-hidden="true"><b>01</b> / 15</div>
     </div>
   </div>
 
