@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior — The Fall Collection, September 7</title>
 <meta name="description" content="The Asior Fall Collection lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0A0A0A">
 <link rel="canonical" href="https://asiorclothing.com/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -21,32 +21,72 @@
 <meta property="og:image:alt" content="Asior — the Fall Collection, September 7">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- Two faces, one weight each. Yellowtail is the wordmark only — a bold
-     brush script matching the heavier Asior logo on the sweat shorts,
-     rather than the fine calligraphic one on the tee, so the site and the
-     clothes sign their name the same way. Archivo Narrow 700 carries every heading,
-     label and button; body copy is system Helvetica and costs nothing.
-     Unbounded / Inter / IBM Plex Mono are not requested at all.
-     Fonts via <link>, not @import: an @import would make the browser
-     parse the CSS before it even discovers the font request. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Archivo+Narrow:wght@700&display=swap">
+<!-- Two faces, both requested as real webfonts rather than left to the
+     system.
+
+     Helvetica is the reference for this page, and asking for it by name is
+     the one way to guarantee not getting it: it ships on macOS and almost
+     nowhere else, so Windows and Android fall through to Arial and Linux to
+     whatever grotesque is installed. The wordmark then looks like a
+     different logo on every third visitor's screen. Helvetica also has no
+     semi-bold — only Regular and Bold — so a weight of 600 has nothing to
+     land on and gets synthesised.
+
+     Inter Tight is a neo-grotesque cut for display sizes: same neutral
+     Helvetica skeleton, tighter default fit, and a real variable weight
+     axis, so 600 is an actual drawn semi-bold and the wordmark renders
+     identically everywhere. Courier Prime is Courier redrawn at a usable
+     weight — the typewriter character the system messages want, without
+     the hairline strokes that make real Courier New look broken at 10px.
+
+     Both are self-hosted rather than pulled from fonts.googleapis.com.
+     While the drop is closed this page IS the site, so its first paint is
+     the whole first impression, and a Google Fonts link puts a DNS
+     lookup, a TLS handshake and a stylesheet to a third party in front of
+     it — then a second host for the files themselves. Served from here
+     they are two requests on a connection the browser has already opened,
+     they cannot be broken by an outage nobody here controls, and no
+     visitor is announced to Google for loading the homepage. Latin subset
+     only, which is the whole of this site's copy.
+
+     Preloaded because the @font-face rules live in the stylesheet below,
+     and the browser would otherwise not learn the files exist until it
+     has parsed that far. crossorigin is required even same-origin: font
+     fetches are always CORS-mode, and a preload without it is made in the
+     wrong mode, ignored, and quietly fetched a second time. -->
+<link rel="preload" href="fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/courier-prime-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 
-<!-- A/B test bucketing — deliberately inline, deliberately before the
-     stylesheet. This has to run before the browser paints, or the visitor
-     watches the control copy snap to the variant: the one piece of motion
-     on a page that switches every transition off on purpose. It writes the
-     same localStorage key that assets/site.js reads back through
-     A.getVariant, so the bucket is decided once here and stays sticky
-     across visits instead of being re-rolled further down the page.
+<!-- The film is deliberately NOT preloaded. rel=preload has no idea that
+     <video> picks between two <source>s, so it would fetch whichever one
+     is named here and the element would then fetch the other — about a
+     megabyte thrown away on every Chrome visit. The <video> sits at the
+     top of <body> with preload="auto" and starts loading a few
+     milliseconds later anyway. -->
+
+<!-- Runs before first paint, and does two things that both have to happen
+     that early:
+
+     1. A/B bucketing. If this ran after the stylesheet, the visitor would
+        watch the control copy snap to the variant — the one piece of
+        motion on the page nobody asked for. It writes the same
+        localStorage key that assets/site.js reads back through
+        A.getVariant, so the bucket is decided once here and stays sticky
+        across visits instead of being re-rolled further down the page.
+
+     2. Marks the document as scripted. The overlays below fall back to
+        :target when JS is off, and that fallback must be switched off the
+        instant we know JS is running, or the CSS and the overlay
+        controller end up fighting over what is open.
+
      try/catch because blocked storage (private mode, "block all cookies")
      makes a plain localStorage read throw — that must fall through to the
      control, not throw before anything has rendered. -->
 <script>
   (function () {
+    document.documentElement.classList.add('js');
     var variant = 'A';
     try {
       var key = 'asior_ab_signup_copy';
@@ -62,370 +102,881 @@
   })();
 </script>
 <style>
+  /* Inter Tight ships as a single variable file covering the whole 400-700
+     axis, so every weight this page uses costs one request. No
+     unicode-range: with one subset self-hosted there is nothing to switch
+     between, and anything outside it falls back per glyph anyway.
+     font-display: swap so the wordmark arrives late rather than never. */
+  @font-face {
+    font-family: 'Inter Tight';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('fonts/inter-tight-var-latin.woff2') format('woff2');
+  }
+
+  /* Only the regular weight: every <b> on this page is inside a monospace
+     run and is set back to 400 in the rules below, because those brackets
+     and figures are emphasised with colour rather than weight. */
+  @font-face {
+    font-family: 'Courier Prime';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/courier-prime-400-latin.woff2') format('woff2');
+  }
+
   /* ===================================================================
-     Drop landing page — deliberately locked.
+     Drop gate — deliberately locked.
 
      While the drop is closed this page IS the site. No nav, no header,
-     no teaser bar, no links into the store: the only thing a visitor
-     can do here is join the early-access list. The store pages still
-     exist on disk and still respond at their own URLs, but nothing on
-     this page routes to them.
+     no teaser bar, no links into the store: the only things a visitor
+     can do here are join the early-access list and look at the
+     collection. The store pages still exist on disk and still respond
+     at their own URLs, but nothing here routes to them.
 
      The palette and type scale are overridden here rather than in
-     assets/site.css so the unlinked store pages keep the look they
-     were built for. If the store ever reopens on this theme, these
-     tokens are what moves up into site.css.
+     assets/site.css so the unlinked store pages keep the look they were
+     built for. If the store ever reopens on this theme, these tokens
+     are what moves up into site.css.
      =================================================================== */
 
   :root {
-    /* True black, not the warm near-black the rest of the site uses:
-       the drop is black-on-black, and #0b0a08 reads brown next to the
-       greyscale collection print. */
-    --bg: #000000;
-    --ink: #f2f2f0;
-    --muted: #8f8f8a;   /* 6.0:1 on black */
-    --line: #1e1e1c;
-    --field-line: #6f6f6a;  /* 4.1:1 — these ARE 1.4.11 components */
+    /* Five steps, and the gap between the ends is the whole point: the
+       page has to hold a true black shadow and a near-white highlight in
+       the same frame rather than sitting in one narrow mid band.
 
-    /* Three roles, kept separate on purpose. --font-brand is the
-       wordmark and nothing else: a script set in caps, or set as a
-       button label, looks broken. --font-display is every heading,
-       label and button, always uppercase. Body copy stays Helvetica. */
-    --font-brand: 'Yellowtail', 'Snell Roundhand', cursive;
-    --font-display: 'Archivo Narrow', 'Arial Narrow', Helvetica, Arial, sans-serif;
-    --font-body: Helvetica, Arial, sans-serif;
-    --font-mono: var(--font-display);
-  }
+       The channel triplets are the source of truth, because most of this
+       page needs these colours at partial opacity — scrims, muted labels,
+       field borders — and rgba() cannot take a hex. The solid forms below
+       are derived from the same numbers rather than restated as hex, so
+       there is exactly one place each colour is decided and the tints
+       can't drift away from the swatches they came from.
 
-  /* No motion anywhere on this page. assets/site.css ships transitions
-     on the footer links and shared fields, so this kills them at the
-     root rather than leaving half the page animated and half not.
-     Everything that changes here changes instantly, in direct response
-     to a press or a scroll. */
-  *, *::before, *::after {
-    transition: none !important;
-    animation: none !important;
+         10,10,10    #0A0A0A  ground, and the floor of the moving backdrop
+         28,28,30    #1C1C1E  button fills, modal chrome, ink on light surfaces
+         35,35,37    #232325  hairlines and field borders on light surfaces
+         245,245,242 #F5F5F2  primary text on dark; the surface overlays cut to
+         237,234,227 #EDEAE3  secondary text, muted labels, dividers            */
+    --black-rgb: 10, 10, 10;
+    --grey-900-rgb: 28, 28, 30;
+    --grey-800-rgb: 35, 35, 37;
+    --white-rgb: 245, 245, 242;
+    --off-white-rgb: 237, 234, 227;
+
+    --black: rgb(var(--black-rgb));
+    --grey-900: rgb(var(--grey-900-rgb));
+    --grey-800: rgb(var(--grey-800-rgb));
+    --white: rgb(var(--white-rgb));
+    --off-white: rgb(var(--off-white-rgb));
+
+    /* Two families, no more. Helvetica carries the wordmark, the
+       countdown, every link and every button. Courier carries anything
+       the interface is saying about itself — placeholders, consent, the
+       drop date, confirmations — which is what makes those read as
+       system messages rather than as brand voice.
+
+       Both are loaded in <head>; the fallbacks are the nearest system
+       equivalents so a failed font request degrades to the previous look
+       rather than to Times. */
+    --sans: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --mono: 'Courier Prime', 'Courier New', Courier, monospace;
+
+    /* Overlays cut rather than dissolve, so they need an easing with a
+       hard front edge, not the site's general-purpose one. */
+    --ease-cut: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* site.css paints the shared bits (.consent, .sr-only, footer) from
+       these. Repointed at the gate palette so nothing inherits the warm
+       near-black used elsewhere on the site. */
+    --bg: var(--black);
+    --ink: var(--white);
+    --muted: rgba(var(--off-white-rgb), 0.58);
+    --line: #1A1A1B;
+    --font-body: var(--sans);
+    --font-display: var(--sans);
+    --font-mono: var(--mono);
   }
 
   html { scroll-behavior: auto; }
 
   body {
-    background: var(--bg);
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--sans);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    overflow-x: hidden;
   }
 
-  /* The collection print, at the very bottom of the page's tonal range:
-     the motif is meant to be felt as a grain in the black, not seen as a
-     pattern. Small tile and 0.022 opacity — if you can name the animal
-     without looking for it, it's turned up too far. */
-  body::before {
-    content: '';
+  /* Scroll lock while an overlay owns the screen. Fixing the body would
+     lose the scroll position; the gate itself doesn't scroll, so simply
+     clipping is enough and doesn't move anything. */
+  body.locked { overflow: hidden; }
+
+  /* ---------- the backdrop, in three fixed layers ----------
+     0  video    Asior's own panther film, graded and looping
+     1  grade    vignette to the edges, scrim under the centre column
+     2  content  type sitting directly on the footage, no panel behind it
+
+     Layer 1 is what makes layer 2 legible. There is no card behind the
+     type by design, and the footage cuts hard between near-black jungle
+     and blown-out light; a soft, edgeless gradient is the colourist's
+     answer rather than the layout one, so contrast is held without a
+     visible box. The film is graded down in the file as well — see the
+     note on the <video> element itself.
+
+     The grain, the animal print and the drifting light this page used to
+     draw on a canvas are all in the footage now, so that whole layer is
+     gone rather than doubled up. */
+  .atmos, .atmos-grade {
     position: fixed;
     inset: 0;
-    background-image: url('images/swatch.jpg');
-    background-size: 150px;
-    background-repeat: repeat;
-    filter: grayscale(1);
-    opacity: 0.022;
     pointer-events: none;
+  }
+
+  /* object-fit: cover on a 4:3 source crops hard at both ends of the
+     aspect range — height on a wide desktop, width on a phone — which is
+     why the film was graded and framed as ambient texture rather than as
+     shots that have to hold their composition. */
+  .atmos {
     z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* Painted under the film so the letterbox, the moment before the
+       first frame decodes, and the poster's own edges are all the same
+       black as the page. */
+    background: var(--black);
   }
 
-  main, footer { position: relative; z-index: 1; }
+  /* Two gradients doing two different jobs. The first is a soft scrim
+     only as wide as the centre column, so the type never has to sit on a
+     highlight. The second takes the corners to true black. Between them
+     is an untouched band at roughly half to three-quarter radius, which
+     is where the bright end of the footage is allowed to live — dimming
+     that too is what flattens a page like this into one mid tone. */
+  .atmos-grade {
+    z-index: 2;
+    background:
+      /* The bottom strip carries the smallest type on the page and no
+         highlight ever needs to live at the very edge of the frame, so it
+         is taken down hard and flat rather than by the ellipse below,
+         which reaches the bottom edge too weakly to protect it. */
+      linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
+      radial-gradient(ellipse 46% 42% at 50% 47%, rgba(var(--black-rgb), 0.80), rgba(var(--black-rgb), 0) 76%),
+      radial-gradient(ellipse 76% 72% at 50% 50%, rgba(var(--black-rgb), 0) 44%, rgba(var(--black-rgb), 0.96) 100%);
+  }
 
-  main {
+  /* The countdown row runs nearly edge to edge on a phone, so the scrim
+     has to be wider and flatter than the one shaped for a landscape frame
+     — otherwise the last cell falls outside it. Wider and flatter, not
+     deeper: cover-cropping a 4:3 film into a portrait frame already
+     throws most of the picture away, and dimming what survives would
+     leave a phone with a black rectangle instead of a backdrop. */
+  @media (max-width: 700px) {
+    .atmos-grade {
+      background:
+        linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
+        radial-gradient(ellipse 76% 36% at 50% 47%, rgba(var(--black-rgb), 0.82), rgba(var(--black-rgb), 0) 78%),
+        radial-gradient(ellipse 96% 62% at 50% 50%, rgba(var(--black-rgb), 0) 42%, rgba(var(--black-rgb), 0.96) 100%);
+    }
+  }
+
+  /* ---------- gate ----------
+     One screen, one focal element, nothing that scrolls. svh rather than
+     vh so the bottom row doesn't sit under mobile browser chrome and then
+     jump when the chrome retracts. */
+  .gate {
+    position: relative;
+    z-index: 3;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(24px, 4vh, 40px) 24px clamp(20px, 3vh, 32px);
+  }
+
+  .gate-core {
     flex: 1;
-    padding: clamp(56px, 9vh, 100px) 0 clamp(44px, 7vh, 76px);
-  }
-
-  /* Everything except the photo strip, which runs full-bleed. */
-  .wrap {
-    max-width: 620px;
-    margin: 0 auto;
-    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    gap: clamp(26px, 4.5vh, 46px);
   }
 
-  /* ---------- wordmark ----------
-     The brand script, set as the brand actually writes it: mixed case,
-     no tracking, letters joined. A script needs more size than a
-     grotesque to read at all, and it needs the line-height for the
-     ascender swash on the A and the descender on the r — at 1.0 they
-     get clipped. */
-  .wordmark {
-    font-family: var(--font-brand);
-    font-weight: 400;
-    text-transform: none;
-    font-size: clamp(3.25rem, 10vw, 5.25rem);
-    line-height: 1.2;
-    letter-spacing: 0;
-    color: var(--ink);
+  /* Entrance. Staged rather than simultaneous, so the screen assembles in
+     the order it should be read: date, clock, name, action. Pure CSS, so
+     it still resolves with JS off — and site.css collapses every duration
+     to ~0 under prefers-reduced-motion, where fill-mode: both leaves each
+     element at its final state instead of invisible. */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(9px); }
+    to   { opacity: 1; transform: none; }
   }
 
-  .status {
-    margin-top: 18px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--muted);
+  .rise {
+    animation: rise 900ms var(--ease-cut) both;
+    animation-delay: var(--in, 0ms);
+  }
+
+  /* ---------- date line ----------
+     Kept as real text in the served HTML rather than printed by the
+     countdown script, so it survives JS being off and so crawlers and
+     link previews can read the date. Keep it in step with DROP_AT at the
+     foot of this file — that constant is what drives the numbers. */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.76);
   }
 
   /* ---------- countdown ----------
-     Digits change; nothing moves. No flip, no fade, no separators. The
-     figures are tabular and each cell has a floor width so the row
-     doesn't jitter every time the seconds roll from 9 to 10. */
+     Big numeral over a small lowercase label, in the same family at two
+     different weights. Tabular figures and a floor width per cell, so the
+     row holds still when the seconds roll from 9 to 10 — the only thing
+     that should move here is the digits themselves. */
   .countdown {
     display: flex;
     justify-content: center;
-    gap: clamp(18px, 5vw, 34px);
-    margin-top: 24px;
+    gap: clamp(20px, 6vw, 54px);
   }
 
   .cd-cell {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 46px;
+    min-width: 54px;
   }
 
   .cd-num {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 30px;
-    line-height: 1;
-    letter-spacing: 0.04em;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 8vw, 3.9rem);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-    color: var(--ink);
+    color: var(--white);
   }
 
   .cd-label {
-    margin-top: 8px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 9px;
+    margin-top: 12px;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 9.5px;
+    line-height: 1;
     letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.76);
   }
 
-  /* Past the date there is nothing left to count to, and a row of
-     zeros reads worse than no row at all. */
+  /* Past the date there is nothing left to count to, and a row of zeros
+     reads worse than no row at all. The date line above still holds. */
   .countdown.done { display: none; }
 
-  /* ---------- early access ----------
-     Still no section heading — the countdown above and the button below
-     already say what this is. One line earns its place, because it is the
-     only thing on the page that answers "what do I get for this". */
-  .signup { margin-top: clamp(30px, 5vh, 46px); }
-
-  .lede {
-    max-width: 40ch;
-    margin: 0 auto 20px;
-    font-size: 14px;
-    line-height: 1.5rem;
-    color: var(--ink);
+  /* ---------- wordmark ----------
+     The name, set as one tight block. The brief keeps the whole page to
+     two families, so the mark is Helvetica rather than the brush script
+     the site carried before — cased and tracked to read as a mark, not as
+     a heading. Optical tracking is negative because Helvetica caps at
+     this size set loose immediately, and 'ASIOR' has to hold together as
+     a single shape. */
+  .wordmark {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(3.4rem, 15vw, 8rem);
+    line-height: 0.9;
+    letter-spacing: -0.012em;
+    text-transform: uppercase;
+    color: var(--white);
+    /* A very slow breath, well under the threshold where it reads as an
+       animation — it just stops the mark sitting dead against footage
+       that is always moving. */
+    animation: breathe 9s ease-in-out 1.6s infinite;
   }
 
-  /* Consent has to be legible, not just present — it is muted and small,
-     but it is never hidden behind a toggle. */
-  .consent { margin: 16px auto 0; text-align: center; }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.9; }
+    50%      { opacity: 1; }
+  }
+
+  /* ---------- the two actions ---------- */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .action {
+    position: relative;
+    display: inline-block;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--white);
+    padding-bottom: 5px;
+    cursor: pointer;
+    background: none;
+    border: 0;
+  }
+
+  .action-2 {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: rgba(var(--off-white-rgb), 0.78);
+    transition: color 260ms var(--ease-cut);
+  }
+
+  .action-2:hover { color: var(--white); }
+
+  /* Rule wipes in from the left on hover rather than blinking on, which
+     is the only motion these get — nothing flashy. */
+  .action::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: currentColor;
+    transition: width 340ms var(--ease-cut);
+  }
+
+  .action:hover::after,
+  .action:focus-visible::after { width: 100%; }
+
+  .action:active { opacity: 0.72; }
+
+  /* ---------- bracketed nav ----------
+     The brackets are dimmer than the word they hold, so the row reads as
+     one label rather than three characters. Brackets mean navigation
+     everywhere on this page: this opens the lookbook, and the same
+     treatment closes both overlays. */
+  .gate-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(18px, 3vh, 30px);
+  }
+
+  .bracket {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.72);
+    background: none;
+    border: 0;
+    padding: 6px 4px;
+    cursor: pointer;
+    transition: color 240ms var(--ease-cut);
+  }
+
+  .bracket b {
+    font-weight: 400;
+    color: rgba(var(--off-white-rgb), 0.5);
+    transition: color 240ms var(--ease-cut);
+  }
+
+  .bracket:hover,
+  .bracket:focus-visible { color: var(--white); }
+  .bracket:hover b { color: rgba(var(--off-white-rgb), 0.7); }
+
+  /* ---------- the quiet row ----------
+     Contact and the two policies, at the smallest size that still passes.
+     They are here because a visitor should be able to reach them from the
+     gate; the consent block inside the signup carries its own copies,
+     which is what satisfies the point-of-collection requirement. */
+  footer {
+    border-top: 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px 20px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.13em;
+    text-transform: lowercase;
+  }
+
+  footer a {
+    color: rgba(var(--off-white-rgb), 0.62);
+    transition: color 240ms var(--ease-cut);
+  }
+
+  footer a:hover,
+  footer a:focus-visible { color: var(--white); }
+
+  .meta-right { display: flex; gap: 16px; }
+
+  @media (max-width: 560px) {
+    footer { flex-direction: column; gap: 10px; }
+    .meta-right { gap: 14px; }
+  }
+
+  /* ===================================================================
+     Overlays
+
+     Both cut from the black gate to a near-white surface rather than
+     fading in on top of it: the change of ground is the transition. The
+     signup arrives as a panel over a dimmed backdrop, the lookbook takes
+     the whole screen — same surface, different scope, so the two never
+     feel like the same thing opening twice.
+     =================================================================== */
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* [hidden] is a user-agent rule, and any author declaration beats a UA
+     one whatever the specificity — so `display: flex` above would keep
+     these laid out over the whole page while "hidden", eating every click
+     on the gate underneath and eagerly pulling in the lookbook photos.
+     The attribute has to be restated at author level to actually hide. */
+  .overlay[hidden] { display: none; }
+
+  /* Still on screen for the length of the wipe out, but no longer in the
+     way — the gate underneath is interactive again the moment the close
+     starts, not 340ms later. */
+  .overlay:not(.is-open) { pointer-events: none; }
+
+  /* With JS the controller owns [hidden]; without it, :target does. The
+     .js class is set in <head> before paint so only one of the two is
+     ever in play, and this outweighs the rule above for the no-JS case. */
+  html:not(.js) .overlay:target { display: flex; }
+
+  .overlay-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(var(--black-rgb), 0.78);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 300ms var(--ease-cut);
+  }
+
+  .overlay.is-open .overlay-scrim { opacity: 1; }
+
+  /* The cut. The near-white surface wipes down over the black instead of
+     dissolving into it, so the two grounds never blend into a mid grey on
+     the way through. Nothing strobes: one directional wipe, no flash
+     frame. */
+  .sheet {
+    position: relative;
+    background: var(--white);
+    color: var(--black);
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 320ms var(--ease-cut);
+  }
+
+  .overlay.is-open .sheet { clip-path: inset(0 0 0 0); }
+
+  /* Contents arrive just behind the leading edge of the wipe, so the
+     surface reads as a surface first and a form second. */
+  .sheet-in {
+    opacity: 0;
+    transition: opacity 240ms linear 140ms;
+  }
+
+  .overlay.is-open .sheet-in { opacity: 1; }
+
+  /* Near-white ground: the site-wide near-white focus ring would be
+     invisible here, so everything inside an overlay rings dark instead. */
+  .sheet a:focus-visible,
+  .sheet button:focus-visible,
+  .sheet input:focus-visible,
+  .sheet [tabindex]:focus-visible {
+    outline: 1px solid var(--black);
+    outline-offset: 3px;
+  }
+
+  .close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: lowercase;
+    color: rgba(var(--grey-900-rgb), 0.85);
+    background: none;
+    border: 0;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: color 240ms var(--ease-cut);
+  }
+
+  /* The brackets stay a step back from the word they hold, but only a
+     step: at the tone this detail wants to be they fall under 4.5:1 on
+     the near-white surface, and they are type, not a rule. */
+  .close b { font-weight: 400; color: rgba(var(--grey-900-rgb), 0.65); }
+  .close:hover, .close:focus-visible { color: var(--black); }
+  .close:hover b, .close:focus-visible b { color: rgba(var(--grey-900-rgb), 0.85); }
+
+  /* ---------- signup ---------- */
+  .sheet-notify {
+    width: min(430px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    /* Top padding is fixed rather than fluid: the close control is pinned
+       14px from the top and is about 29px tall, so anything less than this
+       lets the label underneath it slide up onto the same line on a narrow
+       screen, where the panel is wide enough for the two to sit side by
+       side and read as one row. */
+    padding: 52px clamp(24px, 5vw, 40px) clamp(26px, 4vw, 34px);
+    text-align: center;
+  }
+
+  .sheet-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: lowercase;
+    color: rgba(var(--grey-900-rgb), 0.7);
+  }
+
+  /* The offer, and the only sentence in the flow. It is the headline
+     because it is the one thing that answers "what do I get for this". */
+  .sheet-lede {
+    margin: 14px auto 24px;
+    max-width: 24ch;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(17px, 4.4vw, 20px);
+    line-height: 1.32;
+    letter-spacing: -0.01em;
+    color: var(--black);
+  }
 
   /* ---------- A/B test: signup copy ----------
      Both variants ship in the served HTML and the cascade picks one,
      rather than JS rewriting textContent after load. Control is the
      default: with JS off there is no data-ab attribute at all, and a
-     visitor still gets one complete correct page instead of both
-     variants stacked on top of each other. */
+     visitor still gets one complete correct page instead of both variants
+     stacked on top of each other.
+
+     The strings themselves are unchanged from the version this test has
+     been running on. Rewording them mid-flight would silently split the
+     sample across two different tests. */
   .ab-b { display: none; }
   [data-ab="B"] .ab-a { display: none; }
   [data-ab="B"] .ab-b { display: inline; }
 
-  .drop h2 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 24px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
   .form {
-    max-width: 340px;
-    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
-  /* Boxed rather than the underline fields used elsewhere on the site:
-     centred on a black page an underline reads as a stray rule, and the
-     box is the direct translation of the solid-bordered field on the
-     reference layout. */
+  /* Placeholder-only fields: the visible label is the placeholder, set in
+     Courier so it reads as the interface prompting rather than as copy.
+     Real <label>s are in the markup for anyone not looking at the screen. */
   .form input {
     width: 100%;
     background: transparent;
-    border: 1px solid var(--field-line);
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-size: 14px;
+    border: 1px solid rgba(var(--grey-800-rgb), 0.55);
+    color: var(--black);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
     text-align: center;
-    padding: 13px 14px;
+    padding: 14px;
+    transition: border-color 200ms var(--ease-cut);
   }
 
-  .form input::placeholder { color: var(--muted); }
-  .form input:hover { border-color: var(--muted); }
-  .form input:focus { outline: none; border-color: var(--ink); }
-  .form input:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .form input::placeholder {
+    color: rgba(var(--grey-900-rgb), 0.7);
+    text-transform: lowercase;
+  }
+
+  .form input:hover { border-color: rgba(var(--grey-800-rgb), 0.8); }
+  .form input:focus { outline: none; border-color: var(--black); }
 
   .form button {
     width: 100%;
-    border: 1px solid var(--ink);
-    background: var(--ink);
-    color: #000;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.14em;
+    margin-top: 4px;
+    border: 1px solid var(--grey-900);
+    background: var(--grey-900);
+    color: var(--white);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    padding: 14px;
+    padding: 15px;
     cursor: pointer;
+    transition: background-color 200ms var(--ease-cut), transform 140ms var(--ease-cut);
   }
 
-  .form button[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .form button:hover { background: var(--black); }
+  .form button:active { transform: scale(0.985); }
+  .form button[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-  /* Kept in the DOM at all times so the live region is there to announce
+  /* TCPA consent. Small, but never behind a disclosure — it has to be
+     visible at the point of collection to count. site.css styles .consent
+     for the dark pages, so the colours are restated here for near-white. */
+  .sheet .consent {
+    margin: 16px auto 0;
+    max-width: none;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    text-align: left;
+    color: rgba(var(--grey-900-rgb), 0.7);
+  }
+
+  .sheet .consent a { color: rgba(var(--grey-900-rgb), 0.7); text-decoration: underline; }
+  .sheet .consent a:hover { color: var(--black); }
+
+  /* Kept in the DOM at all times so the live region exists to announce
      into; :empty is what hides it, not a class toggle. */
   .confirm {
-    margin-top: 18px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    color: var(--black);
   }
 
-  .confirm:empty { display: none; margin-top: 0; }
+  .confirm:empty { display: none; }
 
-  /* ---------- the drop ---------- */
-  .showcase {
-    margin-top: clamp(44px, 7vh, 76px);
-    padding-left: 25px;
-    overflow: hidden;
+  /* ---------- lookbook ---------- */
+  .sheet-look {
+    /* One gutter for the title, the strip and the counter, so the first
+       look lines up under the first character of the title. */
+    --gutter: clamp(18px, 4vw, 32px);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(18px, 3vh, 28px) 0 clamp(18px, 3vh, 26px);
   }
 
+  .look-head {
+    flex: 0 0 auto;
+    padding: 0 var(--gutter);
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.7;
+    letter-spacing: 0.2em;
+    text-transform: lowercase;
+    color: rgba(var(--grey-900-rgb), 0.7);
+  }
+
+  .look-head b { font-weight: 400; color: var(--black); }
+
+  .look-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Left-aligned on the same gutter as the title above, so the first look
+     sits directly under it rather than floating in the middle of the
+     screen with half the frame empty beside it. Start-snapped to match:
+     the counter names the look at the leading edge, which is the one the
+     strip settles against. */
   .strip {
     display: flex;
+    align-items: center;
     gap: 10px;
-    overflow-x: scroll;
+    width: 100%;
+    /* Definite height, inherited down from .look-body's flex sizing, so
+       the looks below can be measured off it. */
+    height: 100%;
+    overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    padding: 0 var(--gutter);
+    /* Without this, mandatory snapping aligns the first look to the raw
+       scrollport edge and eats the gutter — the strip silently scrolls
+       itself by the padding on open and the first look starts cropped.
+       Snapping has to be told about the gutter separately from the
+       padding, so both are driven off one value. */
+    scroll-padding-left: var(--gutter);
   }
 
   .strip::-webkit-scrollbar { display: none; }
-  .strip:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+  .strip:focus-visible { outline: 1px solid var(--black); outline-offset: 4px; }
 
   .shot {
     flex: 0 0 auto;
     scroll-snap-align: start;
-    width: 280px;
+    /* Height-led rather than width-led: the look fills the height it is
+       given and the 2/3 crop decides how wide that makes it. */
+    height: 100%;
+    width: auto;
     aspect-ratio: 2 / 3;
     overflow: hidden;
-    background: #0d0d0c;
+    /* Held while the photo decodes, so opening the lookbook doesn't show
+       an empty white screen with nothing in it. */
+    background: #E4E1DA;
   }
 
   .shot img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* Scroll position, not a progress animation — the thumb only ever
-     moves because a finger or a wheel moved it. */
-  .track {
-    position: relative;
-    width: 70%;
-    height: 4px;
-    margin: 25px auto 0;
-    border-radius: 2px;
-    background: #2a2a28;
+  .look-foot {
+    flex: 0 0 auto;
+    padding: clamp(14px, 2.4vh, 22px) var(--gutter) 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(var(--grey-900-rgb), 0.7);
+    font-variant-numeric: tabular-nums;
   }
 
-  .thumb {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    border-radius: 2px;
-    background: var(--ink);
+  .look-foot b { font-weight: 400; color: var(--black); }
+
+  /* Below this the 2/3 crop at full height is wider than the screen, so
+     width has to lead instead and the height follows. */
+  @media (max-width: 560px) {
+    /* Sized so a slice of the next look stays on screen — that sliver is
+       the only thing telling anyone the strip scrolls sideways. */
+    .shot { height: auto; width: min(340px, 84vw); }
   }
 
-  .drop { margin-top: clamp(36px, 6vh, 60px); }
-
-  .drop p {
-    max-width: 44ch;
-    margin: 12px auto 0;
-    font-size: 14px;
-    line-height: 1.5rem;
-    color: var(--muted);
-  }
-
-  /* ---------- footer ----------
-     Only what has to be here: how to reach Asior, where the brand posts,
-     and the two policies. No route back into the store. */
-  footer { padding: 40px 24px 44px; }
-
-  footer .fmark {
-    font-family: var(--font-brand);
-    font-weight: 400;
-    font-size: 24px;
-    line-height: 1.3;
-    letter-spacing: 0;
-    text-transform: none;
-  }
-
-  @media (max-width: 749px) {
-    .drop h2 { font-size: 20px; }
-    .showcase { padding-left: 15px; }
-    .shot { width: 180px; }
-    .track { margin-top: 19px; height: 3px; }
+  /* Nothing here should move for anyone who has asked the OS for less of
+     it. site.css already collapses durations globally; these are the two
+     loops it can't reach. The film is the third, and no stylesheet can
+     stop a video — it is paused in script instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .wordmark { animation: none; opacity: 1; }
+    .strip { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
 
-  <main id="main">
+  <!-- The moving ground: Asior's own panther film.
 
-    <div class="wrap">
-      <h1 class="wordmark">Asior</h1>
+       Graded into the file rather than with a CSS filter, because a
+       filter on a full-screen video is re-applied every frame and is one
+       of the few things that will genuinely drop a phone below 60fps. The
+       grade desaturates to the palette's neutral range and pulls the top
+       end down hard: the source cuts to a full-frame white flash whose
+       average brightness hits 235, which would erase every word on this
+       page for as long as it held. Graded, the brightest frame averages
+       99, so the type clears AA against the worst frame in the film before
+       the scrim above it does anything.
 
-      <!-- The date is written into the served HTML rather than printed by
-           the countdown script, so it survives JS being off and so
-           crawlers and link previews can read it. Keep it in step with
-           DROP_AT at the foot of this file — that constant is what drives
-           the numbers below. -->
-      <p class="status">Dropping September 7</p>
+       It loops on a cut from black to black — the film opens and closes on
+       a held black frame — so there is no visible seam and no crossfade
+       needed.
+
+       muted is what makes autoplay legal in every browser; the file has no
+       audio track at all either way. playsinline stops iOS taking the
+       video fullscreen. If autoplay is refused anyway (iOS Low Power Mode
+       does this), the poster stays up and the page is simply a still. -->
+  <video class="atmos" id="atmos" poster="video/gate-poster.jpg"
+         autoplay muted loop playsinline preload="auto"
+         disablepictureinpicture disableremoteplayback
+         aria-hidden="true" tabindex="-1">
+    <!-- VP9 first: same grade, 534KB against the MP4's 953KB, and it is
+         what Chrome, Firefox and Android will take. Safari from 14.1 and
+         iOS from 17.4 read it too; every older Safari reports that it
+         cannot, and the browser moves down to the H.264 file on its own.
+         Order matters — a browser commits to the first source it can play
+         and never reconsiders — so the smaller file has to be listed
+         first and the universally-supported one second. -->
+    <source src="video/gate.webm" type="video/webm">
+    <source src="video/gate.mp4" type="video/mp4">
+  </video>
+  <div class="atmos-grade" aria-hidden="true"></div>
+
+  <main class="gate" id="main">
+
+    <div class="gate-core">
+
+      <p class="eyebrow rise" style="--in: 120ms">dropping september 7</p>
 
       <!-- Dashes, not zeros, before the script runs: a countdown showing
-           00 00 00 00 looks like the drop has already been and gone. -->
-      <div class="countdown" id="countdown" role="timer" aria-live="off"
-           aria-label="Time remaining until the drop">
-        <div class="cd-cell"><span class="cd-num" id="cdDays">--</span><span class="cd-label">Days</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdHours">--</span><span class="cd-label">Hrs</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdMins">--</span><span class="cd-label">Min</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">Sec</span></div>
+           00 00 00 00 looks like the drop has already been and gone.
+           aria-live is off on purpose — a timer that announces itself
+           every second is unusable with a screen reader. -->
+      <div class="countdown rise" id="countdown" style="--in: 240ms" role="timer"
+           aria-live="off" aria-label="Time remaining until the drop">
+        <div class="cd-cell"><span class="cd-num" id="cdDays">--</span><span class="cd-label">days</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdHours">--</span><span class="cd-label">hrs</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdMins">--</span><span class="cd-label">min</span></div>
+        <div class="cd-cell"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">sec</span></div>
       </div>
 
-      <!-- id kept as "signup": every other page on the site still links
-           to index.html#signup. -->
-      <section class="signup" id="signup">
+      <h1 class="wordmark rise" style="--in: 380ms">Asior</h1>
+
+      <div class="actions rise" style="--in: 540ms">
+        <!-- Real hrefs, not buttons: with JS off these still open their
+             overlay through :target, and they stay shareable. The script
+             intercepts the click to avoid the jump to the anchor. -->
+        <!-- Fixed copy, not a variant. The A/B test on signup wording runs
+             on the lede and the button inside the sheet, which is where it
+             ran before this page was rebuilt; the gate link is the same
+             for everyone, so the test measures the form copy and nothing
+             else. -->
+        <a class="action" href="#signup" id="notifyLink">Early Access + 10% Off</a>
+        <a class="action action-2" href="https://www.instagram.com/asior_clothing/"
+           target="_blank" rel="noopener">@asior_clothing</a>
+      </div>
+
+    </div>
+
+    <div class="gate-foot">
+      <a class="bracket rise" href="#lookbook" id="lookbookLink" style="--in: 700ms"><b>[</b> lookbook <b>]</b></a>
+
+      <footer class="rise" style="--in: 820ms">
+        <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a>
+        <span class="meta-right">
+          <a href="https://www.tiktok.com/@asiorclothing" target="_blank" rel="noopener">tiktok</a>
+          <a href="privacy-policy.html">privacy</a>
+          <a href="terms-of-service.html">terms</a>
+        </span>
+      </footer>
+    </div>
+
+  </main>
+
+  <!-- ================= signup =================
+       id stays "signup": every other page on the site still links to
+       index.html#signup, and that has to keep landing on the form now
+       that the form lives behind a click. -->
+  <div class="overlay" id="signup" hidden role="dialog" aria-modal="true"
+       aria-labelledby="signupLede">
+    <div class="overlay-scrim" data-close></div>
+
+    <!-- tabindex so the surface can take focus when it opens; it is not in
+         the tab order, and the trap below excludes tabindex="-1". -->
+    <div class="sheet sheet-notify" tabindex="-1">
+      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
+
+      <div class="sheet-in">
+        <p class="sheet-label">early access</p>
+
         <!-- The offer, in one line. 10% off the first order is the same
              offer the rest of the site has always run, not a new promise
              invented for this page — but it only stays true if the Klaviyo
              welcome flow that sends the code is LIVE, not sitting in Draft.
              Check that before this goes out. -->
-        <p class="lede">
+        <p class="sheet-lede" id="signupLede">
           <span class="ab-a">First access to the drop, plus 10% off your first order.</span>
           <span class="ab-b">10% off your first order, plus first access to the Fall Collection.</span>
         </p>
@@ -436,10 +987,10 @@
              goes to the SMS list. -->
         <form class="form" id="signupForm">
           <label class="sr-only" for="signupEmail">Email address</label>
-          <input type="email" id="signupEmail" name="email" placeholder="Email"
+          <input type="email" id="signupEmail" name="email" placeholder="email"
                  autocomplete="email" spellcheck="false" required>
           <label class="sr-only" for="signupPhone">Phone number (optional)</label>
-          <input type="tel" id="signupPhone" name="phone" placeholder="Phone (optional)"
+          <input type="tel" id="signupPhone" name="phone" placeholder="phone (optional)"
                  autocomplete="tel" inputmode="tel">
           <button type="submit" id="signupBtn">
             <span class="ab-a">Get Early Access</span>
@@ -464,54 +1015,50 @@
         </p>
 
         <div class="confirm" id="signupConfirm" role="status" aria-live="polite"></div>
-      </section>
-    </div>
-
-    <!-- The drop itself. Photographs only: nothing here is a link, because
-         there is nowhere to go yet. tabindex makes the strip scrollable
-         from the keyboard, which an overflow container isn't by default in
-         every browser. -->
-    <section class="showcase">
-      <div class="strip" id="strip" tabindex="0" role="region" aria-label="The Fall Collection">
-        <div class="shot"><img src="images/look-01.jpg" alt="Black Asior tee with animal-print patches, worn with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-02.jpg" alt="Black Asior polo with animal-print collar and cuff trim" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-04.jpg" alt="Two looks in all black — animal-print tees with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-05.jpg" alt="Back of a black Asior tee with the script logo in white" width="800" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-06.jpg" alt="Asior sweat shorts with an animal-print side stripe" width="674" height="1200" loading="lazy" decoding="async"></div>
-        <div class="shot"><img src="images/look-03.jpg" alt="Two looks — black Asior tees with Asior sweat shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
       </div>
-      <div class="track" id="stripTrack" aria-hidden="true"><div class="thumb" id="stripThumb"></div></div>
-    </section>
-
-    <div class="wrap">
-      <section class="drop">
-        <h2>The Fall Collection</h2>
-        <p>Once it sells out, it's gone.</p>
-      </section>
     </div>
+  </div>
 
-  </main>
+  <!-- ================= lookbook =================
+       Full-bleed rather than a panel, so it reads as a different kind of
+       thing to the signup: same near-white surface, whole screen. -->
+  <div class="overlay" id="lookbook" hidden role="dialog" aria-modal="true"
+       aria-label="The Fall Collection lookbook">
+    <div class="sheet sheet-look" tabindex="-1">
+      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
 
-  <footer>
-    <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
-    <div class="social">
-      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
-      </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
-      </a>
+      <div class="sheet-in look-head">
+        <div><b>the fall collection</b></div>
+        <div>september 7 — limited run</div>
+      </div>
+
+      <!-- Photographs only: nothing here is a link, because there is
+           nowhere to go yet. tabindex makes the strip scrollable from the
+           keyboard, which an overflow container isn't by default in every
+           browser. Lazy-loading is safe and wanted: the images sit inside
+           a display:none overlay, so the gate itself never pays for them. -->
+      <div class="sheet-in look-body">
+        <div class="strip" id="strip" tabindex="0" role="region" aria-label="The Fall Collection">
+          <div class="shot"><img src="images/look-01.jpg" alt="Black Asior tee with animal-print patches, worn with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
+          <div class="shot"><img src="images/look-02.jpg" alt="Black Asior polo with animal-print collar and cuff trim" width="800" height="1200" loading="lazy" decoding="async"></div>
+          <div class="shot"><img src="images/look-04.jpg" alt="Two looks in all black — animal-print tees with black shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
+          <div class="shot"><img src="images/look-05.jpg" alt="Back of a black Asior tee with the script logo in white" width="800" height="1200" loading="lazy" decoding="async"></div>
+          <div class="shot"><img src="images/look-06.jpg" alt="Asior sweat shorts with an animal-print side stripe" width="674" height="1200" loading="lazy" decoding="async"></div>
+          <div class="shot"><img src="images/look-03.jpg" alt="Two looks — black Asior tees with Asior sweat shorts" width="800" height="1200" loading="lazy" decoding="async"></div>
+        </div>
+      </div>
+
+      <!-- Where you are in the strip, as a count rather than a scrollbar.
+           aria-hidden because the strip itself is already labelled and the
+           counter would otherwise be read out on every scroll event. -->
+      <div class="sheet-in look-foot" id="lookCount" aria-hidden="true"><b>01</b> / 06</div>
     </div>
-    <div class="policy-links">
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
-    </div>
-  </footer>
+  </div>
 
 <script src="assets/site.js"></script>
 <script>
   const A = window.Asior;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // Which drop these signups belong to. It rides along on the Klaviyo
   // event as a property, so a flow can target "signed up for THIS drop"
@@ -529,10 +1076,19 @@
   // point, because it makes the rate divisible per variant in Klaviyo:
   //   conversion = "AB Test: Signed Up" / "AB Test: Viewed", split by
   //   the `variant` property.
+  //
+  // Note that the variant copy now also appears on the gate link itself,
+  // not just inside the form. Exposure still fires on page view, which is
+  // still the moment the visitor first sees the copy, so the denominator
+  // means the same thing it did before.
   const AB_TEST = 'signup_copy';
   const AB_VARIANT = A.getVariant(AB_TEST);
 
   A.trackABEvent(AB_TEST, AB_VARIANT, 'Viewed');
+
+  // ===================================================================
+  // Countdown
+  // ===================================================================
 
   // The drop as one fixed instant, not a date string the browser gets to
   // interpret in whatever timezone the visitor happens to be in. -05:00
@@ -568,11 +1124,156 @@
   const cdTimer = setInterval(tick, 1000);
   tick();
 
+  // ===================================================================
+  // Overlays
+  //
+  // One controller for both. A dialog that traps focus badly is worse
+  // than no dialog, so this does the whole job: focus moves in, Tab
+  // cycles inside, Escape and the close control both dismiss, focus goes
+  // back where it came from, and the gate behind is made inert so a
+  // screen reader can't wander into it.
+  // ===================================================================
+  const gate = document.getElementById('main');
+  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  let openOverlay = null;
+
+  function makeOverlay(id) {
+    const el = document.getElementById(id);
+
+    // `trigger` is passed rather than read off document.activeElement,
+    // because clicking a link does not focus it in every browser (Safari
+    // notably) — so activeElement would be <body> and closing would dump
+    // focus at the top of the page instead of back on the control that
+    // opened this.
+    function open(trigger) {
+      if (openOverlay === el) return;
+      if (openOverlay) close(openOverlay, { restore: false });
+
+      el.lastFocus = trigger || document.activeElement;
+      el.hidden = false;
+      document.body.classList.add('locked');
+      if ('inert' in HTMLElement.prototype) gate.inert = true;
+
+      // Two frames: one for [hidden] to actually resolve to a laid-out
+      // box, one for the browser to register the starting clip-path.
+      // Without this the wipe has nothing to animate from and the surface
+      // just appears.
+      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-open')));
+
+      // Focus the surface itself rather than the first control. It carries
+      // the dialog role and name, so a screen reader announces what just
+      // opened; landing straight on the close button announces only
+      // "close", and landing on the email field would open the keyboard on
+      // a phone before anyone has read the offer.
+      el.querySelector('.sheet').focus({ preventScroll: true });
+      openOverlay = el;
+      history.replaceState(null, '', '#' + id);
+    }
+
+    el.openOverlay = open;
+    return el;
+  }
+
+  function close(el, opts) {
+    const restore = !opts || opts.restore !== false;
+    el.classList.remove('is-open');
+    if (openOverlay === el) openOverlay = null;
+
+    // Release the gate before handing focus back to it. An inert subtree
+    // cannot take focus at all, so doing this the other way round — or
+    // deferring it to the timeout below — silently drops focus onto
+    // <body> and a keyboard user restarts from the top of the page.
+    if (!openOverlay) {
+      document.body.classList.remove('locked');
+      if ('inert' in HTMLElement.prototype) gate.inert = false;
+    }
+
+    if (restore && el.lastFocus && el.lastFocus.focus) {
+      el.lastFocus.focus({ preventScroll: true });
+    }
+    if (!openOverlay) history.replaceState(null, '', location.pathname);
+
+    // Wait out the wipe before pulling the box, so the overlay isn't
+    // yanked off screen mid-transition. It stops intercepting pointer
+    // events the moment is-open comes off, so the gate is live again
+    // straight away. Reduced motion collapses the durations, so there is
+    // nothing to wait for.
+    setTimeout(() => {
+      // Guard against a re-open landing inside the timeout.
+      if (el.classList.contains('is-open')) return;
+      el.hidden = true;
+    }, reduceMotion.matches ? 0 : 340);
+  }
+
+  const notify = makeOverlay('signup');
+  const lookbook = makeOverlay('lookbook');
+  const notifyLink = document.getElementById('notifyLink');
+  const lookbookLink = document.getElementById('lookbookLink');
+
+  notifyLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    notify.openOverlay(notifyLink);
+  });
+
+  lookbookLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    lookbook.openOverlay(lookbookLink);
+  });
+
+  document.querySelectorAll('[data-close]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const overlay = el.closest('.overlay');
+      if (overlay) close(overlay);
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!openOverlay) return;
+
+    if (e.key === 'Escape') {
+      close(openOverlay);
+      return;
+    }
+
+    if (e.key !== 'Tab') return;
+
+    // Focus trap. Only elements that are actually rendered count —
+    // querySelectorAll would otherwise hand back the signup form after a
+    // successful submit has display:none'd it.
+    const items = Array.from(openOverlay.querySelectorAll(FOCUSABLE))
+      .filter((n) => n.offsetParent !== null);
+    if (!items.length) return;
+
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
+  // Deep links. index.html#signup is linked from every other page on the
+  // site and predates the form moving behind a click, so it has to keep
+  // landing on the form.
+  function openFromHash() {
+    if (location.hash === '#signup') notify.openOverlay(notifyLink);
+    else if (location.hash === '#lookbook') lookbook.openOverlay(lookbookLink);
+  }
+
+  openFromHash();
+  window.addEventListener('hashchange', openFromHash);
+
+  // ===================================================================
+  // Signup
+  // ===================================================================
   const signupForm = document.getElementById('signupForm');
   const signupBtn = document.getElementById('signupBtn');
   const signupConsent = document.getElementById('signupConsent');
   const signupConfirm = document.getElementById('signupConfirm');
-  const signupLede = document.querySelector('.lede');
+  const signupLede = document.getElementById('signupLede');
 
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -606,24 +1307,75 @@
     }
   });
 
-  // Where you are in the photo strip. The track is hidden outright when
-  // every shot already fits, rather than showing a full-width thumb that
-  // looks broken.
+  // ===================================================================
+  // Lookbook position
+  // ===================================================================
   const strip = document.getElementById('strip');
-  const stripTrack = document.getElementById('stripTrack');
-  const stripThumb = document.getElementById('stripThumb');
+  const lookCount = document.getElementById('lookCount');
+  const shots = Array.from(strip.children);
 
+  // Which look the strip has settled against, measured at the leading edge
+  // to match scroll-snap-align: start. Each shot's position is taken
+  // relative to the first one rather than absolutely, which cancels out
+  // the strip's left padding and its own offset in the page — so this
+  // stays correct when either changes at a breakpoint.
   function syncStrip() {
-    const overflowing = strip.scrollWidth > strip.clientWidth + 1;
-    stripTrack.hidden = !overflowing;
-    if (!overflowing) return;
-    stripThumb.style.width = (strip.clientWidth / strip.scrollWidth * 100) + '%';
-    stripThumb.style.left = (strip.scrollLeft / strip.scrollWidth * 100) + '%';
+    let best = 0;
+    let bestDist = Infinity;
+    const origin = shots[0].offsetLeft;
+    shots.forEach((el, i) => {
+      const dist = Math.abs(el.offsetLeft - origin - strip.scrollLeft);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+    lookCount.innerHTML = '<b>' + pad(best + 1) + '</b> / ' + pad(shots.length);
   }
 
   strip.addEventListener('scroll', syncStrip, { passive: true });
   window.addEventListener('resize', syncStrip);
   syncStrip();
+
+  // ===================================================================
+  // Backdrop
+  //
+  // The film does its own work — it autoplays, loops and is graded in the
+  // file. This is only the two things markup cannot express.
+  // ===================================================================
+  (function backdrop() {
+    const video = document.getElementById('atmos');
+
+    // 1. Reduced motion. There is no CSS that stops a video playing, so
+    //    honouring the preference has to happen here. The poster is a
+    //    frame of the same graded film, so the page keeps its picture and
+    //    loses only the movement — which is the part being objected to.
+    function applyMotion() {
+      if (reduceMotion.matches) {
+        video.pause();
+        video.removeAttribute('autoplay');
+      } else if (video.paused) {
+        const p = video.play();
+        if (p) p.catch(() => { /* refused: the poster stands in */ });
+      }
+    }
+
+    if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyMotion);
+    else if (reduceMotion.addListener) reduceMotion.addListener(applyMotion);
+    applyMotion();
+
+    // 2. Autoplay that was refused rather than blocked outright. iOS Low
+    //    Power Mode and some data-saver modes reject the initial play()
+    //    but allow one started from a real gesture, so the first touch or
+    //    click anywhere on the gate retries it once. Nothing here is
+    //    required for the page to work: without it the poster simply
+    //    stays up.
+    function retryOnce() {
+      document.removeEventListener('pointerdown', retryOnce);
+      document.removeEventListener('keydown', retryOnce);
+      if (!reduceMotion.matches && video.paused) video.play().catch(() => {});
+    }
+
+    document.addEventListener('pointerdown', retryOnce, { once: true, passive: true });
+    document.addEventListener('keydown', retryOnce, { once: true });
+  })();
 </script>
 
 </body>
