@@ -536,12 +536,48 @@
 
   .action-2:hover { color: var(--white); }
 
-  .action-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+  /* ---------- lanyard pill ----------
+     Not filled at rest, so .cta above stays the one solid shape read
+     first — but a real border, a live-pulse dot and an invert-on-hover
+     give it clear affordance well past a text link. Its own row, so it
+     can't be mistaken for secondary chrome next to Follow. */
+  .lanyard-cta {
+    display: inline-flex;
     align-items: center;
-    gap: 10px 26px;
+    gap: 9px;
+    background: none;
+    border: 1px solid var(--white);
+    color: var(--white);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(11px, 2.8vw, 12px);
+    line-height: 1;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 12px clamp(16px, 4vw, 22px);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 200ms var(--ease-cut), color 200ms var(--ease-cut), box-shadow 240ms var(--ease-cut);
+  }
+
+  .lanyard-cta:hover,
+  .lanyard-cta:focus-visible {
+    background: var(--white);
+    color: var(--black);
+  }
+
+  .lanyard-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+    animation: lanyardPulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes lanyardPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.28; }
   }
 
   /* Rule wipes in from the left on hover rather than blinking on, which
@@ -1215,18 +1251,27 @@
           <a class="cta" href="#signup" id="notifyLink">Early Access + 10% Off</a>
           <p class="cta-sub">email&nbsp;+&nbsp;sms &nbsp;·&nbsp; first access to the drop</p>
         </div>
-        <div class="action-row">
-          <button type="button" class="action action-2" id="followLink">Follow</button>
-          <!-- Real product, real link — this is not the drop, it's the
-               lanyard preorder: sold now, ships Thu 9/3 the moment stock
-               lands. Points at the dedicated lanyard.html, not
-               product.html or /products/<handle>.html: both of those carry
-               the full site header with a Shop link in it, which would let
-               anyone who clicks through from the gate browse the entire
-               catalog before the drop is public. lanyard.html has no nav
-               at all — see the comment on its own header. -->
-          <a class="action" href="lanyard.html" id="lanyardLink">Buy the Lanyard — Ships Thu 9/3</a>
-        </div>
+
+        <!-- Real product, real link — this is not the drop, it's the
+             lanyard preorder: sold now, ships Thu 9/3 the moment stock
+             lands. Points at the dedicated lanyard.html, not
+             product.html or /products/<handle>.html: both of those carry
+             the full site header with a Shop link in it, which would let
+             anyone who clicks through from the gate browse the entire
+             catalog before the drop is public. lanyard.html has no nav
+             at all — see the comment on its own header.
+
+             Outlined rather than filled at rest, so the signup button
+             above stays the one solid shape on first read — but a border,
+             a live-pulse dot and a fill-on-hover give it real weight of
+             its own, well past a plain text link. It gets its own row
+             so it can't be missed as "the third thing next to Follow". -->
+        <a class="lanyard-cta pressable" href="lanyard.html" id="lanyardLink">
+          <span class="lanyard-dot" aria-hidden="true"></span>
+          Buy the Lanyard — Ships Thu 9/3
+        </a>
+
+        <button type="button" class="action action-2" id="followLink">Follow</button>
       </div>
 
     </div>
