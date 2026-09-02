@@ -1219,12 +1219,13 @@
           <button type="button" class="action action-2" id="followLink">Follow</button>
           <!-- Real product, real link — this is not the drop, it's the
                lanyard preorder: sold now, ships Thu 9/3 the moment stock
-               lands. Points at product.html?id=, not /products/<handle>.html,
-               so it works from the moment this merges regardless of whether
-               a deploy has run scripts/build.js yet (that script only
-               regenerates the static /products/ pages at build time; this
-               form fetches the live product straight from Shopify). -->
-          <a class="action" href="product.html?id=jag-lanyard" id="lanyardLink">Buy the Lanyard — Ships Thu 9/3</a>
+               lands. Points at the dedicated lanyard.html, not
+               product.html or /products/<handle>.html: both of those carry
+               the full site header with a Shop link in it, which would let
+               anyone who clicks through from the gate browse the entire
+               catalog before the drop is public. lanyard.html has no nav
+               at all — see the comment on its own header. -->
+          <a class="action" href="lanyard.html" id="lanyardLink">Buy the Lanyard — Ships Thu 9/3</a>
         </div>
       </div>
 
