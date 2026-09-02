@@ -536,6 +536,14 @@
 
   .action-2:hover { color: var(--white); }
 
+  .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 26px;
+  }
+
   /* Rule wipes in from the left on hover rather than blinking on, which
      is the only motion these get — nothing flashy. */
   .action::after {
@@ -1207,7 +1215,17 @@
           <a class="cta" href="#signup" id="notifyLink">Early Access + 10% Off</a>
           <p class="cta-sub">email&nbsp;+&nbsp;sms &nbsp;·&nbsp; first access to the drop</p>
         </div>
-        <button type="button" class="action action-2" id="followLink">Follow</button>
+        <div class="action-row">
+          <button type="button" class="action action-2" id="followLink">Follow</button>
+          <!-- Real product, real link — this is not the drop, it's the
+               lanyard preorder: sold now, ships Thu 9/3 the moment stock
+               lands. Points at product.html?id=, not /products/<handle>.html,
+               so it works from the moment this merges regardless of whether
+               a deploy has run scripts/build.js yet (that script only
+               regenerates the static /products/ pages at build time; this
+               form fetches the live product straight from Shopify). -->
+          <a class="action" href="product.html?id=jag-lanyard" id="lanyardLink">Buy the Lanyard — Ships Thu 9/3</a>
+        </div>
       </div>
 
     </div>
