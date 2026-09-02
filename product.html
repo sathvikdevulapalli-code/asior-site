@@ -1120,7 +1120,7 @@
               <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
             </div>
             <div class="pd-actions">
-              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
+              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Buy Now'}</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
             </div>
             <p class="pd-stock-note" id="pdStockNote"></p>
@@ -1172,7 +1172,7 @@
       const v = currentVariant();
       const btn = document.getElementById('addBtn');
       const sold = !v || !v.available;
-      btn.textContent = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Add to Cart');
+      btn.textContent = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Buy Now');
       btn.disabled = sold;
       if (sold && v) openBackInStock(selection.Size);
     }
@@ -1270,26 +1270,31 @@
     document.getElementById('qtyDown').addEventListener('click', () => { qty = Math.max(1, qty - 1); qtyVal.textContent = qty; });
     document.getElementById('qtyUp').addEventListener('click', () => { qty += 1; qtyVal.textContent = qty; });
 
+    // Straight to Shopify's own checkout on click — same pattern as
+    // lanyard.html. Used to add the item and just show "Added, view
+    // cart", leaving checkout two clicks away (cart.html, then its own
+    // Checkout button). Now it's one: add, then go straight there.
     document.getElementById('addBtn').addEventListener('click', async () => {
       const v = currentVariant();
       if (!v || !v.available) return;
       const btn = document.getElementById('addBtn');
       const confirmEl = document.getElementById('addConfirm');
       btn.disabled = true;
+      btn.textContent = 'Redirecting…';
       try {
-        await A.addToShopifyCart(v.variantId, qty);
+        const updated = await A.addToShopifyCart(v.variantId, qty);
         if (selection.Size) A.recordSizeChoice(selection.Size);
         A.klaviyoTrack('Added To Cart', {
           product: product.name, handle: product.handle,
           size: selection.Size || null, price: v.price, quantity: qty,
         });
-        confirmEl.innerHTML = 'Added to cart. <a href="/cart.html">View cart</a>';
-        confirmEl.classList.add('show');
+        location.href = updated.checkoutUrl;
       } catch (err) {
         confirmEl.textContent = 'Something went wrong adding that. Try again.';
         confirmEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = product.isPreorder ? 'Preorder' : 'Buy Now';
       }
-      btn.disabled = false;
     });
 
     // Honest, real-inventory urgency: only fires when genuinely true.
