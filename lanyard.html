@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asior Lanyard — Preorder Now, Ships Thu 9/3</title>
+<meta name="description" content="The Asior lanyard. Preorder now, ships Thursday, September 3.">
+<meta name="theme-color" content="#0b0a08">
+<link rel="canonical" href="https://asiorclothing.com/lanyard.html">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Asior Lanyard — Preorder Now">
+<meta property="og:description" content="The Asior lanyard. Preorder now, ships Thursday, September 3.">
+<meta property="og:url" content="https://asiorclothing.com/lanyard.html">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
+<style>
+  @keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* No <nav> in the header on this page at all — see the comment above
+     the header markup below for why. Just the mark, so this still reads
+     as Asior and still gets you back to the gate. */
+  .lp-header {
+    padding: 32px 40px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .lp-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4vh 40px 14vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+    animation: pageFadeIn 700ms var(--ease-out);
+  }
+
+  .lp-media { aspect-ratio: 1 / 1; overflow: hidden; border-radius: 2px; }
+  .lp-media img { width: 100%; height: 100%; object-fit: cover; }
+  .lp-media .ph {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+  }
+  .lp-media .ph span { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+  .lp-badge {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 5px 10px;
+    border-radius: 2px;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .lp-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .lp-price {
+    font-family: var(--font-mono);
+    margin-top: 14px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .lp-price .compare { text-decoration: line-through; opacity: 0.6; margin-right: 10px; }
+
+  .lp-desc { margin-top: 22px; font-size: 13px; line-height: 1.7; color: var(--ink); }
+  .lp-desc p + p { margin-top: 12px; }
+
+  .lp-opts { margin-top: 28px; }
+  .lp-opt-group { margin-bottom: 18px; }
+  .lp-opt-label {
+    font-family: var(--font-mono);
+    margin-bottom: 12px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lp-opt-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .lp-opt {
+    min-width: 46px;
+    height: 42px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--field-line);
+    background: none;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 200ms var(--ease-out), color 200ms var(--ease-out), background 200ms var(--ease-out);
+  }
+  .lp-opt.selected { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+  .lp-opt.unavailable { color: var(--muted); cursor: not-allowed; text-decoration: line-through; }
+
+  .lp-qty { margin-top: 30px; display: flex; align-items: center; gap: 16px; }
+  .lp-qty button {
+    width: 30px; height: 30px; border: 1px solid var(--field-line); background: none; color: var(--ink);
+    font-family: var(--font-body); font-size: 14px; cursor: pointer;
+  }
+  .lp-qty span { font-size: 13px; min-width: 16px; text-align: center; }
+
+  .lp-buy {
+    margin-top: 26px;
+    width: 100%;
+    background: var(--ink);
+    color: var(--bg);
+    border: 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 30px;
+    cursor: pointer;
+    transition: opacity 200ms var(--ease-out);
+  }
+  .lp-buy:hover { opacity: 0.85; }
+  .lp-buy[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  .lp-note { margin-top: 16px; font-size: 11px; letter-spacing: 0.05em; color: var(--muted); line-height: 1.7; }
+  .lp-msg { margin-top: 14px; font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 720px) {
+    .lp-wrap { grid-template-columns: 1fr; gap: 28px; padding: 2vh 20px 10vh; }
+    .lp-header { padding: 20px; font-size: 12px; }
+  }
+
+  .not-found {
+    min-height: 40vh; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; gap: 14px;
+  }
+  .not-found a { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- Deliberately no <nav> here — no Shop, Community, Contact or
+     Manufacturing links, no cart icon. Every other page on the site pulls
+     header/nav in from site.css because they're all meant to lead further
+     into the store. This one link goes out from the passphrase gate before
+     the drop is public, and a full nav on the far end of it would let
+     anyone follow Shop straight into the rest of the catalog — the one
+     thing the gate is there to hold back. So this page shows the lanyard
+     and nothing else to click into. -->
+<header class="lp-header"><a href="index.html">Asior</a></header>
+
+<main id="main">
+  <div id="lp-root"></div>
+</main>
+
+<footer id="order">
+  <div class="fmark">Asior</div>
+  <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+  <div class="policy-links">
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="terms-of-service.html">Terms of Service</a>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script src="assets/product-details.js"></script>
+<script>
+  // ---------------------------------------------------------------
+  // A single-product landing page for the lanyard preorder only —
+  // see the comment on the header above. "Buy Now" skips our own cart
+  // page entirely: it adds the line item and sends the browser straight
+  // to Shopify's own hosted checkout, because the point of this page is
+  // one decision, not a browsing session.
+  // ---------------------------------------------------------------
+  const A = window.Asior;
+  const HANDLE = 'jag-lanyard';
+  const root = document.getElementById('lp-root');
+
+  async function fetchProduct(handle) {
+    const data = await A.shopifyFetch(`
+      query($handle: String!) {
+        product(handle: $handle) {
+          id title handle descriptionHtml
+          images(first: 6) { edges { node { ${A.IMAGE_FIELDS} } } }
+          options { name values }
+          variants(first: 20) {
+            edges { node {
+              id sku availableForSale
+              price { amount currencyCode }
+              compareAtPrice { amount }
+              selectedOptions { name value }
+            } }
+          }
+        }
+      }`, { handle });
+    return data.product;
+  }
+
+  function descriptionFromHtml(html) {
+    if (!html) return null;
+    const paragraphs = html
+      .split(/<\/p>|<br\s*\/?>/i)
+      .map(p => p.replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean);
+    return paragraphs.length ? paragraphs : null;
+  }
+
+  (async function () {
+    let product;
+    try {
+      const p = await fetchProduct(HANDLE);
+      if (!p) {
+        document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
+        root.innerHTML = `<div class="not-found"><div>That piece isn't in the catalog.</div><a href="index.html">Back to Asior</a></div>`;
+        return;
+      }
+      const optionNames = p.options.map(o => o.name).filter(n => n !== 'Title');
+      const variants = p.variants.edges.map(e => {
+        const v = e.node;
+        const options = {};
+        v.selectedOptions.forEach(so => { if (so.name !== 'Title') options[so.name] = so.value; });
+        return {
+          options, variantId: v.id, sku: v.sku,
+          price: parseFloat(v.price.amount), currency: v.price.currencyCode,
+          comparePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null,
+          available: v.availableForSale,
+        };
+      });
+      product = {
+        name: p.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+        images: p.images.edges.map(e => e.node),
+        description: descriptionFromHtml(p.descriptionHtml),
+        optionNames, variants,
+        isPreorder: /\[preorder\]/i.test(p.title),
+      };
+    } catch (err) {
+      root.innerHTML = `<div class="not-found"><div>Couldn't load this right now. Try refreshing.</div><a href="index.html">Back to Asior</a></div>`;
+      return;
+    }
+
+    const hasOptions = product.optionNames.length > 0;
+    const findVariant = sel => product.variants.find(v =>
+      product.optionNames.every(n => v.options[n] === sel[n]));
+    let startVariant = product.variants.find(v => v.available) || product.variants[0];
+    const selection = hasOptions ? { ...startVariant.options } : {};
+
+    const details = (window.ASIOR_PRODUCT_DETAILS || {})[HANDLE] || null;
+    const preorderNote = details && details.shipBy
+      ? `You'll be charged now. Ships ${A.escapeHtml(details.shipBy)}.`
+      : "You'll be charged now and it ships as soon as this drop is ready.";
+
+    const mainImg = product.images.length
+      ? A.imgTag(product.images[0], { id: 'lpMainImg', eager: true, alt: product.images[0].altText || product.name, sizes: '(max-width: 720px) 100vw, 440px' })
+      : `<div class="ph"><span>Image coming soon</span></div>`;
+
+    const descHTML = product.description
+      ? `<div class="lp-desc">${product.description.map(p => `<p>${A.escapeHtml(p)}</p>`).join('')}</div>`
+      : '';
+
+    root.innerHTML = `
+      <div class="lp-wrap">
+        <div class="lp-media">${mainImg}</div>
+        <div class="lp-info">
+          <div class="lp-badge">Preorder Open</div>
+          <h1 class="lp-name">${A.escapeHtml(product.name)}</h1>
+          <div class="lp-price tnum" id="lpPrice"></div>
+          ${descHTML}
+          <div class="lp-opts" id="lpOpts"></div>
+          <div class="lp-qty">
+            <button type="button" id="qtyDown" aria-label="Decrease quantity">-</button>
+            <span id="qtyVal" aria-live="polite">1</span>
+            <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
+          </div>
+          <button class="lp-buy" id="buyBtn">Buy Now</button>
+          <p class="lp-msg" id="lpMsg" role="status" aria-live="polite"></p>
+          <p class="lp-note">${preorderNote} Redirects straight to Shopify checkout — no account needed.</p>
+        </div>
+      </div>`;
+
+    const currentVariant = () => hasOptions ? findVariant(selection) : product.variants[0];
+
+    function renderPrice() {
+      const v = currentVariant();
+      const el = document.getElementById('lpPrice');
+      if (!v) { el.textContent = 'Price coming soon'; return; }
+      el.innerHTML = `${v.comparePrice && v.comparePrice > v.price ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
+    }
+
+    function renderOpts() {
+      if (!hasOptions) return;
+      const wrap = document.getElementById('lpOpts');
+      wrap.innerHTML = product.optionNames.map(name => {
+        const values = [...new Set(product.variants.map(v => v.options[name]))];
+        const row = values.map(val => {
+          const v = findVariant({ ...selection, [name]: val });
+          const sel = selection[name] === val;
+          const avail = v ? v.available : false;
+          return `<button type="button" class="lp-opt${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
+                    data-option="${A.escapeAttr(name)}" data-value="${A.escapeAttr(val)}"
+                    aria-pressed="${sel}" ${!avail ? 'disabled' : ''}>${A.escapeHtml(val)}</button>`;
+        }).join('');
+        return `<div class="lp-opt-group"><div class="lp-opt-label">${A.escapeHtml(name)}</div><div class="lp-opt-row">${row}</div></div>`;
+      }).join('');
+
+      wrap.querySelectorAll('.lp-opt:not(.unavailable)').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selection[btn.dataset.option] = btn.dataset.value;
+          renderOpts(); renderPrice(); renderBuyButton();
+        });
+      });
+    }
+
+    function renderBuyButton() {
+      const v = currentVariant();
+      const btn = document.getElementById('buyBtn');
+      const sold = !v || !v.available;
+      btn.textContent = sold ? 'Sold Out' : 'Buy Now';
+      btn.disabled = sold;
+    }
+
+    renderPrice(); renderOpts(); renderBuyButton();
+
+    let qty = 1;
+    const qtyVal = document.getElementById('qtyVal');
+    document.getElementById('qtyDown').addEventListener('click', () => { qty = Math.max(1, qty - 1); qtyVal.textContent = qty; });
+    document.getElementById('qtyUp').addEventListener('click', () => { qty += 1; qtyVal.textContent = qty; });
+
+    document.getElementById('buyBtn').addEventListener('click', async () => {
+      const v = currentVariant();
+      if (!v || !v.available) return;
+      const btn = document.getElementById('buyBtn');
+      const msg = document.getElementById('lpMsg');
+      btn.disabled = true;
+      btn.textContent = 'Redirecting…';
+      try {
+        const updated = await A.addToShopifyCart(v.variantId, qty);
+        A.klaviyoTrack('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price });
+        location.href = updated.checkoutUrl;
+      } catch (err) {
+        msg.textContent = "That didn't go through. Try again in a moment.";
+        btn.disabled = false;
+        btn.textContent = 'Buy Now';
+      }
+    });
+
+    A.klaviyoTrack('Viewed Product', { product: product.name, handle: HANDLE });
+  })();
+</script>
+
+</body>
+</html>
