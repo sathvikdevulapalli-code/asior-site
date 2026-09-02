@@ -35,8 +35,14 @@
 
   /* No <nav> in the header on this page at all — see the comment above
      the header markup below for why. Just the mark, so this still reads
-     as Asior and still gets you back to the gate. */
+     as Asior and still gets you back to the gate.
+
+     position: static overrides site.css's shared `header{position:fixed}`
+     rule — that one assumes the .page-top-space spacer and teaser-bar
+     this page doesn't have, and left as fixed it floats on top of the
+     page instead of pushing content down, overlapping the product photo. */
   .lp-header {
+    position: static;
     padding: 32px 40px;
     font-family: var(--font-display);
     font-weight: 600;
@@ -56,20 +62,26 @@
     animation: pageFadeIn 700ms var(--ease-out);
   }
 
-  /* object-fit: contain, not cover — a lanyard photographed flat-lay or
-     hung isn't square, and cover was cropping real parts of it off to
-     force-fill a square frame. The gradient behind it fills whatever
-     letterboxing that leaves rather than showing flat empty space. */
+  /* No fixed square box — that was forcing a fixed shape onto a photo
+     that isn't square (or wasn't, until it got rotated in Shopify), so
+     it either cropped or sat in a lot of empty letterboxing either way.
+     The frame now just takes the image's own real aspect ratio: the
+     <img> carries real width/height from Shopify, so the browser
+     reserves the right space before it even loads (no layout shift),
+     and the photo shows edge to edge with nothing cut off and nothing
+     empty around it. max-height only guards against an extreme photo
+     (very tall or very wide) dominating the layout. */
   .lp-media {
-    aspect-ratio: 1 / 1;
-    overflow: hidden;
     border-radius: 2px;
     background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
   }
-  .lp-media img { width: 100%; height: 100%; object-fit: contain; }
+  .lp-media img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; }
   .lp-media .ph {
-    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    width: 100%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
   }
   .lp-media .ph span { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 
