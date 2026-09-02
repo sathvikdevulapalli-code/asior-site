@@ -150,17 +150,11 @@ window.ASIOR_PRODUCT_DETAILS = {
     },
   },
 
-  /* Lanyard preorder: sold now, bulk stock lands 3 Sept, ships/distributed
-     starting the same day. shipBy is a real date the founder can hit, not
-     a guess — see the FTC note at the top of this file. If the Shopify
-     product title gets "[Preorder]" added, product.html's preorder badge
-     and copy pick this up automatically; until then it just shows as a
-     normal in-stock item, which is still accurate to this timeline. */
+  /* Not a preorder — it's in stock and orderable today. */
   'jag-lanyard': {
     garment: 'accessory',
     fabric: null,
     fit: null,
-    shipBy: 'Thursday, September 3, 2026',
     model: { height: null, wearing: null },
     measurements: null,
   },

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asior Lanyard — Preorder Now, Ships Thu 9/3</title>
-<meta name="description" content="The Asior lanyard. Preorder now, ships Thursday, September 3.">
+<title>Asior Lanyard — Out Now</title>
+<meta name="description" content="The Asior lanyard. Out now.">
 <meta name="theme-color" content="#0b0a08">
 <link rel="canonical" href="https://asiorclothing.com/lanyard.html">
 
@@ -12,8 +12,8 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Asior Lanyard — Preorder Now">
-<meta property="og:description" content="The Asior lanyard. Preorder now, ships Thursday, September 3.">
+<meta property="og:title" content="Asior Lanyard — Out Now">
+<meta property="og:description" content="The Asior lanyard. Out now.">
 <meta property="og:url" content="https://asiorclothing.com/lanyard.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
@@ -198,7 +198,7 @@
 <script src="assets/product-details.js"></script>
 <script>
   // ---------------------------------------------------------------
-  // A single-product landing page for the lanyard preorder only —
+  // A single-product landing page for the lanyard only —
   // see the comment on the header above. "Buy Now" skips our own cart
   // page entirely: it adds the line item and sends the browser straight
   // to Shopify's own hosted checkout, because the point of this page is
@@ -276,11 +276,6 @@
     let startVariant = product.variants.find(v => v.available) || product.variants[0];
     const selection = hasOptions ? { ...startVariant.options } : {};
 
-    const details = (window.ASIOR_PRODUCT_DETAILS || {})[HANDLE] || null;
-    const preorderNote = details && details.shipBy
-      ? `You'll be charged now. Ships ${A.escapeHtml(details.shipBy)}.`
-      : "You'll be charged now and it ships as soon as this drop is ready.";
-
     const mainImg = product.images.length
       ? A.imgTag(product.images[0], { id: 'lpMainImg', eager: true, alt: product.images[0].altText || product.name, sizes: '(max-width: 720px) 100vw, 440px' })
       : `<div class="ph"><span>Image coming soon</span></div>`;
@@ -293,7 +288,7 @@
       <div class="lp-wrap">
         <div class="lp-media">${mainImg}</div>
         <div class="lp-info">
-          <div class="lp-badge">Preorder Open</div>
+          <div class="lp-badge">Out Now</div>
           <h1 class="lp-name">${A.escapeHtml(product.name)}</h1>
           <div class="lp-price tnum" id="lpPrice"></div>
           ${descHTML}
@@ -305,7 +300,7 @@
           </div>
           <button class="lp-buy" id="buyBtn">Buy Now</button>
           <p class="lp-msg" id="lpMsg" role="status" aria-live="polite"></p>
-          <p class="lp-note">${preorderNote} Redirects straight to Shopify checkout — no account needed.</p>
+          <p class="lp-note">Ships in 1-2 business days via USPS. Redirects straight to Shopify checkout — no account needed.</p>
         </div>
       </div>`;
 
