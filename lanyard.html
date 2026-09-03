@@ -83,6 +83,25 @@
   .lp-media .ph {
     width: 100%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
   }
+
+  .lp-thumbs { margin-top: 12px; display: flex; gap: 10px; }
+  .lp-thumb {
+    width: 64px;
+    aspect-ratio: 878 / 1560;
+    padding: 0;
+    border: 1px solid var(--field-line);
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 2px;
+    opacity: 0.55;
+    transition: opacity 200ms var(--ease-out), border-color 200ms var(--ease-out);
+  }
+  .lp-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  @media (hover: hover) and (pointer: fine) {
+    .lp-thumb:hover { opacity: 0.85; }
+  }
+  .lp-thumb.selected { opacity: 1; border-color: var(--ink); }
   .lp-media .ph span { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 
   .lp-badge {
@@ -296,9 +315,23 @@
     let startVariant = product.variants.find(v => v.available) || product.variants[0];
     const selection = hasOptions ? { ...startVariant.options } : {};
 
-    const mainImg = product.images.length
-      ? A.imgTag(product.images[0], { id: 'lpMainImg', eager: true, alt: product.images[0].altText || product.name, sizes: '(max-width: 720px) 100vw, 440px' })
-      : `<div class="ph"><span>Image coming soon</span></div>`;
+    // Real photos of the actual lanyard, not the Shopify product image —
+    // shot on the day the bulk order arrived. Local files, so they don't
+    // depend on what's set (or not set) as the Shopify featured image.
+    const GALLERY = [
+      { src: 'images/lanyard-01.jpg', alt: 'Asior lanyard worn around the neck over a black long-sleeve, with the panther pendant hanging' },
+      { src: 'images/lanyard-02.jpg', alt: 'A handful of Asior lanyards fanned out, showing the repeating script print and the metal badge clips' },
+      { src: 'images/lanyard-03.jpg', alt: 'Close-up of a pile of Asior lanyards in the shipping box' },
+    ];
+
+    const mainImg = `<img id="lpMainImg" src="${GALLERY[0].src}" alt="${A.escapeAttr(GALLERY[0].alt)}"
+        width="878" height="1560" fetchpriority="high" decoding="async">`;
+
+    const thumbsHTML = `<div class="lp-thumbs" id="lpThumbs">${GALLERY.map((g, i) => `
+      <button type="button" class="lp-thumb${i === 0 ? ' selected' : ''}" data-index="${i}"
+              aria-pressed="${i === 0}" aria-label="View image ${i + 1} of ${GALLERY.length}">
+        <img src="${g.src}" alt="${A.escapeAttr(g.alt)}" width="878" height="1560" loading="lazy" decoding="async">
+      </button>`).join('')}</div>`;
 
     const descHTML = product.description
       ? `<div class="lp-desc">${product.description.map(p => `<p>${A.escapeHtml(p)}</p>`).join('')}</div>`
@@ -306,7 +339,10 @@
 
     root.innerHTML = `
       <div class="lp-wrap">
-        <div class="lp-media">${mainImg}</div>
+        <div>
+          <div class="lp-media">${mainImg}</div>
+          ${thumbsHTML}
+        </div>
         <div class="lp-info">
           <div class="lp-badge">Out Now</div>
           <h1 class="lp-name">${A.escapeHtml(product.name)}</h1>
@@ -365,6 +401,20 @@
     }
 
     renderPrice(); renderOpts(); renderBuyButton();
+
+    document.querySelectorAll('.lp-thumb').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = GALLERY[parseInt(btn.dataset.index, 10)];
+        const img = document.getElementById('lpMainImg');
+        img.src = g.src;
+        img.alt = g.alt;
+        document.querySelectorAll('.lp-thumb').forEach(b => {
+          b.classList.remove('selected'); b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('selected');
+        btn.setAttribute('aria-pressed', 'true');
+      });
+    });
 
     let qty = 1;
     const qtyVal = document.getElementById('qtyVal');
