@@ -979,7 +979,7 @@
 
     const body = tables
       ? tables + model + howToMeasure(kind)
-      : `<p class="pd-measure-empty">This piece hasn't been measured yet, so there are no numbers to show you rather than numbers we made up. If sizing is the thing holding you back, <a href="/contact.html">message us</a> and we'll measure it and tell you.</p>`
+      : `<p class="pd-measure-empty">This piece hasn't been measured yet, so there are no numbers to show you rather than numbers we made up. If sizing is the thing holding you back, <a href="contact.html">message us</a> and we'll measure it and tell you.</p>`
         + model + howToMeasure(kind);
 
     return `
@@ -1002,7 +1002,7 @@
         root.innerHTML = `
           <div class="not-found">
             <div>That piece isn't in the catalog.</div>
-            <a href="/shop.html">Back to Shop All</a>
+            <a href="shop.html">Back to Shop All</a>
           </div>`;
         return;
       }
@@ -1012,7 +1012,7 @@
       root.innerHTML = `
         <div class="not-found">
           <div>Couldn't load this product right now. Try refreshing.</div>
-          <a href="/shop.html">Back to Shop All</a>
+          <a href="shop.html">Back to Shop All</a>
         </div>`;
       return;
     }
@@ -1125,7 +1125,7 @@
             </div>
             <div class="pd-actions">
               <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Buy Now'}</button>
-              <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
+              <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="cart.html">view cart</a></div>
             </div>
             <p class="pd-stock-note" id="pdStockNote"></p>
           </div>
