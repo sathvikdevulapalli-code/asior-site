@@ -40,7 +40,10 @@ const BASE = 'https://asiorclothing.com';
 
 const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
 const SHOPIFY_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
-const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
+// Kept in step with assets/site.js's SHOPIFY_API_VERSION — see the comment
+// there on why an expired pin is worth avoiding even though it doesn't
+// error outright.
+const API = `https://${SHOPIFY_DOMAIN}/api/2026-04/graphql.json`;
 
 const STATIC_PAGES = [
   '/', '/shop.html', '/community.html', '/contact.html',

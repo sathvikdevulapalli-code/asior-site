@@ -16,7 +16,10 @@
 
   var SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
   var SHOPIFY_STOREFRONT_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
-  var SHOPIFY_API_VERSION = '2024-10';
+  // Shopify sunsets each Storefront API version ~12 months after release;
+  // an expired pin doesn't error, it silently falls forward to a newer,
+  // untested schema. Pinned to a version still inside that window.
+  var SHOPIFY_API_VERSION = '2026-04';
 
   var KLAVIYO_PUBLIC_KEY = 'QV7rBB';
   var KLAVIYO_EMAIL_LIST_ID = 'TFEDaD';
@@ -328,12 +331,6 @@
     return best;
   }
 
-  function isReturningVisitor() {
-    var seen = localStorage.getItem('asior_seen_before');
-    localStorage.setItem('asior_seen_before', '1');
-    return Boolean(seen);
-  }
-
   // -----------------------------------------------------------------
   window.Asior = {
     shopifyFetch: shopifyFetch,
@@ -357,7 +354,6 @@
     recordView: recordView,
     recordSizeChoice: recordSizeChoice,
     preferredSize: preferredSize,
-    isReturningVisitor: isReturningVisitor,
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
   };
 
