@@ -217,6 +217,107 @@ async function syncPolicy(slug, file) {
   return body.length;
 }
 
+/* ===================================================================
+   Shared header/footer sync.
+
+   Ten pages used to hand-carry byte-identical <header>/<footer> markup
+   — a nav change meant editing nine files and hoping none were missed.
+   The canonical HTML now lives once, right here, and gets stamped into
+   every page between HEADER:START/END and FOOTER:START/END markers at
+   build time — the same pattern syncPolicy() above already uses for
+   the two legal pages, just with the source of truth living in code
+   instead of on Shopify.
+
+   index.html and lanyard.html are deliberately excluded: neither uses
+   this markup. The gate has no conventional header/footer at all, and
+   lanyard.html intentionally ships a no-nav header and a stripped
+   footer (no social links, no Account link) so a visitor who clicks
+   through from the still-locked gate can't browse into the rest of the
+   catalog — see the comment on lanyard.html's own <header>. Syncing
+   either of those to the shared markup would undo that on purpose. */
+const HEADER_FULL = `  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <header>
+    <a class="mark" href="index.html">Asior</a>
+    <nav>
+      <a href="shop.html">Shop</a>
+      <a href="community.html">Community</a>
+      <a href="contact.html">Contact</a>
+      <a href="manufacturing.html">Manufacturing</a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+    </nav>
+  </header>
+
+  <div class="page-top-space"></div>
+`;
+
+/* privacy-policy.html and terms-of-service.html carry no nav and no
+   teaser bar on purpose: they're the two pages a visitor might read
+   before ever unlocking the gate (linked from the SMS/email consent
+   copy), and a full nav there would be the same catalog-bypass risk
+   as above. */
+const HEADER_MINIMAL = `  <header>
+    <a class="mark" href="index.html">Asior</a>
+  </header>
+
+  <div class="page-top-space"></div>
+`;
+
+const FOOTER_HTML = `  <footer id="order">
+    <div class="fmark">Asior</div>
+    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="social">
+      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+      </a>
+    </div>
+    <div class="policy-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="account.html">Account</a>
+    </div>
+  </footer>
+`;
+
+const SHARED_MARKUP_PAGES = [
+  ['shop.html', HEADER_FULL],
+  ['product.html', HEADER_FULL],
+  ['cart.html', HEADER_FULL],
+  ['community.html', HEADER_FULL],
+  ['contact.html', HEADER_FULL],
+  ['manufacturing.html', HEADER_FULL],
+  ['account.html', HEADER_FULL],
+  ['privacy-policy.html', HEADER_MINIMAL],
+  ['terms-of-service.html', HEADER_MINIMAL],
+];
+
+function replaceBetween(html, startMarker, endMarker, replacement) {
+  const start = html.indexOf(startMarker);
+  const end = html.indexOf(endMarker);
+  if (start === -1 || end === -1) return null;
+  return html.slice(0, start) + startMarker + '\n' + replacement + '  ' + endMarker + html.slice(end + endMarker.length);
+}
+
+function syncSharedMarkup() {
+  let synced = 0;
+  for (const [file, header] of SHARED_MARKUP_PAGES) {
+    const target = path.join(ROOT, file);
+    let html = fs.readFileSync(target, 'utf8');
+
+    const withHeader = replaceBetween(html, '<!-- HEADER:START -->', '<!-- HEADER:END -->', header);
+    if (withHeader === null) throw new Error(`${file}: HEADER markers missing`);
+
+    const withFooter = replaceBetween(withHeader, '<!-- FOOTER:START -->', '<!-- FOOTER:END -->', FOOTER_HTML);
+    if (withFooter === null) throw new Error(`${file}: FOOTER markers missing`);
+
+    if (withFooter !== html) fs.writeFileSync(target, withFooter);
+    synced++;
+  }
+  return synced;
+}
+
 (async function main() {
   let failed = false;
 
@@ -242,6 +343,13 @@ async function syncPolicy(slug, file) {
     // 404 because /products/ never got generated.
     console.error('✗ product/sitemap build failed:', err.message);
     process.exit(1);
+  }
+
+  try {
+    console.log(`✓ shared header/footer synced across ${syncSharedMarkup()} pages`);
+  } catch (err) {
+    failed = true;
+    console.error('✗ shared header/footer sync failed:', err.message);
   }
 
   for (const [slug, file] of [['privacy-policy', 'privacy-policy.html'],

@@ -324,13 +324,25 @@
       { src: 'images/lanyard-03.jpg', alt: 'Close-up of a pile of Asior lanyards in the shipping box' },
     ];
 
-    const mainImg = `<img id="lpMainImg" src="${GALLERY[0].src}" alt="${A.escapeAttr(GALLERY[0].alt)}"
-        width="878" height="1560" fetchpriority="high" decoding="async">`;
+    // Every gallery photo ships as a real WebP file alongside its JPEG
+    // (same basename, .jpg -> .webp); <picture> lets a browser that can
+    // decode WebP take the smaller file automatically and everything
+    // else fall back to the JPEG, with no JS involved either way.
+    const webp = src => src.replace(/\.jpg$/, '.webp');
+
+    const mainImg = `<picture>
+        <source id="lpMainSrc" type="image/webp" srcset="${webp(GALLERY[0].src)}">
+        <img id="lpMainImg" src="${GALLERY[0].src}" alt="${A.escapeAttr(GALLERY[0].alt)}"
+             width="878" height="1560" fetchpriority="high" decoding="async">
+      </picture>`;
 
     const thumbsHTML = `<div class="lp-thumbs" id="lpThumbs">${GALLERY.map((g, i) => `
       <button type="button" class="lp-thumb${i === 0 ? ' selected' : ''}" data-index="${i}"
               aria-pressed="${i === 0}" aria-label="View image ${i + 1} of ${GALLERY.length}">
-        <img src="${g.src}" alt="${A.escapeAttr(g.alt)}" width="878" height="1560" loading="lazy" decoding="async">
+        <picture>
+          <source type="image/webp" srcset="${webp(g.src)}">
+          <img src="${g.src}" alt="${A.escapeAttr(g.alt)}" width="878" height="1560" loading="lazy" decoding="async">
+        </picture>
       </button>`).join('')}</div>`;
 
     const descHTML = product.description
@@ -406,6 +418,7 @@
       btn.addEventListener('click', () => {
         const g = GALLERY[parseInt(btn.dataset.index, 10)];
         const img = document.getElementById('lpMainImg');
+        document.getElementById('lpMainSrc').srcset = webp(g.src);
         img.src = g.src;
         img.alt = g.alt;
         document.querySelectorAll('.lp-thumb').forEach(b => {
