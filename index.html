@@ -100,6 +100,15 @@
       }
     } catch (err) { /* storage blocked: control copy, and never counted */ }
     document.documentElement.setAttribute('data-ab', variant);
+
+    // Campaign state, decided the same way and in the same breath as the
+    // A/B bucket above: before paint, so the page never flashes the
+    // pre-launch gate and then swaps to the live drop a frame later.
+    // window.ASIOR_DROP_AT is the one place this instant is written down —
+    // the countdown script further down reads it back rather than
+    // restating the date, so the two can't drift apart.
+    window.ASIOR_DROP_AT = new Date('2026-09-10T19:00:00-05:00').getTime();
+    document.documentElement.setAttribute('data-campaign', Date.now() >= window.ASIOR_DROP_AT ? 'live' : 'pre');
   })();
 </script>
 <style>
@@ -511,6 +520,12 @@
     color: rgba(var(--off-white-rgb), 0.82);
   }
 
+  /* The live-state cta-sub is a real link (secondary signup), not just a
+     caption, so it needs the same underline treatment .consent gives its
+     inline links in site.css. */
+  .cta-sub a { text-decoration: underline; text-underline-offset: 2px; }
+  .cta-sub a:hover, .cta-sub a:focus-visible { color: var(--off-white); }
+
   .action {
     position: relative;
     display: inline-block;
@@ -839,6 +854,23 @@
   .ab-b { display: none; }
   [data-ab="B"] .ab-a { display: none; }
   [data-ab="B"] .ab-b { display: inline; }
+
+  /* ---------- campaign state: pre-launch vs. live drop ----------
+     Same shape as the A/B rule above and decided by the same inline script
+     in <head>, before paint: both variants of the actions block ship in
+     the served HTML and the cascade shows one, so there is no flash of
+     the pre-launch gate before JS swaps it for the live one, and a
+     visitor with JS off still gets one complete, correct page (the
+     pre-launch gate — the only state a static page can be honestly stuck
+     in without a clock). */
+  .live-only { display: none; }
+  [data-campaign="live"] .pre-only { display: none; }
+  /* Each live-only element restates the display value its own (non
+     campaign-state) class already declares — .eyebrow is a <p> that wants
+     block, .cta-group wants flex — rather than one shared value that
+     would be wrong for whichever tag didn't ask for it. */
+  [data-campaign="live"] .eyebrow.live-only { display: block; }
+  [data-campaign="live"] .cta-group.live-only { display: flex; }
 
   .form {
     display: flex;
@@ -1223,7 +1255,8 @@
 
     <div class="gate-core">
 
-      <p class="eyebrow rise" style="--in: 120ms">dropping september 10</p>
+      <p class="eyebrow rise pre-only" style="--in: 120ms">dropping september 10</p>
+      <p class="eyebrow rise live-only" style="--in: 120ms">the fall collection is live</p>
 
       <!-- Dashes, not zeros, before the script runs: a countdown showing
            00 00 00 00 looks like the drop has already been and gone.
@@ -1246,7 +1279,7 @@
       </h1>
 
       <div class="actions rise" style="--in: 540ms">
-        <div class="cta-group">
+        <div class="cta-group pre-only">
           <!-- Real href, not a button: with JS off this still opens the
                signup through :target, and it stays shareable. The script
                intercepts the click to avoid the jump to the anchor.
@@ -1258,6 +1291,19 @@
                copy and nothing else. -->
           <a class="cta" href="#signup" id="notifyLink">Early Access + 10% Off</a>
           <p class="cta-sub">email&nbsp;+&nbsp;sms &nbsp;·&nbsp; first access to the drop</p>
+        </div>
+
+        <!-- Live-drop state: shown instead of the block above from the
+             instant data-campaign flips to "live" (Thursday, September 10,
+             7 PM CT — see the inline script in <head>). A ready buyer's
+             main door becomes the collection itself; email capture drops
+             to a small secondary line rather than disappearing outright.
+             Points at fall-collection.html, which only becomes a real
+             shopping page once Shopify/Klaviyo hands off the Fall product
+             handles — see FALL_COLLECTION_HANDLES in that file. -->
+        <div class="cta-group live-only">
+          <a class="cta" href="fall-collection.html" id="shopFallLink">Shop Fall Collection</a>
+          <p class="cta-sub"><a href="#signup" id="notifyLinkLive">join early access + 10% off</a></p>
         </div>
 
         <!-- Real product, real link — this is not the drop, it's the
@@ -1538,14 +1584,18 @@
   // ===================================================================
 
   // The drop as one fixed instant, not a date string the browser gets to
-  // interpret in whatever timezone the visitor happens to be in. -05:00
-  // is Central Daylight Time, which is what Chicago is on 10 September
-  // (DST doesn't end until November), so everyone worldwide counts down
-  // to the same real moment: Thursday, September 10, 2026, 7:00 PM CT.
-  // If this ever moves to a date outside CDT, this offset needs to
-  // change to -06:00 (CST) to still mean Central time — and update the
-  // visible date line in the markup above to match.
-  const DROP_AT = new Date('2026-09-10T19:00:00-05:00');
+  // interpret in whatever timezone the visitor happens to be in. Read
+  // back from window.ASIOR_DROP_AT (set by the inline script in <head>,
+  // which also decides data-campaign) rather than restated here, so the
+  // countdown and the pre/live switch can never name two different
+  // instants. -05:00 is Central Daylight Time, which is what Chicago is
+  // on 10 September (DST doesn't end until November), so everyone
+  // worldwide counts down to the same real moment: Thursday, September
+  // 10, 2026, 7:00 PM CT. If this ever moves to a date outside CDT, the
+  // offset in <head> needs to change to -06:00 (CST) to still mean
+  // Central time — and update the visible date line in the markup above
+  // to match.
+  const DROP_AT = window.ASIOR_DROP_AT;
 
   const countdown = document.getElementById('countdown');
   const cdDays = document.getElementById('cdDays');
@@ -1659,6 +1709,7 @@
   const follow = makeOverlay('follow');
   const members = makeOverlay('members');
   const notifyLink = document.getElementById('notifyLink');
+  const notifyLinkLive = document.getElementById('notifyLinkLive');
   const lookbookLink = document.getElementById('lookbookLink');
   const followLink = document.getElementById('followLink');
   const markBtn = document.getElementById('markBtn');
@@ -1666,6 +1717,14 @@
   notifyLink.addEventListener('click', (e) => {
     e.preventDefault();
     notify.openOverlay(notifyLink);
+  });
+
+  // Same form, opened from the small secondary link in the live-drop
+  // state (see the .live-only cta-group above) instead of the primary
+  // pre-launch button.
+  notifyLinkLive.addEventListener('click', (e) => {
+    e.preventDefault();
+    notify.openOverlay(notifyLinkLive);
   });
 
   lookbookLink.addEventListener('click', (e) => {
