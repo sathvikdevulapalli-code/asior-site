@@ -291,6 +291,7 @@ const SHARED_MARKUP_PAGES = [
   ['account.html', HEADER_FULL],
   ['privacy-policy.html', HEADER_MINIMAL],
   ['terms-of-service.html', HEADER_MINIMAL],
+  ['fall-collection.html', HEADER_FULL],
 ];
 
 function replaceBetween(html, startMarker, endMarker, replacement) {
