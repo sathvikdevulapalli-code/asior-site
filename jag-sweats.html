@@ -97,6 +97,15 @@
   .ws-desc { margin-top: 14px; font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 46ch; }
 
   .ws-form { margin-top: 30px; display: flex; flex-direction: column; gap: 14px; max-width: 360px; }
+  /* Sits between the email and phone fields so SMS reads as a distinct,
+     clearly optional second step rather than a second required field
+     that happens to say "(optional)" in its placeholder. */
+  .ws-sms-ask {
+    margin: 2px 0 -4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .ws-sms-ask span { opacity: 0.7; }
   .ws-form .field { width: 100%; }
 
   .ws-submit {
@@ -139,14 +148,15 @@
     <div>
       <div class="ws-badge">Coming Back</div>
       <h1 class="ws-name">JAG Sweats Are Coming Back</h1>
-      <p class="ws-desc">No restock date yet — join the list and we'll email and text you the moment they're back in stock.</p>
+      <p class="ws-desc">Get first access when they return — no restock date yet, so we'll tell you the moment there is one.</p>
 
       <form class="ws-form" id="wsForm">
         <label class="sr-only" for="wsEmail">Email address</label>
         <input class="field" type="email" id="wsEmail" name="email" placeholder="email"
                autocomplete="email" spellcheck="false" required>
+        <p class="ws-sms-ask">Want the restock texted to you first? <span>(optional)</span></p>
         <label class="sr-only" for="wsPhone">Phone number (optional)</label>
-        <input class="field" type="tel" id="wsPhone" name="phone" placeholder="phone (optional)"
+        <input class="field" type="tel" id="wsPhone" name="phone" placeholder="phone number"
                autocomplete="tel" inputmode="tel">
         <button type="submit" class="ws-submit" id="wsSubmit">Join The Restock List</button>
       </form>
@@ -233,7 +243,11 @@
       // signup form — a bad phone number fails quietly inside
       // klaviyoSubscribe rather than undoing a signup that already worked.
       await A.klaviyoSubscribe(email, phone);
-      A.klaviyoTrack('JAG Sweats Restock Signup', { handle: HANDLE }, { email: email });
+      A.klaviyoTrack('JAG Sweats Restock Signup',
+        Object.assign({ handle: HANDLE, source: 'website', signup_location: 'jag_sweats_waitlist',
+          campaign: 'jag_sweats_restock', product_interest: 'jag_sweats' },
+          A.getUTMParams()),
+        { email: email });
       form.style.display = 'none';
       consent.style.display = 'none';
       msg.textContent = "You're on the list — we'll email" + (phone ? " and text" : "") + " you the moment they're back.";

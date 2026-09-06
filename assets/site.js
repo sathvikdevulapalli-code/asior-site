@@ -257,6 +257,35 @@
     return id;
   }
 
+  /* First-touch UTM capture, persisted across pages/sessions the same
+     way getAnonId is. If the current URL carries any of the three
+     standard params, that's the freshest touch and overwrites whatever
+     was stored before; otherwise this returns the last touch this
+     browser had, if any. Deliberately not wired into klaviyoSubscribe
+     or klaviyoSubscribeToList — that endpoint's schema was only just
+     confirmed correct after a real production incident, and adding an
+     unverified field to that specific request is exactly the kind of
+     unproven change that caused it. Attribution rides on klaviyoTrack's
+     event properties instead, which already accepts arbitrary keys. */
+  function getUTMParams() {
+    var utm = {};
+    try {
+      var params = new URLSearchParams(location.search);
+      ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
+        var v = params.get(k);
+        if (v) utm[k] = v;
+      });
+      if (Object.keys(utm).length) {
+        localStorage.setItem('asior_utm', JSON.stringify(utm));
+        return utm;
+      }
+      var stored = localStorage.getItem('asior_utm');
+      return stored ? JSON.parse(stored) : {};
+    } catch (err) {
+      return utm;
+    }
+  }
+
   /* Sticky per-visitor variant, so somebody doesn't see the copy change
      under them on a second visit.
 
@@ -351,6 +380,7 @@
     klaviyoTrack: klaviyoTrack,
     klaviyoBackInStock: klaviyoBackInStock,
     getAnonId: getAnonId,
+    getUTMParams: getUTMParams,
     getVariant: getVariant,
     trackABEvent: trackABEvent,
     getViewed: getViewed,
@@ -362,4 +392,10 @@
   };
 
   refreshCartCount();
+  // Capture on every page load, not just at submit time — a visitor
+  // can land on one page carrying UTM params and convert on a
+  // different one, and by then the params that mattered are gone from
+  // the URL bar. This is what makes getUTMParams() called later, from
+  // a form on any page, actually see the first touch.
+  getUTMParams();
 })();
