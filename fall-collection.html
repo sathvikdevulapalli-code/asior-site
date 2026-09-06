@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fall Collection | Asior</title>
+<meta name="description" content="The Asior Fall Collection — limited run, dropping soon.">
+<meta name="theme-color" content="#0b0a08">
+<link rel="canonical" href="https://asiorclothing.com/fall-collection.html">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Fall Collection | Asior">
+<meta property="og:description" content="The Asior Fall Collection — limited run, dropping soon.">
+<meta property="og:url" content="https://asiorclothing.com/fall-collection.html">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Fonts via <link>, not @import inside a style block: an @import means the
+     browser has to download and parse the CSS before it even discovers
+     the font request. Weight 200 was requested site-wide and used
+     nowhere, so it is not requested here. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
+<style>
+  @media (hover: hover) and (pointer: fine) {
+    header nav a:hover::after { width: 100%; }
+  }
+
+  /* Same grid as shop.html on purpose — this page's whole job is
+     commerce once it's live, not a different visual system. The only
+     difference from Shop All is that it's a filtered, curated set. */
+  .fall {
+    padding: 0 40px 14vh;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .fall-head { margin-bottom: 8px; }
+  .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: 13px; }
+
+  .fall-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .product {
+    display: block;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
+  }
+
+  .product.in { opacity: 1; transform: translateY(0); }
+
+  .product-img {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 2px;
+    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .price-badge {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    background: rgba(11, 10, 8, 0.72);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 5px 8px;
+    border-radius: 2px;
+  }
+
+  .price-badge .compare { text-decoration: line-through; opacity: 0.6; margin-right: 5px; }
+
+  .product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .product:hover .product-img img { transform: scale(1.035); filter: brightness(1.03); }
+  }
+
+  .product:active .product-img { transform: scale(0.985); }
+
+  .name-row { margin-top: 14px; display: flex; align-items: center; gap: 8px; }
+
+  .product .name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .preorder-tag {
+    flex: none;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 2px;
+  }
+
+  .fall-empty { padding: 6vh 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
+
+  @media (max-width: 900px) {
+    .fall-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header .mark { font-size: 12px; }
+    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
+    header nav::-webkit-scrollbar { display: none; }
+    .fall { padding: 0 20px 10vh; }
+    .fall-grid { grid-template-columns: 1fr; gap: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product { opacity: 1 !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- HEADER:START -->
+  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <header>
+    <a class="mark" href="index.html">Asior</a>
+    <nav>
+      <a href="shop.html">Shop</a>
+      <a href="community.html">Community</a>
+      <a href="contact.html">Contact</a>
+      <a href="manufacturing.html">Manufacturing</a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+    </nav>
+  </header>
+
+  <div class="page-top-space"></div>
+  <!-- HEADER:END -->
+
+  <main id="main">
+
+  <!-- Filtered to FALL_COLLECTION_HANDLES below, once that list is real.
+       Until then this renders the honest empty state — never a guessed
+       product grid. -->
+  <section class="fall" id="fallSection">
+    <h1 class="rail-label fall-head">Fall Collection</h1>
+    <p class="fall-sub" id="fallSub"></p>
+    <div class="fall-grid" id="fallGrid"></div>
+    <div class="fall-empty" id="fallEmpty"></div>
+  </section>
+
+  </main>
+
+  <!-- FOOTER:START -->
+  <footer id="order">
+    <div class="fmark">Asior</div>
+    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="social">
+      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+      </a>
+    </div>
+    <div class="policy-links">
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="terms-of-service.html">Terms of Service</a>
+      <a href="account.html">Account</a>
+    </div>
+  </footer>
+  <!-- FOOTER:END -->
+
+<script src="assets/site.js"></script>
+<script>
+  // ---------------------------------------------------------------
+  // Fall Collection shopping destination. Data-driven and deliberately
+  // inert until Shopify/Klaviyo hands over the verified list of
+  // qualifying product handles — see the one line below. This page is
+  // not linked from anywhere yet (no nav item, no gate CTA) and isn't
+  // in scripts/build.js's sitemap, so it's a real, working URL but not
+  // discoverable or promoted until there's real content to show.
+  //
+  // FILL THIS IN once the Fall Collection SKUs are verified. Order in
+  // this array is the order products render in.
+  // e.g. ['jaguar-crewneck', 'jaguar-sweats', 'jag-set-1']
+  // ---------------------------------------------------------------
+  const FALL_COLLECTION_HANDLES = [];
+
+  const A = window.Asior;
+
+  async function fetchCatalog() {
+    const data = await A.shopifyFetch(`{
+      products(first: 50) {
+        edges {
+          node {
+            title
+            handle
+            featuredImage { ${A.IMAGE_FIELDS} }
+            variants(first: 20) {
+              edges { node { availableForSale price { amount } compareAtPrice { amount } } }
+            }
+          }
+        }
+      }
+    }`);
+    return data.products.edges.map(e => {
+      const node = e.node;
+      const variants = node.variants.edges.map(v => v.node);
+      const prices = variants.map(v => parseFloat(v.price.amount));
+      const compares = variants
+        .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
+        .filter(Boolean);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+      return {
+        handle: node.handle,
+        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+        image: node.featuredImage,
+        isPreorder: /\[preorder\]/i.test(node.title),
+        soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
+        priceLabel: minPrice === maxPrice
+          ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
+          : `From $${minPrice}`,
+      };
+    });
+  }
+
+  function card(p, eager) {
+    const media = p.image
+      ? A.imgTag(p.image, {
+          alt: 'Asior ' + p.name, eager: eager,
+          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
+        })
+      : '';
+    return `
+      <a class="product" href="/products/${p.handle}.html">
+        <div class="product-img">
+          ${media}
+          <div class="price-badge tnum">${p.priceLabel}</div>
+        </div>
+        <div class="name-row">
+          <div class="name">${A.escapeHtml(p.name)}</div>
+          ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
+          ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
+        </div>
+      </a>`;
+  }
+
+  (async function () {
+    const emptyEl = document.getElementById('fallEmpty');
+    const subEl = document.getElementById('fallSub');
+
+    if (FALL_COLLECTION_HANDLES.length === 0) {
+      // Nothing to index yet — say so honestly rather than show a guessed
+      // or empty-looking grid, and keep it out of search results until
+      // there's real content.
+      document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
+      subEl.textContent = 'Dropping september 7 — limited run.';
+      emptyEl.textContent = "The Fall Collection isn't live yet. Join Early Access on the homepage to hear the moment it is.";
+      return;
+    }
+
+    try {
+      const catalog = await fetchCatalog();
+      const byHandle = new Map(catalog.map(p => [p.handle, p]));
+      const products = FALL_COLLECTION_HANDLES.map(h => byHandle.get(h)).filter(Boolean);
+
+      if (products.length === 0) {
+        emptyEl.textContent = "Couldn't find these pieces right now, check back soon.";
+        return;
+      }
+
+      const grid = document.getElementById('fallGrid');
+      grid.innerHTML = products.map((p, i) => card(p, i < 3)).join('');
+
+      const items = grid.querySelectorAll('.product');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => entry.target.classList.add('in'), (i % 4) * 60);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      items.forEach(p => observer.observe(p));
+    } catch (err) {
+      emptyEl.textContent = "Couldn't load the Fall Collection right now, try refreshing.";
+    }
+  })();
+</script>
+
+</body>
+</html>
