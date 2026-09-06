@@ -336,6 +336,13 @@
       btn.disabled = true;
       try {
         await klaviyoSubscribe(email, phone);
+        // Same event name and attribution shape as the gate's signup
+        // (index.html), so this surface isn't a blind spot next to it —
+        // a cart signup was previously untracked entirely.
+        A.klaviyoTrack('Early Access Signup',
+          Object.assign({ source: 'website', signup_location: 'cart', campaign: 'fall_2026', interest: 'fall_collection' },
+            A.getUTMParams()),
+          { email: email });
         form.style.display = 'none';
         confirmEl.textContent = "You're in. Check your inbox for your code.";
         confirmEl.classList.add('show');

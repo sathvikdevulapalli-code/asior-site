@@ -1736,7 +1736,9 @@
       // existing per-drop flow can segment on it without joining across
       // two metrics.
       A.klaviyoTrack('Early Access Signup',
-        { drop: DROP_NAME, ab_test: AB_TEST, ab_variant: AB_VARIANT },
+        Object.assign({ drop: DROP_NAME, ab_test: AB_TEST, ab_variant: AB_VARIANT,
+          source: 'website', signup_location: 'gate', campaign: 'fall_2026', interest: 'fall_collection' },
+          A.getUTMParams()),
         { email: email });
       // The other half of the funnel pair started by the exposure event
       // above. Email is attached here because by this point we have one,
