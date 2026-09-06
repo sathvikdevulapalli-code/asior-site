@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asior — The Fall Collection, September 7</title>
-<meta name="description" content="The Asior Fall Collection lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
+<title>Asior — The Fall Collection, September 10</title>
+<meta name="description" content="The Asior Fall Collection lands September 10. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="canonical" href="https://asiorclothing.com/">
 
@@ -12,13 +12,13 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Asior — The Fall Collection, September 7">
-<meta property="og:description" content="The Asior Fall Collection lands September 7. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
+<meta property="og:title" content="Asior — The Fall Collection, September 10">
+<meta property="og:description" content="The Asior Fall Collection lands September 10. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — the Fall Collection, September 7">
+<meta property="og:image:alt" content="Asior — the Fall Collection, September 10">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Two faces, both requested as real webfonts rather than left to the
@@ -1223,7 +1223,7 @@
 
     <div class="gate-core">
 
-      <p class="eyebrow rise" style="--in: 120ms">dropping september 7</p>
+      <p class="eyebrow rise" style="--in: 120ms">dropping september 10</p>
 
       <!-- Dashes, not zeros, before the script runs: a countdown showing
            00 00 00 00 looks like the drop has already been and gone.
@@ -1389,7 +1389,7 @@
 
       <div class="sheet-in look-head">
         <div><b>the fall collection</b></div>
-        <div>september 7 — limited run</div>
+        <div>september 10 — limited run</div>
       </div>
 
       <!-- Photographs only: nothing here is a link, because there is
@@ -1539,11 +1539,13 @@
 
   // The drop as one fixed instant, not a date string the browser gets to
   // interpret in whatever timezone the visitor happens to be in. -05:00
-  // is Central on 7 September, which is where Asior runs, so everyone
-  // worldwide counts down to the same moment. Change the time here if it
-  // isn't going live at midnight — and update the visible date line in
-  // the markup above to match.
-  const DROP_AT = new Date('2026-09-07T00:00:00-05:00');
+  // is Central Daylight Time, which is what Chicago is on 10 September
+  // (DST doesn't end until November), so everyone worldwide counts down
+  // to the same real moment: Thursday, September 10, 2026, 7:00 PM CT.
+  // If this ever moves to a date outside CDT, this offset needs to
+  // change to -06:00 (CST) to still mean Central time — and update the
+  // visible date line in the markup above to match.
+  const DROP_AT = new Date('2026-09-10T19:00:00-05:00');
 
   const countdown = document.getElementById('countdown');
   const cdDays = document.getElementById('cdDays');
