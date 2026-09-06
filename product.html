@@ -272,12 +272,19 @@
 
   .pd-actions { margin-top: 28px; }
 
+  /* Filled, not outlined — this is the primary purchase action on the
+     page and it was reading as secondary chrome next to it. Matches
+     the filled-button convention already used for the equivalent
+     primary action on lanyard.html/jag-sweats.html; this page and
+     cart.html's Checkout were the two places still using an outline
+     for what should be the loudest thing on screen. */
   .pd-add {
     position: relative;
-    background: none;
-    border: 1px solid var(--ink);
-    color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    border: 0;
     font-family: var(--font-body);
+    font-weight: 600;
     font-size: 12px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -287,19 +294,17 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .pd-add:hover { opacity: 0.75; }
+    .pd-add:hover { opacity: 0.85; }
   }
 
   .pd-add:not([disabled]):active { transform: scale(0.97); }
 
   .pd-add[disabled] {
-    opacity: 0.35;
-    border-color: var(--muted);
-    color: var(--muted);
+    opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .pd-add[disabled]:hover { opacity: 0.35; }
+  .pd-add[disabled]:hover { opacity: 0.4; }
 
   .pd-desc {
     margin-top: 40px;

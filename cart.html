@@ -227,13 +227,17 @@
 
   .cart-signup-confirm.show { display: block; }
 
+  /* Filled, not outlined — same reasoning as product.html's .pd-add:
+     checkout is the dominant action on this page and shouldn't share
+     visual weight with the signup form underneath it. */
   .checkout-btn {
     margin-top: 24px;
     width: 100%;
-    background: none;
-    border: 1px solid var(--ink);
-    color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    border: 0;
     font-family: var(--font-body);
+    font-weight: 600;
     font-size: 12px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -243,7 +247,7 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .checkout-btn:hover { opacity: 0.75; }
+    .checkout-btn:hover { opacity: 0.85; }
   }
 
   .checkout-btn:active { transform: scale(0.985); }
