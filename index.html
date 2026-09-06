@@ -610,6 +610,14 @@
     gap: clamp(18px, 3vh, 30px);
   }
 
+  .bracket-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px 22px;
+  }
+
   .bracket {
     font-family: var(--mono);
     font-size: 11.5px;
@@ -1277,7 +1285,14 @@
     </div>
 
     <div class="gate-foot">
-      <a class="bracket rise" href="#lookbook" id="lookbookLink" style="--in: 700ms"><b>[</b> lookbook <b>]</b></a>
+      <div class="bracket-row rise" style="--in: 700ms">
+        <a class="bracket" href="#lookbook" id="lookbookLink"><b>[</b> lookbook <b>]</b></a>
+        <!-- JAG Sweats aren't purchasable right now — no price, no buy
+             button, just a waitlist. Same tier as lookbook (secondary
+             nav, not a money action) rather than a pill like the lanyard's,
+             since there's nothing to buy yet. -->
+        <a class="bracket" href="jag-sweats.html" id="jagSweatsLink"><b>[</b> jag sweats restock <b>]</b></a>
+      </div>
 
       <footer class="rise" style="--in: 820ms">
         <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a>
