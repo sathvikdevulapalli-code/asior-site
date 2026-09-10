@@ -31,6 +31,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+<!-- Early Access gate: redirects to index.html before this page renders
+     unless the visitor has entered ASIOR8 or the public drop has
+     passed. See assets/early-access-gate.js. Runs on every generated
+     /products/<handle>.html page too — scripts/build.js rewrites the
+     assets/ path the same way it does for site.js. -->
+<script src="assets/launch-config.js"></script>
+<script src="assets/early-access-gate.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }

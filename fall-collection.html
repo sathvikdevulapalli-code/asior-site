@@ -35,6 +35,10 @@
      FALL_COMMERCE_READY — see assets/launch-config.js. Activating this
      page for real is a change to that one file, not this one. -->
 <script src="assets/launch-config.js"></script>
+<!-- Early Access gate: redirects to index.html before this page renders
+     unless the visitor has entered ASIOR8 or the public drop has
+     passed. See assets/early-access-gate.js. -->
+<script src="assets/early-access-gate.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }

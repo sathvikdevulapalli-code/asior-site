@@ -960,6 +960,21 @@
   }
   .access-prompt-link:hover, .access-prompt-link:focus-visible { color: var(--off-white); }
 
+  /* ---------- storefront-only: the inverse of .pre-only ----------
+     .pre-only shows in exactly the base gate state and hides everywhere
+     else; this shows everywhere EXCEPT the base gate state — for a link
+     like [shop] that should only appear once the storefront itself is
+     actually reachable: access granted, or the drop gone public. Same
+     two conditions assets/early-access-gate.js checks client-side on
+     shop/product/cart/fall-collection.html directly, so a visitor who
+     somehow reached this link anyway would land on an open page, not a
+     bounce. Restates .bracket's own default (inline, blockified by the
+     flex row) rather than leaving it implicit, same reasoning as the
+     eyebrow/cta-group display restatements above. */
+  .storefront-only { display: none; }
+  [data-campaign="live"] .storefront-only,
+  [data-campaign="pre"][data-access="granted"] .storefront-only { display: inline; }
+
   .form {
     display: flex;
     flex-direction: column;
@@ -1465,16 +1480,15 @@
 
     <div class="gate-foot">
       <div class="bracket-row rise" style="--in: 700ms">
-        <!-- The passphrase entrance above is a members' shortcut, not the
-             only door — shop.html and every product page are already
-             public URLs (see the note on the members' entrance further
-             down). Someone ready to buy today, from the existing catalog
-             rather than the Fall Collection that hasn't dropped yet,
-             previously had no way to reach it without knowing the
-             passphrase or buying the lanyard specifically. This is that
-             door, kept at the same quiet tier as lookbook/restock so it
-             doesn't compete with the Early Access CTA above. -->
-        <a class="bracket" href="shop.html" id="shopLink"><b>[</b> shop <b>]</b></a>
+        <!-- Deliberately NOT shown before Early Access is granted: the
+             storefront itself is now gated (see assets/early-access-gate.js
+             on shop/product/cart/fall-collection.html), and showing a
+             direct shop link here would just be a purchase path that
+             bypasses the code — the one thing this correction removed.
+             .pre-only hides it exactly in that window and it reappears
+             the moment access is granted or the drop goes public, at
+             which point shop.html is a normal, ungated page anyway. -->
+        <a class="bracket storefront-only" href="shop.html" id="shopLink"><b>[</b> shop <b>]</b></a>
         <a class="bracket" href="#lookbook" id="lookbookLink"><b>[</b> lookbook <b>]</b></a>
         <!-- JAG Sweats aren't purchasable right now — no price, no buy
              button, just a waitlist. Same tier as lookbook (secondary
@@ -1917,7 +1931,21 @@
   });
 
   followLink.addEventListener('click', () => follow.openOverlay(followLink));
-  markBtn.addEventListener('click', () => members.openOverlay(markBtn));
+  // The old members' entrance is superseded by ASIOR8 for this launch —
+  // and opening it here would be a real dead end, not just a stray
+  // extra doorway: its destination, shop.html, is now itself gated by
+  // assets/early-access-gate.js, so a visitor who found their way in
+  // with asior2026 would immediately bounce right back out to this
+  // page. Left inert only for the exact window that would happen in;
+  // the underlying passphrase logic is untouched, not deleted, and
+  // markBtn opens it normally again the moment access is granted or
+  // the drop goes public — at which point shop.html no longer bounces.
+  markBtn.addEventListener('click', () => {
+    var campaign = document.documentElement.getAttribute('data-campaign');
+    var access = document.documentElement.getAttribute('data-access');
+    if (campaign === 'pre' && access !== 'granted') return;
+    members.openOverlay(markBtn);
+  });
 
   document.querySelectorAll('[data-close]').forEach((el) => {
     el.addEventListener('click', () => {
