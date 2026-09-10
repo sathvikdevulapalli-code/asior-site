@@ -160,6 +160,17 @@
     border-radius: 2px;
   }
 
+  /* Real-inventory urgency only — see A.stockLabel in assets/site.js.
+     Never rendered unless Shopify actually reports a low quantity. */
+  .stock-note {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    color: var(--muted);
+  }
+
   .fall-empty { padding: 6vh 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
 
   @media (max-width: 900px) {

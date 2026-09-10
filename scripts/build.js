@@ -45,7 +45,7 @@ const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 const STATIC_PAGES = [
   '/', '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
-  '/lanyard.html', '/jag-sweats.html',
+  '/lanyard.html', '/jag-sweats.html', '/fall-collection.html',
 ];
 
 const esc = s => String(s == null ? '' : s)
