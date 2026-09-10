@@ -887,12 +887,20 @@
     return data.products.edges.map(e => e.node);
   }
 
+  // A placeholder line left in Shopify's own product description field
+  // (draft/internal notes like "specs pending") is invisible to this
+  // codebase — it lives in Shopify admin, not here — but it still
+  // shouldn't reach a customer. Strip any paragraph that reads like an
+  // internal placeholder rather than real copy, whatever page it's on.
+  const PLACEHOLDER_LINE = /\b(spec[s]?\s*pending|pending\s*spec[s]?|tbd|tba|coming soon|placeholder|lorem ipsum|to be (determined|announced|confirmed|added))\b/i;
+
   function descriptionFromHtml(html) {
     if (!html) return null;
     const paragraphs = html
       .split(/<\/p>|<br\s*\/?>/i)
       .map(p => p.replace(/<[^>]+>/g, '').trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter(p => !PLACEHOLDER_LINE.test(p));
     return paragraphs.length ? paragraphs : null;
   }
 
