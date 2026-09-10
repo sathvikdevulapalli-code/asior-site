@@ -28,12 +28,12 @@
     return `
       <div class="product placeholder" aria-disabled="true">
         <div class="product-img placeholder-img">
-          <span class="placeholder-label">image coming</span>
+          <span class="placeholder-label">no image available</span>
         </div>
         <div class="name-row">
           <div class="name">${window.Asior.escapeHtml(p.name)}</div>
         </div>
-        <div class="price-placeholder">price coming</div>
+        <div class="price-placeholder">unavailable</div>
       </div>`;
   }
 

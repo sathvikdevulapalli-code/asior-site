@@ -932,9 +932,10 @@
   // ---------------------------------------------------------------
   // Size guide, built from assets/product-details.js.
   //
-  // If a garment hasn't been measured yet the guide says so plainly.
-  // It never renders a table of "--": an empty grid reads as broken and
-  // tells the shopper nothing, which is worse than admitting the gap.
+  // Never renders a table of "--": an empty grid reads as broken. When
+  // there's no real measurement data, the guide falls back to the
+  // general comparison method (howToMeasure) with no apologetic framing
+  // and no invented numbers — see sizeGuideHTML below.
   // ---------------------------------------------------------------
   const details = (window.ASIOR_PRODUCT_DETAILS || {})[HANDLE] || null;
   const MCOLS = window.ASIOR_MEASUREMENT_COLUMNS || {};
@@ -1013,10 +1014,11 @@
       ? `<p class="pd-model">Model is ${A.escapeHtml(details.model.height)}, wearing size ${A.escapeHtml(details.model.wearing)}.</p>`
       : '';
 
-    const body = tables
-      ? tables + model + howToMeasure(kind)
-      : `<p class="pd-measure-empty">This piece hasn't been measured yet, so there are no numbers to show you rather than numbers we made up. If sizing is the thing holding you back, <a href="/contact.html">message us</a> and we'll measure it and tell you.</p>`
-        + model + howToMeasure(kind);
+    // No apologetic "not measured yet" framing when there's no table —
+    // just the real, always-true comparison method (howToMeasure), which
+    // stands on its own as useful guidance. Never invented numbers to
+    // fill the gap instead.
+    const body = tables ? tables + model + howToMeasure(kind) : model + howToMeasure(kind);
 
     return `
       <details class="pd-ship pd-size-chart">
@@ -1080,7 +1082,7 @@
           id: 'pdMainImg', eager: true, alt: product.images[0].altText || product.name,
           sizes: '(max-width: 720px) 100vw, 480px',
         })
-      : `<div class="ph"><span>Image coming soon</span></div>`;
+      : `<div class="ph"><span>No image available</span></div>`;
 
     const thumbs = product.images.length > 1
       ? `<div class="pd-media-thumbs" id="pdThumbs">${product.images.map((img, i) => `
@@ -1112,13 +1114,9 @@
         </div>${shipHTML}`
       : shipHTML;
 
-    // A garment that genuinely has no fit guidance yet says so — silently
-    // showing nothing here reads as "we forgot", not "we don't know yet".
-    // Only for apparel (Size option present): a lanyard or pendant was
-    // never going to have a fit note, so nothing is missing there.
-    const fitFact = details && details.fit
-      ? details.fit
-      : (product.optionNames.includes('Size') ? 'Fit details coming soon' : null);
+    // No fit note fabricated when there isn't one — simply omitted, same
+    // as fabric/chainLength/pendantSize below when those are unset.
+    const fitFact = details && details.fit ? details.fit : null;
 
     const facts = [
       details && details.fabric,
@@ -1184,7 +1182,7 @@
     function renderPrice() {
       const v = currentVariant();
       const el = document.getElementById('pdPrice');
-      if (!v) { el.textContent = 'Price coming soon'; return; }
+      if (!v) { el.textContent = ''; return; }
       const onSale = v.comparePrice && v.comparePrice > v.price;
       el.innerHTML = onSale
         ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`

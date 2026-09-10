@@ -376,7 +376,7 @@
     function renderPrice() {
       const v = currentVariant();
       const el = document.getElementById('lpPrice');
-      if (!v) { el.textContent = 'Price coming soon'; return; }
+      if (!v) { el.textContent = ''; return; }
       el.innerHTML = `${v.comparePrice && v.comparePrice > v.price ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
     }
 
