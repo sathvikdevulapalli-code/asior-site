@@ -54,17 +54,27 @@
   }
 
   .fall-head { margin-bottom: 8px; }
+  /* A real badge, not a footnote — filled instead of outlined so it
+     reads before the sub caption does, same tag language as
+     .preorder-tag turned up rather than a different voice. */
   .fall-offer {
     display: inline-block;
-    margin: 0 0 14px;
-    padding: 6px 14px;
-    border: 1px solid var(--muted);
+    margin: 0 0 16px;
+    padding: 8px 18px;
+    background: var(--ink);
     border-radius: 2px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-weight: 700;
+    font-size: 12px;
     letter-spacing: 0.06em;
-    text-transform: lowercase;
-    color: var(--ink);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--bg);
+    transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .fall-offer:hover { transform: translateY(-1px); opacity: 0.88; }
   }
   .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: 13px; }
 
@@ -232,7 +242,7 @@
     <h1 class="rail-label fall-head">Fall Collection</h1>
     <!-- Founder-authorized launch offer, separate from fallSub (which
          assets/fall-grid.js owns and overwrites on every render). -->
-    <p class="fall-offer">first 8 orders ship with a free jag lanyard</p>
+    <a class="fall-offer" href="lanyard.html">first 10 orders ship with a free asior lanyard</a>
     <p class="fall-sub" id="fallSub"></p>
     <div class="fall-grid" id="fallGrid"></div>
     <div class="fall-empty" id="fallEmpty"></div>
