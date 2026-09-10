@@ -23,39 +23,47 @@ window.ASIOR_LAUNCH = {
   // changes if this date ever moves outside CDT.
   PUBLIC_LAUNCH_TIME: '2026-09-10T19:00:00-05:00',
 
-  // Whether the FULL intended 7-piece Fall launch is complete — not
-  // whether any individual piece is purchasable. Those are deliberately
-  // different questions: a FALL_PRODUCTS entry with a real handle is
-  // always shown as a real, buyable card by assets/fall-grid.js
-  // regardless of this flag, because Shopify already says it's real —
-  // hiding an active, in-stock product behind an unrelated launch-
-  // completeness flag would be the dishonest direction, not the safe
-  // one. This flag instead controls collection-wide claims: the
-  // live-drop eyebrow ("the fall collection is live" vs "almost here"
-  // in index.html) and fall-collection.html's search-indexing decision
-  // both stay tied to the full set being ready, not to however many of
-  // the 7 currently have handles.
-  FALL_COMMERCE_READY: false,
-
-  // The Fall drop, in launch order. `name` is real. `handle` is null
-  // until Shopify/Klaviyo hands off the verified Shopify handle for
-  // that piece; assets/fall-grid.js renders an honest placeholder card
-  // ("price coming", no image) for any entry with handle: null, and a
-  // real Shopify-backed card — real title, price, compare-at, images,
-  // variants, availability, all from Shopify, nothing hardcoded here —
-  // for any entry with one. Reorder this array to change launch order;
-  // nothing else reads a separate order.
+  // Whether the full intended Fall launch (all of FALL_PRODUCTS) is
+  // verified and complete — not whether any individual piece is
+  // purchasable. Those are deliberately different questions: a
+  // FALL_PRODUCTS entry with a real handle is always shown as a real,
+  // buyable card by assets/fall-grid.js regardless of this flag,
+  // because Shopify already says it's real. This flag instead controls
+  // collection-wide claims: the live-drop eyebrow ("the fall collection
+  // is live" vs "almost here" in index.html) and fall-collection.html's
+  // search-indexing decision.
   //
-  // Explicitly excluded for now, not just unmapped: JAG Grey Sweats,
-  // Golf Polo, Realestate / White Realtor Polo. Do not add them back to
-  // this array — even as placeholders — without the founder saying so
-  // again; they were pulled from the Fall Collection entirely, not
-  // deferred.
+  // TRUE as of this pass: all four intended pieces (Asior Polo, JAG
+  // Shorts, Holes Tee, Asior Shorts) have real, founder-verified
+  // Shopify handles and are confirmed ACTIVE — the condition this flag
+  // exists to gate. Set back to false immediately if any of the four is
+  // pulled, or if a fifth piece is added and isn't yet verified.
+  FALL_COMMERCE_READY: true,
+
+  // The Fall drop — EXACTLY these four, in launch order. `name` is the
+  // customer-facing display name, used instead of whatever Shopify's
+  // internal product title says (assets/fall-grid.js and product.html
+  // both override the title with this) — Shopify's own title for the
+  // polo is an internal/manufacturing name, not what a customer should
+  // see. `handle` is the real Shopify handle for every one of the four;
+  // assets/fall-grid.js fetches each directly by handle and renders
+  // real title, price, compare-at, images, variants, availability, and
+  // (where Shopify exposes it) inventory-based stock messaging — nothing
+  // hardcoded here. Reorder this array to change launch order; nothing
+  // else reads a separate order.
+  //
+  // Explicitly excluded, not just unmapped: JAG Grey Sweats, Golf Polo,
+  // Realestate / White Realtor Polo. Those are manufacturing pieces for
+  // other brands, not Fall Collection products — do not add them back to
+  // this array, even as placeholders, without the founder saying so
+  // again. jaguar-sweats (JAG Sweats) is a separate restock, handled
+  // entirely by jag-sweats.html — it is not part of this array and
+  // should not be.
   FALL_PRODUCTS: [
+    { name: 'Asior Polo', handle: 'scripture-polo' },
     { name: 'JAG Shorts', handle: 'jag-shorts' },
     { name: 'Holes Tee', handle: 'holes-tee' },
     { name: 'Asior Shorts', handle: 'asr-shorts' },
-    { name: 'Asior Polo', handle: null },
   ],
 
   // SHA-256 of the Early Access website code, uppercased before hashing

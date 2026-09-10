@@ -363,6 +363,28 @@
     return Boolean(seen);
   }
 
+  /* Tasteful, honest low-stock copy — one place, used by both the Fall
+     grid cards (assets/fall-grid.js) and the product page's per-size
+     stock note (product.html), so the thresholds and wording can't
+     drift apart between the two.
+
+     qty must be Shopify's own quantityAvailable — never inferred,
+     never derived from availableForSale alone, never reduced or
+     invented to manufacture urgency. Storefront API only returns this
+     field when the store has "show inventory quantity" turned on for
+     the sales channel; when it hasn't, qty is null/undefined here and
+     this returns null, meaning: don't show a number, because we don't
+     honestly have one. availableForSale alone still drives "sold out"
+     independently of this function. */
+  function stockLabel(qty) {
+    if (qty == null || typeof qty !== 'number' || isNaN(qty)) return null;
+    if (qty <= 0) return 'sold out';
+    if (qty === 1) return 'last one';
+    if (qty <= 3) return 'only ' + qty + ' left';
+    if (qty <= 5) return qty + ' left';
+    return null; // healthy stock — no label needed
+  }
+
   // -----------------------------------------------------------------
   window.Asior = {
     shopifyFetch: shopifyFetch,
@@ -388,6 +410,7 @@
     recordSizeChoice: recordSizeChoice,
     preferredSize: preferredSize,
     isReturningVisitor: isReturningVisitor,
+    stockLabel: stockLabel,
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
   };
 

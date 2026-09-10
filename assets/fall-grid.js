@@ -63,7 +63,7 @@
             handle
             featuredImage { ${A.IMAGE_FIELDS} }
             variants(first: 20) {
-              edges { node { availableForSale price { amount } compareAtPrice { amount } } }
+              edges { node { availableForSale quantityAvailable price { amount } compareAtPrice { amount } } }
             }
           }
         }`, { handle: h });
@@ -78,13 +78,19 @@
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
       const compare = minPrice === maxPrice && compares.length && compares[0] > minPrice ? compares[0] : null;
+      // Total sellable units across every size — only when Shopify gives
+      // a real number for every variant; one unreported variant makes
+      // the whole total untrustworthy, so it's left null rather than
+      // undercounted.
+      const quantities = variants.map(v => v.quantityAvailable);
+      const totalQty = quantities.every(q => typeof q === 'number') ? quantities.reduce((a, b) => a + b, 0) : null;
       return {
         handle: node.handle,
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
         image: node.featuredImage,
         isPreorder: /\[preorder\]/i.test(node.title),
         soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-        minPrice, maxPrice, compare,
+        minPrice, maxPrice, compare, totalQty,
       };
     });
   }
@@ -105,6 +111,9 @@
           sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
         })
       : '';
+    // Sold out already has its own tag below; a numeric label here is
+    // for "still available, but running low" only.
+    const stock = !p.soldOut ? A.stockLabel(p.totalQty) : null;
     return `
       <a class="product" href="/products/${p.handle}.html">
         <div class="product-img">
@@ -116,6 +125,7 @@
           ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
           ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
         </div>
+        ${stock ? `<div class="stock-note">${A.escapeHtml(stock)}</div>` : ''}
       </a>`;
   }
 
@@ -170,7 +180,12 @@
       // grid.
       const cards = products.map((p, i) => {
         const found = p.handle ? byHandle.get(p.handle) : null;
-        return found ? realCard(found, i < 3) : placeholderCard(p);
+        if (!found) return placeholderCard(p);
+        // The configured name is the customer-facing one — Shopify's own
+        // product title can be an internal/manufacturing name (the polo
+        // is titled differently in Shopify than "Asior Polo"), and a
+        // customer should never see that.
+        return realCard(Object.assign({}, found, { name: p.name }), i < 3);
       });
       opts.gridEl.innerHTML = cards.join('');
       // Some, but not all, of the 7 are real yet — say so honestly

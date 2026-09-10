@@ -1036,6 +1036,17 @@
     padding: 3px 7px;
     border-radius: 2px;
   }
+  /* Real-inventory urgency only — see A.stockLabel in assets/site.js.
+     Never rendered unless Shopify actually reports a low quantity. */
+  .fall-drop .stock-note {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.6);
+    text-align: center;
+  }
 
   .fall-drop-empty { text-align: center; color: rgba(var(--off-white-rgb), 0.6); font-size: 13px; padding: 4vh 0; }
 
