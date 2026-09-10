@@ -54,6 +54,18 @@
   }
 
   .fall-head { margin-bottom: 8px; }
+  .fall-offer {
+    display: inline-block;
+    margin: 0 0 14px;
+    padding: 6px 14px;
+    border: 1px solid var(--muted);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: var(--ink);
+  }
   .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: 13px; }
 
   .fall-grid {
@@ -218,6 +230,9 @@
        product grid. -->
   <section class="fall" id="fallSection">
     <h1 class="rail-label fall-head">Fall Collection</h1>
+    <!-- Founder-authorized launch offer, separate from fallSub (which
+         assets/fall-grid.js owns and overwrites on every render). -->
+    <p class="fall-offer">first 8 orders ship with a free jag lanyard</p>
     <p class="fall-sub" id="fallSub"></p>
     <div class="fall-grid" id="fallGrid"></div>
     <div class="fall-empty" id="fallEmpty"></div>
