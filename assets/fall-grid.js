@@ -129,15 +129,25 @@
   }
 
   /* opts: { gridEl, emptyEl (optional), subEl (optional) }
-     emptyEl/subEl are only used for the "not ready" message — pass
-     nulls if the page doesn't have a spot for that copy (index.html's
-     post-access state has its own headline instead, see index.html). */
+     emptyEl/subEl are only used for the "not everything's here yet"
+     caption — pass nulls if the page doesn't have a spot for that copy
+     (index.html's post-access state has its own headline instead, see
+     index.html).
+
+     Deliberately does NOT gate on FALL_COMMERCE_READY: that flag means
+     "the full 7-piece launch is complete", not "is any single piece
+     real". A FALL_PRODUCTS entry with a handle is Shopify's own word
+     that the piece is real, in stock, and priced — showing a
+     placeholder for it anyway just because the rest of the launch
+     isn't finished would be hiding a legitimately active product, which
+     is the wrong kind of caution here. Every entry is judged only by
+     whether IT has a handle; entries without one stay honest
+     placeholders regardless of how many others are already live. */
   async function renderFallGrid(opts) {
     const products = (window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_PRODUCTS) || [];
-    const ready = Boolean(window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_COMMERCE_READY);
     const mapped = products.filter(p => p.handle);
 
-    if (!ready || mapped.length === 0) {
+    if (mapped.length === 0) {
       opts.gridEl.innerHTML = products.map(placeholderCard).join('');
       if (opts.subEl) opts.subEl.textContent = 'Dropping september 10 — limited run. Real photos and pricing land the moment Shopify confirms them.';
       return;
@@ -146,7 +156,7 @@
     try {
       const real = await fetchByHandles(mapped.map(p => p.handle));
       const byHandle = new Map(real.map(p => [p.handle, p]));
-      // Keep the founder's configured order; a handle that's ready in
+      // Keep the founder's configured order; a handle that's set in
       // config but not (yet) found in Shopify falls back to its
       // placeholder card rather than silently disappearing from the
       // grid.
@@ -155,11 +165,23 @@
         return found ? realCard(found, i < 3) : placeholderCard(p);
       });
       opts.gridEl.innerHTML = cards.join('');
-      if (opts.subEl) opts.subEl.textContent = '';
+      // Some, but not all, of the 7 are real yet — say so honestly
+      // rather than leave the caption implying either "nothing's here"
+      // or "the whole drop is live".
+      if (opts.subEl) {
+        opts.subEl.textContent = mapped.length < products.length
+          ? 'Live now — the rest of the lineup lands as each piece is confirmed.'
+          : '';
+      }
       revealOnScroll(opts.gridEl);
     } catch (err) {
-      if (opts.emptyEl) opts.emptyEl.textContent = "Couldn't load the Fall Collection right now, try refreshing.";
-      else opts.gridEl.innerHTML = products.map(placeholderCard).join('');
+      // A failed Shopify fetch used to leave the grid completely empty
+      // here — worse than showing nothing was real, it looked like the
+      // section itself was broken. Fall back to the full placeholder
+      // grid instead: every name still shows, nothing fake renders, and
+      // a refresh is one honest sentence away rather than a dead box.
+      opts.gridEl.innerHTML = products.map(placeholderCard).join('');
+      if (opts.emptyEl) opts.emptyEl.textContent = "Couldn't load live pricing right now — try refreshing.";
     }
   }
 

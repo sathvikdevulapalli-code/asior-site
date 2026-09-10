@@ -4,13 +4,12 @@
    Loaded before anything else decides what to show (see the <head>
    of index.html and the top of fall-collection.html), so every page
    reads the same facts instead of each keeping its own copy that can
-   drift. Activating the Fall Collection for real is meant to be a
-   change to exactly this file: fill in each FALL_PRODUCTS entry's
-   handle as Shopify/Klaviyo confirms it, then flip FALL_COMMERCE_READY
-   to true once all of them are real — nothing else should need to
-   change. assets/fall-grid.js (the shared renderer used by both
-   index.html's post-Early-Access state and fall-collection.html) reads
-   both of these and nothing else decides what a visitor sees.
+   drift. Activating a piece of the Fall Collection for real is meant
+   to be a change to exactly this file: fill in that FALL_PRODUCTS
+   entry's handle as Shopify/Klaviyo confirms it — nothing else should
+   need to change. assets/fall-grid.js (the shared renderer used by
+   both index.html's post-Early-Access state and fall-collection.html)
+   reads this and nothing else decides what a visitor sees.
 
    Plain global assignment, not an IIFE returning an API: this has to
    run and be readable synchronously by an inline <head> script before
@@ -24,32 +23,39 @@ window.ASIOR_LAUNCH = {
   // changes if this date ever moves outside CDT.
   PUBLIC_LAUNCH_TIME: '2026-09-10T19:00:00-05:00',
 
-  // Set only by a verified Shopify/Klaviyo handoff — never guessed here.
-  // False means: don't present Fall as purchasable, whatever the clock
-  // or FALL_PRODUCTS says. This is the master switch on top of
-  // FALL_PRODUCTS's handles: it should only flip to true once EVERY
-  // intended piece below has a real, verified handle with real price,
-  // variants, and inventory — not as each one trickles in. Belt and
-  // suspenders against a handle being added without the rest being
-  // ready, and against the clock (see index.html's data-campaign) ever
-  // being mistaken for readiness.
+  // Whether the FULL intended 7-piece Fall launch is complete — not
+  // whether any individual piece is purchasable. Those are deliberately
+  // different questions: a FALL_PRODUCTS entry with a real handle is
+  // always shown as a real, buyable card by assets/fall-grid.js
+  // regardless of this flag, because Shopify already says it's real —
+  // hiding an active, in-stock product behind an unrelated launch-
+  // completeness flag would be the dishonest direction, not the safe
+  // one. This flag instead controls collection-wide claims: the
+  // live-drop eyebrow ("the fall collection is live" vs "almost here"
+  // in index.html) and fall-collection.html's search-indexing decision
+  // both stay tied to the full set being ready, not to however many of
+  // the 7 currently have handles.
   FALL_COMMERCE_READY: false,
 
-  // The Fall drop, in launch order. `name` is real — these are the 7
-  // pieces the founder has said are coming. `handle` is null until
-  // Shopify/Klaviyo hands off the verified Shopify handle for that
-  // piece; assets/fall-grid.js renders an honest placeholder card
+  // The Fall drop, in launch order. `name` is real. `handle` is null
+  // until Shopify/Klaviyo hands off the verified Shopify handle for
+  // that piece; assets/fall-grid.js renders an honest placeholder card
   // ("price coming", no image) for any entry with handle: null, and a
-  // real Shopify-backed card once it's filled in. Reorder this array to
-  // change launch order — nothing else reads a separate order.
+  // real Shopify-backed card — real title, price, compare-at, images,
+  // variants, availability, all from Shopify, nothing hardcoded here —
+  // for any entry with one. Reorder this array to change launch order;
+  // nothing else reads a separate order.
+  //
+  // Explicitly excluded for now, not just unmapped: JAG Grey Sweats,
+  // Golf Polo, Realestate / White Realtor Polo. Do not add them back to
+  // this array — even as placeholders — without the founder saying so
+  // again; they were pulled from the Fall Collection entirely, not
+  // deferred.
   FALL_PRODUCTS: [
+    { name: 'JAG Shorts', handle: 'jag-shorts' },
+    { name: 'Holes Tee', handle: 'holes-tee' },
+    { name: 'Asior Shorts', handle: 'asr-shorts' },
     { name: 'Asior Polo', handle: null },
-    { name: 'JAG Shorts', handle: null },
-    { name: 'Holes Tee', handle: null },
-    { name: 'Asior Shorts', handle: null },
-    { name: 'JAG Grey Sweats', handle: null },
-    { name: 'Golf Polo', handle: null },
-    { name: 'Realestate / White Realtor Polo', handle: null },
   ],
 
   // SHA-256 of the Early Access website code, uppercased before hashing
