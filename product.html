@@ -181,6 +181,15 @@
     margin-right: 10px;
   }
 
+  .pd-price .save {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    color: var(--muted);
+  }
+
   .pd-sizes { margin-top: 30px; }
 
   .pd-size-group { margin-bottom: 18px; }
@@ -1170,8 +1179,11 @@
       const v = currentVariant();
       const el = document.getElementById('pdPrice');
       if (!v) { el.textContent = 'Price coming soon'; return; }
-      el.innerHTML = `${v.comparePrice && v.comparePrice > v.price
-        ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
+      const onSale = v.comparePrice && v.comparePrice > v.price;
+      el.innerHTML = onSale
+        ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
+          + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`
+        : `$${v.price}`;
     }
 
     function renderSizes() {
