@@ -5,9 +5,12 @@
    of index.html and the top of fall-collection.html), so every page
    reads the same facts instead of each keeping its own copy that can
    drift. Activating the Fall Collection for real is meant to be a
-   change to exactly this file: flip FALL_COMMERCE_READY to true and
-   fill in FALL_COLLECTION_HANDLES once Shopify/Klaviyo hands off the
-   real product handles — nothing else should need to change.
+   change to exactly this file: fill in each FALL_PRODUCTS entry's
+   handle as Shopify/Klaviyo confirms it, then flip FALL_COMMERCE_READY
+   to true once all of them are real — nothing else should need to
+   change. assets/fall-grid.js (the shared renderer used by both
+   index.html's post-Early-Access state and fall-collection.html) reads
+   both of these and nothing else decides what a visitor sees.
 
    Plain global assignment, not an IIFE returning an API: this has to
    run and be readable synchronously by an inline <head> script before
@@ -23,18 +26,31 @@ window.ASIOR_LAUNCH = {
 
   // Set only by a verified Shopify/Klaviyo handoff — never guessed here.
   // False means: don't present Fall as purchasable, whatever the clock
-  // or FALL_COLLECTION_HANDLES says. Both this flag AND a non-empty
-  // FALL_COLLECTION_HANDLES are required before fall-collection.html
-  // will show real products — belt and suspenders, so a handles list
-  // added without also flipping this can't accidentally go live, and
-  // vice versa.
+  // or FALL_PRODUCTS says. This is the master switch on top of
+  // FALL_PRODUCTS's handles: it should only flip to true once EVERY
+  // intended piece below has a real, verified handle with real price,
+  // variants, and inventory — not as each one trickles in. Belt and
+  // suspenders against a handle being added without the rest being
+  // ready, and against the clock (see index.html's data-campaign) ever
+  // being mistaken for readiness.
   FALL_COMMERCE_READY: false,
 
-  // Real Shopify product handles for the Fall Collection. Empty until
-  // Shopify/Klaviyo verifies them — see fall-collection.html, which
-  // shows an honest "not live yet" state and stays noindexed while this
-  // is empty.
-  FALL_COLLECTION_HANDLES: [],
+  // The Fall drop, in launch order. `name` is real — these are the 7
+  // pieces the founder has said are coming. `handle` is null until
+  // Shopify/Klaviyo hands off the verified Shopify handle for that
+  // piece; assets/fall-grid.js renders an honest placeholder card
+  // ("price coming", no image) for any entry with handle: null, and a
+  // real Shopify-backed card once it's filled in. Reorder this array to
+  // change launch order — nothing else reads a separate order.
+  FALL_PRODUCTS: [
+    { name: 'Asior Polo', handle: null },
+    { name: 'JAG Shorts', handle: null },
+    { name: 'Holes Tee', handle: null },
+    { name: 'Asior Shorts', handle: null },
+    { name: 'JAG Grey Sweats', handle: null },
+    { name: 'Golf Polo', handle: null },
+    { name: 'Realestate / White Realtor Polo', handle: null },
+  ],
 
   // SHA-256 of the Early Access website code, uppercased before hashing
   // (see index.html's early-access gate) — never the plaintext code

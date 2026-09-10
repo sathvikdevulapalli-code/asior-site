@@ -95,6 +95,34 @@
   }
 
   .price-badge .compare { text-decoration: line-through; opacity: 0.6; margin-right: 5px; }
+  .price-badge .save { opacity: 0.85; margin-left: 5px; }
+
+  /* ---------- placeholder cards ----------
+     Same grid shape as a real card, so the layout never jumps when
+     real Shopify data replaces these — just the honest opposite of a
+     real card's content: no image, no price, no link. */
+  .product.placeholder { cursor: default; }
+  .placeholder-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+  }
+  .placeholder-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    color: var(--muted);
+  }
+  .price-placeholder {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: var(--muted);
+  }
 
   .product-img img {
     width: 100%;
@@ -207,129 +235,25 @@
   <!-- FOOTER:END -->
 
 <script src="assets/site.js"></script>
+<!-- Shared with index.html's post-Early-Access state — see
+     assets/fall-grid.js for the placeholder-vs-real rendering logic
+     and assets/launch-config.js for FALL_PRODUCTS/FALL_COMMERCE_READY,
+     the two facts that decide what actually renders. -->
+<script src="assets/fall-grid.js"></script>
 <script>
-  // ---------------------------------------------------------------
-  // Fall Collection shopping destination. Data-driven and deliberately
-  // inert until Shopify/Klaviyo hands over the verified list of
-  // qualifying product handles. This page is not linked from anywhere
-  // yet (no nav item, no gate CTA) and isn't in scripts/build.js's
-  // sitemap, so it's a real, working URL but not discoverable or
-  // promoted until there's real content to show.
-  //
-  // Both values now live in assets/launch-config.js — the single source
-  // of truth the homepage's Early Access / campaign-state gate also
-  // reads — rather than duplicated here. FALL_COMMERCE_READY is a
-  // second, independent switch on top of the handles list: both have to
-  // be true/non-empty before this page treats Fall as real, so a
-  // handles list added without also flipping that flag (or vice versa)
-  // can't accidentally go live on its own.
-  // ---------------------------------------------------------------
-  const FALL_COLLECTION_HANDLES = window.ASIOR_LAUNCH.FALL_COMMERCE_READY
-    ? window.ASIOR_LAUNCH.FALL_COLLECTION_HANDLES
-    : [];
-
-  const A = window.Asior;
-
-  async function fetchCatalog() {
-    const data = await A.shopifyFetch(`{
-      products(first: 50) {
-        edges {
-          node {
-            title
-            handle
-            featuredImage { ${A.IMAGE_FIELDS} }
-            variants(first: 20) {
-              edges { node { availableForSale price { amount } compareAtPrice { amount } } }
-            }
-          }
-        }
-      }
-    }`);
-    return data.products.edges.map(e => {
-      const node = e.node;
-      const variants = node.variants.edges.map(v => v.node);
-      const prices = variants.map(v => parseFloat(v.price.amount));
-      const compares = variants
-        .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
-        .filter(Boolean);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
-      return {
-        handle: node.handle,
-        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-        image: node.featuredImage,
-        isPreorder: /\[preorder\]/i.test(node.title),
-        soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-        priceLabel: minPrice === maxPrice
-          ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
-          : `From $${minPrice}`,
-      };
-    });
+  // This page is not linked from anywhere yet (no nav item, no gate
+  // CTA) and isn't in scripts/build.js's sitemap, so it's a real,
+  // working URL but not discoverable or promoted until there's real
+  // content to show — noindexed until commerce is verified ready.
+  if (!window.ASIOR_LAUNCH.FALL_COMMERCE_READY) {
+    document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
   }
 
-  function card(p, eager) {
-    const media = p.image
-      ? A.imgTag(p.image, {
-          alt: 'Asior ' + p.name, eager: eager,
-          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
-        })
-      : '';
-    return `
-      <a class="product" href="/products/${p.handle}.html">
-        <div class="product-img">
-          ${media}
-          <div class="price-badge tnum">${p.priceLabel}</div>
-        </div>
-        <div class="name-row">
-          <div class="name">${A.escapeHtml(p.name)}</div>
-          ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
-          ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
-        </div>
-      </a>`;
-  }
-
-  (async function () {
-    const emptyEl = document.getElementById('fallEmpty');
-    const subEl = document.getElementById('fallSub');
-
-    if (FALL_COLLECTION_HANDLES.length === 0) {
-      // Nothing to index yet — say so honestly rather than show a guessed
-      // or empty-looking grid, and keep it out of search results until
-      // there's real content.
-      document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
-      subEl.textContent = 'Dropping september 10 — limited run.';
-      emptyEl.textContent = "The Fall Collection isn't live yet. Join Early Access on the homepage to hear the moment it is.";
-      return;
-    }
-
-    try {
-      const catalog = await fetchCatalog();
-      const byHandle = new Map(catalog.map(p => [p.handle, p]));
-      const products = FALL_COLLECTION_HANDLES.map(h => byHandle.get(h)).filter(Boolean);
-
-      if (products.length === 0) {
-        emptyEl.textContent = "Couldn't find these pieces right now, check back soon.";
-        return;
-      }
-
-      const grid = document.getElementById('fallGrid');
-      grid.innerHTML = products.map((p, i) => card(p, i < 3)).join('');
-
-      const items = grid.querySelectorAll('.product');
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, i) => {
-          if (entry.isIntersecting) {
-            setTimeout(() => entry.target.classList.add('in'), (i % 4) * 60);
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.2 });
-      items.forEach(p => observer.observe(p));
-    } catch (err) {
-      emptyEl.textContent = "Couldn't load the Fall Collection right now, try refreshing.";
-    }
-  })();
+  window.Asior.renderFallGrid({
+    gridEl: document.getElementById('fallGrid'),
+    emptyEl: document.getElementById('fallEmpty'),
+    subEl: document.getElementById('fallSub'),
+  });
 </script>
 
 </body>
