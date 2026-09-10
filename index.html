@@ -898,29 +898,34 @@
 
      which produce three states for the hero's CTA area:
        pre  + none                .pre-only         (inline code entry + signup)
-       pre  + granted (either)    .pre-access-only  (eyebrow only — see below)
-       live (either)              .live-only        (eyebrow only — see below)
+       pre  + granted (either)    .pre-access-only  (eyebrow + "View The Drop")
+       live (either)              .live-only        (eyebrow + "View The Drop")
      "granted" stops mattering the moment campaign flips to live — the
      Early Access gate isn't meant to block normal public shopping once
      the drop is public, so the live state doesn't consult data-access.
 
-     .pre-access-only/.live-only only ever apply to the eyebrow now —
-     once access is granted or the drop is live, .actions has nothing
-     left to show of its own; the actual Fall drop (hero, product grid,
-     Shop All) is .fall-drop below, outside .gate-core entirely, because
-     a product grid needs real width and a scrolling page, not this
-     single-viewport centered column. data-commerce doesn't branch the
-     grid either — assets/fall-grid.js decides placeholder vs. real
-     cards from FALL_COMMERCE_READY on its own. Only the eyebrow copy
-     still needs the ready/not-ready split, because "the fall collection
-     is live" is a factual claim only the live+ready case gets to make. */
+     Once access is granted or the drop is live, .actions has one job
+     left: a way back INTO the Fall drop for anyone who scrolls back up
+     to the hero, opens a fresh tab, or returns on a later visit — the
+     auto-scroll on a correct code entry (see grantEarlyAccess in the
+     body script) only fires once, at that moment. The actual Fall drop
+     (hero, product grid, Shop All) is .fall-drop below, outside
+     .gate-core entirely, because a product grid needs real width and a
+     scrolling page, not this single-viewport centered column.
+     data-commerce doesn't branch the grid or this button — only the
+     eyebrow still needs the ready/not-ready split, because "the fall
+     collection is live" is a factual claim only the live+ready case
+     gets to make; "View The Drop" is true regardless of whether the
+     full 4-piece set is ready yet, same as .fall-drop itself. */
   .pre-access-only, .live-only { display: none; }
   [data-campaign="live"] .pre-only,
   [data-campaign="pre"][data-access="granted"] .pre-only { display: none; }
 
   [data-campaign="pre"][data-access="granted"] .eyebrow.pre-access-only { display: block; }
+  [data-campaign="pre"][data-access="granted"] .cta-group.pre-access-only { display: flex; }
   [data-campaign="live"][data-commerce="ready"] .eyebrow.live-only.commerce-ready { display: block; }
   [data-campaign="live"][data-commerce="not-ready"] .eyebrow.live-only.commerce-notready { display: block; }
+  [data-campaign="live"] .cta-group.live-only { display: flex; }
 
   /* ---------- Early Access code entry: inline, not behind a click ----------
      This IS the first-screen focus before access is granted — the field
@@ -1504,14 +1509,27 @@
           <p class="cta-sub">new here? <a href="#signup" id="notifyLink">join early access for 10% off</a></p>
         </div>
 
-        <!-- Nothing renders here once access is granted or the drop is
-             live — the eyebrow above already says "you're in" / "the
-             fall collection is live", and the actual Fall drop (hero,
-             product grid, Shop All) is .fall-drop below, outside
-             .gate-core, because a product grid needs real width and a
-             scrolling page, not this single-viewport centered column.
-             Adding a repeat of "Fall 26" here too would be the exact
-             clutter this redesign was asked to remove. -->
+        <!-- Once access is granted or the drop is live, the hero itself
+             has nothing left to say — the eyebrow above already says
+             "you're in" / "the fall collection is live" — but it still
+             needs a way back INTO the collection: the auto-scroll on a
+             correct code entry only fires once, at that moment, so
+             anyone who scrolls back up to the hero afterward (or opens
+             a fresh tab, or returns on a later visit) lands here with
+             nothing clickable unless they know to scroll down on their
+             own. Real hrefs, not buttons: they work with JS off (a
+             plain anchor jump). With JS on, the click handler below
+             upgrades that jump to the same smooth scroll the post-code
+             reveal uses — html's scroll-behavior is deliberately left
+             at "auto" (see the rule near :root) for the :target overlay
+             fallback elsewhere on this page, so smoothing this one jump
+             has to happen in JS rather than CSS. -->
+        <div class="cta-group pre-access-only">
+          <a class="cta view-drop-link" href="#fallDropSection">View The Drop</a>
+        </div>
+        <div class="cta-group live-only">
+          <a class="cta view-drop-link" href="#fallDropSection">View The Drop</a>
+        </div>
 
         <!-- Real product, real link — this is not the drop, it's the
              lanyard: in stock and orderable today, not a preorder. Points
@@ -1972,6 +1990,20 @@
   notifyLink.addEventListener('click', (e) => {
     e.preventDefault();
     notify.openOverlay(notifyLink);
+  });
+
+  // "View The Drop" — the way back into the Fall section once access is
+  // granted or the drop is live (see the .cta-group.pre-access-only/
+  // .live-only markup earlier in this file for why it exists). A plain
+  // anchor already works with JS off; this only upgrades the jump to a
+  // smooth scroll, same as the one-time reveal in grantEarlyAccess.
+  document.querySelectorAll('.view-drop-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const section = document.getElementById('fallDropSection');
+      if (!section) return;
+      e.preventDefault();
+      section.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+    });
   });
 
   lookbookLink.addEventListener('click', (e) => {
