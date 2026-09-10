@@ -31,6 +31,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+<!-- Single source of truth for FALL_COLLECTION_HANDLES and
+     FALL_COMMERCE_READY — see assets/launch-config.js. Activating this
+     page for real is a change to that one file, not this one. -->
+<script src="assets/launch-config.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -203,16 +207,22 @@
   // ---------------------------------------------------------------
   // Fall Collection shopping destination. Data-driven and deliberately
   // inert until Shopify/Klaviyo hands over the verified list of
-  // qualifying product handles — see the one line below. This page is
-  // not linked from anywhere yet (no nav item, no gate CTA) and isn't
-  // in scripts/build.js's sitemap, so it's a real, working URL but not
-  // discoverable or promoted until there's real content to show.
+  // qualifying product handles. This page is not linked from anywhere
+  // yet (no nav item, no gate CTA) and isn't in scripts/build.js's
+  // sitemap, so it's a real, working URL but not discoverable or
+  // promoted until there's real content to show.
   //
-  // FILL THIS IN once the Fall Collection SKUs are verified. Order in
-  // this array is the order products render in.
-  // e.g. ['jaguar-crewneck', 'jaguar-sweats', 'jag-set-1']
+  // Both values now live in assets/launch-config.js — the single source
+  // of truth the homepage's Early Access / campaign-state gate also
+  // reads — rather than duplicated here. FALL_COMMERCE_READY is a
+  // second, independent switch on top of the handles list: both have to
+  // be true/non-empty before this page treats Fall as real, so a
+  // handles list added without also flipping that flag (or vice versa)
+  // can't accidentally go live on its own.
   // ---------------------------------------------------------------
-  const FALL_COLLECTION_HANDLES = [];
+  const FALL_COLLECTION_HANDLES = window.ASIOR_LAUNCH.FALL_COMMERCE_READY
+    ? window.ASIOR_LAUNCH.FALL_COLLECTION_HANDLES
+    : [];
 
   const A = window.Asior;
 

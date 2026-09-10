@@ -23,12 +23,16 @@
    3. Measure the GARMENT, not a body. These are flat-lay garment
       measurements and the page labels them as such.
 
-      Tops     chest  = armpit to armpit, doubled
-               length = high point of shoulder straight down to hem
+      Tops/    chest  = armpit to armpit, doubled
+      polos    length = high point of shoulder straight down to hem
                sleeve = centre back neck to sleeve cuff
-      Bottoms  waist  = across the flat waistband, doubled
-               inseam = crotch seam to leg opening
-               rise   = crotch seam up to top of waistband
+      Sweats   waist   = across the flat waistband, doubled
+               inseam  = crotch seam to leg opening
+               outseam = top of waistband down the outside of the leg
+      Shorts   waist   = across the flat waistband, doubled
+               rise    = crotch seam up to top of waistband
+               inseam  = crotch seam to leg opening
+               outseam = top of waistband down the outside of the leg
 
    4. Model line: state the model's height and the size they wear.
       "Model is 6'1\", wearing L." Costs one line, answers the question
@@ -38,8 +42,19 @@
    =================================================================== */
 
 window.ASIOR_MEASUREMENT_COLUMNS = {
+  // Tops and polos take the same three measurements — 'polo' is kept as
+  // its own key rather than an alias so a future polo handle can be set
+  // to garment: 'polo' and read as self-documenting, not "why is a polo
+  // using the top schema".
   top:    [{ key: 'chest',  label: 'Chest' },  { key: 'length', label: 'Length' }, { key: 'sleeve', label: 'Sleeve' }],
-  bottom: [{ key: 'waist',  label: 'Waist' },  { key: 'inseam', label: 'Inseam' }, { key: 'rise',   label: 'Rise' }],
+  polo:   [{ key: 'chest',  label: 'Chest' },  { key: 'length', label: 'Length' }, { key: 'sleeve', label: 'Sleeve' }],
+  // Sweats: no rise — the waistband is elastic, not fitted, so rise
+  // isn't a measurement anyone building a sweats size chart asks for.
+  bottom: [{ key: 'waist',  label: 'Waist' },  { key: 'inseam', label: 'Inseam' }, { key: 'outseam', label: 'Outseam' }],
+  // Shorts: rise matters because the waistband usually sits at a fixed
+  // point rather than stretching, and outseam is what tells a shopper
+  // the actual length on the leg.
+  shorts: [{ key: 'waist',  label: 'Waist' },  { key: 'rise',   label: 'Rise' },   { key: 'inseam', label: 'Inseam' }, { key: 'outseam', label: 'Outseam' }],
 };
 
 window.ASIOR_PRODUCT_DETAILS = {
@@ -102,10 +117,10 @@ window.ASIOR_PRODUCT_DETAILS = {
     fit: null,
     model: { height: null, wearing: null },
     measurements: {
-      XS: { waist: null, inseam: null, rise: null },
-      S:  { waist: null, inseam: null, rise: null },
-      M:  { waist: null, inseam: null, rise: null },
-      L:  { waist: null, inseam: null, rise: null },
+      XS: { waist: null, inseam: null, outseam: null },
+      S:  { waist: null, inseam: null, outseam: null },
+      M:  { waist: null, inseam: null, outseam: null },
+      L:  { waist: null, inseam: null, outseam: null },
     },
   },
 
@@ -120,10 +135,10 @@ window.ASIOR_PRODUCT_DETAILS = {
     shipBy: null, // e.g. 'the week of 6 October 2026'
     model: { height: null, wearing: null },
     measurements: {
-      XS: { waist: null, inseam: null, rise: null },
-      S:  { waist: null, inseam: null, rise: null },
-      M:  { waist: null, inseam: null, rise: null },
-      L:  { waist: null, inseam: null, rise: null },
+      XS: { waist: null, inseam: null, outseam: null },
+      S:  { waist: null, inseam: null, outseam: null },
+      M:  { waist: null, inseam: null, outseam: null },
+      L:  { waist: null, inseam: null, outseam: null },
     },
   },
 
@@ -142,10 +157,10 @@ window.ASIOR_PRODUCT_DETAILS = {
         L:  { chest: null, length: null, sleeve: null },
       },
       bottom: {
-        XS: { waist: null, inseam: null, rise: null },
-        S:  { waist: null, inseam: null, rise: null },
-        M:  { waist: null, inseam: null, rise: null },
-        L:  { waist: null, inseam: null, rise: null },
+        XS: { waist: null, inseam: null, outseam: null },
+        S:  { waist: null, inseam: null, outseam: null },
+        M:  { waist: null, inseam: null, outseam: null },
+        L:  { waist: null, inseam: null, outseam: null },
       },
     },
   },
