@@ -41,13 +41,24 @@
      (or same-price-across-sizes) case, where a compare-at price can be
      shown unambiguously; a genuine price range never gets a struck-
      through number next to it, because there would be no single correct
-     pair to show. */
+     pair to show.
+
+     Queries each handle directly (product(handle: $handle), the same
+     query product.html already uses) rather than paging through
+     products(first: N) and filtering client-side by handle. That
+     approach silently missed real products: Shopify's default order for
+     an unsorted products() query is not "newest first", so a shop with
+     more than N products already in the catalog can leave a just-added
+     Fall piece outside the fetched page entirely — it would then
+     render as a placeholder with no error, no images, no price, and
+     nothing in the console to explain why. Querying by handle has no
+     page to fall outside of. */
   async function fetchByHandles(handles) {
     const A = window.Asior;
-    const data = await A.shopifyFetch(`{
-      products(first: 50) {
-        edges {
-          node {
+    const results = await Promise.all(handles.map(async (h) => {
+      const data = await A.shopifyFetch(`
+        query($handle: String!) {
+          product(handle: $handle) {
             title
             handle
             featuredImage { ${A.IMAGE_FIELDS} }
@@ -55,13 +66,10 @@
               edges { node { availableForSale price { amount } compareAtPrice { amount } } }
             }
           }
-        }
-      }
-    }`);
-    const byHandle = new Map(data.products.edges.map(e => [e.node.handle, e.node]));
-    return handles.map(h => {
-      const node = byHandle.get(h);
-      if (!node) return null;
+        }`, { handle: h });
+      return data.product;
+    }));
+    return results.filter(Boolean).map((node) => {
       const variants = node.variants.edges.map(v => v.node);
       const prices = variants.map(v => parseFloat(v.price.amount));
       const compares = variants
@@ -78,7 +86,7 @@
         soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
         minPrice, maxPrice, compare,
       };
-    }).filter(Boolean);
+    });
   }
 
   function priceBadge(p) {
