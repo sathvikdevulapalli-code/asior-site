@@ -165,6 +165,55 @@ window.ASIOR_PRODUCT_DETAILS = {
     },
   },
 
+  'scripture-polo': {
+    garment: 'polo',
+    fabric: null,
+    fit: null,
+    model: { height: null, wearing: null },
+    measurements: {
+      S:  { chest: null, length: null, sleeve: null },
+      M:  { chest: null, length: null, sleeve: null },
+      L:  { chest: null, length: null, sleeve: null },
+      XL: { chest: null, length: null, sleeve: null },
+    },
+  },
+
+  'jag-shorts': {
+    garment: 'shorts',
+    fabric: null,
+    fit: null,
+    model: { height: null, wearing: null },
+    measurements: {
+      S: { waist: null, rise: null, inseam: null, outseam: null },
+      M: { waist: null, rise: null, inseam: null, outseam: null },
+      L: { waist: null, rise: null, inseam: null, outseam: null },
+    },
+  },
+
+  'holes-tee': {
+    garment: 'top',
+    fabric: null,
+    fit: null,
+    model: { height: null, wearing: null },
+    measurements: {
+      S: { chest: null, length: null, sleeve: null },
+      M: { chest: null, length: null, sleeve: null },
+      L: { chest: null, length: null, sleeve: null },
+    },
+  },
+
+  'asr-shorts': {
+    garment: 'shorts',
+    fabric: null,
+    fit: null,
+    model: { height: null, wearing: null },
+    measurements: {
+      S: { waist: null, rise: null, inseam: null, outseam: null },
+      M: { waist: null, rise: null, inseam: null, outseam: null },
+      L: { waist: null, rise: null, inseam: null, outseam: null },
+    },
+  },
+
   /* Not a preorder — it's in stock and orderable today. */
   'jag-lanyard': {
     garment: 'accessory',
