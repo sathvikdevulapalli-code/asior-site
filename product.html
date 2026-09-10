@@ -867,7 +867,7 @@
           options { name values }
           variants(first: 40) {
             edges { node {
-              id sku availableForSale quantityAvailable
+              id sku availableForSale
               price { amount currencyCode }
               compareAtPrice { amount }
               selectedOptions { name value }
@@ -910,10 +910,6 @@
         currency: v.price.currencyCode,
         comparePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null,
         available: v.availableForSale,
-        // Only a real number when the store exposes it (Storefront API
-        // returns null if "show inventory quantity" isn't turned on) —
-        // never inferred, never defaulted to something else.
-        quantityAvailable: typeof v.quantityAvailable === 'number' ? v.quantityAvailable : null,
       };
     });
     // FALL_PRODUCTS (assets/launch-config.js) carries the customer-
@@ -1359,23 +1355,12 @@
       const note = document.getElementById('pdStockNote');
       if (!hasOptions) { note.textContent = ''; note.classList.remove('show'); return; }
 
-      // Prefer Shopify's real quantity for the exact variant selected —
-      // it's the number that's actually true for what the customer is
-      // about to buy. Storefront API returns null when the store
-      // hasn't turned on quantity visibility; a sold-out variant
-      // already gets "Sold Out" from renderAddButton, so this only
-      // speaks up for "still buyable, but running low".
-      const v = currentVariant();
-      const exact = v && v.available ? A.stockLabel(v.quantityAvailable) : null;
-      if (exact && exact !== 'sold out') {
-        note.textContent = exact.charAt(0).toUpperCase() + exact.slice(1) + '.';
-        note.classList.add('show');
-        return;
-      }
-
-      // Fallback when Shopify doesn't expose a trustworthy quantity for
-      // this variant: still-honest signal from how many sizes remain
-      // available across the whole product.
+      // Honest signal from how many sizes remain available across the
+      // whole product — not a per-variant exact quantity. An earlier
+      // version of this queried Shopify's quantityAvailable for the
+      // exact selected variant, but that field broke live pricing and
+      // images elsewhere on the site (see assets/fall-grid.js) and was
+      // pulled from every query on this page as a precaution.
       const total = product.variants.length;
       const availableCount = product.variants.filter(v => v.available).length;
       if (availableCount > 0 && availableCount <= 2 && availableCount < total) {

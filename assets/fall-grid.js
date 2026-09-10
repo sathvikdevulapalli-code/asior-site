@@ -43,33 +43,38 @@
      through number next to it, because there would be no single correct
      pair to show.
 
-     Queries each handle directly (product(handle: $handle), the same
-     query product.html already uses) rather than paging through
-     products(first: N) and filtering client-side by handle. That
-     approach silently missed real products: Shopify's default order for
-     an unsorted products() query is not "newest first", so a shop with
-     more than N products already in the catalog can leave a just-added
-     Fall piece outside the fetched page entirely — it would then
-     render as a placeholder with no error, no images, no price, and
-     nothing in the console to explain why. Querying by handle has no
-     page to fall outside of. */
+     Deliberately the same query shape shop.html's fetchCatalog uses —
+     products(first: 50), filtered to the Fall handles client-side —
+     not one query per handle. A per-handle product(handle: $handle)
+     query plus a requested quantityAvailable field was tried here and
+     broke real images and pricing across browsers in production, while
+     shop.html's plain products(first: 50) kept working the whole time
+     on the exact same storefront token; whatever the exact cause
+     (inventory-scope permission error on quantityAvailable, or
+     something about the per-handle query shape), matching the one
+     query that's actually proven to work in production is the safer
+     fix than re-diagnosing it blind. If the catalog ever exceeds 50
+     products and a Fall handle starts missing from this page, that's
+     the tradeoff to revisit then — not the same one that was already
+     causing the it-doesn't-load-at-all failure just fixed. */
   async function fetchByHandles(handles) {
     const A = window.Asior;
-    const results = await Promise.all(handles.map(async (h) => {
-      const data = await A.shopifyFetch(`
-        query($handle: String!) {
-          product(handle: $handle) {
+    const data = await A.shopifyFetch(`{
+      products(first: 50) {
+        edges {
+          node {
             title
             handle
             featuredImage { ${A.IMAGE_FIELDS} }
             variants(first: 20) {
-              edges { node { availableForSale quantityAvailable price { amount } compareAtPrice { amount } } }
+              edges { node { availableForSale price { amount } compareAtPrice { amount } } }
             }
           }
-        }`, { handle: h });
-      return data.product;
-    }));
-    return results.filter(Boolean).map((node) => {
+        }
+      }
+    }`);
+    const byHandle = new Map(data.products.edges.map(e => [e.node.handle, e.node]));
+    return handles.map(h => byHandle.get(h)).filter(Boolean).map((node) => {
       const variants = node.variants.edges.map(v => v.node);
       const prices = variants.map(v => parseFloat(v.price.amount));
       const compares = variants
@@ -78,19 +83,13 @@
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
       const compare = minPrice === maxPrice && compares.length && compares[0] > minPrice ? compares[0] : null;
-      // Total sellable units across every size — only when Shopify gives
-      // a real number for every variant; one unreported variant makes
-      // the whole total untrustworthy, so it's left null rather than
-      // undercounted.
-      const quantities = variants.map(v => v.quantityAvailable);
-      const totalQty = quantities.every(q => typeof q === 'number') ? quantities.reduce((a, b) => a + b, 0) : null;
       return {
         handle: node.handle,
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
         image: node.featuredImage,
         isPreorder: /\[preorder\]/i.test(node.title),
         soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-        minPrice, maxPrice, compare, totalQty,
+        minPrice, maxPrice, compare,
       };
     });
   }
@@ -111,9 +110,6 @@
           sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
         })
       : '';
-    // Sold out already has its own tag below; a numeric label here is
-    // for "still available, but running low" only.
-    const stock = !p.soldOut ? A.stockLabel(p.totalQty) : null;
     return `
       <a class="product" href="/products/${p.handle}.html">
         <div class="product-img">
@@ -125,7 +121,6 @@
           ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
           ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
         </div>
-        ${stock ? `<div class="stock-note">${A.escapeHtml(stock)}</div>` : ''}
       </a>`;
   }
 
