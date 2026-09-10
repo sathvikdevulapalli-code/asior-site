@@ -31,6 +31,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+<!-- Early Access gate: redirects to index.html before this page renders
+     unless the visitor has entered ASIOR8 or the public drop has
+     passed. See assets/early-access-gate.js. Runs on every generated
+     /products/<handle>.html page too — scripts/build.js rewrites the
+     assets/ path the same way it does for site.js. -->
+<script src="assets/launch-config.js"></script>
+<script src="assets/early-access-gate.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -952,11 +959,20 @@
       <li><strong>Chest</strong> — measure armpit to armpit across the front, then double it.</li>
       <li><strong>Length</strong> — from the highest point of the shoulder straight down to the hem.</li>
       <li><strong>Sleeve</strong> — from the centre back of the neck out to the cuff.</li>`;
+    // Sweats: no rise line — an elastic waistband isn't measured that way.
     const bottom = `
       <li><strong>Waist</strong> — across the flat waistband, then double it.</li>
       <li><strong>Inseam</strong> — crotch seam down to the leg opening.</li>
-      <li><strong>Rise</strong> — crotch seam up to the top of the waistband.</li>`;
-    const which = kind === 'bottom' ? bottom : kind === 'set' ? top + bottom : top;
+      <li><strong>Outseam</strong> — top of the waistband straight down the outside of the leg.</li>`;
+    const shorts = `
+      <li><strong>Waist</strong> — across the flat waistband, then double it.</li>
+      <li><strong>Rise</strong> — crotch seam up to the top of the waistband.</li>
+      <li><strong>Inseam</strong> — crotch seam down to the leg opening.</li>
+      <li><strong>Outseam</strong> — top of the waistband straight down the outside of the leg.</li>`;
+    const which = kind === 'bottom' ? bottom
+      : kind === 'shorts' ? shorts
+      : kind === 'set' ? top + bottom
+      : top; // top and polo share the same three measurements
     return `
       <div class="pd-measure-how">
         <p class="pd-size-chart-note">Garment measured flat, not body measurements. Compare against a piece you already own and like the fit of.</p>
@@ -1081,9 +1097,17 @@
         </div>${shipHTML}`
       : shipHTML;
 
+    // A garment that genuinely has no fit guidance yet says so — silently
+    // showing nothing here reads as "we forgot", not "we don't know yet".
+    // Only for apparel (Size option present): a lanyard or pendant was
+    // never going to have a fit note, so nothing is missing there.
+    const fitFact = details && details.fit
+      ? details.fit
+      : (product.optionNames.includes('Size') ? 'Fit details coming soon' : null);
+
     const facts = [
       details && details.fabric,
-      details && details.fit,
+      fitFact,
       details && details.chainLength && 'Chain ' + details.chainLength,
       details && details.pendantSize && 'Pendant ' + details.pendantSize,
     ].filter(Boolean);

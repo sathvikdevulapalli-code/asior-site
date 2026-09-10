@@ -60,6 +60,13 @@
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 
+<!-- Launch/campaign facts (drop time, commerce-ready flag, Fall handles,
+     the Early Access code hash) in one small blocking script, read by the
+     inline script just below before it decides data-campaign/data-access
+     — see assets/launch-config.js for why this has to load synchronously
+     and can't wait for assets/site.js at the bottom of the page. -->
+<script src="assets/launch-config.js"></script>
+
 <!-- The film is deliberately NOT preloaded. rel=preload has no idea that
      <video> picks between two <source>s, so it would fetch whichever one
      is named here and the element would then fetch the other — about a
@@ -100,6 +107,33 @@
       }
     } catch (err) { /* storage blocked: control copy, and never counted */ }
     document.documentElement.setAttribute('data-ab', variant);
+
+    // Campaign state, decided the same way and in the same breath as the
+    // A/B bucket above: before paint, so the page never flashes the
+    // pre-launch gate and then swaps to the live drop a frame later.
+    // window.ASIOR_DROP_AT is the one place this instant is written down —
+    // the countdown script further down reads it back rather than
+    // restating the date, so the two can't drift apart. The literal date
+    // lives in assets/launch-config.js, loaded just above.
+    window.ASIOR_DROP_AT = new Date(window.ASIOR_LAUNCH.PUBLIC_LAUNCH_TIME).getTime();
+    document.documentElement.setAttribute('data-campaign', Date.now() >= window.ASIOR_DROP_AT ? 'live' : 'pre');
+
+    // Early Access grant, read back the same way the A/B bucket is: a
+    // returning visitor who already entered the code should see the
+    // "you're in" state on first paint, not a flash of "join early
+    // access" that then swaps a moment later. Entering the code itself
+    // happens later, in the body script, after crypto.subtle is
+    // available — this only ever reads a flag already written by that
+    // flow on an earlier visit.
+    var access = 'none';
+    try {
+      if (localStorage.getItem('asior_early_access') === '1') access = 'granted';
+    } catch (err) { /* storage blocked: treat as not yet entered */ }
+    document.documentElement.setAttribute('data-access', access);
+
+    // Whether Fall is actually purchasable — set only by a verified
+    // Shopify/Klaviyo handoff in launch-config.js, never guessed here.
+    document.documentElement.setAttribute('data-commerce', window.ASIOR_LAUNCH.FALL_COMMERCE_READY ? 'ready' : 'not-ready');
   })();
 </script>
 <style>
@@ -511,6 +545,23 @@
     color: rgba(var(--off-white-rgb), 0.82);
   }
 
+  /* The short line above the button in every "you're in" state — same
+     weight as the overlay's .sheet-lede, recoloured for the dark hero
+     rather than the near-white sheet. */
+  .cta-headline {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(14px, 3.6vw, 16px);
+    letter-spacing: -0.005em;
+    color: var(--off-white);
+  }
+
+  /* The live-state cta-sub is a real link (secondary signup), not just a
+     caption, so it needs the same underline treatment .consent gives its
+     inline links in site.css. */
+  .cta-sub a { text-decoration: underline; text-underline-offset: 2px; }
+  .cta-sub a:hover, .cta-sub a:focus-visible { color: var(--off-white); }
+
   .action {
     position: relative;
     display: inline-block;
@@ -840,6 +891,90 @@
   [data-ab="B"] .ab-a { display: none; }
   [data-ab="B"] .ab-b { display: inline; }
 
+  /* ---------- campaign state: five mutually exclusive hero states ----------
+     Same shape as the A/B rule above and decided by the same inline script
+     in <head>, before paint: every variant ships in the served HTML and
+     the cascade shows exactly one, so there is no flash of one state
+     before JS swaps it for another, and a visitor with JS off still gets
+     one complete, correct page — the base .pre-only gate, the only state
+     a static page can be honestly stuck in without a clock or a
+     verified commerce-ready flag.
+
+     The three facts in play, each decided independently (see <head>):
+       data-campaign  "pre"  before the public drop instant, "live" after
+       data-access    "granted" once the visitor has entered ASIOR8,
+                      "none" otherwise — meaningless once campaign is live
+       data-commerce  "ready" only once Shopify/Klaviyo verifies real Fall
+                      product handles, "not-ready" otherwise (the default,
+                      and the only state FALL_COLLECTION_HANDLES=[] in
+                      launch-config.js allows honestly)
+
+     which produce five states, each its own block below:
+       pre  + none               .pre-only              (default gate)
+       pre  + granted, ready     .pre-access-only.commerce-ready
+       pre  + granted, not-ready .pre-access-only.commerce-notready
+       live + ready               .live-only.commerce-ready
+       live + not-ready           .live-only.commerce-notready
+     "granted" stops mattering the moment campaign flips to live — the
+     Early Access gate isn't meant to block normal public shopping once
+     the drop is public, so the live states don't consult data-access. */
+  .pre-access-only, .live-only { display: none; }
+  [data-campaign="live"] .pre-only,
+  [data-campaign="pre"][data-access="granted"] .pre-only { display: none; }
+
+  /* Each rule restates the display value its own (non campaign-state)
+     class already declares — .eyebrow is a <p> that wants block,
+     .cta-group wants flex — rather than one shared value that would be
+     wrong for whichever tag didn't ask for it. */
+  [data-campaign="pre"][data-access="granted"][data-commerce="ready"] .eyebrow.pre-access-only.commerce-ready { display: block; }
+  [data-campaign="pre"][data-access="granted"][data-commerce="ready"] .cta-group.pre-access-only.commerce-ready { display: flex; }
+  [data-campaign="pre"][data-access="granted"][data-commerce="not-ready"] .eyebrow.pre-access-only.commerce-notready { display: block; }
+  [data-campaign="pre"][data-access="granted"][data-commerce="not-ready"] .cta-group.pre-access-only.commerce-notready { display: flex; }
+  [data-campaign="live"][data-commerce="ready"] .eyebrow.live-only.commerce-ready { display: block; }
+  [data-campaign="live"][data-commerce="ready"] .cta-group.live-only.commerce-ready { display: flex; }
+  [data-campaign="live"][data-commerce="not-ready"] .eyebrow.live-only.commerce-notready { display: block; }
+  [data-campaign="live"][data-commerce="not-ready"] .cta-group.live-only.commerce-notready { display: flex; }
+
+  /* ---------- Early Access code entry ----------
+     A compact inline prompt, not a second full CTA — it only ever shows
+     next to the base pre-launch gate, for a visitor who already has a
+     code from email/SMS/Instagram and wants to use it rather than sign
+     up again. */
+  .access-prompt {
+    margin-top: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.68);
+  }
+  .access-prompt-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  .access-prompt-link:hover, .access-prompt-link:focus-visible { color: var(--off-white); }
+
+  /* ---------- storefront-only: the inverse of .pre-only ----------
+     .pre-only shows in exactly the base gate state and hides everywhere
+     else; this shows everywhere EXCEPT the base gate state — for a link
+     like [shop] that should only appear once the storefront itself is
+     actually reachable: access granted, or the drop gone public. Same
+     two conditions assets/early-access-gate.js checks client-side on
+     shop/product/cart/fall-collection.html directly, so a visitor who
+     somehow reached this link anyway would land on an open page, not a
+     bounce. Restates .bracket's own default (inline, blockified by the
+     flex row) rather than leaving it implicit, same reasoning as the
+     eyebrow/cta-group display restatements above. */
+  .storefront-only { display: none; }
+  [data-campaign="live"] .storefront-only,
+  [data-campaign="pre"][data-access="granted"] .storefront-only { display: inline; }
+
   .form {
     display: flex;
     flex-direction: column;
@@ -1037,6 +1172,21 @@
     color: rgba(var(--grey-900-rgb), 0.7);
   }
 
+  /* The disambiguation line under the members' entrance form — quieter
+     than .pass-msg, which reports the result of an actual attempt. */
+  .pass-note {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--grey-800-rgb), 0.16);
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+    text-transform: none;
+    color: rgba(var(--grey-900-rgb), 0.55);
+  }
+  .pass-note b { font-weight: 600; color: rgba(var(--grey-900-rgb), 0.75); }
+
   .pass-msg:empty { display: none; }
 
   /* ---------- lookbook ----------
@@ -1223,7 +1373,11 @@
 
     <div class="gate-core">
 
-      <p class="eyebrow rise" style="--in: 120ms">dropping september 10</p>
+      <p class="eyebrow rise pre-only" style="--in: 120ms">dropping september 10</p>
+      <p class="eyebrow rise pre-access-only commerce-ready" style="--in: 120ms">fall 26</p>
+      <p class="eyebrow rise pre-access-only commerce-notready" style="--in: 120ms">you're in</p>
+      <p class="eyebrow rise live-only commerce-ready" style="--in: 120ms">the fall collection is live</p>
+      <p class="eyebrow rise live-only commerce-notready" style="--in: 120ms">the fall collection is almost here</p>
 
       <!-- Dashes, not zeros, before the script runs: a countdown showing
            00 00 00 00 looks like the drop has already been and gone.
@@ -1246,7 +1400,7 @@
       </h1>
 
       <div class="actions rise" style="--in: 540ms">
-        <div class="cta-group">
+        <div class="cta-group pre-only">
           <!-- Real href, not a button: with JS off this still opens the
                signup through :target, and it stays shareable. The script
                intercepts the click to avoid the jump to the anchor.
@@ -1258,6 +1412,46 @@
                copy and nothing else. -->
           <a class="cta" href="#signup" id="notifyLink">Early Access + 10% Off</a>
           <p class="cta-sub">email&nbsp;+&nbsp;sms &nbsp;·&nbsp; first access to the drop</p>
+          <!-- For a visitor who already has ASIOR8 from email/SMS/Instagram
+               and doesn't need to sign up again. Opens #earlyAccess — see
+               that overlay and the Early Access section of the body
+               script for how the code is checked and the grant persisted. -->
+          <p class="access-prompt">have a code? <button type="button" class="access-prompt-link" id="earlyAccessOpen">enter it</button></p>
+        </div>
+
+        <!-- Early Access granted (ASIOR8 accepted — see #earlyAccess below)
+             but still before the public drop. Two variants depending on
+             data-commerce, because "you're in" cannot mean the same thing
+             when Fall isn't actually purchasable yet: never route someone
+             to a page presenting nonexistent products as real. -->
+        <div class="cta-group pre-access-only commerce-ready">
+          <p class="cta-headline">fall 26</p>
+          <a class="cta" href="fall-collection.html" id="shopFallLinkAccess">Shop The Drop</a>
+        </div>
+        <div class="cta-group pre-access-only commerce-notready">
+          <p class="cta-headline">fall access unlocked.</p>
+          <a class="cta" href="shop.html" id="shopLiveLinkAccess">Shop What's Live</a>
+        </div>
+
+        <!-- Live-drop state: shown instead of every block above from the
+             instant data-campaign flips to "live" (Thursday, September 10,
+             7 PM CT — see the inline script in <head>). The Early Access
+             code stops mattering here on purpose: the gate isn't meant to
+             block normal public shopping once the drop is public. Which
+             of the two variants shows depends on data-commerce — the
+             clock alone can never make the "ready" one true; only a
+             verified Shopify/Klaviyo handoff flipping FALL_COMMERCE_READY
+             in launch-config.js can. -->
+        <div class="cta-group live-only commerce-ready">
+          <a class="cta" href="fall-collection.html" id="shopFallLink">Shop Fall Collection</a>
+          <p class="cta-sub"><a href="#signup" id="notifyLinkLive">join early access + 10% off</a></p>
+        </div>
+        <div class="cta-group live-only commerce-notready">
+          <!-- Honest fallback: Fall isn't verified ready even though the
+               drop instant has passed. Route to what's actually
+               purchasable today rather than a dead end. -->
+          <a class="cta" href="shop.html" id="shopLiveLinkLive">Shop What's Live</a>
+          <p class="cta-sub"><a href="#signup" id="notifyLinkLiveNotReady">join early access + 10% off</a></p>
         </div>
 
         <!-- Real product, real link — this is not the drop, it's the
@@ -1286,16 +1480,15 @@
 
     <div class="gate-foot">
       <div class="bracket-row rise" style="--in: 700ms">
-        <!-- The passphrase entrance above is a members' shortcut, not the
-             only door — shop.html and every product page are already
-             public URLs (see the note on the members' entrance further
-             down). Someone ready to buy today, from the existing catalog
-             rather than the Fall Collection that hasn't dropped yet,
-             previously had no way to reach it without knowing the
-             passphrase or buying the lanyard specifically. This is that
-             door, kept at the same quiet tier as lookbook/restock so it
-             doesn't compete with the Early Access CTA above. -->
-        <a class="bracket" href="shop.html" id="shopLink"><b>[</b> shop <b>]</b></a>
+        <!-- Deliberately NOT shown before Early Access is granted: the
+             storefront itself is now gated (see assets/early-access-gate.js
+             on shop/product/cart/fall-collection.html), and showing a
+             direct shop link here would just be a purchase path that
+             bypasses the code — the one thing this correction removed.
+             .pre-only hides it exactly in that window and it reappears
+             the moment access is granted or the drop goes public, at
+             which point shop.html is a normal, ungated page anyway. -->
+        <a class="bracket storefront-only" href="shop.html" id="shopLink"><b>[</b> shop <b>]</b></a>
         <a class="bracket" href="#lookbook" id="lookbookLink"><b>[</b> lookbook <b>]</b></a>
         <!-- JAG Sweats aren't purchasable right now — no price, no buy
              button, just a waitlist. Same tier as lookbook (secondary
@@ -1498,6 +1691,47 @@
         </form>
 
         <div class="pass-msg" id="passMsg" role="status" aria-live="polite"></div>
+
+        <!-- Disambiguation: this doorway and Fall Early Access are two
+             different things with two different codes, and this is the
+             one likely to get real Instagram/email/SMS traffic tomorrow
+             asking "where do I put ASIOR8". Answer it before they ask. -->
+        <p class="pass-note">Looking for your Fall Early Access code instead? Close this and use <b>have a code?</b> under the Early Access button.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Fall Early Access =================
+       Same "not security" caveat as the members' entrance above: this is
+       a marketing gate, not an auth system, and the store pages it leads
+       to are public URLs regardless. What it actually does is (1) keep
+       ASIOR8 out of the page source as plaintext, by comparing a SHA-256
+       hash instead of the word itself — see the body script below — and
+       (2) drive the "you're in" homepage state once the hash matches, so
+       the same visitor doesn't have to re-enter it on a later visit (see
+       data-access, decided in <head> before paint).
+
+       Deliberately a separate overlay from #members with its own code:
+       ASIOR8 is Fall Early Access, asior2026 is unrelated, and showing
+       one form for both would make a visitor guess which word goes where. -->
+  <div class="overlay" id="earlyAccess" hidden role="dialog" aria-modal="true" aria-labelledby="eaLede">
+    <div class="overlay-scrim" data-close></div>
+
+    <div class="sheet sheet-pass" tabindex="-1">
+      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
+
+      <div class="sheet-in">
+        <p class="sheet-label">fall 26 — early access</p>
+        <p class="sheet-lede" id="eaLede">Enter your access code.</p>
+
+        <form class="pass-form" id="eaForm">
+          <label class="sr-only" for="eaInput">Access code</label>
+          <input type="text" id="eaInput" placeholder="code"
+                 autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+          <button type="submit" id="eaBtn">Enter</button>
+        </form>
+
+        <div class="pass-msg" id="eaMsg" role="status" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -1538,14 +1772,18 @@
   // ===================================================================
 
   // The drop as one fixed instant, not a date string the browser gets to
-  // interpret in whatever timezone the visitor happens to be in. -05:00
-  // is Central Daylight Time, which is what Chicago is on 10 September
-  // (DST doesn't end until November), so everyone worldwide counts down
-  // to the same real moment: Thursday, September 10, 2026, 7:00 PM CT.
-  // If this ever moves to a date outside CDT, this offset needs to
-  // change to -06:00 (CST) to still mean Central time — and update the
-  // visible date line in the markup above to match.
-  const DROP_AT = new Date('2026-09-10T19:00:00-05:00');
+  // interpret in whatever timezone the visitor happens to be in. Read
+  // back from window.ASIOR_DROP_AT (set by the inline script in <head>,
+  // which also decides data-campaign) rather than restated here, so the
+  // countdown and the pre/live switch can never name two different
+  // instants. -05:00 is Central Daylight Time, which is what Chicago is
+  // on 10 September (DST doesn't end until November), so everyone
+  // worldwide counts down to the same real moment: Thursday, September
+  // 10, 2026, 7:00 PM CT. If this ever moves to a date outside CDT, the
+  // offset in <head> needs to change to -06:00 (CST) to still mean
+  // Central time — and update the visible date line in the markup above
+  // to match.
+  const DROP_AT = window.ASIOR_DROP_AT;
 
   const countdown = document.getElementById('countdown');
   const cdDays = document.getElementById('cdDays');
@@ -1658,7 +1896,11 @@
   const lookbook = makeOverlay('lookbook');
   const follow = makeOverlay('follow');
   const members = makeOverlay('members');
+  const earlyAccess = makeOverlay('earlyAccess');
+  const earlyAccessOpen = document.getElementById('earlyAccessOpen');
+  earlyAccessOpen.addEventListener('click', () => earlyAccess.openOverlay(earlyAccessOpen));
   const notifyLink = document.getElementById('notifyLink');
+  const notifyLinkLive = document.getElementById('notifyLinkLive');
   const lookbookLink = document.getElementById('lookbookLink');
   const followLink = document.getElementById('followLink');
   const markBtn = document.getElementById('markBtn');
@@ -1668,13 +1910,42 @@
     notify.openOverlay(notifyLink);
   });
 
+  // Same form, opened from the small secondary link in the live-drop
+  // state (see the .live-only cta-group above) instead of the primary
+  // pre-launch button.
+  notifyLinkLive.addEventListener('click', (e) => {
+    e.preventDefault();
+    notify.openOverlay(notifyLinkLive);
+  });
+
+  // Same again, for the live-but-commerce-not-ready variant.
+  const notifyLinkLiveNotReady = document.getElementById('notifyLinkLiveNotReady');
+  notifyLinkLiveNotReady.addEventListener('click', (e) => {
+    e.preventDefault();
+    notify.openOverlay(notifyLinkLiveNotReady);
+  });
+
   lookbookLink.addEventListener('click', (e) => {
     e.preventDefault();
     lookbook.openOverlay(lookbookLink);
   });
 
   followLink.addEventListener('click', () => follow.openOverlay(followLink));
-  markBtn.addEventListener('click', () => members.openOverlay(markBtn));
+  // The old members' entrance is superseded by ASIOR8 for this launch —
+  // and opening it here would be a real dead end, not just a stray
+  // extra doorway: its destination, shop.html, is now itself gated by
+  // assets/early-access-gate.js, so a visitor who found their way in
+  // with asior2026 would immediately bounce right back out to this
+  // page. Left inert only for the exact window that would happen in;
+  // the underlying passphrase logic is untouched, not deleted, and
+  // markBtn opens it normally again the moment access is granted or
+  // the drop goes public — at which point shop.html no longer bounces.
+  markBtn.addEventListener('click', () => {
+    var campaign = document.documentElement.getAttribute('data-campaign');
+    var access = document.documentElement.getAttribute('data-access');
+    if (campaign === 'pre' && access !== 'granted') return;
+    members.openOverlay(markBtn);
+  });
 
   document.querySelectorAll('[data-close]').forEach((el) => {
     el.addEventListener('click', () => {
@@ -1718,6 +1989,10 @@
     if (location.hash === '#signup') notify.openOverlay(notifyLink);
     else if (location.hash === '#lookbook') lookbook.openOverlay(lookbookLink);
     else if (location.hash === '#follow') follow.openOverlay(followLink);
+    // So the Early Access email/SMS can link straight to
+    // asiorclothing.com/#earlyAccess instead of making someone find the
+    // "have a code?" link themselves.
+    else if (location.hash === '#earlyAccess') earlyAccess.openOverlay(earlyAccessOpen);
   }
 
   openFromHash();
@@ -1819,6 +2094,67 @@
     passInput.value = '';
     passInput.focus();
     passBtn.disabled = false;
+  });
+
+  // ===================================================================
+  // Fall Early Access (ASIOR8)
+  //
+  // Same "not a lock" caveat as the members' entrance above, and reuses
+  // its sha256Hex helper — this is a marketing gate, not auth, checked
+  // client-side against a hash so the code itself doesn't sit in the
+  // page source as plaintext. The real difference is what a correct
+  // code does: it persists (data-access, decided in <head> before
+  // paint) so the visitor sees the "you're in" homepage state on every
+  // later visit instead of re-entering the code, and it never routes
+  // anyone to a page presenting Fall as purchasable unless
+  // FALL_COMMERCE_READY says that's actually true — see the
+  // .pre-access-only / .live-only commerce-ready/commerce-notready
+  // pairs earlier in this file.
+  //
+  // TO CHANGE THE CODE, replace EARLY_ACCESS_CODE_SHA in
+  // assets/launch-config.js with the SHA-256 of the new one, uppercased
+  // first (the input is uppercased before hashing here too, so a
+  // visitor typing lowercase still matches):
+  //     printf 'NEWCODE' | shasum -a 256
+  const eaForm = document.getElementById('eaForm');
+  const eaInput = document.getElementById('eaInput');
+  const eaBtn = document.getElementById('eaBtn');
+  const eaMsg = document.getElementById('eaMsg');
+
+  function grantEarlyAccess() {
+    try { localStorage.setItem('asior_early_access', '1'); } catch (err) { /* not durable, but still works for this tab/session */ }
+    document.documentElement.setAttribute('data-access', 'granted');
+    // Anonymous by design — entering a code proves nothing about who
+    // someone is, so this rides on the same anonymous id as the A/B
+    // test events rather than asking for an email to log it.
+    A.klaviyoTrack('Early Access Code Entered', { source: 'website', campaign: 'fall_2026' });
+  }
+
+  eaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    eaBtn.disabled = true;
+    eaMsg.textContent = '';
+    try {
+      if (!window.crypto || !crypto.subtle) throw new Error('no subtle crypto');
+      const hex = await sha256Hex(eaInput.value.trim().toUpperCase());
+      if (hex === window.ASIOR_LAUNCH.EARLY_ACCESS_CODE_SHA) {
+        eaMsg.textContent = "you're in.";
+        grantEarlyAccess();
+        // Close after a beat so the confirmation is actually readable,
+        // revealing the now-unlocked homepage state underneath rather
+        // than hard-navigating away from it — the Shop button in that
+        // state is the next click, not automatic, so a visitor who
+        // isn't ready to buy yet isn't shoved into checkout.
+        setTimeout(() => close(earlyAccess), 900);
+        return;
+      }
+      eaMsg.textContent = 'not that one.';
+    } catch (err) {
+      eaMsg.textContent = 'something went wrong — try again in a moment.';
+    }
+    eaInput.value = '';
+    eaInput.focus();
+    eaBtn.disabled = false;
   });
 
   // ===================================================================
