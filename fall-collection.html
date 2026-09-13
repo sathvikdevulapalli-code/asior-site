@@ -218,7 +218,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <div class="teaser-bar"><a href="fall-collection.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
     <a class="mark" href="index.html">Asior</a>
     <nav>
@@ -276,13 +276,22 @@
      and assets/launch-config.js for FALL_PRODUCTS/FALL_COMMERCE_READY,
      the two facts that decide what actually renders. -->
 <script src="assets/fall-grid.js"></script>
+<script src="assets/drop-countdown.js"></script>
 <script>
-  // This page is not linked from anywhere yet (no nav item, no gate
-  // CTA) and isn't in scripts/build.js's sitemap, so it's a real,
-  // working URL but not discoverable or promoted until there's real
-  // content to show — noindexed until commerce is verified ready.
+  // This page is in scripts/build.js's sitemap and, as of the sitewide
+  // banner replacing the old email-signup teaser bar, linked from every
+  // page's header too — noindexed only for as long as
+  // FALL_COMMERCE_READY is false (not fully wired up yet).
   if (!window.ASIOR_LAUNCH.FALL_COMMERCE_READY) {
     document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
+  }
+
+  if (window.Asior.renderDropCountdown) {
+    window.Asior.renderDropCountdown({
+      el: document.getElementById('teaserBar'),
+      prefix: 'fall drop closes — ',
+      closedText: 'fall drop closed',
+    });
   }
 
   window.Asior.renderFallGrid({

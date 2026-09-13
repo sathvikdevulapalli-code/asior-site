@@ -147,7 +147,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+  <div class="teaser-bar"><a href="fall-collection.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
     <a class="mark" href="index.html">Asior</a>
     <nav>
@@ -217,7 +217,21 @@
   <!-- FOOTER:END -->
 
 <script src="assets/site.js"></script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/drop-countdown.js"></script>
 <script>
+  // Sitewide banner (the old email-signup teaser bar, replaced — see
+  // scripts/build.js's comment on HEADER_FULL). This page doesn't
+  // otherwise need launch-config.js/drop-countdown.js, so both are
+  // loaded here rather than assumed already present.
+  if (window.Asior.renderDropCountdown) {
+    window.Asior.renderDropCountdown({
+      el: document.getElementById('teaserBar'),
+      prefix: 'fall drop closes — ',
+      closedText: 'fall drop closed',
+    });
+  }
+
   const contactForm = document.getElementById('contactForm');
   const contactConfirm = document.getElementById('contactConfirm');
   // Let the form actually submit (to the hidden iframe target above) instead

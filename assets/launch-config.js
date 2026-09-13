@@ -73,4 +73,14 @@ window.ASIOR_LAUNCH = {
   // the code, replace this with the SHA-256 of the new one, uppercased:
   //     printf 'NEWCODE' | shasum -a 256
   EARLY_ACCESS_CODE_SHA: '619b5fd9238b418e3d33b6c478a99a4b285cfaee7c1b9c4eb7b74ae3f49f9e0e',
+
+  // Saturday, September 27, 2026, 11:59 PM CT — when the Fall drop
+  // closes. -05:00 is still Central Daylight Time on this date (DST
+  // doesn't end until November), same reasoning as PUBLIC_LAUNCH_TIME
+  // above. assets/drop-countdown.js reads this and only this — the
+  // sitewide banner (scripts/build.js's HEADER_FULL), product.html's
+  // buy box, and index.html's post-Early-Access section all render off
+  // the same instant, so none of them can ever disagree with another.
+  // If this date moves, it only needs to change here.
+  DROP_CLOSE_TIME: '2026-09-27T23:59:00-05:00',
 };
