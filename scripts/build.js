@@ -235,7 +235,16 @@ async function syncPolicy(slug, file) {
    through from the still-locked gate can't browse into the rest of the
    catalog — see the comment on lanyard.html's own <header>. Syncing
    either of those to the shared markup would undo that on purpose. */
-const HEADER_FULL = `  <div class="teaser-bar"><a href="index.html#signup">Sign Up For 10% Off Your First Order</a></div>
+/* Was a "Sign Up For 10% Off" link. Replaced with the drop-close
+   countdown for the Fall run (closes Sep 27) — stacking both would add
+   a second full-width band above the header on every page, which is
+   real height the mobile above-the-fold audit can't spare, and a
+   competing action (email signup) at the very top of a page whose job
+   is now to sell rather than capture email. Text is filled in by
+   assets/drop-countdown.js; see the <script> block near the bottom of
+   each page in SHARED_MARKUP_PAGES. Empty until that runs so it never
+   flashes stale/wrong text. */
+const HEADER_FULL = `  <div class="teaser-bar"><a href="fall-collection.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
     <a class="mark" href="index.html">Asior</a>
     <nav>
@@ -243,7 +252,7 @@ const HEADER_FULL = `  <div class="teaser-bar"><a href="index.html#signup">Sign 
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
     </nav>
   </header>
 

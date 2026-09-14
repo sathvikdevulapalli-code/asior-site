@@ -1012,6 +1012,21 @@
     .fall-drop-offer:hover { transform: translateY(-1px); opacity: 0.88; }
   }
 
+  /* Same real close date as scripts/build.js's sitewide banner and
+     product.html's buy box — assets/drop-countdown.js fills this in
+     from window.ASIOR_LAUNCH.DROP_CLOSE_TIME. Static "closes Sep 27"
+     text sits here until that runs, so it's never blank or wrong even
+     with JS off. */
+  .fall-drop-countdown {
+    text-align: center;
+    margin: 0 0 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: rgba(var(--off-white-rgb), 0.65);
+  }
+
   .fall-drop-sub {
     text-align: center;
     font-family: var(--mono);
@@ -1838,6 +1853,7 @@
            lanyard.html — "make it known" means actionable, not just
            visible. -->
       <a class="fall-drop-offer" href="lanyard.html">first 10 orders ship with a free asior lanyard</a>
+      <p class="fall-drop-countdown" id="fallDropCountdown">Fall Collection &mdash; closes Sep 27</p>
       <p class="fall-drop-sub" id="fallDropSub"></p>
       <div class="fall-grid" id="fallDropGrid"></div>
       <div class="fall-drop-empty" id="fallDropEmpty"></div>
@@ -1847,6 +1863,7 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/fall-grid.js"></script>
+<script src="assets/drop-countdown.js"></script>
 <script>
   const A = window.Asior;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -2253,6 +2270,19 @@
       gridEl: document.getElementById('fallDropGrid'),
       emptyEl: document.getElementById('fallDropEmpty'),
       subEl: document.getElementById('fallDropSub'),
+    });
+  }
+
+  // Independent of gate state — the element sits inside .fall-drop,
+  // which CSS hides until data-campaign/data-access says otherwise, but
+  // there's no reason to gate the countdown itself behind that too.
+  // Same instant as the sitewide banner and product.html's buy box
+  // (assets/drop-countdown.js reads window.ASIOR_LAUNCH.DROP_CLOSE_TIME).
+  if (window.Asior.renderDropCountdown) {
+    window.Asior.renderDropCountdown({
+      el: document.getElementById('fallDropCountdown'),
+      prefix: 'fall drop closes — ',
+      closedText: 'fall drop closed',
     });
   }
 
