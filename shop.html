@@ -41,6 +41,107 @@
     header nav a:hover::after { width: 100%; }
   }
 
+  /* Scoped to this page only (this <style> block doesn't reach any
+     other page) — the shared header markup (scripts/build.js's
+     HEADER_FULL) is untouched, just restyled here for the page ad
+     traffic actually lands on now. */
+  header { backdrop-filter: blur(10px); background: rgba(11, 10, 8, 0.82); }
+  header nav a[href="shop.html"] {
+    color: var(--ink);
+    position: relative;
+  }
+  header nav a[href="shop.html"]::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -4px;
+    height: 1px;
+    background: var(--ink);
+  }
+
+  /* ---------- intro + lookbook strip ----------
+     "Shop All" used to be a bare heading with nothing above the grid.
+     Ad traffic lands here directly now, so the first thing in view
+     needs to say what this is and prove it in real photos — not just
+     list product tiles cold. */
+  .shop-intro {
+    padding: 6vh 40px 0;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .shop-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .shop-intro h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 42px);
+    letter-spacing: -0.01em;
+  }
+
+  .shop-intro-sub {
+    margin-top: 10px;
+    max-width: 56ch;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  /* Real lookbook photography (images/look-*.jpg, the same files
+     community.html uses) — proof of how a piece actually looks worn,
+     not just a flat product shot, right where a visitor lands. Links
+     out to the full lookbook rather than duplicating it. */
+  .shop-lookbook {
+    margin-top: 4vh;
+    padding-bottom: 4vh;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .shop-lookbook-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .shop-look {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  .shop-look img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease-img);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .shop-look:hover img { transform: scale(1.035); }
+  }
+
+  .shop-lookbook-link {
+    display: inline-block;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    .shop-intro { padding: 4vh 20px 0; }
+    .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* ---------- shop grid ---------- */
   .shop {
     padding: 0 40px 14vh;
@@ -136,6 +237,86 @@
     border-radius: 2px;
   }
 
+  /* ---------- quick add ----------
+     Buy without leaving the grid: tap a size, it's in the cart, keep
+     browsing. .product is no longer itself the link — .product-link
+     wraps only the image+name (so it can still navigate to the full
+     product page) while this row sits beside it as its own set of
+     buttons, since a button can't legally nest inside an <a>. */
+  .product-link { display: block; }
+
+  .quick-add {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 26px;
+  }
+
+  .qa-size {
+    min-width: 30px;
+    height: 26px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--field-line);
+    background: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .qa-size:not(.unavailable):hover { border-color: var(--ink); }
+  }
+
+  .qa-size:not(.unavailable):active { transform: scale(0.94); }
+
+  .qa-size.unavailable {
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  .qa-size.unavailable::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -4px; top: 50%;
+    height: 1px;
+    background: var(--muted);
+    transform: rotate(-14deg);
+  }
+
+  /* The visitor's own most-picked size (assets/site.js's
+     preferredSize(), read from real past choices only) — a quiet dot,
+     not a banner, so it helps without shouting. */
+  .qa-size.mine::before {
+    content: '';
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+
+  .qa-size.mine.unavailable::before { background: var(--muted); }
+
+  .qa-msg {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    align-self: center;
+  }
+
+  .qa-msg.err { color: var(--ink); }
+
   .shop-empty {
     display: none;
     padding: 6vh 0;
@@ -184,7 +365,7 @@
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
     </nav>
   </header>
 
@@ -193,11 +374,30 @@
 
   <main id="main">
 
+  <section class="shop-intro">
+    <div class="shop-eyebrow">Fall 26 — closes September 27</div>
+    <h1>Shop All</h1>
+    <p class="shop-intro-sub">Real photos, real stock, sizes shown per piece — pick a size below to add it, no page reload. Ships in 1-2 business days.</p>
+
+    <!-- Real photography from the lookbook (images/look-*.jpg, same
+         files community.html uses) — proof of how a piece actually
+         looks worn, right where a visitor lands, not three clicks
+         away. -->
+    <div class="shop-lookbook">
+      <div class="shop-lookbook-row">
+        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior, worn" width="800" height="1200" loading="eager" decoding="async"></picture></div>
+        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      </div>
+      <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
+    </div>
+  </section>
+
   <!-- Every Active product in the real Shopify catalog, fetched live on
        load. Add, remove, or change something in Shopify Admin and this
        page reflects it automatically, nothing here is hardcoded. -->
   <section class="shop" id="shop">
-    <h1 class="rail-label">Shop All</h1>
     <div class="shop-grid" id="shopGrid"></div>
     <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
   </section>
@@ -245,6 +445,14 @@
   // Real, live catalog. Whatever's Active in Shopify shows here; Draft
   // products are absent from the response entirely, so they just don't
   // appear rather than erroring.
+  // options/selectedOptions added for quick-add size chips — both are
+  // fields this codebase already fetches without incident elsewhere
+  // (product.html, assets/fall-grid.js). quantityAvailable is
+  // deliberately NOT added here: that field, mixed into a catalog
+  // query, is what broke live images/pricing across browsers in
+  // production earlier this launch (see assets/fall-grid.js's
+  // history) — quick-add only ever needs the boolean
+  // availableForSale, never an exact count.
   async function fetchCatalog() {
     const data = await A.shopifyFetch(`{
       products(first: 50) {
@@ -252,9 +460,13 @@
           node {
             title
             handle
+            options { name values }
             featuredImage { ${A.IMAGE_FIELDS} }
             variants(first: 20) {
-              edges { node { availableForSale price { amount } compareAtPrice { amount } } }
+              edges { node {
+                id availableForSale price { amount } compareAtPrice { amount }
+                selectedOptions { name value }
+              } }
             }
           }
         }
@@ -270,6 +482,7 @@
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
       const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+      const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
       return {
         handle: node.handle,
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
@@ -279,6 +492,17 @@
         priceLabel: minPrice === maxPrice
           ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
           : `From $${minPrice}`,
+        // Quick-add only makes sense when Size is the one and only
+        // choice to make — a product with a second option (color,
+        // material) needs the full product page, where that choice
+        // has room to be made correctly.
+        sizes: hasSizeOnly
+          ? variants.map(v => ({
+              size: v.selectedOptions.find(o => o.name === 'Size').value,
+              variantId: v.id,
+              available: v.availableForSale,
+            }))
+          : null,
       };
     });
   }
@@ -293,18 +517,64 @@
           sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
         })
       : '';
+    const mine = A.preferredSize();
+    // .product is a plain wrapper now, not itself the link: a <button>
+    // can't legally nest inside an <a>, and quick-add needs both a
+    // navigable image/name and a set of buttons beside it.
+    const quickAdd = p.sizes
+      ? `<div class="quick-add" data-handle="${A.escapeAttr(p.handle)}">
+          ${p.sizes.map(s => `
+            <button type="button" class="qa-size${s.available ? '' : ' unavailable'}${s.size === mine ? ' mine' : ''}"
+                    data-variant-id="${A.escapeAttr(s.variantId)}" data-size="${A.escapeAttr(s.size)}"
+                    ${s.available ? '' : 'disabled'} aria-label="${s.available ? `Add size ${s.size} to cart` : `Size ${s.size}, sold out`}">
+              ${A.escapeHtml(s.size)}
+            </button>`).join('')}
+        </div>`
+      : '';
     return `
-      <a class="product" href="/products/${p.handle}.html">
-        <div class="product-img">
-          ${media}
-          <div class="price-badge tnum">${p.priceLabel}</div>
-        </div>
-        <div class="name-row">
-          <div class="name">${A.escapeHtml(p.name)}</div>
-          ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
-          ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
-        </div>
-      </a>`;
+      <div class="product">
+        <a class="product-link" href="/products/${p.handle}.html">
+          <div class="product-img">
+            ${media}
+            <div class="price-badge tnum">${p.priceLabel}</div>
+          </div>
+          <div class="name-row">
+            <div class="name">${A.escapeHtml(p.name)}</div>
+            ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
+            ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
+          </div>
+        </a>
+        ${quickAdd}
+      </div>`;
+  }
+
+  // Add straight from the grid — no navigation, so browsing never
+  // stops. A tapped size becomes a brief confirmation in place of the
+  // size row, then the sizes return so a second piece can be added
+  // right after. Delegated to the grid container since cards re-render
+  // wholesale on every fetch.
+  function bindQuickAdd(container) {
+    container.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.qa-size');
+      if (!btn || btn.disabled) return;
+      const wrap = btn.closest('.quick-add');
+      const handle = wrap.dataset.handle;
+      const size = btn.dataset.size;
+      const variantId = btn.dataset.variantId;
+      const sizesHTML = wrap.innerHTML;
+
+      wrap.innerHTML = `<span class="qa-msg">Adding…</span>`;
+      try {
+        await A.addToShopifyCart(variantId, 1);
+        A.recordSizeChoice(size);
+        A.klaviyoTrack('Added To Cart', { handle, size, source: 'shop-grid' });
+        wrap.innerHTML = `<span class="qa-msg">Added ${A.escapeHtml(size)} — <a href="/cart.html">view cart</a></span>`;
+        setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
+      } catch (err) {
+        wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
+        setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
+      }
+    });
   }
 
   function renderGrid(catalog) {
@@ -316,6 +586,7 @@
     // The first row is the LCP candidate, so it loads eagerly; the rest
     // are lazy. Never lazy-load the largest above-the-fold image.
     grid.innerHTML = catalog.map((p, i) => card(p, i < 3)).join('');
+    bindQuickAdd(grid);
 
     const items = grid.querySelectorAll('.product');
     const observer = new IntersectionObserver((entries) => {
@@ -344,7 +615,8 @@
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
       <h2 class="rail-label">Pick Up Where You Left Off</h2>
-      <div class="shop-grid">${seen.map(p => card(p, false)).join('')}</div>`;
+      <div class="shop-grid" id="shopRecentGrid">${seen.map(p => card(p, false)).join('')}</div>`;
+    bindQuickAdd(document.getElementById('shopRecentGrid'));
     section.classList.add('show');
   }
 
