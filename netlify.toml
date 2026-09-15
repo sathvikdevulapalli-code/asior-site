@@ -34,3 +34,26 @@
 
 # Old shared links (/product.html?id=handle) keep working; the page sets
 # its own canonical to the /products/ URL so ranking consolidates there.
+
+# The Early Access gate (index.html) and the standalone Fall page
+# (fall-collection.html) are both retired now that the drop is live and
+# ad traffic lands on /shop.html directly — see vercel.json's own
+# `redirects`, which is what actually runs in production. Kept in sync
+# here in case this ever builds on Netlify too.
+[[redirects]]
+  from = "/"
+  to = "/shop.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/index.html"
+  to = "/shop.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/fall-collection.html"
+  to = "/shop.html"
+  status = 301
+  force = true

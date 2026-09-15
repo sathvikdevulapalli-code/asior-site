@@ -31,13 +31,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- Early Access gate: redirects to index.html before this page renders
-     unless the visitor has entered ASIOR8 or the public drop has
-     passed. See assets/early-access-gate.js. Runs on every generated
-     /products/<handle>.html page too — scripts/build.js rewrites the
-     assets/ path the same way it does for site.js. -->
+<!-- Still needed for FALL_PRODUCTS (customer-facing name overrides)
+     and DROP_CLOSE_TIME (assets/drop-countdown.js) — nothing to do
+     with the Early Access gate, which is retired; see shop.html's
+     equivalent comment for why. -->
 <script src="assets/launch-config.js"></script>
-<script src="assets/early-access-gate.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -862,9 +860,9 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="fall-collection.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
-    <a class="mark" href="index.html">Asior</a>
+    <a class="mark" href="shop.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
@@ -1545,13 +1543,31 @@
       if (!hasOptions) { note.textContent = ''; note.classList.remove('show'); return; }
 
       const v = currentVariant();
-      if (v && v.available && typeof v.stockCount === 'number' && v.stockCount > 0 && v.stockCount <= 3) {
-        note.textContent = v.stockCount === 1
-          ? `Only 1 left in ${v.options.Size || 'this size'}.`
-          : `Only ${v.stockCount} left in ${v.options.Size || 'this size'}.`;
-        note.classList.add('show');
+      const haveRealStock = product.variants.some(vv => typeof vv.stockCount === 'number');
+
+      if (v && v.available && typeof v.stockCount === 'number') {
+        // Real data exists for this exact selection — it's the whole
+        // answer, whether that's genuinely low or perfectly healthy.
+        // Never fall through to the aggregate heuristic below once a
+        // real count is known, or a healthy size could still show a
+        // stale-feeling "sizes left" note driven by a *different*,
+        // unrelated size being low.
+        if (v.stockCount > 0 && v.stockCount <= 3) {
+          note.textContent = v.stockCount === 1
+            ? `Only 1 left in ${v.options.Size || 'this size'}.`
+            : `Only ${v.stockCount} left in ${v.options.Size || 'this size'}.`;
+          note.classList.add('show');
+        } else {
+          note.textContent = '';
+          note.classList.remove('show');
+        }
         return;
       }
+
+      // Real per-size data never came back (fetchVariantStock failed) —
+      // the only honest signal left is how many sizes remain available
+      // across the whole product.
+      if (haveRealStock) { note.textContent = ''; note.classList.remove('show'); return; }
 
       const total = product.variants.length;
       const availableCount = product.variants.filter(vv => vv.available).length;

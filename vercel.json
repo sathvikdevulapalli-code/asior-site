@@ -6,6 +6,11 @@
   "outputDirectory": ".",
   "cleanUrls": false,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/", "destination": "/shop.html", "permanent": true },
+    { "source": "/index.html", "destination": "/shop.html", "permanent": true },
+    { "source": "/fall-collection.html", "destination": "/shop.html", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

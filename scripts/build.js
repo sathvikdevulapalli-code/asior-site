@@ -42,10 +42,15 @@ const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
 const SHOPIFY_TOKEN = '90d08a1b479f1a4245738f227c5c6749';
 const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 
+// '/' and '/fall-collection.html' are deliberately absent: both now
+// 301 to /shop.html (see vercel.json's redirects — the Early Access
+// gate and the standalone Fall page are retired now that the drop is
+// live and ad traffic lands on /shop.html directly). A sitemap should
+// list the canonical destination, not a redirect.
 const STATIC_PAGES = [
-  '/', '/shop.html', '/community.html', '/contact.html',
+  '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
-  '/lanyard.html', '/jag-sweats.html', '/fall-collection.html',
+  '/lanyard.html', '/jag-sweats.html',
 ];
 
 const esc = s => String(s == null ? '' : s)
@@ -244,9 +249,9 @@ async function syncPolicy(slug, file) {
    assets/drop-countdown.js; see the <script> block near the bottom of
    each page in SHARED_MARKUP_PAGES. Empty until that runs so it never
    flashes stale/wrong text. */
-const HEADER_FULL = `  <div class="teaser-bar"><a href="fall-collection.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+const HEADER_FULL = `  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
-    <a class="mark" href="index.html">Asior</a>
+    <a class="mark" href="shop.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
@@ -260,12 +265,11 @@ const HEADER_FULL = `  <div class="teaser-bar"><a href="fall-collection.html" id
 `;
 
 /* privacy-policy.html and terms-of-service.html carry no nav and no
-   teaser bar on purpose: they're the two pages a visitor might read
-   before ever unlocking the gate (linked from the SMS/email consent
-   copy), and a full nav there would be the same catalog-bypass risk
-   as above. */
+   teaser bar on purpose: they're linked from the SMS/email consent
+   copy and read on their own, with no need to pull a visitor into the
+   rest of the catalog from there. */
 const HEADER_MINIMAL = `  <header>
-    <a class="mark" href="index.html">Asior</a>
+    <a class="mark" href="shop.html">Asior</a>
   </header>
 
   <div class="page-top-space"></div>
