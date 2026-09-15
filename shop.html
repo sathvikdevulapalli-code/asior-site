@@ -31,11 +31,16 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- Early Access gate: redirects to index.html before this page renders
-     unless the visitor has entered ASIOR8 or the public drop has
-     passed. See assets/early-access-gate.js. -->
+<!-- Still needed for DROP_CLOSE_TIME (assets/drop-countdown.js) and
+     FALL_PRODUCTS — nothing to do with the gate below. -->
 <script src="assets/launch-config.js"></script>
-<script src="assets/early-access-gate.js"></script>
+<!-- Early Access gate retired along with index.html (the gate UI it
+     redirected to): PUBLIC_LAUNCH_TIME is Sep 10, permanently in the
+     past, so assets/early-access-gate.js could never fire again for
+     this drop even if it were still loaded — and its redirect target,
+     index.html, now 301s straight to this page (see vercel.json),
+     so re-arming it for a future drop needs a real gate destination
+     rebuilt first, not just a new date in launch-config.js. -->
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -67,15 +72,6 @@
     padding: 6vh 40px 0;
     max-width: 1180px;
     margin: 0 auto;
-  }
-
-  .shop-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
   }
 
   .shop-intro h1 {
@@ -357,9 +353,9 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="fall-collection.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
-    <a class="mark" href="index.html">Asior</a>
+    <a class="mark" href="shop.html">Asior</a>
     <nav>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
@@ -375,7 +371,6 @@
   <main id="main">
 
   <section class="shop-intro">
-    <div class="shop-eyebrow">Fall 26 — closes September 27</div>
     <h1>Shop All</h1>
     <p class="shop-intro-sub">Real photos, real stock, sizes shown per piece — pick a size below to add it, no page reload. Ships in 1-2 business days.</p>
 
