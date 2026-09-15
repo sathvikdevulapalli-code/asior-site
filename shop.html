@@ -63,11 +63,7 @@
     background: var(--ink);
   }
 
-  /* ---------- intro + lookbook strip ----------
-     "Shop All" used to be a bare heading with nothing above the grid.
-     Ad traffic lands here directly now, so the first thing in view
-     needs to say what this is and prove it in real photos — not just
-     list product tiles cold. */
+  /* ---------- intro ---------- */
   .shop-intro {
     padding: 6vh 40px 0;
     max-width: 1180px;
@@ -81,22 +77,16 @@
     letter-spacing: -0.01em;
   }
 
-  .shop-intro-sub {
-    margin-top: 10px;
-    max-width: 56ch;
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--muted);
-  }
-
-  /* Real lookbook photography (images/look-*.jpg, the same files
-     community.html uses) — proof of how a piece actually looks worn,
-     not just a flat product shot, right where a visitor lands. Links
-     out to the full lookbook rather than duplicating it. */
+  /* ---------- lookbook strip (bottom of page) ----------
+     Real photography (images/look-*.jpg, the same files community.html
+     uses) — proof of how a piece looks worn, after the catalog rather
+     than before it now: the grid is why someone's here, this is what
+     keeps a scroller going past it. Links out to the full lookbook
+     rather than duplicating it. */
   .shop-lookbook {
-    margin-top: 4vh;
-    padding-bottom: 4vh;
-    border-bottom: 1px solid var(--line);
+    padding: 0 40px 12vh;
+    max-width: 1180px;
+    margin: 0 auto;
   }
 
   .shop-lookbook-row {
@@ -135,6 +125,7 @@
 
   @media (max-width: 640px) {
     .shop-intro { padding: 4vh 20px 0; }
+    .shop-lookbook { padding: 0 20px 8vh; }
     .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
   }
 
@@ -343,9 +334,9 @@
   }
 
   /* Recently-viewed rail. Hidden until there is real history to show. */
-  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 0 40px 12vh; }
+  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 4vh 40px 6vh; }
   .shop-recent.show { display: block; }
-  @media (max-width: 640px) { .shop-recent { padding: 0 20px 8vh; } }
+  @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 4vh; } }
 </style>
 </head>
 <body>
@@ -372,32 +363,41 @@
 
   <section class="shop-intro">
     <h1>Shop All</h1>
-    <p class="shop-intro-sub">Real photos, real stock, sizes shown per piece — pick a size below to add it, no page reload. Ships in 1-2 business days.</p>
-
-    <!-- Real photography from the lookbook (images/look-*.jpg, same
-         files community.html uses) — proof of how a piece actually
-         looks worn, right where a visitor lands, not three clicks
-         away. -->
-    <div class="shop-lookbook">
-      <div class="shop-lookbook-row">
-        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior, worn" width="800" height="1200" loading="eager" decoding="async"></picture></div>
-        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-        <div class="shop-look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      </div>
-      <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
-    </div>
   </section>
+
+  <!-- Personalization from real browsing history (assets/site.js's
+       getViewed()) — shown before the full catalog, not after, when
+       there's real history to act on. A returning visitor sees what's
+       relevant to them first; a first-time visitor never sees this
+       section at all (see renderRecentlyViewed's own guard). -->
+  <section class="shop-recent" id="shopRecent"></section>
 
   <!-- Every Active product in the real Shopify catalog, fetched live on
        load. Add, remove, or change something in Shopify Admin and this
-       page reflects it automatically, nothing here is hardcoded. -->
+       page reflects it automatically, nothing here is hardcoded. Order
+       is real merchandising (new Fall pieces first, then the
+       visitor's own size availability), not Shopify's default —
+       see sortForMerchandising below. -->
   <section class="shop" id="shop">
     <div class="shop-grid" id="shopGrid"></div>
     <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
   </section>
 
-  <section class="shop-recent" id="shopRecent"></section>
+  <!-- Real photography from the lookbook (images/look-*.jpg, same
+       files community.html uses) — proof of how a piece actually
+       looks worn. Sits after the catalog now: the grid is the reason
+       someone's on this page, the lookbook is the closer for anyone
+       still scrolling. -->
+  <section class="shop-lookbook">
+    <h2 class="rail-label">Lookbook</h2>
+    <div class="shop-lookbook-row">
+      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+    </div>
+    <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
+  </section>
 
   </main>
 
@@ -615,7 +615,33 @@
     section.classList.add('show');
   }
 
+  // Merchandising order, not Shopify's default order: the four new
+  // Fall pieces first, always — real handles from
+  // window.ASIOR_LAUNCH.FALL_PRODUCTS (assets/launch-config.js), in
+  // the order the founder set there, never a guess at which products
+  // count as "new." Everything else follows, with the visitor's own
+  // real most-picked size (assets/site.js's preferredSize()) bumped
+  // toward the front when it's genuinely in stock — personalization
+  // from actual behavior, not a fabricated recommendation.
+  function sortForMerchandising(catalog) {
+    const fallHandles = (window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_PRODUCTS || []).map(p => p.handle);
+    const mine = A.preferredSize();
+    const byHandle = new Map(catalog.map(p => [p.handle, p]));
+
+    const fall = fallHandles.map(h => byHandle.get(h)).filter(Boolean);
+    const fallSet = new Set(fall.map(p => p.handle));
+    const rest = catalog.filter(p => !fallSet.has(p.handle));
+
+    if (mine) {
+      const inMySize = p => p.sizes && p.sizes.some(s => s.size === mine && s.available);
+      rest.sort((a, b) => (inMySize(b) ? 1 : 0) - (inMySize(a) ? 1 : 0));
+    }
+
+    return [...fall, ...rest];
+  }
+
   fetchCatalog()
+    .then(sortForMerchandising)
     .then(renderGrid)
     .catch(() => {
       // fail open and honest, no fake stock left standing
