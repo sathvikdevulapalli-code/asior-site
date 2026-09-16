@@ -63,20 +63,6 @@
     background: var(--ink);
   }
 
-  /* ---------- intro ---------- */
-  .shop-intro {
-    padding: 6vh 40px 0;
-    max-width: 1180px;
-    margin: 0 auto;
-  }
-
-  .shop-intro h1 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(28px, 4vw, 42px);
-    letter-spacing: -0.01em;
-  }
-
   /* ---------- lookbook strip (bottom of page) ----------
      Real photography (images/look-*.jpg, the same files community.html
      uses) — proof of how a piece looks worn, after the catalog rather
@@ -124,14 +110,19 @@
   }
 
   @media (max-width: 640px) {
-    .shop-intro { padding: 4vh 20px 0; }
     .shop-lookbook { padding: 0 20px 8vh; }
     .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
   }
 
-  /* ---------- shop grid ---------- */
+  /* ---------- shop grid ----------
+     20px/16px top padding is the only thing separating the grid from
+     the fixed header (via .page-top-space, which just clears the
+     header's own height) — there's no heading or banner above this
+     section anymore. Keep this a real value here, not zero-plus-
+     something-above, so the gap can't silently reappear if another
+     section ever gets added above .shop again. */
   .shop {
-    padding: 0 40px 14vh;
+    padding: 20px 40px 14vh;
     max-width: 1180px;
     margin: 0 auto;
   }
@@ -322,7 +313,7 @@
     header .mark { font-size: 12px; }
     header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
     header nav::-webkit-scrollbar { display: none; }
-    .shop { padding: 0 20px 10vh; }
+    .shop { padding: 16px 20px 10vh; }
     .shop-grid { grid-template-columns: 1fr; gap: 14px; }
   }
 
@@ -361,9 +352,12 @@
 
   <main id="main">
 
-  <section class="shop-intro">
-    <h1>Shop All</h1>
-  </section>
+  <!-- Visually hidden: no heading shows and it takes up no space, but
+       the page keeps exactly one real <h1> for screen readers and SEO
+       rather than having none at all. Remove this too if that's not
+       wanted — .sr-only is the shared utility class (assets/site.css),
+       not something added for this. -->
+  <h1 class="sr-only">Shop All</h1>
 
   <!-- Personalization from real browsing history (assets/site.js's
        getViewed()) — shown before the full catalog, not after, when
