@@ -73,6 +73,19 @@
 
      `eager` is for the LCP image only — the product hero and the first
      row of the shop grid. Never lazy-load the LCP image. */
+  /* onerror fallback: a browser picks exactly one candidate out of
+     srcset by viewport width and device pixel ratio, and if that one
+     specific Shopify CDN transform 404s or errors, <img srcset> has no
+     built-in retry — it just fails, silently, as a blank box. Desktop
+     and mobile tend to land on different candidates (desktop usually
+     wants a narrower one per `sizes`, a high-DPR phone often wants the
+     widest), so a single broken transform size reads as "broken on
+     desktop, fine on mobile" or vice versa even though every candidate
+     came from the same real image. Falling back to the plain,
+     untransformed `url` (which Shopify always returns for a real
+     image) once, on error, means one bad transform can't blank the
+     whole photo. data-fallback carries the URL instead of embedding it
+     in the onerror string, so no attribute-escaping gymnastics. */
   function imgTag(img, opts) {
     opts = opts || {};
     if (!img) return '';
@@ -86,6 +99,8 @@
       opts.eager ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"',
       opts.id ? 'id="' + opts.id + '"' : '',
       opts.className ? 'class="' + opts.className + '"' : '',
+      img.url ? 'data-fallback="' + escapeAttr(img.url) + '"' : '',
+      img.url ? 'onerror="var f=this.dataset.fallback; if (f &amp;&amp; this.src !== f) { this.onerror=null; this.removeAttribute(\'srcset\'); this.removeAttribute(\'sizes\'); this.src=f; }"' : '',
     ].filter(Boolean).join(' ');
     return '<img ' + attrs + '>';
   }

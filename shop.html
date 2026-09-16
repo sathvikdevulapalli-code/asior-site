@@ -130,7 +130,7 @@
   .shop-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 28px 24px;
   }
 
   .product {
@@ -146,7 +146,7 @@
     position: relative;
     aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: 4px;
     background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
     transition: transform 160ms var(--ease-out);
   }
@@ -157,12 +157,13 @@
     bottom: 10px;
     z-index: 2;
     background: rgba(11, 10, 8, 0.72);
+    backdrop-filter: blur(4px);
     color: var(--ink);
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.05em;
     padding: 5px 8px;
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   .price-badge .compare {
@@ -232,9 +233,9 @@
   }
 
   .qa-size {
-    min-width: 30px;
-    height: 26px;
-    padding: 0 8px;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 9px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,14 +246,16 @@
     font-size: 10px;
     letter-spacing: 0.03em;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: 3px;
     position: relative;
     overflow: hidden;
     transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out);
   }
 
+  /* Filled, not just outlined, on hover — a quiet size chip should
+     still feel tactile/clickable, not just change a 1px border. */
   @media (hover: hover) and (pointer: fine) {
-    .qa-size:not(.unavailable):hover { border-color: var(--ink); }
+    .qa-size:not(.unavailable):hover { border-color: var(--ink); background: var(--ink); color: var(--bg); }
   }
 
   .qa-size:not(.unavailable):active { transform: scale(0.94); }
@@ -324,10 +327,14 @@
     }
   }
 
-  /* Recently-viewed rail. Hidden until there is real history to show. */
-  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 4vh 40px 6vh; }
+  /* Recently-viewed rail. Hidden until there is real history to show.
+     Bottom hairline is the only thing telling a returning visitor
+     "that was your personalized rail, this next part is the full
+     catalog" — without it the two grids read as one undifferentiated
+     block of identical-looking cards. */
+  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 4vh 40px 5vh; border-bottom: 1px solid var(--line); }
   .shop-recent.show { display: block; }
-  @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 4vh; } }
+  @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 3.5vh; } }
 </style>
 </head>
 <body>
@@ -566,18 +573,14 @@
     });
   }
 
-  function renderGrid(catalog) {
-    const grid = document.getElementById('shopGrid');
-    const empty = document.getElementById('shopEmpty');
-
-    if (catalog.length === 0) { empty.classList.add('show'); return; }
-
-    // The first row is the LCP candidate, so it loads eagerly; the rest
-    // are lazy. Never lazy-load the largest above-the-fold image.
-    grid.innerHTML = catalog.map((p, i) => card(p, i < 3)).join('');
-    bindQuickAdd(grid);
-
-    const items = grid.querySelectorAll('.product');
+  // Shared by both grids on this page (main catalog + recently-viewed)
+  // so a card fades in the same way regardless of which one it's in.
+  // Previously only the main grid was ever wired up here — cards in
+  // "Pick Up Where You Left Off" started at opacity:0 (see .product in
+  // the stylesheet above) and, with nothing ever adding .in, stayed
+  // invisible permanently. Real bug, not a design choice.
+  function revealOnScroll(container) {
+    const items = container.querySelectorAll('.product');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
         if (entry.isIntersecting) {
@@ -587,26 +590,50 @@
       });
     }, { threshold: 0.2 });
     items.forEach(p => observer.observe(p));
+  }
 
-    renderRecentlyViewed(catalog);
+  function renderGrid(catalog) {
+    const grid = document.getElementById('shopGrid');
+    const empty = document.getElementById('shopEmpty');
+
+    if (catalog.length === 0) { empty.classList.add('show'); return; }
+
+    // Whatever's already shown in "Pick Up Where You Left Off" is
+    // excluded from the main grid below it — a product should never
+    // appear twice on the same page. Computed here, before the main
+    // grid renders, so the exclusion is real (not a guess at what the
+    // rail will show).
+    const shownInRecent = renderRecentlyViewed(catalog);
+    const mainCatalog = catalog.filter(p => !shownInRecent.has(p.handle));
+
+    // The first row is the LCP candidate, so it loads eagerly; the rest
+    // are lazy. Never lazy-load the largest above-the-fold image.
+    grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 3)).join('');
+    bindQuickAdd(grid);
+    revealOnScroll(grid);
   }
 
   // Personalisation from real browsing history only — the pieces this
   // browser has actually opened, newest first. Nothing shown if there's
-  // no history, and never anything invented.
+  // no history, and never anything invented. Returns the set of handles
+  // actually rendered here, so renderGrid can exclude them from the
+  // main catalog below — never the same product twice on one page.
   function renderRecentlyViewed(catalog) {
     const seen = A.getViewed()
       .map(h => catalog.find(p => p.handle === h))
       .filter(Boolean)
       .slice(0, 4);
-    if (seen.length < 2) return;
+    if (seen.length < 2) return new Set();
 
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
       <h2 class="rail-label">Pick Up Where You Left Off</h2>
       <div class="shop-grid" id="shopRecentGrid">${seen.map(p => card(p, false)).join('')}</div>`;
-    bindQuickAdd(document.getElementById('shopRecentGrid'));
+    const recentGrid = document.getElementById('shopRecentGrid');
+    bindQuickAdd(recentGrid);
+    revealOnScroll(recentGrid);
     section.classList.add('show');
+    return new Set(seen.map(p => p.handle));
   }
 
   // Merchandising order, not Shopify's default order: the four new

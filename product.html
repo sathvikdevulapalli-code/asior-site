@@ -630,16 +630,6 @@
     line-height: 1.5;
   }
 
-  /* ---------- "your usual size" ---------- */
-  .pd-size-note {
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 10px;
-  }
-
   /* ---------- image zoom ---------- */
   .pd-media-main { position: relative; cursor: zoom-in; }
 
@@ -1204,16 +1194,16 @@
     const findVariant = sel => product.variants.find(v =>
       product.optionNames.every(n => v.options[n] === sel[n]));
 
-    // Personalisation: if this visitor has picked a size before, start
-    // them on it. Only when that size is genuinely available here.
-    const usual = A.preferredSize();
-    let startVariant = product.variants.find(v => v.available) || product.variants[0];
-    let usedUsualSize = false;
-    if (usual && product.optionNames.includes('Size')) {
-      const match = product.variants.find(v => v.available && v.options.Size === usual);
-      if (match) { startVariant = match; usedUsualSize = true; }
-    }
-    const selection = hasOptions ? { ...startVariant.options } : {};
+    // Nothing preselected. A past "usual size, preselected" feature
+    // here defaulted the size picker to whichever size this browser
+    // had clicked most before (assets/site.js's preferredSize()) — a
+    // real signal, never invented, but the founder's call is that a
+    // silent default (however honestly derived) still ends up biasing
+    // orders toward whatever a visitor happened to click first, and
+    // that's not worth the personalization. A size-less product still
+    // has exactly one real variant, so it's still selected by default
+    // — there's no picker to leave blank in that case.
+    const selection = hasOptions ? {} : { ...product.variants[0].options };
 
     // ---- media ----
     const mainImg = product.images.length
@@ -1309,7 +1299,6 @@
         <div class="pd-info">
           <div class="pd-buy" id="pdBuy">
             ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
-            <p class="pd-size-note" id="pdSizeNote"></p>
             <div class="pd-bis" id="pdBis">
               <div class="pd-bis-label" id="pdBisLabel">Email me when this is back</div>
               <div class="pd-bis-row">
@@ -1347,12 +1336,20 @@
     function renderPrice() {
       const v = currentVariant();
       const el = document.getElementById('pdPrice');
-      if (!v) { el.textContent = ''; return; }
-      const onSale = v.comparePrice && v.comparePrice > v.price;
-      el.innerHTML = onSale
-        ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
-          + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`
-        : `$${v.price}`;
+      if (v) {
+        const onSale = v.comparePrice && v.comparePrice > v.price;
+        el.innerHTML = onSale
+          ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
+            + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`
+          : `$${v.price}`;
+        return;
+      }
+      // No size picked yet (nothing is preselected) — still a real
+      // price, same min/max-across-variants fact shop.html's grid
+      // cards already show, not a placeholder.
+      const prices = product.variants.map(vv => vv.price);
+      const min = Math.min(...prices), max = Math.max(...prices);
+      el.textContent = min === max ? `$${min}` : `From $${min}`;
     }
 
     function renderSizes() {
@@ -1385,6 +1382,14 @@
     function renderAddButton() {
       const v = currentVariant();
       const btn = document.getElementById('addBtn');
+      const needsPick = hasOptions && product.optionNames.includes('Size') && !selection.Size;
+      if (needsPick) {
+        // Genuinely nothing chosen — not sold out, not ready to buy.
+        // Disabled stays disabled until a real click sets selection.Size.
+        btn.textContent = 'Select a Size';
+        btn.disabled = true;
+        return;
+      }
       const sold = !v || !v.available;
       btn.textContent = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Buy Now');
       btn.disabled = sold;
@@ -1488,11 +1493,6 @@
         prefix: 'fall drop closes — ',
         closedText: 'fall drop closed',
       });
-    }
-
-    // "Your usual size" only appears when we actually used it.
-    if (usedUsualSize) {
-      document.getElementById('pdSizeNote').textContent = `${usual} — your usual size, preselected`;
     }
 
     // ---- quantity ----
@@ -1611,11 +1611,26 @@
     document.head.appendChild(ldTag);
 
     // ---- related + recently viewed ----
+    // "You Might Also Like" used to be catalog.filter(not-this-product)
+    // with no other scope — on a live storefront with every Active
+    // product mixed together, that recommends whatever happens to sort
+    // first in Shopify's catalog order, drop or not. Scoped to the real
+    // Fall lineup (window.ASIOR_LAUNCH.FALL_PRODUCTS, the same source
+    // of truth shop.html's merchandising sort and every name override
+    // on this page already use) instead — the other three Fall pieces,
+    // never something outside the drop.
+    const fallList = (window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_PRODUCTS) || [];
+    const fallHandles = new Set(fallList.map(p => p.handle));
+    const fallName = handle => { const f = fallList.find(p => p.handle === handle); return f ? f.name : null; };
+
     const tiles = list => list.map(p => {
       const media = p.featuredImage
         ? A.imgTag(p.featuredImage, { alt: p.title, sizes: '(max-width: 640px) 50vw, 220px' })
         : `<div class="ph"></div>`;
-      return `<a class="rel-item" href="${productUrl(p.handle)}">${media}<div class="rel-name">${A.escapeHtml(p.title)}</div></a>`;
+      // Same rule as everywhere else on this page: the customer-facing
+      // Fall name overrides Shopify's own (sometimes internal) title.
+      const name = fallName(p.handle) || p.title;
+      return `<a class="rel-item" href="${productUrl(p.handle)}">${media}<div class="rel-name">${A.escapeHtml(name)}</div></a>`;
     }).join('');
 
     const priorViews = A.getViewed()
@@ -1623,7 +1638,9 @@
       .map(h => catalog.find(p => p.handle === h))
       .filter(Boolean);
 
-    const related = catalog.filter(p => p.handle !== product.handle).slice(0, 4);
+    const related = catalog
+      .filter(p => fallHandles.has(p.handle) && p.handle !== product.handle)
+      .slice(0, 4);
     let relHTML = '';
 
     if (related.length) {
