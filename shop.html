@@ -114,6 +114,107 @@
     .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
   }
 
+  /* Email/SMS capture for the browsing majority who don't buy today.
+     cart.html has had this exact offer for a while, but only a visitor
+     who already added something to cart ever sees it — everyone else,
+     which is most traffic, had zero way to leave contact info and be
+     brought back before the drop closes or for the next one. index.html
+     used to carry a version of this too, but it's now a pure 301 to
+     this page and its own signup form is unreachable dead code. Same
+     Klaviyo call, same real 10%-off incentive, same consent copy —
+     just on the page where visitors actually land. */
+  .shop-klaviyo {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6vh 40px 8vh;
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .shop-klaviyo-label {
+    font-family: var(--font-mono);
+    margin-bottom: 16px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .shop-signup-form {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .shop-signup-form input {
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--field-line);
+    padding: 8px 2px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--ink);
+    min-width: 150px;
+    transition: border-color 0.3s ease;
+  }
+
+  .shop-signup-form input::placeholder { color: var(--muted); }
+  .shop-signup-form input:focus { border-color: var(--ink); }
+
+  .shop-signup-form button {
+    position: relative;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    padding-bottom: 6px;
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .shop-signup-form button::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 300ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .shop-signup-form button:hover::after { width: 100%; }
+  }
+
+  .shop-signup-form button:not([disabled]):active { transform: scale(0.96); }
+  .shop-signup-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  .shop-signup-confirm {
+    display: none;
+    margin-top: 10px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .shop-signup-confirm.show { display: block; }
+
+  .shop-klaviyo .consent { margin-left: auto; margin-right: auto; }
+
+  @media (max-width: 640px) {
+    .shop-klaviyo { padding: 5vh 20px 6vh; }
+    .shop-signup-form { flex-direction: column; align-items: stretch; gap: 14px; }
+    .shop-signup-form input { text-align: center; }
+  }
+
   /* ---------- shop grid ----------
      20px/16px top padding is the only thing separating the grid from
      the fixed header (via .page-top-space, which just clears the
@@ -418,6 +519,28 @@
     <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
   </section>
 
+  <section class="shop-klaviyo">
+    <div class="shop-klaviyo-label">Get 10% Off Your First Order</div>
+    <form class="shop-signup-form" id="shopSignupForm">
+      <label class="sr-only" for="shopSignupEmail">Email address</label>
+      <input type="email" id="shopSignupEmail" name="email" placeholder="Email"
+             autocomplete="email" spellcheck="false" required>
+      <label class="sr-only" for="shopSignupPhone">Phone number (optional)</label>
+      <input type="tel" id="shopSignupPhone" name="phone" placeholder="Phone (optional)"
+             autocomplete="tel" inputmode="tel">
+      <button type="submit" id="shopSignupBtn">Sign Up</button>
+    </form>
+    <p class="consent">
+      Email only? Leave the phone field blank. By giving your number you agree to
+      receive recurring automated marketing texts from Asior at that number.
+      Consent is not a condition of any purchase. Message frequency varies and
+      message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
+      <a href="privacy-policy.html">Privacy Policy</a> and
+      <a href="terms-of-service.html">Terms of Service</a>.
+    </p>
+    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite">You're in. Check your inbox for your code.</div>
+  </section>
+
   </main>
 
   <!-- FOOTER:START -->
@@ -455,6 +578,38 @@
       closedText: 'fall drop closed',
     });
   }
+
+  // Same signup cart.html has had — real Klaviyo list, real 10%-off
+  // incentive, same consent copy — just reachable from the page every
+  // visitor actually lands on, not only the ones who already added
+  // something to cart.
+  (function bindShopSignupForm() {
+    const form = document.getElementById('shopSignupForm');
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('shopSignupBtn');
+      const confirmEl = document.getElementById('shopSignupConfirm');
+      const email = document.getElementById('shopSignupEmail').value;
+      const phone = document.getElementById('shopSignupPhone').value;
+
+      btn.disabled = true;
+      try {
+        await A.klaviyoSubscribe(email, phone);
+        A.klaviyoTrack('Early Access Signup',
+          Object.assign({ source: 'website', signup_location: 'shop', campaign: 'fall_2026', interest: 'fall_collection' },
+            A.getUTMParams()),
+          { email: email });
+        form.style.display = 'none';
+        confirmEl.textContent = "You're in. Check your inbox for your code.";
+        confirmEl.classList.add('show');
+      } catch (err) {
+        confirmEl.textContent = 'Something went wrong, try again in a moment.';
+        confirmEl.classList.add('show');
+        btn.disabled = false;
+      }
+    });
+  })();
 
   // Real, live catalog. Whatever's Active in Shopify shows here; Draft
   // products are absent from the response entirely, so they just don't
