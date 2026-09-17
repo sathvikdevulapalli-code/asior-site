@@ -468,39 +468,50 @@
         }
       }
     }`);
-    return data.products.edges.map(e => {
-      const node = e.node;
-      const variants = node.variants.edges.map(v => v.node);
-      const prices = variants.map(v => parseFloat(v.price.amount));
-      const compares = variants
-        .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
-        .filter(Boolean);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
-      const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
-      return {
-        handle: node.handle,
-        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-        image: node.featuredImage,
-        isPreorder: /\[preorder\]/i.test(node.title),
-        soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-        priceLabel: minPrice === maxPrice
-          ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
-          : `From $${minPrice}`,
-        // Quick-add only makes sense when Size is the one and only
-        // choice to make — a product with a second option (color,
-        // material) needs the full product page, where that choice
-        // has room to be made correctly.
-        sizes: hasSizeOnly
-          ? variants.map(v => ({
-              size: v.selectedOptions.find(o => o.name === 'Size').value,
-              variantId: v.id,
-              available: v.availableForSale,
-            }))
-          : null,
-      };
-    });
+    // One malformed product from a 50-item live catalog should never
+    // blank the whole shop grid. Map defensively, skip anything that
+    // doesn't fit the shape we expect, and say so in the console rather
+    // than silently dropping it or crashing the entire fetch.
+    return data.products.edges.reduce((acc, e) => {
+      try {
+        const node = e.node;
+        const variants = node.variants.edges.map(v => v.node);
+        const prices = variants.map(v => parseFloat(v.price.amount));
+        const compares = variants
+          .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
+          .filter(Boolean);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+        const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
+        acc.push({
+          handle: node.handle,
+          name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+          image: node.featuredImage,
+          isPreorder: /\[preorder\]/i.test(node.title),
+          soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
+          priceLabel: minPrice === maxPrice
+            ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
+            : `From $${minPrice}`,
+          // Quick-add only makes sense when Size is the one and only
+          // choice to make — a product with a second option (color,
+          // material) needs the full product page, where that choice
+          // has room to be made correctly. A variant missing a "Size"
+          // selected option (bad data, not a code path we can fix here)
+          // falls back to null rather than throwing and taking every
+          // other product on the page down with it.
+          sizes: hasSizeOnly
+            ? variants.map(v => {
+                const sizeOpt = v.selectedOptions.find(o => o.name === 'Size');
+                return sizeOpt ? { size: sizeOpt.value, variantId: v.id, available: v.availableForSale } : null;
+              }).filter(Boolean)
+            : null,
+        });
+      } catch (err) {
+        console.warn('Skipping malformed product in shop grid:', e.node && e.node.handle, err);
+      }
+      return acc;
+    }, []);
   }
 
   function card(p, eager) {
