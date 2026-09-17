@@ -642,6 +642,24 @@
 
   .not-found a { text-decoration: underline; }
 
+  /* Same gap shop.html had: #pd-root starts empty and nothing showed
+     while fetchProduct/fetchCatalogLite were in flight. This is the
+     single most purchase-critical page on the site, so a stalled
+     connection here is worse than anywhere else to leave silent. */
+  .pd-loading {
+    min-height: 40vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pd-loading.hide { display: none; }
+
   @media (max-width: 720px) {
     /* head -> media -> info: see the comment on .pd above. Same three
        blocks as desktop, reordered so price and the buy box don't sit
@@ -931,6 +949,7 @@
 
   <main id="main">
 
+  <div class="pd-loading" id="pdLoading">Loading…</div>
   <div id="pd-root"></div>
   <div id="rel-root"></div>
 
@@ -1225,6 +1244,7 @@
         fetchProduct(HANDLE), fetchCatalogLite(), fetchVariantStock(HANDLE),
       ]);
       stockByVariant = stock;
+      document.getElementById('pdLoading').classList.add('hide');
       if (!p) {
         // Soft 404: the page renders a friendly message but used to
         // still return 200 with no robots hint, so Google indexed it as
@@ -1240,6 +1260,8 @@
       product = normalizeProduct(p, stockByVariant);
       catalog = c;
     } catch (err) {
+      console.error('Product page failed to load:', err);
+      document.getElementById('pdLoading').classList.add('hide');
       root.innerHTML = `
         <div class="not-found">
           <div>Couldn't load this product right now. Try refreshing.</div>

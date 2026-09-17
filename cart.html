@@ -63,6 +63,21 @@
 
   .cart-empty a { text-decoration: underline; color: var(--ink); }
 
+  /* Same fix as shop.html/product.html: don't show nothing while the
+     live cart fetch is in flight. A visitor with items already in
+     their cart is close to checkout -- a page that looks broken here
+     is a lost sale one step from the finish line. */
+  .cart-loading {
+    padding: 6vh 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cart-loading.hide { display: none; }
+
   .cart-item {
     display: grid;
     grid-template-columns: 76px 1fr auto auto;
@@ -298,6 +313,7 @@
 
   <section class="cart-wrap">
     <h1 class="rail-label">Cart</h1>
+    <div class="cart-loading" id="cartLoading">Loading your cart…</div>
     <div id="cartRoot"></div>
   </section>
 
@@ -420,6 +436,7 @@
   async function renderLive() {
     const root = document.getElementById('cartRoot');
     const cart = await getShopifyCart();
+    document.getElementById('cartLoading').classList.add('hide');
 
     if (!cart || cart.lines.edges.length === 0) {
       root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
@@ -488,9 +505,11 @@
     bindCartSignupForm();
   }
 
-  renderLive().catch(() => {
+  renderLive().catch((err) => {
     // Fail open, honestly: if the live Shopify fetch itself fails
     // (network, API hiccup), say so instead of leaving a blank cart.
+    console.error('Cart failed to load:', err);
+    document.getElementById('cartLoading').classList.add('hide');
     document.getElementById('cartRoot').innerHTML = `
       <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> with what you wanted and we'll sort it out.</div>
     `;
