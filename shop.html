@@ -636,10 +636,18 @@
       .slice(0, 4);
     if (seen.length < 2) return new Set();
 
+    // This rail renders as the very first thing on the page for a
+    // returning visitor — it IS the above-the-fold content here, not
+    // the main grid below it. Every card was being marked lazy
+    // regardless of position, which on a real mobile connection meant
+    // a visible gap: heading renders instantly (it's text), then a
+    // wait while the browser gets around to fetching images it was
+    // told it could defer, then the cards pop in. Same eager-first-row
+    // rule renderGrid() already uses for the main grid, applied here.
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
       <h2 class="rail-label">Pick Up Where You Left Off</h2>
-      <div class="shop-grid" id="shopRecentGrid">${seen.map(p => card(p, false)).join('')}</div>`;
+      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3)).join('')}</div>`;
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
     revealOnScroll(recentGrid);
