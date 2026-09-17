@@ -92,10 +92,15 @@ and check both desktop and mobile viewports.
 
 ## Standing process for changes here
 
-- Work on a branch. Show the diff. No commit or push without explicit
-  approval.
+- Work on a branch. Show the diff.
 - Playwright verification at desktop and mobile widths, with screenshots,
-  before asking for that approval.
+  first. Once verification and the regression suite pass and the diff's
+  been shown, commit and push without waiting for a separate go-ahead —
+  standing approval, no need to re-approve each batch.
+- Stop and ask first instead of pushing when: a test fails, something's
+  ambiguous, or the change touches the checkout/purchase flow
+  specifically (cart mutations, `checkoutUrl` redirects, the domain
+  Shopify checkout exits to).
 - Don't invent product facts, copy, measurements, prices, or sizes.
 - Don't add fake urgency, fake stock, fake reviews, or fake
   strikethrough/discount pricing.
