@@ -339,17 +339,38 @@
 
   // -----------------------------------------------------------------
   // Browsing history — the basis for every personalised surface on the
-  // site. Real views only, most-recent-first, deduped and capped.
+  // site. Real views only, most-recent-first, deduped and capped, and
+  // aged out after RECENT_VIEW_MAX_AGE_MS: without an expiry, a device
+  // that only ever viewed products once, testing the site weeks ago,
+  // would show "Pick Up Where You Left Off" forever after — technically
+  // real history, but not "recent" by any reasonable reading, and not
+  // what that section is for.
   // -----------------------------------------------------------------
-  function getViewed() {
-    try { return JSON.parse(localStorage.getItem('asior_viewed') || '[]'); }
+  var RECENT_VIEW_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+  function getViewedRaw() {
+    var raw;
+    try { raw = JSON.parse(localStorage.getItem('asior_viewed') || '[]'); }
     catch (err) { return []; }
+    var now = Date.now();
+    // Entries from before this timestamp existed are bare handle
+    // strings with no way to know their age — treat them as expired
+    // rather than showing indefinitely-old history as "recent".
+    return raw.filter(function (entry) {
+      return entry && typeof entry === 'object' && typeof entry.ts === 'number' && (now - entry.ts) < RECENT_VIEW_MAX_AGE_MS;
+    });
+  }
+
+  function getViewed() {
+    return getViewedRaw().map(function (entry) { return entry.handle; });
   }
 
   function recordView(handle) {
-    var history = [handle].concat(getViewed().filter(function (h) { return h !== handle; })).slice(0, 8);
+    var history = [{ handle: handle, ts: Date.now() }]
+      .concat(getViewedRaw().filter(function (entry) { return entry.handle !== handle; }))
+      .slice(0, 8);
     localStorage.setItem('asior_viewed', JSON.stringify(history));
-    return history;
+    return history.map(function (entry) { return entry.handle; });
   }
 
   /* Sizes this visitor has actually picked, counted. Used to preselect
