@@ -26,15 +26,35 @@
   // -----------------------------------------------------------------
   // Shopify Storefront API
   // -----------------------------------------------------------------
+  // Plain fetch() never times out on its own -- a stalled request (cold
+  // connection, flaky cellular, an ad-network in-app browser's own
+  // proxy hanging) just sits forever. A page that shows nothing until
+  // this resolves then looks permanently blank, not slow. 12s is
+  // generous for a real but poor connection while still failing fast
+  // enough to show the existing "couldn't load" states instead of
+  // hanging indefinitely.
+  var SHOPIFY_FETCH_TIMEOUT_MS = 12000;
+
   async function shopifyFetch(query, variables) {
-    var res = await fetch('https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-      },
-      body: JSON.stringify({ query: query, variables: variables || {} }),
-    });
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, SHOPIFY_FETCH_TIMEOUT_MS);
+    var res;
+    try {
+      res = await fetch('https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({ query: query, variables: variables || {} }),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err && err.name === 'AbortError') throw new Error('Request timed out');
+      throw err;
+    } finally {
+      clearTimeout(timeout);
+    }
     var json = await res.json();
     if (json.errors) throw new Error(json.errors.map(function (e) { return e.message; }).join(', '));
     return json.data;

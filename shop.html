@@ -307,6 +307,23 @@
 
   .shop-empty.show { display: block; }
 
+  /* Shown the instant the page loads, hidden the instant the grid (or
+     the empty/error state) actually renders. Without this, the window
+     between page-load and the catalog fetch resolving -- now capped at
+     12s by shopifyFetch's own timeout, but real on a slow connection
+     regardless -- looked identical to a broken page: nothing on
+     screen, no way to tell "loading" from "stuck." */
+  .shop-loading {
+    padding: 6vh 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .shop-loading.hide { display: none; }
+
   @media (max-width: 900px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -380,6 +397,7 @@
        visitor's own size availability), not Shopify's default —
        see sortForMerchandising below. -->
   <section class="shop" id="shop">
+    <div class="shop-loading" id="shopLoading">Loading the shop…</div>
     <div class="shop-grid" id="shopGrid"></div>
     <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
   </section>
@@ -604,6 +622,7 @@
   }
 
   function renderGrid(catalog) {
+    document.getElementById('shopLoading').classList.add('hide');
     const grid = document.getElementById('shopGrid');
     const empty = document.getElementById('shopEmpty');
 
@@ -683,8 +702,12 @@
   fetchCatalog()
     .then(sortForMerchandising)
     .then(renderGrid)
-    .catch(() => {
-      // fail open and honest, no fake stock left standing
+    .catch((err) => {
+      // fail open and honest, no fake stock left standing. Logged
+      // (not shown) so a real failure is diagnosable from a device's
+      // console instead of just "the shop was blank" secondhand.
+      console.error('Shop catalog failed to load:', err);
+      document.getElementById('shopLoading').classList.add('hide');
       const empty = document.getElementById('shopEmpty');
       empty.textContent = "Couldn't load the shop right now, try refreshing.";
       empty.classList.add('show');
