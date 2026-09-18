@@ -213,12 +213,12 @@
 <!-- Deliberately no <nav> here — no Shop, Community, Contact or
      Manufacturing links, no cart icon. Every other page on the site pulls
      header/nav in from site.css because they're all meant to lead further
-     into the store. This one link goes out from the passphrase gate before
-     the drop is public, and a full nav on the far end of it would let
-     anyone follow Shop straight into the rest of the catalog — the one
-     thing the gate is there to hold back. So this page shows the lanyard
-     and nothing else to click into. -->
-<header class="lp-header"><a href="index.html">Asior</a></header>
+     into the store; this is a single-purpose landing page (paid links, QR
+     codes) meant for one decision, buy the lanyard or don't, so it shows
+     nothing else to click into. The mark links to shop.html, same target
+     as every other page's header — index.html (the old Early Access gate)
+     is retired and just redirects there anyway, see vercel.json. -->
+<header class="lp-header"><a href="shop.html">Asior</a></header>
 
 <main id="main">
   <div id="lp-root"></div>
@@ -282,7 +282,7 @@
       const p = await fetchProduct(HANDLE);
       if (!p) {
         document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
-        root.innerHTML = `<div class="not-found"><div>That piece isn't in the catalog.</div><a href="index.html">Back to Asior</a></div>`;
+        root.innerHTML = `<div class="not-found"><div>That piece isn't in the catalog.</div><a href="shop.html">Back to Asior</a></div>`;
         return;
       }
       const optionNames = p.options.map(o => o.name).filter(n => n !== 'Title');
@@ -305,7 +305,7 @@
         isPreorder: /\[preorder\]/i.test(p.title),
       };
     } catch (err) {
-      root.innerHTML = `<div class="not-found"><div>Couldn't load this right now. Try refreshing.</div><a href="index.html">Back to Asior</a></div>`;
+      root.innerHTML = `<div class="not-found"><div>Couldn't load this right now. Try refreshing.</div><a href="shop.html">Back to Asior</a></div>`;
       return;
     }
 
