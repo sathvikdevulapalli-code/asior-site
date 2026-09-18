@@ -73,7 +73,12 @@ async function fetchProducts() {
     products(first: 100) {
       edges { node {
         handle title descriptionHtml updatedAt
-        featuredImage { url altText width height }
+        featuredImage {
+          url altText width height
+          w400: url(transform:{maxWidth:400, preferredContentType:WEBP})
+          w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
+          w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
+        }
         images(first: 4) { edges { node { url } } }
         variants(first: 40) { edges { node {
           sku availableForSale price { amount currencyCode } compareAtPrice { amount }
@@ -307,6 +312,121 @@ const SHARED_MARKUP_PAGES = [
   ['fall-collection.html', HEADER_FULL],
 ];
 
+/* ===================================================================
+   Static shop grid.
+
+   shop.html's catalog is fetched client-side, so until now the served
+   HTML contained no products at all — a crawler, a link preview, or a
+   browser that hasn't run the JS yet saw an empty grid. That's the same
+   problem renderProductPage already solves for product pages, and the
+   same fix applies: bake the real catalog into the HTML at build time
+   as the floor, and let the live JS replace it so price and stock stay
+   current.
+
+   Nothing here is hardcoded — it's the same live Shopify response the
+   product pages and sitemap are built from. If Shopify is unreachable
+   the build already aborts before reaching this point, leaving the last
+   good HTML in place rather than publishing an empty shop.
+   =================================================================== */
+
+/* Fall pieces lead the grid, in the order the founder set in
+   assets/launch-config.js. Read from that file rather than duplicated
+   here so FALL_PRODUCTS stays the single source of truth — if the
+   handles move, this follows automatically. */
+function fallHandles() {
+  const src = fs.readFileSync(path.join(ROOT, 'assets', 'launch-config.js'), 'utf8');
+  const block = src.match(/FALL_PRODUCTS:\s*\[([\s\S]*?)\]/);
+  if (!block) return [];
+  return [...block[1].matchAll(/handle:\s*'([^']+)'/g)].map(m => m[1]);
+}
+
+function sortForMerchandising(products) {
+  const order = fallHandles();
+  const byHandle = new Map(products.map(p => [p.handle, p]));
+  const fall = order.map(h => byHandle.get(h)).filter(Boolean);
+  const fallSet = new Set(fall.map(p => p.handle));
+  return [...fall, ...products.filter(p => !fallSet.has(p.handle))];
+}
+
+/* Mirrors shop.html's own card() so the pre-rendered markup and the
+   JS-rendered markup are the same shape. Quick-add chips are
+   deliberately omitted: they do nothing without JS, and the live render
+   adds them the moment it runs. */
+function shopCard(p, eager) {
+  const variants = p.variants.edges.map(e => e.node);
+  const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
+  if (!prices.length) return '';
+
+  const compares = variants
+    .map(v => (v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null))
+    .filter(Boolean);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const compare = compares.length && compares[0] > min ? compares[0] : null;
+  const priceLabel = min === max
+    ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${min}`
+    : `From $${min}`;
+
+  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const isPreorder = /\[preorder\]/i.test(p.title);
+  const soldOut = variants.length > 0 && variants.every(v => !v.availableForSale);
+
+  const img = p.featuredImage;
+  let media = '<div class="ph"></div>';
+  if (img && img.url) {
+    const srcset = [
+      img.w400 ? `${esc(img.w400)} 400w` : '',
+      img.w800 ? `${esc(img.w800)} 800w` : '',
+      img.w1200 ? `${esc(img.w1200)} 1200w` : '',
+    ].filter(Boolean).join(', ');
+    media = '<img '
+      + `src="${esc(img.w1200 || img.url)}" `
+      + (srcset ? `srcset="${srcset}" ` : '')
+      + 'sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" '
+      + `alt="${esc('Asior ' + name)}" `
+      + (img.width ? `width="${esc(img.width)}" ` : '')
+      + (img.height ? `height="${esc(img.height)}" ` : '')
+      + (eager ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"')
+      + '>';
+  }
+
+  // .in is applied up front: .product starts at opacity 0 and is
+  // revealed by an IntersectionObserver, so without it these cards
+  // would be invisible to exactly the no-JS visitors they exist for.
+  return `
+      <div class="product in">
+        <a class="product-link" href="/products/${esc(p.handle)}.html">
+          <div class="product-img">
+            ${media}
+            <div class="price-badge tnum">${priceLabel}</div>
+          </div>
+          <div class="name-row">
+            <div class="name">${esc(name)}</div>
+            ${isPreorder ? '<span class="preorder-tag">Preorder</span>' : ''}
+            ${soldOut ? '<span class="preorder-tag">Sold Out</span>' : ''}
+          </div>
+        </a>
+      </div>`;
+}
+
+function renderShopGrid(products) {
+  // First row is the LCP candidate — eager, same rule the live render
+  // uses. Everything below the fold stays lazy.
+  return sortForMerchandising(products)
+    .map((p, i) => shopCard(p, i < 3))
+    .filter(Boolean)
+    .join('\n') + '\n';
+}
+
+function syncShopGrid(products) {
+  const target = path.join(ROOT, 'shop.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const next = replaceBetween(html, '<!-- SHOPGRID:START -->', '<!-- SHOPGRID:END -->', renderShopGrid(products));
+  if (next === null) throw new Error('shop.html: SHOPGRID markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return sortForMerchandising(products).length;
+}
+
 function replaceBetween(html, startMarker, endMarker, replacement) {
   const start = html.indexOf(startMarker);
   const end = html.indexOf(endMarker);
@@ -351,6 +471,7 @@ function syncSharedMarkup() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
+    console.log(`✓ shop.html grid pre-rendered with ${syncShopGrid(products)} products`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
     // which is far better than publishing a site whose shop links all

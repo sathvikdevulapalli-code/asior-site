@@ -425,6 +425,13 @@
 
   .shop-loading.hide { display: none; }
 
+  /* When build.js has pre-rendered real products into the grid, there is
+     nothing to wait for — hide the loading line without needing JS to
+     run, so a no-JS visitor doesn't read "Loading the shop…" sitting
+     above a fully rendered catalog. The .hide class above still covers
+     browsers too old for :has(); this just gets there first. */
+  .shop:has(#shopGrid .product) .shop-loading { display: none; }
+
   @media (max-width: 900px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -499,8 +506,21 @@
        see sortForMerchandising below. -->
   <section class="shop" id="shop">
     <div class="shop-loading" id="shopLoading">Loading the shop…</div>
-    <div class="shop-grid" id="shopGrid"></div>
-    <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
+    <!-- scripts/build.js bakes the real catalog between these markers at
+         deploy time, so the served HTML contains actual products for
+         crawlers, link previews, and anyone whose JS hasn't run yet. The
+         live fetch below replaces them so price and stock stay current —
+         the static markup is the floor, not the ceiling. -->
+    <div class="shop-grid" id="shopGrid">
+      <!-- SHOPGRID:START -->
+      <!-- SHOPGRID:END -->
+    </div>
+    <!-- Intentionally empty in the served HTML. This used to carry
+         "Nothing in the shop right now" as static text, which is hidden
+         by CSS but still sits in the markup — a scraper reading raw HTML
+         reports the store as empty when it isn't. The message is set
+         from JS, only when it's actually true. -->
+    <div class="shop-empty" id="shopEmpty"></div>
   </section>
 
   <!-- Real photography from the lookbook (images/look-*.jpg, same
@@ -578,6 +598,14 @@
       closedText: 'fall drop closed',
     });
   }
+
+  // Whether scripts/build.js baked a real catalog into the grid at
+  // deploy time. Captured now, before the live render overwrites it.
+  // When it did, there are already products on screen: no loading
+  // message belongs over them, and the live cards shouldn't fade in
+  // over content the visitor is already reading.
+  const WAS_PRERENDERED = document.getElementById('shopGrid').children.length > 0;
+  if (WAS_PRERENDERED) document.getElementById('shopLoading').classList.add('hide');
 
   // Same signup cart.html has had — real Klaviyo list, real 10%-off
   // incentive, same consent copy — just reachable from the page every
@@ -781,7 +809,12 @@
     const grid = document.getElementById('shopGrid');
     const empty = document.getElementById('shopEmpty');
 
-    if (catalog.length === 0) { empty.classList.add('show'); return; }
+    if (catalog.length === 0) {
+      grid.innerHTML = '';
+      empty.textContent = 'Nothing in the shop right now, check back soon.';
+      empty.classList.add('show');
+      return;
+    }
 
     // Whatever's already shown in "Pick Up Where You Left Off" is
     // excluded from the main grid below it — a product should never
@@ -795,7 +828,12 @@
     // are lazy. Never lazy-load the largest above-the-fold image.
     grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 3)).join('');
     bindQuickAdd(grid);
-    revealOnScroll(grid);
+    if (WAS_PRERENDERED) {
+      // Swapping pre-rendered cards for live ones should be invisible.
+      grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+    } else {
+      revealOnScroll(grid);
+    }
   }
 
   // Personalisation from real browsing history only — the pieces this
