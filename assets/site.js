@@ -26,15 +26,35 @@
   // -----------------------------------------------------------------
   // Shopify Storefront API
   // -----------------------------------------------------------------
+  // Plain fetch() never times out on its own -- a stalled request (cold
+  // connection, flaky cellular, an ad-network in-app browser's own
+  // proxy hanging) just sits forever. A page that shows nothing until
+  // this resolves then looks permanently blank, not slow. 12s is
+  // generous for a real but poor connection while still failing fast
+  // enough to show the existing "couldn't load" states instead of
+  // hanging indefinitely.
+  var SHOPIFY_FETCH_TIMEOUT_MS = 12000;
+
   async function shopifyFetch(query, variables) {
-    var res = await fetch('https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-      },
-      body: JSON.stringify({ query: query, variables: variables || {} }),
-    });
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, SHOPIFY_FETCH_TIMEOUT_MS);
+    var res;
+    try {
+      res = await fetch('https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({ query: query, variables: variables || {} }),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err && err.name === 'AbortError') throw new Error('Request timed out');
+      throw err;
+    } finally {
+      clearTimeout(timeout);
+    }
     var json = await res.json();
     if (json.errors) throw new Error(json.errors.map(function (e) { return e.message; }).join(', '));
     return json.data;
@@ -73,6 +93,19 @@
 
      `eager` is for the LCP image only — the product hero and the first
      row of the shop grid. Never lazy-load the LCP image. */
+  /* onerror fallback: a browser picks exactly one candidate out of
+     srcset by viewport width and device pixel ratio, and if that one
+     specific Shopify CDN transform 404s or errors, <img srcset> has no
+     built-in retry — it just fails, silently, as a blank box. Desktop
+     and mobile tend to land on different candidates (desktop usually
+     wants a narrower one per `sizes`, a high-DPR phone often wants the
+     widest), so a single broken transform size reads as "broken on
+     desktop, fine on mobile" or vice versa even though every candidate
+     came from the same real image. Falling back to the plain,
+     untransformed `url` (which Shopify always returns for a real
+     image) once, on error, means one bad transform can't blank the
+     whole photo. data-fallback carries the URL instead of embedding it
+     in the onerror string, so no attribute-escaping gymnastics. */
   function imgTag(img, opts) {
     opts = opts || {};
     if (!img) return '';
@@ -86,6 +119,8 @@
       opts.eager ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"',
       opts.id ? 'id="' + opts.id + '"' : '',
       opts.className ? 'class="' + opts.className + '"' : '',
+      img.url ? 'data-fallback="' + escapeAttr(img.url) + '"' : '',
+      img.url ? 'onerror="var f=this.dataset.fallback; if (f &amp;&amp; this.src !== f) { this.onerror=null; this.removeAttribute(\'srcset\'); this.removeAttribute(\'sizes\'); this.src=f; }"' : '',
     ].filter(Boolean).join(' ');
     return '<img ' + attrs + '>';
   }
@@ -324,17 +359,38 @@
 
   // -----------------------------------------------------------------
   // Browsing history — the basis for every personalised surface on the
-  // site. Real views only, most-recent-first, deduped and capped.
+  // site. Real views only, most-recent-first, deduped and capped, and
+  // aged out after RECENT_VIEW_MAX_AGE_MS: without an expiry, a device
+  // that only ever viewed products once, testing the site weeks ago,
+  // would show "Pick Up Where You Left Off" forever after — technically
+  // real history, but not "recent" by any reasonable reading, and not
+  // what that section is for.
   // -----------------------------------------------------------------
-  function getViewed() {
-    try { return JSON.parse(localStorage.getItem('asior_viewed') || '[]'); }
+  var RECENT_VIEW_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+  function getViewedRaw() {
+    var raw;
+    try { raw = JSON.parse(localStorage.getItem('asior_viewed') || '[]'); }
     catch (err) { return []; }
+    var now = Date.now();
+    // Entries from before this timestamp existed are bare handle
+    // strings with no way to know their age — treat them as expired
+    // rather than showing indefinitely-old history as "recent".
+    return raw.filter(function (entry) {
+      return entry && typeof entry === 'object' && typeof entry.ts === 'number' && (now - entry.ts) < RECENT_VIEW_MAX_AGE_MS;
+    });
+  }
+
+  function getViewed() {
+    return getViewedRaw().map(function (entry) { return entry.handle; });
   }
 
   function recordView(handle) {
-    var history = [handle].concat(getViewed().filter(function (h) { return h !== handle; })).slice(0, 8);
+    var history = [{ handle: handle, ts: Date.now() }]
+      .concat(getViewedRaw().filter(function (entry) { return entry.handle !== handle; }))
+      .slice(0, 8);
     localStorage.setItem('asior_viewed', JSON.stringify(history));
-    return history;
+    return history.map(function (entry) { return entry.handle; });
   }
 
   /* Sizes this visitor has actually picked, counted. Used to preselect

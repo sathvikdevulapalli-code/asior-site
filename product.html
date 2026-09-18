@@ -338,6 +338,70 @@
 
   .pd-add[disabled]:hover { opacity: 0.4; }
 
+  /* Mobile sticky buy bar. A long PDP (gallery, then price, then
+     variants, then description) scrolls the real Add-to-Cart button
+     out of the thumb zone right when a shopper who scrolled down to
+     read more decides to buy — the moment of intent shouldn't cost a
+     scroll back to the top. Carries its own compact size chips, not
+     just a CTA that jumps back up: a shopper who hasn't picked a size
+     yet needs to be able to finish the purchase from here, not be
+     bounced back to the top of the page to do it. Desktop keeps the
+     real buy box in easy reach already, so this never shows there. */
+  .pd-sticky {
+    display: none;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+    transform: translateY(100%);
+    transition: transform 220ms var(--ease-out);
+  }
+
+  .pd-sticky.show { transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    .pd-sticky { display: flex; }
+  }
+
+  .pd-sticky-info { min-width: 0; flex-shrink: 1; }
+
+  .pd-sticky-name {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pd-sticky-price { font-size: 14px; font-weight: 600; }
+
+  .pd-sticky-sizes {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+
+  .pd-sticky-sizes .pd-size {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .pd-sticky .pd-add {
+    flex-shrink: 0;
+    padding: 11px 20px;
+    font-size: 11px;
+  }
+
   .pd-desc {
     margin-top: 40px;
     padding-top: 32px;
@@ -578,6 +642,24 @@
 
   .not-found a { text-decoration: underline; }
 
+  /* Same gap shop.html had: #pd-root starts empty and nothing showed
+     while fetchProduct/fetchCatalogLite were in flight. This is the
+     single most purchase-critical page on the site, so a stalled
+     connection here is worse than anywhere else to leave silent. */
+  .pd-loading {
+    min-height: 40vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pd-loading.hide { display: none; }
+
   @media (max-width: 720px) {
     /* head -> media -> info: see the comment on .pd above. Same three
        blocks as desktop, reordered so price and the buy box don't sit
@@ -628,16 +710,6 @@
     font-size: 12px;
     color: var(--muted);
     line-height: 1.5;
-  }
-
-  /* ---------- "your usual size" ---------- */
-  .pd-size-note {
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 10px;
   }
 
   /* ---------- image zoom ---------- */
@@ -877,6 +949,7 @@
 
   <main id="main">
 
+  <div class="pd-loading" id="pdLoading">Loading…</div>
   <div id="pd-root"></div>
   <div id="rel-root"></div>
 
@@ -1171,6 +1244,7 @@
         fetchProduct(HANDLE), fetchCatalogLite(), fetchVariantStock(HANDLE),
       ]);
       stockByVariant = stock;
+      document.getElementById('pdLoading').classList.add('hide');
       if (!p) {
         // Soft 404: the page renders a friendly message but used to
         // still return 200 with no robots hint, so Google indexed it as
@@ -1186,6 +1260,8 @@
       product = normalizeProduct(p, stockByVariant);
       catalog = c;
     } catch (err) {
+      console.error('Product page failed to load:', err);
+      document.getElementById('pdLoading').classList.add('hide');
       root.innerHTML = `
         <div class="not-found">
           <div>Couldn't load this product right now. Try refreshing.</div>
@@ -1204,16 +1280,16 @@
     const findVariant = sel => product.variants.find(v =>
       product.optionNames.every(n => v.options[n] === sel[n]));
 
-    // Personalisation: if this visitor has picked a size before, start
-    // them on it. Only when that size is genuinely available here.
-    const usual = A.preferredSize();
-    let startVariant = product.variants.find(v => v.available) || product.variants[0];
-    let usedUsualSize = false;
-    if (usual && product.optionNames.includes('Size')) {
-      const match = product.variants.find(v => v.available && v.options.Size === usual);
-      if (match) { startVariant = match; usedUsualSize = true; }
-    }
-    const selection = hasOptions ? { ...startVariant.options } : {};
+    // Nothing preselected. A past "usual size, preselected" feature
+    // here defaulted the size picker to whichever size this browser
+    // had clicked most before (assets/site.js's preferredSize()) — a
+    // real signal, never invented, but the founder's call is that a
+    // silent default (however honestly derived) still ends up biasing
+    // orders toward whatever a visitor happened to click first, and
+    // that's not worth the personalization. A size-less product still
+    // has exactly one real variant, so it's still selected by default
+    // — there's no picker to leave blank in that case.
+    const selection = hasOptions ? {} : { ...product.variants[0].options };
 
     // ---- media ----
     const mainImg = product.images.length
@@ -1309,7 +1385,6 @@
         <div class="pd-info">
           <div class="pd-buy" id="pdBuy">
             ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
-            <p class="pd-size-note" id="pdSizeNote"></p>
             <div class="pd-bis" id="pdBis">
               <div class="pd-bis-label" id="pdBisLabel">Email me when this is back</div>
               <div class="pd-bis-row">
@@ -1340,6 +1415,14 @@
           ${descHTML}
           ${trustBlockHTML(product.handle)}
         </div>
+      </div>
+      <div class="pd-sticky" id="pdSticky">
+        <div class="pd-sticky-info">
+          <div class="pd-sticky-name">${A.escapeHtml(product.name)}</div>
+          <div class="pd-sticky-price tnum" id="pdStickyPrice"></div>
+        </div>
+        ${hasOptions ? `<div class="pd-sticky-sizes" id="pdStickySizes"></div>` : ''}
+        <button class="pd-add" id="addBtnSticky">${product.isPreorder ? 'Preorder' : 'Buy Now'}</button>
       </div>`;
 
     const currentVariant = () => hasOptions ? findVariant(selection) : product.variants[0];
@@ -1347,12 +1430,24 @@
     function renderPrice() {
       const v = currentVariant();
       const el = document.getElementById('pdPrice');
-      if (!v) { el.textContent = ''; return; }
-      const onSale = v.comparePrice && v.comparePrice > v.price;
-      el.innerHTML = onSale
-        ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
-          + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`
-        : `$${v.price}`;
+      const stickyEl = document.getElementById('pdStickyPrice');
+      if (v) {
+        const onSale = v.comparePrice && v.comparePrice > v.price;
+        el.innerHTML = onSale
+          ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
+            + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`
+          : `$${v.price}`;
+        if (stickyEl) stickyEl.textContent = `$${v.price}`;
+        return;
+      }
+      // No size picked yet (nothing is preselected) — still a real
+      // price, same min/max-across-variants fact shop.html's grid
+      // cards already show, not a placeholder.
+      const prices = product.variants.map(vv => vv.price);
+      const min = Math.min(...prices), max = Math.max(...prices);
+      const label = min === max ? `$${min}` : `From $${min}`;
+      el.textContent = label;
+      if (stickyEl) stickyEl.textContent = label;
     }
 
     function renderSizes() {
@@ -1372,22 +1467,62 @@
       }).join('');
 
       wrap.querySelectorAll('.pd-size').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (btn.classList.contains('unavailable')) { openBackInStock(btn.dataset.value); return; }
-          selection[btn.dataset.option] = btn.dataset.value;
-          if (btn.dataset.option === 'Size') A.recordSizeChoice(btn.dataset.value);
-          hideBackInStock();
-          renderSizes(); renderPrice(); renderAddButton(); renderStockNote();
-        });
+        btn.addEventListener('click', () => selectOption(btn.dataset.option, btn.dataset.value, btn.classList.contains('unavailable')));
       });
+
+      renderStickySizes();
+    }
+
+    // The sticky bar only ever offers the "Size" option — the one
+    // choice that actually blocks a purchase from finishing. A product
+    // with a second option (color, material) still routes that pick
+    // through the full buy box; duplicating every option down here
+    // would turn a quick bar into a second product page.
+    function renderStickySizes() {
+      const wrap = document.getElementById('pdStickySizes');
+      if (!wrap || !product.optionNames.includes('Size')) return;
+      const values = [...new Set(product.variants.map(v => v.options.Size))];
+      wrap.innerHTML = values.map(val => {
+        const v = findVariant({ ...selection, Size: val });
+        const sel = selection.Size === val;
+        const avail = v ? v.available : false;
+        return `<button type="button" class="pd-size${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
+                  data-option="Size" data-value="${A.escapeAttr(val)}"
+                  aria-label="Size ${A.escapeAttr(val)}" aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
+      }).join('');
+      wrap.querySelectorAll('.pd-size').forEach(btn => {
+        btn.addEventListener('click', () => selectOption(btn.dataset.option, btn.dataset.value, btn.classList.contains('unavailable')));
+      });
+    }
+
+    // Shared by both the main size buttons and the sticky bar's —
+    // whichever one a shopper actually taps, both stay in sync.
+    function selectOption(option, value, wasUnavailable) {
+      if (wasUnavailable) { openBackInStock(value); return; }
+      selection[option] = value;
+      if (option === 'Size') A.recordSizeChoice(value);
+      hideBackInStock();
+      renderSizes(); renderPrice(); renderAddButton(); renderStockNote();
     }
 
     function renderAddButton() {
       const v = currentVariant();
       const btn = document.getElementById('addBtn');
+      const stickyBtn = document.getElementById('addBtnSticky');
+      const needsPick = hasOptions && product.optionNames.includes('Size') && !selection.Size;
+      if (needsPick) {
+        // Genuinely nothing chosen — not sold out, not ready to buy.
+        // Disabled stays disabled until a real click sets selection.Size.
+        btn.textContent = 'Select a Size';
+        btn.disabled = true;
+        if (stickyBtn) { stickyBtn.textContent = 'Select a Size'; stickyBtn.disabled = true; }
+        return;
+      }
       const sold = !v || !v.available;
-      btn.textContent = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Buy Now');
+      const label = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Buy Now');
+      btn.textContent = label;
       btn.disabled = sold;
+      if (stickyBtn) { stickyBtn.textContent = label; stickyBtn.disabled = sold; }
       if (sold && v) openBackInStock(selection.Size);
     }
 
@@ -1490,11 +1625,6 @@
       });
     }
 
-    // "Your usual size" only appears when we actually used it.
-    if (usedUsualSize) {
-      document.getElementById('pdSizeNote').textContent = `${usual} — your usual size, preselected`;
-    }
-
     // ---- quantity ----
     let qty = 1;
     const qtyVal = document.getElementById('qtyVal');
@@ -1527,6 +1657,37 @@
         btn.textContent = product.isPreorder ? 'Preorder' : 'Buy Now';
       }
     });
+
+    // Proxy straight to the real button's own handler rather than
+    // duplicating the cart/checkout logic here — one source of truth
+    // for what "buy" actually does.
+    const addBtnSticky = document.getElementById('addBtnSticky');
+    if (addBtnSticky) {
+      addBtnSticky.addEventListener('click', () => {
+        if (!addBtnSticky.disabled) document.getElementById('addBtn').click();
+      });
+    }
+
+    // Shows once the real Add-to-Cart button has been seen and then
+    // scrolled past — never on load. On a tall mobile layout (big hero
+    // image, name, price, countdown) the real button often hasn't
+    // rendered into view yet at the moment this observer attaches, so
+    // "not intersecting" alone would fire the sticky bar immediately —
+    // exactly the "appears before the visitor has even seen the page"
+    // mistake this bar exists to avoid. Requiring one real sighting
+    // first means it only ever appears after an actual scroll-past.
+    const pdSticky = document.getElementById('pdSticky');
+    if (pdSticky) {
+      let hasBeenSeen = false;
+      const observer = new IntersectionObserver(
+        (entries) => entries.forEach(entry => {
+          if (entry.isIntersecting) hasBeenSeen = true;
+          pdSticky.classList.toggle('show', hasBeenSeen && !entry.isIntersecting);
+        }),
+        { threshold: 0 }
+      );
+      observer.observe(document.getElementById('addBtn'));
+    }
 
     // Honest, real-inventory urgency: only ever fires when genuinely
     // true, re-run on every size change so it always describes the
@@ -1611,11 +1772,26 @@
     document.head.appendChild(ldTag);
 
     // ---- related + recently viewed ----
+    // "You Might Also Like" used to be catalog.filter(not-this-product)
+    // with no other scope — on a live storefront with every Active
+    // product mixed together, that recommends whatever happens to sort
+    // first in Shopify's catalog order, drop or not. Scoped to the real
+    // Fall lineup (window.ASIOR_LAUNCH.FALL_PRODUCTS, the same source
+    // of truth shop.html's merchandising sort and every name override
+    // on this page already use) instead — the other three Fall pieces,
+    // never something outside the drop.
+    const fallList = (window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_PRODUCTS) || [];
+    const fallHandles = new Set(fallList.map(p => p.handle));
+    const fallName = handle => { const f = fallList.find(p => p.handle === handle); return f ? f.name : null; };
+
     const tiles = list => list.map(p => {
       const media = p.featuredImage
         ? A.imgTag(p.featuredImage, { alt: p.title, sizes: '(max-width: 640px) 50vw, 220px' })
         : `<div class="ph"></div>`;
-      return `<a class="rel-item" href="${productUrl(p.handle)}">${media}<div class="rel-name">${A.escapeHtml(p.title)}</div></a>`;
+      // Same rule as everywhere else on this page: the customer-facing
+      // Fall name overrides Shopify's own (sometimes internal) title.
+      const name = fallName(p.handle) || p.title;
+      return `<a class="rel-item" href="${productUrl(p.handle)}">${media}<div class="rel-name">${A.escapeHtml(name)}</div></a>`;
     }).join('');
 
     const priorViews = A.getViewed()
@@ -1623,7 +1799,9 @@
       .map(h => catalog.find(p => p.handle === h))
       .filter(Boolean);
 
-    const related = catalog.filter(p => p.handle !== product.handle).slice(0, 4);
+    const related = catalog
+      .filter(p => fallHandles.has(p.handle) && p.handle !== product.handle)
+      .slice(0, 4);
     let relHTML = '';
 
     if (related.length) {
