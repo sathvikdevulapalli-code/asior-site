@@ -441,10 +441,79 @@
     return null; // healthy stock — no label needed
   }
 
+  /* -----------------------------------------------------------------
+     Shipping copy, from one source.
+
+     Every shipping promise on the site comes through here so the words
+     can't drift apart across pages — the PDP saying one thing and the
+     cart another is how a customer ends up feeling misled at checkout.
+     Reads assets/promo-config.js.
+
+     The honesty rule: a free-shipping claim only appears when
+     ASIOR_SHIPPING.VERIFIED is filled in, meaning someone actually
+     checked Shopify's shipping settings. Unverified, it falls back to
+     the always-safe "calculated at checkout" line rather than
+     promising something Shopify might charge for.
+
+     Fulfilment and transit are deliberately never merged. "Ships in
+     1-2 business days" is how long before it leaves; transit is how
+     long it then takes to arrive. Stating one number invites the
+     reader to hear the other. */
+  function shippingConfig() {
+    return window.ASIOR_SHIPPING || {};
+  }
+
+  function freeShippingActive() {
+    var s = shippingConfig();
+    return Boolean(s.VERIFIED) && typeof s.FREE_THRESHOLD === 'number';
+  }
+
+  /* The one-line shipping promise shown next to the buy button. */
+  function shippingLine() {
+    var s = shippingConfig();
+    var fulfil = s.FULFILMENT || '1-2 business days';
+    var region = s.REGION ? ', ' + s.REGION : '';
+    if (freeShippingActive() && s.FREE_THRESHOLD === 0) {
+      return 'Free shipping on every order, no minimum. Ships in ' + fulfil + region + '.';
+    }
+    if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
+      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Ships in ' + fulfil + region + '.';
+    }
+    return 'Ships in ' + fulfil + '. Shipping cost calculated at checkout'
+      + (s.REGION ? ' — ' + s.REGION : '') + '.';
+  }
+
+  /* Short badge for the announcement bar and shop grid. Null when
+     there's nothing verified to claim. */
+  function freeShippingBadge() {
+    var s = shippingConfig();
+    if (!freeShippingActive()) return null;
+    if (s.FREE_THRESHOLD === 0) return 'free shipping on every order';
+    return 'free shipping over $' + s.FREE_THRESHOLD;
+  }
+
+  /* Cart progress toward free shipping. Returns null when there is no
+     verified threshold to measure against — better to say nothing than
+     to count someone toward a number that might not be real. Never
+     returns a negative amount. */
+  function freeShippingProgress(subtotal) {
+    var s = shippingConfig();
+    if (!freeShippingActive()) return null;
+    if (s.FREE_THRESHOLD === 0) return { unlocked: true, text: 'free shipping applied' };
+    var amount = parseFloat(subtotal);
+    if (isNaN(amount)) return null;
+    var away = s.FREE_THRESHOLD - amount;
+    if (away <= 0) return { unlocked: true, text: 'free shipping unlocked' };
+    return { unlocked: false, away: away, text: '$' + away.toFixed(2) + ' away from free shipping' };
+  }
+
   // -----------------------------------------------------------------
   window.Asior = {
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
+    shippingLine: shippingLine,
+    freeShippingBadge: freeShippingBadge,
+    freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,
     imgTag: imgTag,
     escapeAttr: escapeAttr,

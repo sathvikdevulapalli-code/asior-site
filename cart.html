@@ -37,6 +37,7 @@
      nothing to do with the Early Access gate, which is retired; see
      shop.html's equivalent comment for why. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -161,6 +162,12 @@
     letter-spacing: 0.03em;
     color: var(--muted);
     text-align: center;
+  }
+
+  .cart-freeship {
+    color: var(--ink);
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
   }
 
   .cart-klaviyo {
@@ -356,6 +363,9 @@
     A.renderDropCountdown({
       el: document.getElementById('teaserBar'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }
@@ -466,7 +476,14 @@
       </div>
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
       <div class="cart-trust">
-        <span>Ships in 1-2 business days via USPS (US only for now).</span>
+        ${(() => {
+          // Progress toward free shipping, from the real subtotal and a
+          // verified threshold. Returns null when nothing is confirmed,
+          // and never a negative amount.
+          const p = A.freeShippingProgress(cart.cost.subtotalAmount.amount);
+          return p ? `<span class="cart-freeship">${A.escapeHtml(p.text)}</span>` : '';
+        })()}
+        <span>${A.escapeHtml(A.shippingLine())}</span>
         <span>No account needed, check out as a guest.</span>
       </div>
       <div class="cart-klaviyo">

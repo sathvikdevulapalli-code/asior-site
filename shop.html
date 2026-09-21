@@ -34,6 +34,7 @@
 <!-- Still needed for DROP_CLOSE_TIME (assets/drop-countdown.js) and
      FALL_PRODUCTS — nothing to do with the gate below. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 <!-- Early Access gate retired along with index.html (the gate UI it
      redirected to): PUBLIC_LAUNCH_TIME is Sep 10, permanently in the
      past, so assets/early-access-gate.js could never fire again for
@@ -408,6 +409,15 @@
 
   .shop-empty.show { display: block; }
 
+  .shop-shipping {
+    margin: 0 0 22px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    color: var(--ink);
+  }
+
   /* Shown the instant the page loads, hidden the instant the grid (or
      the empty/error state) actually renders. Without this, the window
      between page-load and the catalog fetch resolving -- now capped at
@@ -505,6 +515,10 @@
        visitor's own size availability), not Shopify's default —
        see sortForMerchandising below. -->
   <section class="shop" id="shop">
+    <!-- Verified shipping offer, stated once above the grid. Filled by
+         JS from assets/promo-config.js and left empty when nothing is
+         confirmed, so an unverified claim can never render here. -->
+    <p class="shop-shipping" id="shopShipping" hidden></p>
     <div class="shop-loading" id="shopLoading">Loading the shop…</div>
     <!-- scripts/build.js bakes the real catalog between these markers at
          deploy time, so the served HTML contains actual products for
@@ -595,6 +609,9 @@
     A.renderDropCountdown({
       el: document.getElementById('teaserBar'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }
@@ -606,6 +623,15 @@
   // over content the visitor is already reading.
   const WAS_PRERENDERED = document.getElementById('shopGrid').children.length > 0;
   if (WAS_PRERENDERED) document.getElementById('shopLoading').classList.add('hide');
+
+  // Stated once, above the grid, and only when verified.
+  (function showShippingOffer() {
+    const badge = A.freeShippingBadge && A.freeShippingBadge();
+    if (!badge) return;
+    const el = document.getElementById('shopShipping');
+    el.textContent = badge;
+    el.hidden = false;
+  })();
 
   // Same signup cart.html has had — real Klaviyo list, real 10%-off
   // incentive, same consent copy — just reachable from the page every

@@ -36,6 +36,7 @@
      with the Early Access gate, which is retired; see shop.html's
      equivalent comment for why. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -1000,6 +1001,9 @@
     A.renderDropCountdown({
       el: document.getElementById('teaserBar'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }
@@ -1225,9 +1229,17 @@
     // fill the gap instead.
     const body = tables ? tables + model + howToMeasure(kind) : model + howToMeasure(kind);
 
+    // Label it for what's actually inside. Until this garment has real
+    // measurements in product-details.js there is no table here, only
+    // the how-to-measure method — and "Size Guide" on a panel with no
+    // sizes in it spends a shopper's attention and returns nothing,
+    // which is worse than not offering the link. The moment real
+    // numbers land, this becomes a Size Guide again automatically.
+    const label = tables ? 'Size Guide' : 'How to Measure';
+
     return `
       <details class="pd-ship pd-size-chart">
-        <summary>Size Guide</summary>
+        <summary>${label}</summary>
         <div class="pd-ship-body">${body}</div>
       </details>`;
   }
@@ -1410,7 +1422,7 @@
           ${product.isPreorder
             ? `<p class="pd-note" id="pdNote">${preorderNote}</p>
                <p class="pd-note">14-day returns on unworn, unwashed items with tags attached.</p>`
-            : `<p class="pd-note" id="pdNote">Ships in 1-2 business days via USPS. Shipping cost calculated at checkout — US only for now.</p>
+            : `<p class="pd-note" id="pdNote">${A.escapeHtml(A.shippingLine())}</p>
                <p class="pd-note">14-day returns on unworn, unwashed items with tags attached. No account needed at checkout.</p>`}
           ${descHTML}
           ${trustBlockHTML(product.handle)}

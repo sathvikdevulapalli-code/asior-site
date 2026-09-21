@@ -66,6 +66,7 @@
      — see assets/launch-config.js for why this has to load synchronously
      and can't wait for assets/site.js at the bottom of the page. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 
 <!-- The film is deliberately NOT preloaded. rel=preload has no idea that
      <video> picks between two <source>s, so it would fetch whichever one
@@ -1852,6 +1853,15 @@
            render) so the two never fight over the same line. Links to
            lanyard.html — "make it known" means actionable, not just
            visible. -->
+      <!-- INERT + UNBACKED — DO NOT RE-SURFACE WITHOUT FOUNDER SIGN-OFF.
+           This page 301s to shop.html (vercel.json), so no visitor reaches
+           this badge. That's the only reason it isn't currently a problem:
+           "first 10 orders" is a static string that never decrements, and
+           nothing in Shopify attaches a lanyard to the first ten orders.
+           Past order ten it is simply untrue, which the brand's
+           no-fake-scarcity rule forbids. Before this is ever shown again
+           it needs to be either driven by a real order count, or reworded
+           to something durable the founder confirms he'll honour. -->
       <a class="fall-drop-offer" href="lanyard.html">first 10 orders ship with a free asior lanyard</a>
       <p class="fall-drop-countdown" id="fallDropCountdown">Fall Collection &mdash; closes Sep 27</p>
       <p class="fall-drop-sub" id="fallDropSub"></p>
@@ -2282,6 +2292,9 @@
     window.Asior.renderDropCountdown({
       el: document.getElementById('fallDropCountdown'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }
