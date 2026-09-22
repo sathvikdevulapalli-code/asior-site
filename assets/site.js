@@ -162,6 +162,31 @@
     return updated;
   }
 
+  /* Buy Now: a throwaway cart holding exactly this one line.
+
+     Deliberately does NOT touch the persisted cart. Buy Now used to add
+     to the saved cart and redirect, which meant buying, going back, and
+     buying again appended a second line — checkout then showed two
+     polos for what the shopper thought was one purchase. Real shoppers
+     do exactly that, and it was the reported bug.
+
+     A fresh cart per press fixes it without the other trap: clearing or
+     reusing the saved cart would silently throw away whatever the
+     shopper had already quick-added from the grid. Their saved cart is
+     left exactly as it was, so the header badge stays truthful — which
+     is why this doesn't call renderCartCount.
+
+     Same shape as Shopify's own "Buy it now". */
+  async function createBuyNowCart(variantId, qty) {
+    var data = await shopifyFetch(
+      'mutation($lines: [CartLineInput!]!) {' +
+      '  cartCreate(input: { lines: $lines }) { cart { id checkoutUrl totalQuantity } }' +
+      '}',
+      { lines: [{ merchandiseId: variantId, quantity: qty || 1 }] }
+    );
+    return data.cartCreate.cart;
+  }
+
   /* Cart count in the header. Only rendered once the real number is
      known, and hidden at zero — an empty cart shouldn't wear a badge. */
   function renderCartCount(n) {
@@ -535,6 +560,7 @@
     escapeHtml: escapeHtml,
     getOrCreateCart: getOrCreateCart,
     addToShopifyCart: addToShopifyCart,
+    createBuyNowCart: createBuyNowCart,
     renderCartCount: renderCartCount,
     refreshCartCount: refreshCartCount,
     klaviyoSubscribe: klaviyoSubscribe,
@@ -554,6 +580,25 @@
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
   };
 
+  /* Give the fixed header something solid behind it the moment the page
+     scrolls, so content stops showing through the nav. Passive listener:
+     this never calls preventDefault, and marking it so keeps it off the
+     scrolling critical path. */
+  function wireHeaderScrollState() {
+    var header = document.querySelector('header');
+    if (!header) return;
+    var scrolled = null;
+    function sync() {
+      var next = window.scrollY > 8;
+      if (next === scrolled) return;   // only touch the DOM on a real change
+      scrolled = next;
+      header.classList.toggle('is-scrolled', next);
+    }
+    sync();
+    window.addEventListener('scroll', sync, { passive: true });
+  }
+
+  wireHeaderScrollState();
   refreshCartCount();
   // Capture on every page load, not just at submit time — a visitor
   // can land on one page carrying UTM params and convert on a

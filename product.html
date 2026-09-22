@@ -1655,7 +1655,12 @@
       btn.disabled = true;
       btn.textContent = 'Redirecting…';
       try {
-        const updated = await A.addToShopifyCart(v.variantId, qty);
+        // Buy Now gets its own single-line cart rather than appending to
+        // the saved one. Buying, pressing back, and buying again used to
+        // stack a second line, so checkout showed two of the same piece
+        // for what the shopper meant as one purchase. Their saved cart
+        // is untouched, so anything quick-added from the grid survives.
+        const updated = await A.createBuyNowCart(v.variantId, qty);
         if (selection.Size) A.recordSizeChoice(selection.Size);
         A.klaviyoTrack('Added To Cart', {
           product: product.name, handle: product.handle,
