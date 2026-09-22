@@ -787,10 +787,28 @@
   // size row, then the sizes return so a second piece can be added
   // right after. Delegated to the grid container since cards re-render
   // wholesale on every fetch.
+  /* One quick-add at a time, across every grid on the page.
+
+     Swapping the chips for "Adding…" hides them but is a rendering
+     change, not a guard: a fast triple-tap still lands three clicks,
+     and each one used to fire its own cartLinesAdd — three separate
+     lines of the same size for what the customer experienced as one
+     tap. Tapping S and then M before the first request resolves did
+     the same thing. The product page has always had a real guard
+     (it disables the button before awaiting); this is the equivalent.
+
+     Module-scoped rather than per-container so the main grid and the
+     recently-viewed rail can't both have one in flight at once — they
+     add to the same cart. */
+  let quickAddInFlight = false;
+
   function bindQuickAdd(container) {
     container.addEventListener('click', async (e) => {
       const btn = e.target.closest('.qa-size');
       if (!btn || btn.disabled) return;
+      if (quickAddInFlight) return;
+      quickAddInFlight = true;
+
       const wrap = btn.closest('.quick-add');
       const handle = wrap.dataset.handle;
       const size = btn.dataset.size;
@@ -807,6 +825,10 @@
       } catch (err) {
         wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
+      } finally {
+        // Always cleared, including on failure — otherwise one failed
+        // add would silently disable quick-add for the whole session.
+        quickAddInFlight = false;
       }
     });
   }

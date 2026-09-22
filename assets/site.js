@@ -468,7 +468,18 @@
     return Boolean(s.VERIFIED) && typeof s.FREE_THRESHOLD === 'number';
   }
 
-  /* The one-line shipping promise shown next to the buy button. */
+  /* The one-line shipping promise shown next to the buy button.
+
+     The free-shipping branches only fire when freeShippingActive() —
+     i.e. a real, verified rate exists. With no free shipping the line
+     states the real starting price instead, which is the honest
+     version of the same reassurance: it tells a shopper the cost
+     exists and roughly what it is, on the product page, rather than
+     letting them discover it at checkout.
+
+     No region claim. Shopify ships internationally with calculated
+     rates, so naming the US price is accurate while "US only" was
+     not — it was turning away buyers the store can serve. */
   function shippingLine() {
     var s = shippingConfig();
     var fulfil = s.FULFILMENT || '1-2 business days';
@@ -479,7 +490,11 @@
     if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
       return 'Free shipping over $' + s.FREE_THRESHOLD + '. Ships in ' + fulfil + region + '.';
     }
-    return 'Ships in ' + fulfil + '. Shipping cost calculated at checkout'
+    if (typeof s.FROM_PRICE === 'number') {
+      return 'Ships in ' + fulfil + '. Shipping from $' + s.FROM_PRICE.toFixed(2)
+        + ' in the US, calculated at checkout.';
+    }
+    return 'Ships in ' + fulfil + '. Shipping calculated at checkout'
       + (s.REGION ? ' — ' + s.REGION : '') + '.';
   }
 

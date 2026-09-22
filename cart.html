@@ -164,12 +164,6 @@
     text-align: center;
   }
 
-  .cart-freeship {
-    color: var(--ink);
-    font-family: var(--font-mono);
-    letter-spacing: 0.06em;
-  }
-
   .cart-klaviyo {
     margin-top: 28px;
     padding-top: 24px;
@@ -476,13 +470,6 @@
       </div>
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
       <div class="cart-trust">
-        ${(() => {
-          // Progress toward free shipping, from the real subtotal and a
-          // verified threshold. Returns null when nothing is confirmed,
-          // and never a negative amount.
-          const p = A.freeShippingProgress(cart.cost.subtotalAmount.amount);
-          return p ? `<span class="cart-freeship">${A.escapeHtml(p.text)}</span>` : '';
-        })()}
         <span>${A.escapeHtml(A.shippingLine())}</span>
         <span>No account needed, check out as a guest.</span>
       </div>

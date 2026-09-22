@@ -987,31 +987,6 @@
     margin-bottom: 10px;
   }
 
-  /* A real badge, not a footnote — filled instead of outlined and
-     sized up from the site's usual tag treatment (.preorder-tag etc.)
-     so it reads before the eyebrow above it does. Still mono/uppercase,
-     the same tag language the rest of the site already uses for
-     Preorder/Sold Out, just turned up instead of a different voice. */
-  .fall-drop-offer {
-    display: block;
-    width: fit-content;
-    margin: 0 auto 16px;
-    padding: 10px 20px;
-    background: var(--white);
-    border-radius: 2px;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--black);
-    transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .fall-drop-offer:hover { transform: translateY(-1px); opacity: 0.88; }
-  }
 
   /* Same real close date as scripts/build.js's sitewide banner and
      product.html's buy box — assets/drop-countdown.js fills this in
@@ -1848,21 +1823,6 @@
   <section class="fall-drop" id="fallDropSection">
     <div class="fall-drop-inner">
       <h2 class="fall-drop-heading">Fall 26</h2>
-      <!-- Founder-authorized launch offer, separate from fallDropSub
-           (which assets/fall-grid.js owns and overwrites on every
-           render) so the two never fight over the same line. Links to
-           lanyard.html — "make it known" means actionable, not just
-           visible. -->
-      <!-- INERT + UNBACKED — DO NOT RE-SURFACE WITHOUT FOUNDER SIGN-OFF.
-           This page 301s to shop.html (vercel.json), so no visitor reaches
-           this badge. That's the only reason it isn't currently a problem:
-           "first 10 orders" is a static string that never decrements, and
-           nothing in Shopify attaches a lanyard to the first ten orders.
-           Past order ten it is simply untrue, which the brand's
-           no-fake-scarcity rule forbids. Before this is ever shown again
-           it needs to be either driven by a real order count, or reworded
-           to something durable the founder confirms he'll honour. -->
-      <a class="fall-drop-offer" href="lanyard.html">first 10 orders ship with a free asior lanyard</a>
       <p class="fall-drop-countdown" id="fallDropCountdown">Fall Collection &mdash; closes Sep 27</p>
       <p class="fall-drop-sub" id="fallDropSub"></p>
       <div class="fall-grid" id="fallDropGrid"></div>

@@ -110,38 +110,41 @@ window.ASIOR_PROMO = {
    says nothing rather than guessing.
    =================================================================== */
 window.ASIOR_SHIPPING = {
-  // Real free-shipping threshold in dollars, or 0 when free shipping
-  // applies to every order with no minimum, or null when unconfirmed.
-  // null is the safe default: the cart shows no progress messaging at
-  // all rather than counting a shopper toward a threshold that may not
-  // be the real one.
+  // Free-shipping threshold in dollars, or 0 for free on every order.
   //
-  // 0 = the "Free Shipping" rate in Shopify Settings -> Shipping and
-  // delivery, minimum $0.00, price $0.00, applies to all orders.
-  FREE_THRESHOLD: 0,
+  // null = THERE IS NO FREE SHIPPING. Free shipping was removed at
+  // checkout on Sep 21, 2026. It ran for roughly three days and is
+  // gone. Nothing on the site may claim it while this is null, and
+  // VERIFIED below is null too so the gate is shut from both sides.
+  // Do not set either back without confirming the rate actually
+  // exists in Shopify Settings -> Shipping and delivery first.
+  FREE_THRESHOLD: null,
 
   // Fulfilment time — how long before it ships. NOT delivery time.
   FULFILMENT: '1-2 business days',
 
-  // Transit estimate for the cheapest tier, once confirmed. Kept
-  // distinct from FULFILMENT on purpose: "ships in 1-2 business days"
-  // and "arrives in 5-8" are different promises, and collapsing them
-  // into one number is how a site ends up implying 2-day delivery it
-  // never offered. Free shipping is the 5-8 day economy tier; the
-  // paid 3-4 day options are NOT the free one, so the free-shipping
-  // copy must never borrow their speed.
-  TRANSIT: '5-8 business days',
+  // Cheapest real rate a US customer can pay, used for the "from $X"
+  // line. This is the US Economy rate below.
+  FROM_PRICE: 4.90,
 
-  // Faster paid tiers, for the shipping detail section only. Never
-  // used in the free-shipping headline.
-  PAID_OPTIONS: [
-    { label: 'Standard (0-1 lb)', price: 6.90, transit: '3-4 business days' },
-    { label: 'Standard (1-5 lb)', price: 9.90, transit: '3-4 business days' },
+  // The real rate card, for a shipping detail section. Transit times
+  // stay attached to the rate they belong to — quoting the 3-4 day
+  // Standard speed next to the $4.90 Economy price would advertise a
+  // combination the customer cannot actually buy.
+  RATES: [
+    { zone: 'US', label: 'Economy (0-5 lb)', price: 4.90, transit: '5-8 business days' },
+    { zone: 'US', label: 'Standard (0-1 lb)', price: 6.90, transit: '3-4 business days' },
+    { zone: 'US', label: 'Standard (1-5 lb)', price: 9.90, transit: '3-4 business days' },
   ],
 
-  // US-only for now. Stated wherever shipping is promised, because a
-  // non-US visitor finding out at checkout is a wasted journey.
-  REGION: 'US only for now',
+  // Shopify has an International zone with calculated rates for 27
+  // countries, so "US only for now" is wrong and was turning away
+  // buyers the store can actually ship to. REGION stays null: the
+  // shipping line names the US price without claiming the US is the
+  // only destination.
+  REGION: null,
+  INTERNATIONAL: true,
 
-  VERIFIED: { by: 'owner — Shopify Settings > Shipping and delivery', on: '2026-09-19' },
+  // Null = nothing about free shipping may render. See FREE_THRESHOLD.
+  VERIFIED: null,
 };
