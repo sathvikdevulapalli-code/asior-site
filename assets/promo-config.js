@@ -162,3 +162,47 @@ window.ASIOR_SHIPPING = {
   // Null = nothing about free shipping may render. See FREE_THRESHOLD.
   VERIFIED: null,
 };
+
+/* ===================================================================
+   Shopify storefront analytics.
+
+   This storefront is served from Vercel on its own domain, so Shopify
+   never injects its own pixel here: Web Pixels and Customer Events
+   only run on surfaces Shopify renders (the Online Store theme and
+   checkout). That is why Shopify currently sees checkout traffic and
+   nothing else, and why configuring a pixel in Admin would not close
+   the gap. assets/shopify-analytics.js sends the beacons directly
+   instead.
+
+   Both ids were pulled from Shopify by the operator and are constants
+   — nothing is fetched at build time. SHOP_ID is the numeric part of
+   gid://shopify/Shop/75144954073. STOREFRONT_ID is the "Asior Website"
+   headless storefront (created Jul 19), which is what attributes these
+   events to this storefront rather than the theme.
+
+   Neither is a secret: both ship in the page and identify the shop to
+   Shopify's own collector, exactly as the theme's pixel does.
+
+   Set ENABLED to false to switch every beacon off without touching
+   any other file. */
+window.ASIOR_ANALYTICS = {
+  ENABLED: true,
+  SHOP_ID: 75144954073,
+  STOREFRONT_ID: '311682',
+
+  /* Consent gate.
+
+     Shopify's Customer Privacy API is loaded by Shopify's own consent
+     script, which — for the same reason as the pixel — cannot load on
+     this domain. So window.Shopify.customerPrivacy is expected to be
+     absent here, and requiring it would mean the module never fires at
+     all.
+
+     The rule this implements: if the API IS present and says analytics
+     processing is not allowed, send nothing. If it is absent, there is
+     no consent framework on this domain to withhold a grant, and the
+     beacons send. Flip REQUIRE_CONSENT_API to true to invert that and
+     send only when the API is present and grants consent — which today
+     means sending nothing. */
+  REQUIRE_CONSENT_API: false,
+};

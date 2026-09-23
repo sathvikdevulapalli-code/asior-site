@@ -834,6 +834,15 @@
           size,
           quantity: 1,
         });
+        // No price here either, for the same reason: the grid's label
+        // can be a range or a markdown pair, and a midpoint or a low
+        // end would be a number nobody is actually charged.
+        if (window.AsiorAnalytics) {
+          window.AsiorAnalytics.addToCart({
+            handle, name: wrap.dataset.name || handle,
+            variantId, quantity: 1,
+          });
+        }
         wrap.innerHTML = `<span class="qa-msg">Added ${A.escapeHtml(size)} — <a href="/cart.html">view cart</a></span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } catch (err) {

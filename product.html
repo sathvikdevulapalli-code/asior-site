@@ -1714,6 +1714,13 @@
           quantity: qty,
           size: selection.Size || null,
         });
+        if (window.AsiorAnalytics) {
+          window.AsiorAnalytics.addToCart({
+            handle: product.handle, name: product.name,
+            variantId: v.variantId, price: v.price,
+            quantity: qty, currency: v.currency,
+          });
+        }
         A.klaviyoTrack('Added To Cart', {
           product: product.name, handle: product.handle,
           size: selection.Size || null, price: v.price, quantity: qty,
@@ -1899,6 +1906,18 @@
       image: (product.images && product.images[0] && product.images[0].url) || null,
       price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
     });
+
+    // Shopify's own funnel. Same real values, different collector —
+    // see assets/shopify-analytics.js for why Shopify's pixel can't
+    // reach this domain. No-ops silently if it didn't load.
+    if (window.AsiorAnalytics) {
+      window.AsiorAnalytics.productView({
+        handle: product.handle,
+        name: product.name,
+        price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
+        currency: product.variants[0] && product.variants[0].currency,
+      });
+    }
   })();
 </script>
 

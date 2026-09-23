@@ -318,11 +318,23 @@ const FOOTER_HTML = `  <footer id="order">
    and could never fire. The two now run side by side: the Client API
    for our own metrics, klaviyo.js for the onsite flows.
 
-   async so it never blocks first paint, and the preconnect saves a
-   round trip on the handshake. Synced into every page from here, so
-   the tag exists in exactly one place. */
+   Shopify's storefront analytics beacons ride along here too, for the
+   same reason: page_view has to fire on every page or the funnel has
+   no top. See assets/shopify-analytics.js for why Shopify's own pixel
+   cannot do this job on a headless domain. The two shop ids it reads
+   live in assets/promo-config.js, which every page already loads as a
+   classic script — deferring the analytics module means it runs after
+   parsing, and so always after that config, without this block having
+   to load promo-config a second time and change where it sits in the
+   head.
+
+   Klaviyo async and analytics deferred, so neither blocks first paint,
+   and the preconnects save a round trip on each handshake. Synced into
+   every page from here, so the tags exist in exactly one place. */
 const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
   <script async src="https://static.klaviyo.com/onsite/js/${KLAVIYO_COMPANY_ID}/klaviyo.js?company_id=${KLAVIYO_COMPANY_ID}"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
 `;
 
 /* Every page gets the shared head, including the three that carry no
