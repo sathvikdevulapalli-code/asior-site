@@ -137,13 +137,27 @@ window.ASIOR_SHIPPING = {
     { zone: 'US', label: 'Standard (1-5 lb)', price: 9.90, transit: '3-4 business days' },
   ],
 
-  // Shopify has an International zone with calculated rates for 27
-  // countries, so "US only for now" is wrong and was turning away
-  // buyers the store can actually ship to. REGION stays null: the
-  // shipping line names the US price without claiming the US is the
-  // only destination.
+  // International is live through Shopify Managed Markets, with
+  // Global-e as merchant of record. Rates are carrier-calculated and
+  // shown at checkout with duties and taxes included in the total, so
+  // there is nothing to collect on delivery. "US only for now" was
+  // wrong and was turning away buyers the store can actually ship to.
+  // REGION stays null: the shipping line names the US price without
+  // claiming the US is the only destination.
+  //
+  // Two things the checkout asks for that the site must not soften:
+  // international orders require a phone number, because the
+  // cross-border carriers do, and orders to mainland China also ask
+  // for a Resident ID number at the Global-e step, for customs.
+  // INTERNATIONAL_COUNTRIES is the number the copy is allowed to
+  // claim — if the country list changes, it changes here and nowhere
+  // else.
   REGION: null,
   INTERNATIONAL: true,
+  INTERNATIONAL_COUNTRIES: 28,
+  INTERNATIONAL_DUTIES_INCLUDED: true,
+  INTERNATIONAL_PHONE_REQUIRED: true,
+  INTERNATIONAL_CHINA_RESIDENT_ID: true,
 
   // Null = nothing about free shipping may render. See FREE_THRESHOLD.
   VERIFIED: null,

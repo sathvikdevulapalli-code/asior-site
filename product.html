@@ -543,6 +543,11 @@
 
   .pd-signup-prop a { color: var(--ink); }
 
+  /* Second shipping line. Same voice as .pd-note, just tighter to it
+     so the pair reads as one shipping statement rather than two
+     competing claims. */
+  .pd-note-intl { margin-top: 4px; }
+
   /* ---------- trust block ----------
      Renders nothing until assets/reviews.js has a real entry for this
      handle — see that file. Grid shape matches .rel-grid on purpose:
@@ -945,6 +950,9 @@
     margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
 </style>
+
+<!-- HEAD:START -->
+<!-- HEAD:END -->
 </head>
 <body>
 
@@ -1442,6 +1450,7 @@
             ? `<p class="pd-note" id="pdNote">${preorderNote}</p>
                <p class="pd-note">14-day returns on unworn, unwashed items with tags attached.</p>`
             : `<p class="pd-note" id="pdNote">${A.escapeHtml(A.shippingLine())}</p>
+              ${A.internationalLine() ? `<p class="pd-note pd-note-intl">${A.escapeHtml(A.internationalLine())}</p>` : ''}
                <p class="pd-note">14-day returns on unworn, unwashed items with tags attached. No account needed at checkout.</p>`}
           ${descHTML}
           ${trustBlockHTML(product.handle)}
@@ -1697,6 +1706,14 @@
         // is untouched, so anything quick-added from the grid survives.
         const updated = await A.createBuyNowCart(v.variantId, qty);
         if (selection.Size) A.recordSizeChoice(selection.Size);
+        A.klaviyoAddedToCart({
+          handle: product.handle,
+          name: product.name,
+          url: location.origin + productUrl(product.handle),
+          price: v.price,
+          quantity: qty,
+          size: selection.Size || null,
+        });
         A.klaviyoTrack('Added To Cart', {
           product: product.name, handle: product.handle,
           size: selection.Size || null, price: v.price, quantity: qty,
@@ -1871,6 +1888,17 @@
 
     A.recordView(product.handle);
     A.klaviyoTrack('Viewed Product', { product: product.name, handle: product.handle });
+    // Onsite twin of the line above. Only this one sets the cookie
+    // Klaviyo's Browse Abandonment flow keys off — the Client API
+    // event above rides an anonymous_id of our own and can't trigger
+    // it. Prices and names come from the live product, never invented.
+    A.klaviyoViewedProduct({
+      handle: product.handle,
+      name: product.name,
+      url: location.origin + productUrl(product.handle),
+      image: (product.images && product.images[0] && product.images[0].url) || null,
+      price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
+    });
   })();
 </script>
 

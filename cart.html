@@ -397,6 +397,9 @@
     }
   }
 </style>
+
+<!-- HEAD:START -->
+<!-- HEAD:END -->
 </head>
 <body>
 
@@ -701,6 +704,7 @@
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
       <div class="cart-trust">
         <span>${A.escapeHtml(A.shippingLine())}</span>
+        ${A.internationalLine() ? `<span>${A.escapeHtml(A.internationalLine())}</span>` : ''}
         <span>No account needed, check out as a guest.</span>
       </div>
       <p class="cart-signup-prop">${signupPropHTML('#cartSignup')}</p>

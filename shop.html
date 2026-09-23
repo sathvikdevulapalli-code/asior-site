@@ -471,6 +471,9 @@
   .shop-recent.show { display: block; }
   @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 3.5vh; } }
 </style>
+
+<!-- HEAD:START -->
+<!-- HEAD:END -->
 </head>
 <body>
 
@@ -756,7 +759,7 @@
     // can't legally nest inside an <a>, and quick-add needs both a
     // navigable image/name and a set of buttons beside it.
     const quickAdd = p.sizes
-      ? `<div class="quick-add" data-handle="${A.escapeAttr(p.handle)}">
+      ? `<div class="quick-add" data-handle="${A.escapeAttr(p.handle)}" data-name="${A.escapeAttr(p.name)}">
           ${p.sizes.map(s => `
             <button type="button" class="qa-size${s.available ? '' : ' unavailable'}${s.size === mine ? ' mine' : ''}"
                     data-variant-id="${A.escapeAttr(s.variantId)}" data-size="${A.escapeAttr(s.size)}"
@@ -820,6 +823,17 @@
         await A.addToShopifyCart(variantId, 1);
         A.recordSizeChoice(size);
         A.klaviyoTrack('Added To Cart', { handle, size, source: 'shop-grid' });
+        // Onsite twin, for Klaviyo's Abandoned Cart flow. No price:
+        // the card shows a label that can be a range or a markdown
+        // pair, and a guessed number is worse than none — the helper
+        // omits Price when it isn't a real one.
+        A.klaviyoAddedToCart({
+          handle,
+          name: wrap.dataset.name || handle,
+          url: location.origin + '/products/' + handle + '.html',
+          size,
+          quantity: 1,
+        });
         wrap.innerHTML = `<span class="qa-msg">Added ${A.escapeHtml(size)} — <a href="/cart.html">view cart</a></span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } catch (err) {

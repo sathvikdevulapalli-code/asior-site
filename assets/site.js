@@ -279,6 +279,13 @@
      this with a phone number must show the SMS consent block first —
      see .consent in site.css and the copy in each form. */
   async function klaviyoSubscribe(email, phone) {
+    // Stitch the onsite cookie to this email before anything else.
+    // Every signup form on the site funnels through here, so doing it
+    // in one place covers all of them — and it is what turns the
+    // anonymous browsing this visitor has already done into events a
+    // flow can actually send mail about.
+    klaviyoIdentify(email, { phone: phone });
+
     // Email is the required, primary action. If this fails the whole
     // signup is treated as failed.
     await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email: email });
@@ -290,6 +297,84 @@
         await klaviyoSubscribeToList(KLAVIYO_SMS_LIST_ID, { email: email, phone_number: phone });
       } catch (err) { /* swallow, email subscribe already succeeded */ }
     }
+  }
+
+  /* ---- Klaviyo onsite (klaviyo.js) ----------------------------------
+     The tag is injected into every page's <head> by scripts/build.js.
+     It loads async, so it is usually NOT ready when these are called —
+     pushing onto the array is the documented way to queue work for it,
+     and the real object replays the queue once it boots. That means
+     these never need to wait for it and never throw if it is blocked
+     by an ad blocker, which a meaningful share of visitors run.
+
+     This is separate from klaviyoTrack() below, which posts to
+     Klaviyo's server-side Client API under an anonymous_id we invent.
+     Only the onsite script sets the __kla_id cookie that Browse
+     Abandonment and Abandoned Cart key off, so the flows need this
+     path specifically. Both run: server-side for our own metrics,
+     onsite for the flows. */
+  function klaviyoOnsite() {
+    window._klOnsite = window._klOnsite || [];
+    return window._klOnsite;
+  }
+
+  /* Fires the onsite event that Klaviyo's Browse Abandonment flow
+     triggers on. Klaviyo expects this exact metric name and this
+     property shape — renaming either silently stops the flow. */
+  function klaviyoViewedProduct(product) {
+    if (!product || !product.handle) return;
+    var item = {
+      ProductName: product.name,
+      ProductID: product.handle,
+      URL: product.url,
+      ImageURL: product.image || undefined,
+    };
+    if (typeof product.price === 'number' && isFinite(product.price)) {
+      item.Price = product.price;
+    }
+    try {
+      klaviyoOnsite().push(['track', 'Viewed Product', item]);
+      // Populates Klaviyo's "recently viewed" block in flow emails.
+      klaviyoOnsite().push(['trackViewedItem', {
+        Title: item.ProductName,
+        ItemId: item.ProductID,
+        Url: item.URL,
+        ImageUrl: item.ImageURL,
+        Metadata: item.Price === undefined ? {} : { Price: item.Price },
+      }]);
+    } catch (err) { /* tracking must never block a real user action */ }
+  }
+
+  /* Onsite counterpart to the Added To Cart event we already post
+     server-side. Abandoned Cart keys off this one. */
+  function klaviyoAddedToCart(item) {
+    if (!item || !item.handle) return;
+    try {
+      var payload = {
+        ProductName: item.name,
+        ProductID: item.handle,
+        URL: item.url,
+        Quantity: item.quantity || 1,
+      };
+      if (typeof item.price === 'number' && isFinite(item.price)) {
+        payload.Price = item.price;
+        payload.$value = item.price * (item.quantity || 1);
+      }
+      if (item.size) payload.Size = item.size;
+      klaviyoOnsite().push(['track', 'Added to Cart', payload]);
+    } catch (err) { /* never block the add */ }
+  }
+
+  /* Stitches this browser to a real profile. Until this runs, onsite
+     events sit on an anonymous cookie and no flow can email anyone —
+     so every signup form calls it on submit. */
+  function klaviyoIdentify(email, extra) {
+    if (!email) return;
+    try {
+      var attrs = { $email: email };
+      if (extra && extra.phone) attrs.$phone_number = extra.phone;
+      klaviyoOnsite().push(['identify', attrs]);
+    } catch (err) { /* never block the signup */ }
   }
 
   async function klaviyoTrack(metricName, properties, profileAttributes) {
@@ -552,6 +637,45 @@
      No region claim. Shopify ships internationally with calculated
      rates, so naming the US price is accurate while "US only" was
      not — it was turning away buyers the store can serve. */
+  /* The international promise, rendered under the shipping line.
+
+     Only claims what Managed Markets actually does: a country count
+     that lives in one place in the config, and duties/taxes included
+     in the checkout total. Says nothing at all unless INTERNATIONAL is
+     on and a real country count exists, so a config that hasn't been
+     filled in renders nothing rather than a vague claim. */
+  function internationalLine() {
+    var s = shippingConfig();
+    if (!s.INTERNATIONAL) return null;
+    var n = s.INTERNATIONAL_COUNTRIES;
+    if (typeof n !== 'number' || !(n > 0)) return null;
+    var line = 'Ships worldwide to ' + n + ' countries.';
+    if (s.INTERNATIONAL_DUTIES_INCLUDED) {
+      line += ' Rates, duties and taxes are calculated at checkout and'
+        + " included in the total, so there's nothing to pay on delivery.";
+    } else {
+      line += ' Rates are calculated at checkout.';
+    }
+    return line;
+  }
+
+  /* The part of international checkout people get surprised by. Stated
+     plainly, not dressed up as optional — the carrier requires the
+     phone number and Chinese customs requires the ID. */
+  function internationalCheckoutNote() {
+    var s = shippingConfig();
+    if (!s.INTERNATIONAL) return null;
+    var parts = [];
+    if (s.INTERNATIONAL_PHONE_REQUIRED) {
+      parts.push('International orders ask for a phone number because the carrier requires one');
+    }
+    if (s.INTERNATIONAL_CHINA_RESIDENT_ID) {
+      parts.push('orders to mainland China also ask for a Resident ID number for customs');
+    }
+    if (!parts.length) return null;
+    return parts.join(', and ') + '.';
+  }
+
   function shippingLine() {
     var s = shippingConfig();
     var fulfil = s.FULFILMENT || '1-2 business days';
@@ -599,6 +723,8 @@
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
     shippingLine: shippingLine,
+    internationalLine: internationalLine,
+    internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
     freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,
@@ -613,6 +739,9 @@
     renderCartCount: renderCartCount,
     refreshCartCount: refreshCartCount,
     klaviyoSubscribe: klaviyoSubscribe,
+    klaviyoViewedProduct: klaviyoViewedProduct,
+    klaviyoAddedToCart: klaviyoAddedToCart,
+    klaviyoIdentify: klaviyoIdentify,
     klaviyoSubscribeToList: klaviyoSubscribeToList,
     klaviyoTrack: klaviyoTrack,
     klaviyoBackInStock: klaviyoBackInStock,
