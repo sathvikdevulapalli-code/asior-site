@@ -37,6 +37,7 @@
      nothing to do with the Early Access gate, which is retired; see
      shop.html's equivalent comment for why. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 <style>
   @media (hover: hover) and (pointer: fine) {
     header nav a:hover::after { width: 100%; }
@@ -62,6 +63,21 @@
   }
 
   .cart-empty a { text-decoration: underline; color: var(--ink); }
+
+  /* Same fix as shop.html/product.html: don't show nothing while the
+     live cart fetch is in flight. A visitor with items already in
+     their cart is close to checkout -- a page that looks broken here
+     is a lost sale one step from the finish line. */
+  .cart-loading {
+    padding: 6vh 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cart-loading.hide { display: none; }
 
   .cart-item {
     display: grid;
@@ -298,6 +314,7 @@
 
   <section class="cart-wrap">
     <h1 class="rail-label">Cart</h1>
+    <div class="cart-loading" id="cartLoading">Loading your cart…</div>
     <div id="cartRoot"></div>
   </section>
 
@@ -340,6 +357,9 @@
     A.renderDropCountdown({
       el: document.getElementById('teaserBar'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }
@@ -420,6 +440,7 @@
   async function renderLive() {
     const root = document.getElementById('cartRoot');
     const cart = await getShopifyCart();
+    document.getElementById('cartLoading').classList.add('hide');
 
     if (!cart || cart.lines.edges.length === 0) {
       root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
@@ -449,11 +470,11 @@
       </div>
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
       <div class="cart-trust">
-        <span>Ships in 1-2 business days via USPS (US only for now).</span>
+        <span>${A.escapeHtml(A.shippingLine())}</span>
         <span>No account needed, check out as a guest.</span>
       </div>
       <div class="cart-klaviyo">
-        <div class="cart-klaviyo-label">Get 10% Off Your First Order</div>
+        <div class="cart-klaviyo-label">Get 5% Off Your First Order</div>
         <form class="cart-signup-form" id="cartSignupForm">
           <label class="sr-only" for="cartSignupEmail">Email address</label>
           <input type="email" id="cartSignupEmail" name="email" placeholder="Email"
@@ -488,9 +509,11 @@
     bindCartSignupForm();
   }
 
-  renderLive().catch(() => {
+  renderLive().catch((err) => {
     // Fail open, honestly: if the live Shopify fetch itself fails
     // (network, API hiccup), say so instead of leaving a blank cart.
+    console.error('Cart failed to load:', err);
+    document.getElementById('cartLoading').classList.add('hide');
     document.getElementById('cartRoot').innerHTML = `
       <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> with what you wanted and we'll sort it out.</div>
     `;

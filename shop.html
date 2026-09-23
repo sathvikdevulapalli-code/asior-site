@@ -34,6 +34,7 @@
 <!-- Still needed for DROP_CLOSE_TIME (assets/drop-countdown.js) and
      FALL_PRODUCTS — nothing to do with the gate below. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 <!-- Early Access gate retired along with index.html (the gate UI it
      redirected to): PUBLIC_LAUNCH_TIME is Sep 10, permanently in the
      past, so assets/early-access-gate.js could never fire again for
@@ -114,6 +115,107 @@
     .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
   }
 
+  /* Email/SMS capture for the browsing majority who don't buy today.
+     cart.html has had this exact offer for a while, but only a visitor
+     who already added something to cart ever sees it — everyone else,
+     which is most traffic, had zero way to leave contact info and be
+     brought back before the drop closes or for the next one. index.html
+     used to carry a version of this too, but it's now a pure 301 to
+     this page and its own signup form is unreachable dead code. Same
+     Klaviyo call, same real 5%-off incentive, same consent copy —
+     just on the page where visitors actually land. */
+  .shop-klaviyo {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6vh 40px 8vh;
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .shop-klaviyo-label {
+    font-family: var(--font-mono);
+    margin-bottom: 16px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .shop-signup-form {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .shop-signup-form input {
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--field-line);
+    padding: 8px 2px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--ink);
+    min-width: 150px;
+    transition: border-color 0.3s ease;
+  }
+
+  .shop-signup-form input::placeholder { color: var(--muted); }
+  .shop-signup-form input:focus { border-color: var(--ink); }
+
+  .shop-signup-form button {
+    position: relative;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    padding-bottom: 6px;
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .shop-signup-form button::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: var(--ink);
+    transition: width 300ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .shop-signup-form button:hover::after { width: 100%; }
+  }
+
+  .shop-signup-form button:not([disabled]):active { transform: scale(0.96); }
+  .shop-signup-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  .shop-signup-confirm {
+    display: none;
+    margin-top: 10px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .shop-signup-confirm.show { display: block; }
+
+  .shop-klaviyo .consent { margin-left: auto; margin-right: auto; }
+
+  @media (max-width: 640px) {
+    .shop-klaviyo { padding: 5vh 20px 6vh; }
+    .shop-signup-form { flex-direction: column; align-items: stretch; gap: 14px; }
+    .shop-signup-form input { text-align: center; }
+  }
+
   /* ---------- shop grid ----------
      20px/16px top padding is the only thing separating the grid from
      the fixed header (via .page-top-space, which just clears the
@@ -130,7 +232,7 @@
   .shop-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 28px 24px;
   }
 
   .product {
@@ -146,7 +248,7 @@
     position: relative;
     aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: 4px;
     background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
     transition: transform 160ms var(--ease-out);
   }
@@ -157,12 +259,13 @@
     bottom: 10px;
     z-index: 2;
     background: rgba(11, 10, 8, 0.72);
+    backdrop-filter: blur(4px);
     color: var(--ink);
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.05em;
     padding: 5px 8px;
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   .price-badge .compare {
@@ -232,9 +335,9 @@
   }
 
   .qa-size {
-    min-width: 30px;
-    height: 26px;
-    padding: 0 8px;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 9px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,14 +348,16 @@
     font-size: 10px;
     letter-spacing: 0.03em;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: 3px;
     position: relative;
     overflow: hidden;
     transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out);
   }
 
+  /* Filled, not just outlined, on hover — a quiet size chip should
+     still feel tactile/clickable, not just change a 1px border. */
   @media (hover: hover) and (pointer: fine) {
-    .qa-size:not(.unavailable):hover { border-color: var(--ink); }
+    .qa-size:not(.unavailable):hover { border-color: var(--ink); background: var(--ink); color: var(--bg); }
   }
 
   .qa-size:not(.unavailable):active { transform: scale(0.94); }
@@ -304,6 +409,39 @@
 
   .shop-empty.show { display: block; }
 
+  .shop-shipping {
+    margin: 0 0 22px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    color: var(--ink);
+  }
+
+  /* Shown the instant the page loads, hidden the instant the grid (or
+     the empty/error state) actually renders. Without this, the window
+     between page-load and the catalog fetch resolving -- now capped at
+     12s by shopifyFetch's own timeout, but real on a slow connection
+     regardless -- looked identical to a broken page: nothing on
+     screen, no way to tell "loading" from "stuck." */
+  .shop-loading {
+    padding: 6vh 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .shop-loading.hide { display: none; }
+
+  /* When build.js has pre-rendered real products into the grid, there is
+     nothing to wait for — hide the loading line without needing JS to
+     run, so a no-JS visitor doesn't read "Loading the shop…" sitting
+     above a fully rendered catalog. The .hide class above still covers
+     browsers too old for :has(); this just gets there first. */
+  .shop:has(#shopGrid .product) .shop-loading { display: none; }
+
   @media (max-width: 900px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -324,10 +462,14 @@
     }
   }
 
-  /* Recently-viewed rail. Hidden until there is real history to show. */
-  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 4vh 40px 6vh; }
+  /* Recently-viewed rail. Hidden until there is real history to show.
+     Bottom hairline is the only thing telling a returning visitor
+     "that was your personalized rail, this next part is the full
+     catalog" — without it the two grids read as one undifferentiated
+     block of identical-looking cards. */
+  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 4vh 40px 5vh; border-bottom: 1px solid var(--line); }
   .shop-recent.show { display: block; }
-  @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 4vh; } }
+  @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 3.5vh; } }
 </style>
 </head>
 <body>
@@ -373,8 +515,26 @@
        visitor's own size availability), not Shopify's default —
        see sortForMerchandising below. -->
   <section class="shop" id="shop">
-    <div class="shop-grid" id="shopGrid"></div>
-    <div class="shop-empty" id="shopEmpty">Nothing in the shop right now, check back soon.</div>
+    <!-- Verified shipping offer, stated once above the grid. Filled by
+         JS from assets/promo-config.js and left empty when nothing is
+         confirmed, so an unverified claim can never render here. -->
+    <p class="shop-shipping" id="shopShipping" hidden></p>
+    <div class="shop-loading" id="shopLoading">Loading the shop…</div>
+    <!-- scripts/build.js bakes the real catalog between these markers at
+         deploy time, so the served HTML contains actual products for
+         crawlers, link previews, and anyone whose JS hasn't run yet. The
+         live fetch below replaces them so price and stock stay current —
+         the static markup is the floor, not the ceiling. -->
+    <div class="shop-grid" id="shopGrid">
+      <!-- SHOPGRID:START -->
+      <!-- SHOPGRID:END -->
+    </div>
+    <!-- Intentionally empty in the served HTML. This used to carry
+         "Nothing in the shop right now" as static text, which is hidden
+         by CSS but still sits in the markup — a scraper reading raw HTML
+         reports the store as empty when it isn't. The message is set
+         from JS, only when it's actually true. -->
+    <div class="shop-empty" id="shopEmpty"></div>
   </section>
 
   <!-- Real photography from the lookbook (images/look-*.jpg, same
@@ -391,6 +551,28 @@
       <div class="shop-look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
     </div>
     <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
+  </section>
+
+  <section class="shop-klaviyo">
+    <div class="shop-klaviyo-label">Get 5% Off Your First Order</div>
+    <form class="shop-signup-form" id="shopSignupForm">
+      <label class="sr-only" for="shopSignupEmail">Email address</label>
+      <input type="email" id="shopSignupEmail" name="email" placeholder="Email"
+             autocomplete="email" spellcheck="false" required>
+      <label class="sr-only" for="shopSignupPhone">Phone number (optional)</label>
+      <input type="tel" id="shopSignupPhone" name="phone" placeholder="Phone (optional)"
+             autocomplete="tel" inputmode="tel">
+      <button type="submit" id="shopSignupBtn">Sign Up</button>
+    </form>
+    <p class="consent">
+      Email only? Leave the phone field blank. By giving your number you agree to
+      receive recurring automated marketing texts from Asior at that number.
+      Consent is not a condition of any purchase. Message frequency varies and
+      message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
+      <a href="privacy-policy.html">Privacy Policy</a> and
+      <a href="terms-of-service.html">Terms of Service</a>.
+    </p>
+    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite">You're in. Check your inbox for your code.</div>
   </section>
 
   </main>
@@ -427,9 +609,61 @@
     A.renderDropCountdown({
       el: document.getElementById('teaserBar'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }
+
+  // Whether scripts/build.js baked a real catalog into the grid at
+  // deploy time. Captured now, before the live render overwrites it.
+  // When it did, there are already products on screen: no loading
+  // message belongs over them, and the live cards shouldn't fade in
+  // over content the visitor is already reading.
+  const WAS_PRERENDERED = document.getElementById('shopGrid').children.length > 0;
+  if (WAS_PRERENDERED) document.getElementById('shopLoading').classList.add('hide');
+
+  // Stated once, above the grid, and only when verified.
+  (function showShippingOffer() {
+    const badge = A.freeShippingBadge && A.freeShippingBadge();
+    if (!badge) return;
+    const el = document.getElementById('shopShipping');
+    el.textContent = badge;
+    el.hidden = false;
+  })();
+
+  // Same signup cart.html has had — real Klaviyo list, real 5%-off
+  // incentive, same consent copy — just reachable from the page every
+  // visitor actually lands on, not only the ones who already added
+  // something to cart.
+  (function bindShopSignupForm() {
+    const form = document.getElementById('shopSignupForm');
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('shopSignupBtn');
+      const confirmEl = document.getElementById('shopSignupConfirm');
+      const email = document.getElementById('shopSignupEmail').value;
+      const phone = document.getElementById('shopSignupPhone').value;
+
+      btn.disabled = true;
+      try {
+        await A.klaviyoSubscribe(email, phone);
+        A.klaviyoTrack('Early Access Signup',
+          Object.assign({ source: 'website', signup_location: 'shop', campaign: 'fall_2026', interest: 'fall_collection' },
+            A.getUTMParams()),
+          { email: email });
+        form.style.display = 'none';
+        confirmEl.textContent = "You're in. Check your inbox for your code.";
+        confirmEl.classList.add('show');
+      } catch (err) {
+        confirmEl.textContent = 'Something went wrong, try again in a moment.';
+        confirmEl.classList.add('show');
+        btn.disabled = false;
+      }
+    });
+  })();
 
   // Real, live catalog. Whatever's Active in Shopify shows here; Draft
   // products are absent from the response entirely, so they just don't
@@ -461,39 +695,50 @@
         }
       }
     }`);
-    return data.products.edges.map(e => {
-      const node = e.node;
-      const variants = node.variants.edges.map(v => v.node);
-      const prices = variants.map(v => parseFloat(v.price.amount));
-      const compares = variants
-        .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
-        .filter(Boolean);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
-      const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
-      return {
-        handle: node.handle,
-        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-        image: node.featuredImage,
-        isPreorder: /\[preorder\]/i.test(node.title),
-        soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-        priceLabel: minPrice === maxPrice
-          ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
-          : `From $${minPrice}`,
-        // Quick-add only makes sense when Size is the one and only
-        // choice to make — a product with a second option (color,
-        // material) needs the full product page, where that choice
-        // has room to be made correctly.
-        sizes: hasSizeOnly
-          ? variants.map(v => ({
-              size: v.selectedOptions.find(o => o.name === 'Size').value,
-              variantId: v.id,
-              available: v.availableForSale,
-            }))
-          : null,
-      };
-    });
+    // One malformed product from a 50-item live catalog should never
+    // blank the whole shop grid. Map defensively, skip anything that
+    // doesn't fit the shape we expect, and say so in the console rather
+    // than silently dropping it or crashing the entire fetch.
+    return data.products.edges.reduce((acc, e) => {
+      try {
+        const node = e.node;
+        const variants = node.variants.edges.map(v => v.node);
+        const prices = variants.map(v => parseFloat(v.price.amount));
+        const compares = variants
+          .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
+          .filter(Boolean);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+        const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
+        acc.push({
+          handle: node.handle,
+          name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+          image: node.featuredImage,
+          isPreorder: /\[preorder\]/i.test(node.title),
+          soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
+          priceLabel: minPrice === maxPrice
+            ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
+            : `From $${minPrice}`,
+          // Quick-add only makes sense when Size is the one and only
+          // choice to make — a product with a second option (color,
+          // material) needs the full product page, where that choice
+          // has room to be made correctly. A variant missing a "Size"
+          // selected option (bad data, not a code path we can fix here)
+          // falls back to null rather than throwing and taking every
+          // other product on the page down with it.
+          sizes: hasSizeOnly
+            ? variants.map(v => {
+                const sizeOpt = v.selectedOptions.find(o => o.name === 'Size');
+                return sizeOpt ? { size: sizeOpt.value, variantId: v.id, available: v.availableForSale } : null;
+              }).filter(Boolean)
+            : null,
+        });
+      } catch (err) {
+        console.warn('Skipping malformed product in shop grid:', e.node && e.node.handle, err);
+      }
+      return acc;
+    }, []);
   }
 
   function card(p, eager) {
@@ -542,10 +787,28 @@
   // size row, then the sizes return so a second piece can be added
   // right after. Delegated to the grid container since cards re-render
   // wholesale on every fetch.
+  /* One quick-add at a time, across every grid on the page.
+
+     Swapping the chips for "Adding…" hides them but is a rendering
+     change, not a guard: a fast triple-tap still lands three clicks,
+     and each one used to fire its own cartLinesAdd — three separate
+     lines of the same size for what the customer experienced as one
+     tap. Tapping S and then M before the first request resolves did
+     the same thing. The product page has always had a real guard
+     (it disables the button before awaiting); this is the equivalent.
+
+     Module-scoped rather than per-container so the main grid and the
+     recently-viewed rail can't both have one in flight at once — they
+     add to the same cart. */
+  let quickAddInFlight = false;
+
   function bindQuickAdd(container) {
     container.addEventListener('click', async (e) => {
       const btn = e.target.closest('.qa-size');
       if (!btn || btn.disabled) return;
+      if (quickAddInFlight) return;
+      quickAddInFlight = true;
+
       const wrap = btn.closest('.quick-add');
       const handle = wrap.dataset.handle;
       const size = btn.dataset.size;
@@ -562,22 +825,22 @@
       } catch (err) {
         wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
+      } finally {
+        // Always cleared, including on failure — otherwise one failed
+        // add would silently disable quick-add for the whole session.
+        quickAddInFlight = false;
       }
     });
   }
 
-  function renderGrid(catalog) {
-    const grid = document.getElementById('shopGrid');
-    const empty = document.getElementById('shopEmpty');
-
-    if (catalog.length === 0) { empty.classList.add('show'); return; }
-
-    // The first row is the LCP candidate, so it loads eagerly; the rest
-    // are lazy. Never lazy-load the largest above-the-fold image.
-    grid.innerHTML = catalog.map((p, i) => card(p, i < 3)).join('');
-    bindQuickAdd(grid);
-
-    const items = grid.querySelectorAll('.product');
+  // Shared by both grids on this page (main catalog + recently-viewed)
+  // so a card fades in the same way regardless of which one it's in.
+  // Previously only the main grid was ever wired up here — cards in
+  // "Pick Up Where You Left Off" started at opacity:0 (see .product in
+  // the stylesheet above) and, with nothing ever adding .in, stayed
+  // invisible permanently. Real bug, not a design choice.
+  function revealOnScroll(container) {
+    const items = container.querySelectorAll('.product');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
         if (entry.isIntersecting) {
@@ -587,26 +850,69 @@
       });
     }, { threshold: 0.2 });
     items.forEach(p => observer.observe(p));
+  }
 
-    renderRecentlyViewed(catalog);
+  function renderGrid(catalog) {
+    document.getElementById('shopLoading').classList.add('hide');
+    const grid = document.getElementById('shopGrid');
+    const empty = document.getElementById('shopEmpty');
+
+    if (catalog.length === 0) {
+      grid.innerHTML = '';
+      empty.textContent = 'Nothing in the shop right now, check back soon.';
+      empty.classList.add('show');
+      return;
+    }
+
+    // Whatever's already shown in "Pick Up Where You Left Off" is
+    // excluded from the main grid below it — a product should never
+    // appear twice on the same page. Computed here, before the main
+    // grid renders, so the exclusion is real (not a guess at what the
+    // rail will show).
+    const shownInRecent = renderRecentlyViewed(catalog);
+    const mainCatalog = catalog.filter(p => !shownInRecent.has(p.handle));
+
+    // The first row is the LCP candidate, so it loads eagerly; the rest
+    // are lazy. Never lazy-load the largest above-the-fold image.
+    grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 3)).join('');
+    bindQuickAdd(grid);
+    if (WAS_PRERENDERED) {
+      // Swapping pre-rendered cards for live ones should be invisible.
+      grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+    } else {
+      revealOnScroll(grid);
+    }
   }
 
   // Personalisation from real browsing history only — the pieces this
   // browser has actually opened, newest first. Nothing shown if there's
-  // no history, and never anything invented.
+  // no history, and never anything invented. Returns the set of handles
+  // actually rendered here, so renderGrid can exclude them from the
+  // main catalog below — never the same product twice on one page.
   function renderRecentlyViewed(catalog) {
     const seen = A.getViewed()
       .map(h => catalog.find(p => p.handle === h))
       .filter(Boolean)
       .slice(0, 4);
-    if (seen.length < 2) return;
+    if (seen.length < 2) return new Set();
 
+    // This rail renders as the very first thing on the page for a
+    // returning visitor — it IS the above-the-fold content here, not
+    // the main grid below it. Every card was being marked lazy
+    // regardless of position, which on a real mobile connection meant
+    // a visible gap: heading renders instantly (it's text), then a
+    // wait while the browser gets around to fetching images it was
+    // told it could defer, then the cards pop in. Same eager-first-row
+    // rule renderGrid() already uses for the main grid, applied here.
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
       <h2 class="rail-label">Pick Up Where You Left Off</h2>
-      <div class="shop-grid" id="shopRecentGrid">${seen.map(p => card(p, false)).join('')}</div>`;
-    bindQuickAdd(document.getElementById('shopRecentGrid'));
+      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3)).join('')}</div>`;
+    const recentGrid = document.getElementById('shopRecentGrid');
+    bindQuickAdd(recentGrid);
+    revealOnScroll(recentGrid);
     section.classList.add('show');
+    return new Set(seen.map(p => p.handle));
   }
 
   // Merchandising order, not Shopify's default order: the four new
@@ -637,8 +943,12 @@
   fetchCatalog()
     .then(sortForMerchandising)
     .then(renderGrid)
-    .catch(() => {
-      // fail open and honest, no fake stock left standing
+    .catch((err) => {
+      // fail open and honest, no fake stock left standing. Logged
+      // (not shown) so a real failure is diagnosable from a device's
+      // console instead of just "the shop was blank" secondhand.
+      console.error('Shop catalog failed to load:', err);
+      document.getElementById('shopLoading').classList.add('hide');
       const empty = document.getElementById('shopEmpty');
       empty.textContent = "Couldn't load the shop right now, try refreshing.";
       empty.classList.add('show');

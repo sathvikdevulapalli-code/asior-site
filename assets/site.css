@@ -185,6 +185,28 @@ header {
   color: var(--ink);
 }
 
+/* The header is fixed with no background, so as soon as the page
+   scrolls, body copy and buttons pass underneath it and show through
+   the nav links — product descriptions and "Select a Size" were
+   colliding with SHOP / COMMUNITY / CONTACT. Transparent is only safe
+   at the very top, over a hero image; the moment anything scrolls it
+   needs something solid behind it.
+
+   Toggled from assets/site.js at >8px rather than by media query,
+   because it depends on scroll position, not viewport size. */
+header.is-scrolled {
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  header { transition: background 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+}
+
+/* Anchors and in-page jumps land under the fixed bar + header without
+   this. 34px teaser bar + ~85px header. */
+:target { scroll-margin-top: 125px; }
+
 header .mark {
   font-family: var(--font-display);
   font-weight: 600;

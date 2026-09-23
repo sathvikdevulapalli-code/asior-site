@@ -204,6 +204,15 @@
     justify-content: center; text-align: center; gap: 14px;
   }
   .not-found a { text-decoration: underline; }
+
+  /* Same fix as product.html/shop.html/cart.html: #lp-root started
+     empty with nothing shown while the fetch was in flight. */
+  .lp-loading {
+    min-height: 40vh; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .lp-loading.hide { display: none; }
 </style>
 </head>
 <body>
@@ -221,6 +230,7 @@
 <header class="lp-header"><a href="index.html">Asior</a></header>
 
 <main id="main">
+  <div class="lp-loading" id="lpLoading">Loading…</div>
   <div id="lp-root"></div>
 </main>
 
@@ -233,6 +243,7 @@
   </div>
 </footer>
 
+<script src="assets/promo-config.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/product-details.js"></script>
 <script>
@@ -280,6 +291,7 @@
     let product;
     try {
       const p = await fetchProduct(HANDLE);
+      document.getElementById('lpLoading').classList.add('hide');
       if (!p) {
         document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
         root.innerHTML = `<div class="not-found"><div>That piece isn't in the catalog.</div><a href="index.html">Back to Asior</a></div>`;
@@ -305,6 +317,8 @@
         isPreorder: /\[preorder\]/i.test(p.title),
       };
     } catch (err) {
+      console.error('Lanyard page failed to load:', err);
+      document.getElementById('lpLoading').classList.add('hide');
       root.innerHTML = `<div class="not-found"><div>Couldn't load this right now. Try refreshing.</div><a href="index.html">Back to Asior</a></div>`;
       return;
     }

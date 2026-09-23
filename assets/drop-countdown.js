@@ -36,25 +36,36 @@
     return Math.max(mins, 0) + 'm left';
   }
 
-  /* opts: { el, prefix, closedText, onClose }
+  /* opts: { el, prefix, suffix, closedText, onClose }
      el:         element whose textContent this owns.
      prefix:     text before the countdown, e.g. 'fall drop closes — '.
+     suffix:     optional text appended after the countdown, e.g. a
+                 verified 'free shipping on every order'. This function
+                 owns el.textContent outright and rewrites it on every
+                 tick, so anything else written there would be erased
+                 within 30 seconds — passing it through here is the only
+                 way for the bar to carry two facts at once.
      closedText: shown once the instant passes (default 'fall drop closed').
      onClose:    optional callback, fired once, when it passes. */
   function renderDropCountdown(opts) {
     var target = closeTime();
     if (!target || !opts || !opts.el) return null;
 
+    var tail = opts.suffix ? ' · ' + opts.suffix : '';
+
     var timer = null;
     function tick() {
       var left = target - Date.now();
       if (left <= 0) {
-        opts.el.textContent = opts.closedText || 'fall drop closed';
+        // The drop is over, but a standing shipping offer isn't tied to
+        // it — keep the suffix so the bar doesn't go from useful to
+        // just "closed".
+        opts.el.textContent = (opts.closedText || 'fall drop closed') + tail;
         if (opts.onClose) opts.onClose();
         if (timer) clearInterval(timer);
         return;
       }
-      opts.el.textContent = (opts.prefix || '') + format(left);
+      opts.el.textContent = (opts.prefix || '') + format(left) + tail;
     }
     tick();
     timer = setInterval(tick, 30000);

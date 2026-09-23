@@ -66,6 +66,7 @@
      — see assets/launch-config.js for why this has to load synchronously
      and can't wait for assets/site.js at the bottom of the page. -->
 <script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 
 <!-- The film is deliberately NOT preloaded. rel=preload has no idea that
      <video> picks between two <source>s, so it would fetch whichever one
@@ -986,31 +987,6 @@
     margin-bottom: 10px;
   }
 
-  /* A real badge, not a footnote — filled instead of outlined and
-     sized up from the site's usual tag treatment (.preorder-tag etc.)
-     so it reads before the eyebrow above it does. Still mono/uppercase,
-     the same tag language the rest of the site already uses for
-     Preorder/Sold Out, just turned up instead of a different voice. */
-  .fall-drop-offer {
-    display: block;
-    width: fit-content;
-    margin: 0 auto 16px;
-    padding: 10px 20px;
-    background: var(--white);
-    border-radius: 2px;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--black);
-    transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .fall-drop-offer:hover { transform: translateY(-1px); opacity: 0.88; }
-  }
 
   /* Same real close date as scripts/build.js's sitewide banner and
      product.html's buy box — assets/drop-countdown.js fills this in
@@ -1847,12 +1823,6 @@
   <section class="fall-drop" id="fallDropSection">
     <div class="fall-drop-inner">
       <h2 class="fall-drop-heading">Fall 26</h2>
-      <!-- Founder-authorized launch offer, separate from fallDropSub
-           (which assets/fall-grid.js owns and overwrites on every
-           render) so the two never fight over the same line. Links to
-           lanyard.html — "make it known" means actionable, not just
-           visible. -->
-      <a class="fall-drop-offer" href="lanyard.html">first 10 orders ship with a free asior lanyard</a>
       <p class="fall-drop-countdown" id="fallDropCountdown">Fall Collection &mdash; closes Sep 27</p>
       <p class="fall-drop-sub" id="fallDropSub"></p>
       <div class="fall-grid" id="fallDropGrid"></div>
@@ -2282,6 +2252,9 @@
     window.Asior.renderDropCountdown({
       el: document.getElementById('fallDropCountdown'),
       prefix: 'fall drop closes — ',
+      // Verified shipping offer rides along in the same bar; null when
+      // nothing is confirmed, in which case nothing is appended.
+      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
       closedText: 'fall drop closed',
     });
   }

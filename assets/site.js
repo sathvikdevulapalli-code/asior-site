@@ -26,15 +26,35 @@
   // -----------------------------------------------------------------
   // Shopify Storefront API
   // -----------------------------------------------------------------
+  // Plain fetch() never times out on its own -- a stalled request (cold
+  // connection, flaky cellular, an ad-network in-app browser's own
+  // proxy hanging) just sits forever. A page that shows nothing until
+  // this resolves then looks permanently blank, not slow. 12s is
+  // generous for a real but poor connection while still failing fast
+  // enough to show the existing "couldn't load" states instead of
+  // hanging indefinitely.
+  var SHOPIFY_FETCH_TIMEOUT_MS = 12000;
+
   async function shopifyFetch(query, variables) {
-    var res = await fetch('https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-      },
-      body: JSON.stringify({ query: query, variables: variables || {} }),
-    });
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, SHOPIFY_FETCH_TIMEOUT_MS);
+    var res;
+    try {
+      res = await fetch('https://' + SHOPIFY_DOMAIN + '/api/' + SHOPIFY_API_VERSION + '/graphql.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({ query: query, variables: variables || {} }),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err && err.name === 'AbortError') throw new Error('Request timed out');
+      throw err;
+    } finally {
+      clearTimeout(timeout);
+    }
     var json = await res.json();
     if (json.errors) throw new Error(json.errors.map(function (e) { return e.message; }).join(', '));
     return json.data;
@@ -73,6 +93,19 @@
 
      `eager` is for the LCP image only — the product hero and the first
      row of the shop grid. Never lazy-load the LCP image. */
+  /* onerror fallback: a browser picks exactly one candidate out of
+     srcset by viewport width and device pixel ratio, and if that one
+     specific Shopify CDN transform 404s or errors, <img srcset> has no
+     built-in retry — it just fails, silently, as a blank box. Desktop
+     and mobile tend to land on different candidates (desktop usually
+     wants a narrower one per `sizes`, a high-DPR phone often wants the
+     widest), so a single broken transform size reads as "broken on
+     desktop, fine on mobile" or vice versa even though every candidate
+     came from the same real image. Falling back to the plain,
+     untransformed `url` (which Shopify always returns for a real
+     image) once, on error, means one bad transform can't blank the
+     whole photo. data-fallback carries the URL instead of embedding it
+     in the onerror string, so no attribute-escaping gymnastics. */
   function imgTag(img, opts) {
     opts = opts || {};
     if (!img) return '';
@@ -86,6 +119,8 @@
       opts.eager ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"',
       opts.id ? 'id="' + opts.id + '"' : '',
       opts.className ? 'class="' + opts.className + '"' : '',
+      img.url ? 'data-fallback="' + escapeAttr(img.url) + '"' : '',
+      img.url ? 'onerror="var f=this.dataset.fallback; if (f &amp;&amp; this.src !== f) { this.onerror=null; this.removeAttribute(\'srcset\'); this.removeAttribute(\'sizes\'); this.src=f; }"' : '',
     ].filter(Boolean).join(' ');
     return '<img ' + attrs + '>';
   }
@@ -125,6 +160,31 @@
     var updated = data.cartLinesAdd.cart;
     renderCartCount(updated.totalQuantity);
     return updated;
+  }
+
+  /* Buy Now: a throwaway cart holding exactly this one line.
+
+     Deliberately does NOT touch the persisted cart. Buy Now used to add
+     to the saved cart and redirect, which meant buying, going back, and
+     buying again appended a second line — checkout then showed two
+     polos for what the shopper thought was one purchase. Real shoppers
+     do exactly that, and it was the reported bug.
+
+     A fresh cart per press fixes it without the other trap: clearing or
+     reusing the saved cart would silently throw away whatever the
+     shopper had already quick-added from the grid. Their saved cart is
+     left exactly as it was, so the header badge stays truthful — which
+     is why this doesn't call renderCartCount.
+
+     Same shape as Shopify's own "Buy it now". */
+  async function createBuyNowCart(variantId, qty) {
+    var data = await shopifyFetch(
+      'mutation($lines: [CartLineInput!]!) {' +
+      '  cartCreate(input: { lines: $lines }) { cart { id checkoutUrl totalQuantity } }' +
+      '}',
+      { lines: [{ merchandiseId: variantId, quantity: qty || 1 }] }
+    );
+    return data.cartCreate.cart;
   }
 
   /* Cart count in the header. Only rendered once the real number is
@@ -324,17 +384,38 @@
 
   // -----------------------------------------------------------------
   // Browsing history — the basis for every personalised surface on the
-  // site. Real views only, most-recent-first, deduped and capped.
+  // site. Real views only, most-recent-first, deduped and capped, and
+  // aged out after RECENT_VIEW_MAX_AGE_MS: without an expiry, a device
+  // that only ever viewed products once, testing the site weeks ago,
+  // would show "Pick Up Where You Left Off" forever after — technically
+  // real history, but not "recent" by any reasonable reading, and not
+  // what that section is for.
   // -----------------------------------------------------------------
-  function getViewed() {
-    try { return JSON.parse(localStorage.getItem('asior_viewed') || '[]'); }
+  var RECENT_VIEW_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+  function getViewedRaw() {
+    var raw;
+    try { raw = JSON.parse(localStorage.getItem('asior_viewed') || '[]'); }
     catch (err) { return []; }
+    var now = Date.now();
+    // Entries from before this timestamp existed are bare handle
+    // strings with no way to know their age — treat them as expired
+    // rather than showing indefinitely-old history as "recent".
+    return raw.filter(function (entry) {
+      return entry && typeof entry === 'object' && typeof entry.ts === 'number' && (now - entry.ts) < RECENT_VIEW_MAX_AGE_MS;
+    });
+  }
+
+  function getViewed() {
+    return getViewedRaw().map(function (entry) { return entry.handle; });
   }
 
   function recordView(handle) {
-    var history = [handle].concat(getViewed().filter(function (h) { return h !== handle; })).slice(0, 8);
+    var history = [{ handle: handle, ts: Date.now() }]
+      .concat(getViewedRaw().filter(function (entry) { return entry.handle !== handle; }))
+      .slice(0, 8);
     localStorage.setItem('asior_viewed', JSON.stringify(history));
-    return history;
+    return history.map(function (entry) { return entry.handle; });
   }
 
   /* Sizes this visitor has actually picked, counted. Used to preselect
@@ -385,16 +466,101 @@
     return null; // healthy stock — no label needed
   }
 
+  /* -----------------------------------------------------------------
+     Shipping copy, from one source.
+
+     Every shipping promise on the site comes through here so the words
+     can't drift apart across pages — the PDP saying one thing and the
+     cart another is how a customer ends up feeling misled at checkout.
+     Reads assets/promo-config.js.
+
+     The honesty rule: a free-shipping claim only appears when
+     ASIOR_SHIPPING.VERIFIED is filled in, meaning someone actually
+     checked Shopify's shipping settings. Unverified, it falls back to
+     the always-safe "calculated at checkout" line rather than
+     promising something Shopify might charge for.
+
+     Fulfilment and transit are deliberately never merged. "Ships in
+     1-2 business days" is how long before it leaves; transit is how
+     long it then takes to arrive. Stating one number invites the
+     reader to hear the other. */
+  function shippingConfig() {
+    return window.ASIOR_SHIPPING || {};
+  }
+
+  function freeShippingActive() {
+    var s = shippingConfig();
+    return Boolean(s.VERIFIED) && typeof s.FREE_THRESHOLD === 'number';
+  }
+
+  /* The one-line shipping promise shown next to the buy button.
+
+     The free-shipping branches only fire when freeShippingActive() —
+     i.e. a real, verified rate exists. With no free shipping the line
+     states the real starting price instead, which is the honest
+     version of the same reassurance: it tells a shopper the cost
+     exists and roughly what it is, on the product page, rather than
+     letting them discover it at checkout.
+
+     No region claim. Shopify ships internationally with calculated
+     rates, so naming the US price is accurate while "US only" was
+     not — it was turning away buyers the store can serve. */
+  function shippingLine() {
+    var s = shippingConfig();
+    var fulfil = s.FULFILMENT || '1-2 business days';
+    var region = s.REGION ? ', ' + s.REGION : '';
+    if (freeShippingActive() && s.FREE_THRESHOLD === 0) {
+      return 'Free shipping on every order, no minimum. Ships in ' + fulfil + region + '.';
+    }
+    if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
+      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Ships in ' + fulfil + region + '.';
+    }
+    if (typeof s.FROM_PRICE === 'number') {
+      return 'Ships in ' + fulfil + '. Shipping from $' + s.FROM_PRICE.toFixed(2)
+        + ' in the US, calculated at checkout.';
+    }
+    return 'Ships in ' + fulfil + '. Shipping calculated at checkout'
+      + (s.REGION ? ' — ' + s.REGION : '') + '.';
+  }
+
+  /* Short badge for the announcement bar and shop grid. Null when
+     there's nothing verified to claim. */
+  function freeShippingBadge() {
+    var s = shippingConfig();
+    if (!freeShippingActive()) return null;
+    if (s.FREE_THRESHOLD === 0) return 'free shipping on every order';
+    return 'free shipping over $' + s.FREE_THRESHOLD;
+  }
+
+  /* Cart progress toward free shipping. Returns null when there is no
+     verified threshold to measure against — better to say nothing than
+     to count someone toward a number that might not be real. Never
+     returns a negative amount. */
+  function freeShippingProgress(subtotal) {
+    var s = shippingConfig();
+    if (!freeShippingActive()) return null;
+    if (s.FREE_THRESHOLD === 0) return { unlocked: true, text: 'free shipping applied' };
+    var amount = parseFloat(subtotal);
+    if (isNaN(amount)) return null;
+    var away = s.FREE_THRESHOLD - amount;
+    if (away <= 0) return { unlocked: true, text: 'free shipping unlocked' };
+    return { unlocked: false, away: away, text: '$' + away.toFixed(2) + ' away from free shipping' };
+  }
+
   // -----------------------------------------------------------------
   window.Asior = {
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
+    shippingLine: shippingLine,
+    freeShippingBadge: freeShippingBadge,
+    freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,
     imgTag: imgTag,
     escapeAttr: escapeAttr,
     escapeHtml: escapeHtml,
     getOrCreateCart: getOrCreateCart,
     addToShopifyCart: addToShopifyCart,
+    createBuyNowCart: createBuyNowCart,
     renderCartCount: renderCartCount,
     refreshCartCount: refreshCartCount,
     klaviyoSubscribe: klaviyoSubscribe,
@@ -414,6 +580,25 @@
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
   };
 
+  /* Give the fixed header something solid behind it the moment the page
+     scrolls, so content stops showing through the nav. Passive listener:
+     this never calls preventDefault, and marking it so keeps it off the
+     scrolling critical path. */
+  function wireHeaderScrollState() {
+    var header = document.querySelector('header');
+    if (!header) return;
+    var scrolled = null;
+    function sync() {
+      var next = window.scrollY > 8;
+      if (next === scrolled) return;   // only touch the DOM on a real change
+      scrolled = next;
+      header.classList.toggle('is-scrolled', next);
+    }
+    sync();
+    window.addEventListener('scroll', sync, { passive: true });
+  }
+
+  wireHeaderScrollState();
   refreshCartCount();
   // Capture on every page load, not just at submit time — a visitor
   // can land on one page carrying UTM params and convert on a
