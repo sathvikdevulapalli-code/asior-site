@@ -153,6 +153,114 @@
 
   .cart-summary .amount { font-family: var(--font-mono); font-size: 16px; }
 
+  /* Discount code. Deliberately quiet and below the subtotal: a loud
+     "HAVE A PROMO CODE?" box next to the total invites everyone to
+     leave and hunt for one. The people who have a code came from an
+     email or a text and are looking for this field; nobody else needs
+     it pulled to their attention. */
+  .cart-discount { margin-top: 14px; }
+
+  .cart-discount-form { display: flex; gap: 8px; }
+
+  .cart-discount-form input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cart-discount-form input::placeholder { letter-spacing: 0.03em; text-transform: none; color: var(--muted); }
+  .cart-discount-form input:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+  .cart-discount-form button {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .cart-discount-form button[disabled] { opacity: 0.5; cursor: default; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .cart-discount-form button:not([disabled]):hover { border-color: var(--ink); }
+  }
+
+  /* Empty by default so an untouched cart shows no status row at all. */
+  .cart-discount-msg:empty { display: none; }
+
+  .cart-discount-msg {
+    margin-top: 8px;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+
+  .cart-discount-msg.is-error { color: var(--ink); }
+
+  .cart-discount-applied {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 14px;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+
+  .cart-discount-applied .clear {
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .cart-discount-applied .clear:hover { color: var(--ink); }
+  }
+
+  /* Only ever rendered when a code came back applicable — i.e. when the
+     shopper really is paying the lower number. Never a compare-at
+     price we invented. */
+  .cart-summary .was {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-right: 8px;
+  }
+
+  /* Sign-up value prop. Sits with the countdown, states the real close
+     instant and the real welcome discount (5%, the Shopify SIGNUP
+     pool) — no other number. */
+  .cart-signup-prop {
+    margin-top: 12px;
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .cart-signup-prop a { color: var(--ink); }
+
   .cart-trust {
     margin-top: 14px;
     display: flex;
@@ -364,6 +472,66 @@
     });
   }
 
+  /* Discount code entry.
+
+     Applies exactly what the shopper typed, then re-renders from a
+     fresh read of the cart so the number on screen is Shopify's, not
+     one we computed optimistically. An inapplicable code says so and
+     changes no price. Nothing here ever applies a code on its own. */
+  function bindDiscountForm(cartId) {
+    const form = document.getElementById('cartDiscountForm');
+    const clear = document.getElementById('cartDiscountClear');
+    if (clear) {
+      clear.addEventListener('click', async () => {
+        clear.disabled = true;
+        try {
+          await A.applyDiscountCodes(cartId, []);
+          await renderLive();
+        } catch (err) {
+          console.error('Could not remove discount code:', err);
+          clear.disabled = false;
+          setDiscountMsg("Couldn't remove that code right now. Try again.", true);
+        }
+      });
+    }
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('cartDiscountInput');
+      const btn = document.getElementById('cartDiscountBtn');
+      const code = (input.value || '').trim();
+      if (!code) { setDiscountMsg('Enter a code first.', true); input.focus(); return; }
+
+      btn.disabled = true;
+      const label = btn.textContent;
+      btn.textContent = 'Applying…';
+      setDiscountMsg('');
+      try {
+        const codes = await A.applyDiscountCodes(cartId, [code]);
+        const hit = codes.find(c => c.code.toLowerCase() === code.toLowerCase());
+        // Shopify's verdict, not ours. Re-render either way: on a hit
+        // so the struck-through subtotal comes from the refetched cart,
+        // on a miss so the field shows the rejected code back.
+        await renderLive();
+        if (!hit || !hit.applicable) {
+          setDiscountMsg("That code isn't valid for the items in your cart.", true);
+        }
+      } catch (err) {
+        console.error('Could not apply discount code:', err);
+        btn.disabled = false;
+        btn.textContent = label;
+        setDiscountMsg("Couldn't check that code right now. Try again.", true);
+      }
+    });
+  }
+
+  function setDiscountMsg(text, isError) {
+    const el = document.getElementById('cartDiscountMsg');
+    if (!el) return;
+    el.textContent = text || '';
+    el.classList.toggle('is-error', !!isError && !!text);
+  }
+
   function bindCartSignupForm() {
     const form = document.getElementById('cartSignupForm');
     if (!form) return;
@@ -406,6 +574,8 @@
           id
           checkoutUrl
           cost { subtotalAmount { amount currencyCode } }
+          discountCodes { code applicable }
+          discountAllocations { discountedAmount { amount currencyCode } }
           lines(first: 50) {
             edges {
               node {
@@ -437,6 +607,27 @@
     `, { cartId, lineIds: [lineId] });
   }
 
+  /* Money in, money out — no rounding invention. Shopify hands back
+     decimal strings; this only formats what it was given. */
+  function money(amount, currency) {
+    var n = Number(amount);
+    if (!isFinite(n)) return '';
+    var sign = currency === 'USD' || !currency ? '$' : '';
+    return sign + n.toFixed(2);
+  }
+
+  /* Sign-up value prop. The close instant comes from dropCloseLabel(),
+     which reads the same DROP_CLOSE_TIME as every countdown on the
+     site, so the date here can never drift from the clock above it.
+     5% is the real welcome code (Shopify SIGNUP pool) — no other
+     number goes in this sentence. If the date can't be formatted the
+     sentence drops it rather than printing a blank. */
+  function signupPropHTML(href) {
+    var when = window.Asior.dropCloseLabel && window.Asior.dropCloseLabel();
+    var closes = when ? 'Fall drop closes ' + A.escapeHtml(when) + '. ' : '';
+    return closes + '<a href="' + href + '">Sign up and get 5% off your first order.</a>';
+  }
+
   async function renderLive() {
     const root = document.getElementById('cartRoot');
     const cart = await getShopifyCart();
@@ -462,18 +653,58 @@
         </div>`;
     }).join('');
 
+    // What Shopify says about any code on this cart. `applicable` is
+    // its call, not ours — an inapplicable code discounts nothing and
+    // must leave the price untouched.
+    const codes = cart.discountCodes || [];
+    const applied = codes.filter(c => c.applicable);
+    const rejected = codes.filter(c => !c.applicable);
+    const off = A.cartDiscountTotal(cart);
+    const gross = parseFloat(cart.cost.subtotalAmount.amount);
+    const currency = cart.cost.subtotalAmount.currencyCode;
+
+    // Strike the original through ONLY when a code really applied and
+    // real money came off. Anything else shows one plain price.
+    const showsDiscount = applied.length > 0 && off > 0;
+    const summary = showsDiscount
+      ? `<span>Subtotal</span>
+         <span class="amount">
+           <span class="was">${money(gross, currency)}</span>${money(gross - off, currency)}
+         </span>`
+      : `<span>Subtotal</span>
+         <span class="amount">${money(gross, currency)}</span>`;
+
+    const appliedRow = showsDiscount ? `
+      <div class="cart-discount-applied">
+        <span>${A.escapeHtml(applied[0].code)} applied, −${money(off, currency)}</span>
+        <button type="button" class="clear" id="cartDiscountClear">Remove</button>
+      </div>` : '';
+
+    const initialMsg = rejected.length && !showsDiscount
+      ? `That code isn't valid for the items in your cart.` : '';
+
     root.innerHTML = `
       ${rows}
-      <div class="cart-summary">
-        <span>Subtotal</span>
-        <span class="amount">$${cart.cost.subtotalAmount.amount}</span>
+      <div class="cart-summary">${summary}</div>
+      ${appliedRow}
+      <div class="cart-discount">
+        <form class="cart-discount-form" id="cartDiscountForm">
+          <label class="sr-only" for="cartDiscountInput">Discount code</label>
+          <input type="text" id="cartDiscountInput" name="code" placeholder="Discount code"
+                 autocomplete="off" autocapitalize="characters" spellcheck="false"
+                 value="${rejected.length ? A.escapeHtml(rejected[0].code) : ''}">
+          <button type="submit" id="cartDiscountBtn">Apply</button>
+        </form>
+        <p class="cart-discount-msg${initialMsg ? ' is-error' : ''}" id="cartDiscountMsg"
+           role="status" aria-live="polite">${initialMsg}</p>
       </div>
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
       <div class="cart-trust">
         <span>${A.escapeHtml(A.shippingLine())}</span>
         <span>No account needed, check out as a guest.</span>
       </div>
-      <div class="cart-klaviyo">
+      <p class="cart-signup-prop">${signupPropHTML('#cartSignup')}</p>
+      <div class="cart-klaviyo" id="cartSignup">
         <div class="cart-klaviyo-label">Get 5% Off Your First Order</div>
         <form class="cart-signup-form" id="cartSignupForm">
           <label class="sr-only" for="cartSignupEmail">Email address</label>
@@ -506,6 +737,7 @@
     document.getElementById('checkoutBtn').addEventListener('click', () => {
       location.href = cart.checkoutUrl;
     });
+    bindDiscountForm(cart.id);
     bindCartSignupForm();
   }
 

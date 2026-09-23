@@ -187,6 +187,53 @@
     return data.cartCreate.cart;
   }
 
+  /* Apply discount codes to the saved cart — or clear them, with [].
+
+     The shopper types a code; Shopify decides whether it counts. We
+     hand back its own read-back of discountCodes[].applicable and
+     never make that call ourselves, because the only number we are
+     allowed to show struck through is one Shopify has agreed to
+     charge. A code that comes back applicable:false discounts nothing
+     and must leave the displayed price exactly as it was.
+
+     Nothing here auto-applies a code. Codes go out by email and SMS to
+     subscribers; the site never types one in on a shopper's behalf.
+
+     Discount codes live on the cart itself, so whatever applies here
+     carries through to Shopify's hosted checkout unchanged. */
+  async function applyDiscountCodes(cartId, codes) {
+    var data = await shopifyFetch(
+      'mutation($cartId: ID!, $codes: [String!]!) {' +
+      '  cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $codes) {' +
+      '    cart { id discountCodes { code applicable } }' +
+      '    userErrors { field message }' +
+      '  }' +
+      '}',
+      { cartId: cartId, codes: codes || [] }
+    );
+    var res = (data && data.cartDiscountCodesUpdate) || {};
+    if (res.userErrors && res.userErrors.length) {
+      throw new Error(res.userErrors[0].message || 'Could not apply that code.');
+    }
+    return (res.cart && res.cart.discountCodes) || [];
+  }
+
+  /* Total cart-level discount, summed from Shopify's own allocations.
+
+     cost.subtotalAmount is documented as the amount BEFORE cart-level
+     discounts, so it does not move when a code applies — reading it
+     alone would show the shopper an unchanged price on a cart that is
+     genuinely discounted. The allocations are the real money off, so
+     the discounted subtotal is derived from them rather than assumed
+     of any single cost field. */
+  function cartDiscountTotal(cart) {
+    var allocs = (cart && cart.discountAllocations) || [];
+    return allocs.reduce(function (sum, a) {
+      var amt = a && a.discountedAmount && parseFloat(a.discountedAmount.amount);
+      return sum + (isFinite(amt) ? amt : 0);
+    }, 0);
+  }
+
   /* Cart count in the header. Only rendered once the real number is
      known, and hidden at zero — an empty cart shouldn't wear a badge. */
   function renderCartCount(n) {
@@ -561,6 +608,8 @@
     getOrCreateCart: getOrCreateCart,
     addToShopifyCart: addToShopifyCart,
     createBuyNowCart: createBuyNowCart,
+    applyDiscountCodes: applyDiscountCodes,
+    cartDiscountTotal: cartDiscountTotal,
     renderCartCount: renderCartCount,
     refreshCartCount: refreshCartCount,
     klaviyoSubscribe: klaviyoSubscribe,

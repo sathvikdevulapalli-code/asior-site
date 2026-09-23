@@ -525,6 +525,24 @@
     color: var(--ink);
   }
 
+  /* Sign-up value prop, directly under the ticking countdown. It has
+     to be a separate element: renderDropCountdown owns #pdCountdown's
+     textContent and rewrites it every tick, so a link placed in there
+     would be wiped within 30 seconds — and this one needs to be a
+     link. Carries the real welcome discount (5%, the Shopify SIGNUP
+     pool) and no other number, and no price on this page is ever
+     struck through for it. The close instant is left to the countdown
+     directly above rather than repeated here. */
+  .pd-signup-prop {
+    margin: 6px 0 0;
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+
+  .pd-signup-prop a { color: var(--ink); }
+
   /* ---------- trust block ----------
      Renders nothing until assets/reviews.js has a real entry for this
      handle — see that file. Grid shape matches .rel-grid on purpose:
@@ -1388,6 +1406,7 @@
           <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
           <div class="pd-price tnum" id="pdPrice"></div>
           <p class="pd-countdown" id="pdCountdown"></p>
+          <p class="pd-signup-prop" id="pdSignupProp"></p>
           ${factsHTML}
         </div>
         <div class="pd-media">
@@ -1635,6 +1654,22 @@
         prefix: 'fall drop closes — ',
         closedText: 'fall drop closed',
       });
+    }
+
+    // Sign-up is how you get a discount — there is no sitewide sale and
+    // no code applied on anyone's behalf, so this is the honest offer
+    // to make here. 5% is the real welcome code (Shopify SIGNUP pool);
+    // no other number belongs in this sentence.
+    //
+    // No close date here, unlike the cart's version of this line: the
+    // ticking countdown sits directly above it and the teaser bar sits
+    // above that, so stating the deadline a third time reads as
+    // clutter rather than urgency. The cart has no buy-box countdown,
+    // so it carries the date itself.
+    const propEl = document.getElementById('pdSignupProp');
+    if (propEl) {
+      propEl.innerHTML =
+        '<a href="shop.html#signup">Sign up and get 5% off your first order.</a>';
     }
 
     // ---- quantity ----
