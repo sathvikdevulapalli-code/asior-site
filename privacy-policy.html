@@ -148,6 +148,17 @@
     .page-top-space { height: 84px; }
   }
 </style>
+
+<!-- Shop ids and shipping/promo constants. These two pages carry no
+     nav, but they still need it: the analytics module in the shared
+     head below reads its config from here. -->
+<script src="assets/promo-config.js"></script>
+<!-- HEAD:START -->
+  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- HEAD:END -->
 </head>
 <body>
 

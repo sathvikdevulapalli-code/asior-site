@@ -525,6 +525,29 @@
     color: var(--ink);
   }
 
+  /* Sign-up value prop, directly under the ticking countdown. It has
+     to be a separate element: renderDropCountdown owns #pdCountdown's
+     textContent and rewrites it every tick, so a link placed in there
+     would be wiped within 30 seconds — and this one needs to be a
+     link. Carries the real welcome discount (5%, the Shopify SIGNUP
+     pool) and no other number, and no price on this page is ever
+     struck through for it. The close instant is left to the countdown
+     directly above rather than repeated here. */
+  .pd-signup-prop {
+    margin: 6px 0 0;
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+
+  .pd-signup-prop a { color: var(--ink); }
+
+  /* Second shipping line. Same voice as .pd-note, just tighter to it
+     so the pair reads as one shipping statement rather than two
+     competing claims. */
+  .pd-note-intl { margin-top: 4px; }
+
   /* ---------- trust block ----------
      Renders nothing until assets/reviews.js has a real entry for this
      handle — see that file. Grid shape matches .rel-grid on purpose:
@@ -927,6 +950,13 @@
     margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
 </style>
+
+<!-- HEAD:START -->
+  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- HEAD:END -->
 </head>
 <body>
 
@@ -1388,6 +1418,7 @@
           <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
           <div class="pd-price tnum" id="pdPrice"></div>
           <p class="pd-countdown" id="pdCountdown"></p>
+          <p class="pd-signup-prop" id="pdSignupProp"></p>
           ${factsHTML}
         </div>
         <div class="pd-media">
@@ -1423,6 +1454,7 @@
             ? `<p class="pd-note" id="pdNote">${preorderNote}</p>
                <p class="pd-note">14-day returns on unworn, unwashed items with tags attached.</p>`
             : `<p class="pd-note" id="pdNote">${A.escapeHtml(A.shippingLine())}</p>
+              ${A.internationalLine() ? `<p class="pd-note pd-note-intl">${A.escapeHtml(A.internationalLine())}</p>` : ''}
                <p class="pd-note">14-day returns on unworn, unwashed items with tags attached. No account needed at checkout.</p>`}
           ${descHTML}
           ${trustBlockHTML(product.handle)}
@@ -1637,6 +1669,22 @@
       });
     }
 
+    // Sign-up is how you get a discount — there is no sitewide sale and
+    // no code applied on anyone's behalf, so this is the honest offer
+    // to make here. 5% is the real welcome code (Shopify SIGNUP pool);
+    // no other number belongs in this sentence.
+    //
+    // No close date here, unlike the cart's version of this line: the
+    // ticking countdown sits directly above it and the teaser bar sits
+    // above that, so stating the deadline a third time reads as
+    // clutter rather than urgency. The cart has no buy-box countdown,
+    // so it carries the date itself.
+    const propEl = document.getElementById('pdSignupProp');
+    if (propEl) {
+      propEl.innerHTML =
+        '<a href="shop.html#signup">Sign up and get 5% off your first order.</a>';
+    }
+
     // ---- quantity ----
     let qty = 1;
     const qtyVal = document.getElementById('qtyVal');
@@ -1662,6 +1710,21 @@
         // is untouched, so anything quick-added from the grid survives.
         const updated = await A.createBuyNowCart(v.variantId, qty);
         if (selection.Size) A.recordSizeChoice(selection.Size);
+        A.klaviyoAddedToCart({
+          handle: product.handle,
+          name: product.name,
+          url: location.origin + productUrl(product.handle),
+          price: v.price,
+          quantity: qty,
+          size: selection.Size || null,
+        });
+        if (window.AsiorAnalytics) {
+          window.AsiorAnalytics.addToCart({
+            handle: product.handle, name: product.name,
+            variantId: v.variantId, price: v.price,
+            quantity: qty, currency: v.currency,
+          });
+        }
         A.klaviyoTrack('Added To Cart', {
           product: product.name, handle: product.handle,
           size: selection.Size || null, price: v.price, quantity: qty,
@@ -1836,6 +1899,29 @@
 
     A.recordView(product.handle);
     A.klaviyoTrack('Viewed Product', { product: product.name, handle: product.handle });
+    // Onsite twin of the line above. Only this one sets the cookie
+    // Klaviyo's Browse Abandonment flow keys off — the Client API
+    // event above rides an anonymous_id of our own and can't trigger
+    // it. Prices and names come from the live product, never invented.
+    A.klaviyoViewedProduct({
+      handle: product.handle,
+      name: product.name,
+      url: location.origin + productUrl(product.handle),
+      image: (product.images && product.images[0] && product.images[0].url) || null,
+      price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
+    });
+
+    // Shopify's own funnel. Same real values, different collector —
+    // see assets/shopify-analytics.js for why Shopify's pixel can't
+    // reach this domain. No-ops silently if it didn't load.
+    if (window.AsiorAnalytics) {
+      window.AsiorAnalytics.productView({
+        handle: product.handle,
+        name: product.name,
+        price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
+        currency: product.variants[0] && product.variants[0].currency,
+      });
+    }
   })();
 </script>
 

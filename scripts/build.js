@@ -36,6 +36,11 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
+
+/* Same public Klaviyo company id assets/site.js uses. Public by
+   design — it identifies the account to onsite scripts, and is not a
+   secret. */
+const KLAVIYO_COMPANY_ID = 'QV7rBB';
 const BASE = 'https://asiorclothing.com';
 
 const SHOPIFY_DOMAIN = 'b0vvek-yz.myshopify.com';
@@ -254,7 +259,7 @@ async function syncPolicy(slug, file) {
    assets/drop-countdown.js; see the <script> block near the bottom of
    each page in SHARED_MARKUP_PAGES. Empty until that runs so it never
    flashes stale/wrong text. */
-const HEADER_FULL = `  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Drop announcement"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
     <nav>
@@ -298,6 +303,51 @@ const FOOTER_HTML = `  <footer id="order">
     </div>
   </footer>
 `;
+
+/* ===================================================================
+   Shared <head>.
+
+   Klaviyo's onsite script. This is what Browse Abandonment runs on:
+   that flow triggers off a `Viewed Product` event tied to a cookied
+   profile, and only klaviyo.js can create that cookie and stitch an
+   anonymous browser to a profile once the visitor gives an email.
+
+   assets/site.js already posts events to Klaviyo's server-side Client
+   API, but those carry an anonymous_id of our own making, which
+   Browse Abandonment cannot key off — so the flow was live in Klaviyo
+   and could never fire. The two now run side by side: the Client API
+   for our own metrics, klaviyo.js for the onsite flows.
+
+   Shopify's storefront analytics beacons ride along here too, for the
+   same reason: page_view has to fire on every page or the funnel has
+   no top. See assets/shopify-analytics.js for why Shopify's own pixel
+   cannot do this job on a headless domain. The two shop ids it reads
+   live in assets/promo-config.js, which every page already loads as a
+   classic script — deferring the analytics module means it runs after
+   parsing, and so always after that config, without this block having
+   to load promo-config a second time and change where it sits in the
+   head.
+
+   Klaviyo async and analytics deferred, so neither blocks first paint,
+   and the preconnects save a round trip on each handshake. Synced into
+   every page from here, so the tags exist in exactly one place. */
+const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <script async src="https://static.klaviyo.com/onsite/js/${KLAVIYO_COMPANY_ID}/klaviyo.js?company_id=${KLAVIYO_COMPANY_ID}"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
+`;
+
+/* Every page gets the shared head, including the three that carry no
+   shared header/footer: lanyard.html and jag-sweats.html are
+   standalone product pages, and index.html is a 301 stub that a
+   visitor can still briefly land on. Onsite tracking has to be
+   sitewide or the profile stitching has holes in it. */
+const HEAD_PAGES = [
+  'shop.html', 'product.html', 'cart.html', 'community.html', 'contact.html',
+  'manufacturing.html', 'account.html', 'privacy-policy.html',
+  'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
+  'jag-sweats.html', 'index.html',
+];
 
 const SHARED_MARKUP_PAGES = [
   ['shop.html', HEADER_FULL],
@@ -434,6 +484,19 @@ function replaceBetween(html, startMarker, endMarker, replacement) {
   return html.slice(0, start) + startMarker + '\n' + replacement + '  ' + endMarker + html.slice(end + endMarker.length);
 }
 
+function syncSharedHead() {
+  let synced = 0;
+  for (const file of HEAD_PAGES) {
+    const target = path.join(ROOT, file);
+    const html = fs.readFileSync(target, 'utf8');
+    const next = replaceBetween(html, '<!-- HEAD:START -->', '<!-- HEAD:END -->', HEAD_SHARED);
+    if (next === null) throw new Error(`${file}: HEAD markers missing`);
+    if (next !== html) fs.writeFileSync(target, next);
+    synced++;
+  }
+  return synced;
+}
+
 function syncSharedMarkup() {
   let synced = 0;
   for (const [file, header] of SHARED_MARKUP_PAGES) {
@@ -454,6 +517,24 @@ function syncSharedMarkup() {
 
 (async function main() {
   let failed = false;
+
+  /* Shared markup is synced FIRST, before product.html is read as the
+     template for /products/<handle>.html. Those generated pages are
+     the real PDPs — the ones ads point at and the ones Klaviyo's
+     Browse Abandonment has to see — so syncing after the template read
+     would ship them a build behind on any shared-markup change, with
+     empty HEAD markers and no klaviyo.js on the highest-traffic page
+     on the site.
+
+     Still its own try: a marker missing from one page shouldn't stop
+     the catalog from building, same as before. */
+  try {
+    console.log(`✓ shared header/footer synced across ${syncSharedMarkup()} pages`);
+    console.log(`✓ shared <head> (klaviyo.js) synced across ${syncSharedHead()} pages`);
+  } catch (err) {
+    failed = true;
+    console.error('✗ shared markup sync failed:', err.message);
+  }
 
   try {
     const products = await fetchProducts();
@@ -478,13 +559,6 @@ function syncSharedMarkup() {
     // 404 because /products/ never got generated.
     console.error('✗ product/sitemap build failed:', err.message);
     process.exit(1);
-  }
-
-  try {
-    console.log(`✓ shared header/footer synced across ${syncSharedMarkup()} pages`);
-  } catch (err) {
-    failed = true;
-    console.error('✗ shared header/footer sync failed:', err.message);
   }
 
   for (const [slug, file] of [['privacy-policy', 'privacy-policy.html'],

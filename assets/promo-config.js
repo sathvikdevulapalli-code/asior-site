@@ -137,14 +137,72 @@ window.ASIOR_SHIPPING = {
     { zone: 'US', label: 'Standard (1-5 lb)', price: 9.90, transit: '3-4 business days' },
   ],
 
-  // Shopify has an International zone with calculated rates for 27
-  // countries, so "US only for now" is wrong and was turning away
-  // buyers the store can actually ship to. REGION stays null: the
-  // shipping line names the US price without claiming the US is the
-  // only destination.
+  // International is live through Shopify Managed Markets, with
+  // Global-e as merchant of record. Rates are carrier-calculated and
+  // shown at checkout with duties and taxes included in the total, so
+  // there is nothing to collect on delivery. "US only for now" was
+  // wrong and was turning away buyers the store can actually ship to.
+  // REGION stays null: the shipping line names the US price without
+  // claiming the US is the only destination.
+  //
+  // Two things the checkout asks for that the site must not soften:
+  // international orders require a phone number, because the
+  // cross-border carriers do, and orders to mainland China also ask
+  // for a Resident ID number at the Global-e step, for customs.
+  // INTERNATIONAL_COUNTRIES is the number the copy is allowed to
+  // claim — if the country list changes, it changes here and nowhere
+  // else.
   REGION: null,
   INTERNATIONAL: true,
+  INTERNATIONAL_COUNTRIES: 28,
+  INTERNATIONAL_DUTIES_INCLUDED: true,
+  INTERNATIONAL_PHONE_REQUIRED: true,
+  INTERNATIONAL_CHINA_RESIDENT_ID: true,
 
   // Null = nothing about free shipping may render. See FREE_THRESHOLD.
   VERIFIED: null,
+};
+
+/* ===================================================================
+   Shopify storefront analytics.
+
+   This storefront is served from Vercel on its own domain, so Shopify
+   never injects its own pixel here: Web Pixels and Customer Events
+   only run on surfaces Shopify renders (the Online Store theme and
+   checkout). That is why Shopify currently sees checkout traffic and
+   nothing else, and why configuring a pixel in Admin would not close
+   the gap. assets/shopify-analytics.js sends the beacons directly
+   instead.
+
+   Both ids were pulled from Shopify by the operator and are constants
+   — nothing is fetched at build time. SHOP_ID is the numeric part of
+   gid://shopify/Shop/75144954073. STOREFRONT_ID is the "Asior Website"
+   headless storefront (created Jul 19), which is what attributes these
+   events to this storefront rather than the theme.
+
+   Neither is a secret: both ship in the page and identify the shop to
+   Shopify's own collector, exactly as the theme's pixel does.
+
+   Set ENABLED to false to switch every beacon off without touching
+   any other file. */
+window.ASIOR_ANALYTICS = {
+  ENABLED: true,
+  SHOP_ID: 75144954073,
+  STOREFRONT_ID: '311682',
+
+  /* Consent gate.
+
+     Shopify's Customer Privacy API is loaded by Shopify's own consent
+     script, which — for the same reason as the pixel — cannot load on
+     this domain. So window.Shopify.customerPrivacy is expected to be
+     absent here, and requiring it would mean the module never fires at
+     all.
+
+     The rule this implements: if the API IS present and says analytics
+     processing is not allowed, send nothing. If it is absent, there is
+     no consent framework on this domain to withhold a grant, and the
+     beacons send. Flip REQUIRE_CONSENT_API to true to invert that and
+     send only when the API is present and grants consent — which today
+     means sending nothing. */
+  REQUIRE_CONSENT_API: false,
 };

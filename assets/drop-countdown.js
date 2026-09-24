@@ -36,6 +36,36 @@
     return Math.max(mins, 0) + 'm left';
   }
 
+  /* The absolute deadline in words — "Sun 9/27, 11:59 PM CT" — for
+     copy that has to state the date rather than tick down to it.
+
+     Derived from the same DROP_CLOSE_TIME as the countdown, so the two
+     can never disagree and moving the date stays a one-file change.
+     Formatted in America/Chicago on purpose: the copy says CT, so it
+     has to mean CT for a shopper reading it in any timezone, not
+     whatever local clock the browser happens to be on.
+
+     Returns null if there's no date or no Intl, and callers drop the
+     sentence rather than printing a half-formed one. */
+  function dropCloseLabel() {
+    var target = closeTime();
+    if (!target) return null;
+    try {
+      var p = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Chicago',
+        weekday: 'short', month: 'numeric', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true,
+      }).formatToParts(new Date(target)).reduce(function (acc, part) {
+        acc[part.type] = part.value; return acc;
+      }, {});
+      if (!p.weekday || !p.hour) return null;
+      return p.weekday + ' ' + p.month + '/' + p.day + ', ' +
+             p.hour + ':' + p.minute + ' ' + p.dayPeriod + ' CT';
+    } catch (e) {
+      return null;
+    }
+  }
+
   /* opts: { el, prefix, suffix, closedText, onClose }
      el:         element whose textContent this owns.
      prefix:     text before the countdown, e.g. 'fall drop closes — '.
@@ -74,4 +104,5 @@
 
   window.Asior = window.Asior || {};
   window.Asior.renderDropCountdown = renderDropCountdown;
+  window.Asior.dropCloseLabel = dropCloseLabel;
 })();

@@ -214,6 +214,13 @@
   }
   .lp-loading.hide { display: none; }
 </style>
+
+<!-- HEAD:START -->
+  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- HEAD:END -->
 </head>
 <body>
 
@@ -458,6 +465,17 @@
       try {
         const updated = await A.addToShopifyCart(v.variantId, qty);
         A.klaviyoTrack('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price });
+        A.klaviyoAddedToCart({
+          handle: HANDLE, name: product.name,
+          url: location.origin + '/lanyard.html',
+          price: v.price, quantity: qty,
+        });
+        if (window.AsiorAnalytics) {
+          window.AsiorAnalytics.addToCart({
+            handle: HANDLE, name: product.name,
+            variantId: v.variantId, price: v.price, quantity: qty,
+          });
+        }
         location.href = updated.checkoutUrl;
       } catch (err) {
         msg.textContent = "That didn't go through. Try again in a moment.";
@@ -467,6 +485,18 @@
     });
 
     A.klaviyoTrack('Viewed Product', { product: product.name, handle: HANDLE });
+    A.klaviyoViewedProduct({
+      handle: HANDLE, name: product.name,
+      url: location.origin + '/lanyard.html',
+      image: (product.images && product.images[0] && product.images[0].url) || null,
+      price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
+    });
+    if (window.AsiorAnalytics) {
+      window.AsiorAnalytics.productView({
+        handle: HANDLE, name: product.name,
+        price: Math.min.apply(null, product.variants.map(function (v) { return v.price; })),
+      });
+    }
   })();
 </script>
 
