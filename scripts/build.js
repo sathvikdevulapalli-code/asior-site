@@ -108,21 +108,54 @@ function productJsonLd(p, url) {
   const inStock = variants.some(v => v.availableForSale);
   const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
   const currency = variants[0] ? variants[0].price.currencyCode : 'USD';
+  /* One price or a range, never a number nobody is charged.
+
+     A single Offer carrying the minimum is correct only when every
+     variant costs the same. When sizes are priced differently, that
+     same field states a price most variants don't have — and a wrong
+     price in structured data is worse than none, because it is what
+     gets shown in search results. So a spread emits AggregateOffer
+     with the real low and high instead.
+
+     No prices at all (a product with no readable variant price) and
+     the offer block is dropped entirely rather than guessed at. */
+  const low = prices.length ? Math.min(...prices) : null;
+  const high = prices.length ? Math.max(...prices) : null;
+  const availability = inStock
+    ? 'https://schema.org/InStock'
+    : 'https://schema.org/OutOfStock';
+
+  let offers = null;
+  if (low !== null && low === high) {
+    offers = {
+      '@type': 'Offer',
+      price: low,
+      priceCurrency: currency,
+      availability,
+      itemCondition: 'https://schema.org/NewCondition',
+      url,
+    };
+  } else if (low !== null) {
+    offers = {
+      '@type': 'AggregateOffer',
+      lowPrice: low,
+      highPrice: high,
+      offerCount: prices.length,
+      priceCurrency: currency,
+      availability,
+      itemCondition: 'https://schema.org/NewCondition',
+      url,
+    };
+  }
+
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: p.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
     image: p.images.edges.map(e => e.node.url),
     brand: { '@type': 'Brand', name: 'Asior' },
-    offers: {
-      '@type': 'Offer',
-      price: prices.length ? Math.min(...prices) : undefined,
-      priceCurrency: currency,
-      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      url,
-    },
   };
+  if (offers) ld.offers = offers;
   const desc = plainDescription(p.descriptionHtml, '');
   if (desc) ld.description = desc;
   const sku = variants.find(v => v.sku);
@@ -287,7 +320,7 @@ const HEADER_MINIMAL = `  <header>
 
 const FOOTER_HTML = `  <footer id="order">
     <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
