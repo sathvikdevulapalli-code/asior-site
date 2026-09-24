@@ -30,7 +30,7 @@
 
    Central Time is -05:00 during CDT (mid-March to early November) and
    -06:00 during CST. September is CDT, so -05:00. Same reasoning as
-   DROP_CLOSE_TIME in launch-config.js.
+   the announcement bar in scripts/build.js.
 
    ---------------------------------------------------------------
    TO RUN A PROMOTION
@@ -64,7 +64,7 @@ window.ASIOR_PROMO = {
 
   // Copy. Lowercase, plain, no exclamation marks — same voice as the
   // rest of the site. Keep the headline to a few words; it renders in
-  // a banner that sits next to the drop countdown.
+  // a banner that sits in the announcement bar.
   HEADLINE: null,         // e.g. 'free shipping'
   SUBHEAD: null,          // e.g. 'ends 4pm ct'
 

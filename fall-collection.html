@@ -204,7 +204,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
     <nav>
@@ -259,7 +259,6 @@
      and assets/launch-config.js for FALL_PRODUCTS/FALL_COMMERCE_READY,
      the two facts that decide what actually renders. -->
 <script src="assets/fall-grid.js"></script>
-<script src="assets/drop-countdown.js"></script>
 <script>
   // This page is in scripts/build.js's sitemap and, as of the sitewide
   // banner replacing the old email-signup teaser bar, linked from every
@@ -269,16 +268,6 @@
     document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
   }
 
-  if (window.Asior.renderDropCountdown) {
-    window.Asior.renderDropCountdown({
-      el: document.getElementById('teaserBar'),
-      prefix: 'fall drop closes — ',
-      // Verified shipping offer rides along in the same bar; null when
-      // nothing is confirmed, in which case nothing is appended.
-      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
-      closedText: 'fall drop closed',
-    });
-  }
 
   window.Asior.renderFallGrid({
     gridEl: document.getElementById('fallGrid'),

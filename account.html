@@ -108,7 +108,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
     <nav>
@@ -159,22 +159,11 @@
 <script src="assets/site.js"></script>
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
-<script src="assets/drop-countdown.js"></script>
 <script>
   // Sitewide banner (the old email-signup teaser bar, replaced — see
   // scripts/build.js's comment on HEADER_FULL). This page doesn't
-  // otherwise need launch-config.js/drop-countdown.js, so both are
+  // otherwise need launch-config.js, so it is
   // loaded here rather than assumed already present.
-  if (window.Asior.renderDropCountdown) {
-    window.Asior.renderDropCountdown({
-      el: document.getElementById('teaserBar'),
-      prefix: 'fall drop closes — ',
-      // Verified shipping offer rides along in the same bar; null when
-      // nothing is confirmed, in which case nothing is appended.
-      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
-      closedText: 'fall drop closed',
-    });
-  }
 </script>
 
 </body>

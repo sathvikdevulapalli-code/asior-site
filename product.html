@@ -31,10 +31,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- Still needed for FALL_PRODUCTS (customer-facing name overrides)
-     and DROP_CLOSE_TIME (assets/drop-countdown.js) — nothing to do
-     with the Early Access gate, which is retired; see shop.html's
-     equivalent comment for why. -->
+<!-- Still needed for FALL_PRODUCTS (customer-facing name overrides).
+     The Early Access gate is retired; see shop.html's equivalent
+     comment for why. No drop-close date lives here any more — the
+     collection has no end date. -->
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
 <style>
@@ -515,24 +515,12 @@
   /* Restated where the decision actually happens (right under the
      price, above everything else in .pd-head), not just in the
      sitewide banner — same instant, read from the same source
-     (assets/drop-countdown.js), so the two can never disagree. */
-  .pd-countdown {
-    margin-top: 10px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  /* Sign-up value prop, directly under the ticking countdown. It has
-     to be a separate element: renderDropCountdown owns #pdCountdown's
-     textContent and rewrites it every tick, so a link placed in there
-     would be wiped within 30 seconds — and this one needs to be a
-     link. Carries the real welcome discount (5%, the Shopify SIGNUP
-     pool) and no other number, and no price on this page is ever
-     struck through for it. The close instant is left to the countdown
-     directly above rather than repeated here. */
+     the same source, so the two can never disagree. */
+  /* Sign-up value prop. Carries the real welcome discount (5%, the
+     Shopify SIGNUP pool) and no other number, and no price on this
+     page is ever struck through for it. It used to sit under a
+     countdown to a close date; the collection has no end date now, so
+     the offer stands on its own. */
   .pd-signup-prop {
     margin: 6px 0 0;
     font-size: 11px;
@@ -963,7 +951,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
     <nav>
@@ -1014,7 +1002,6 @@
 <script src="assets/site.js"></script>
 <script src="assets/product-details.js"></script>
 <script src="assets/reviews.js"></script>
-<script src="assets/drop-countdown.js"></script>
 <script>
   // ---------------------------------------------------------------
   // Product page. Shared plumbing (Storefront fetch, cart, Klaviyo,
@@ -1027,16 +1014,6 @@
   // Sitewide banner (the old email-signup teaser bar, replaced — see
   // scripts/build.js's comment on HEADER_FULL). Independent of the
   // product fetch below, so it doesn't wait on Shopify.
-  if (A.renderDropCountdown) {
-    A.renderDropCountdown({
-      el: document.getElementById('teaserBar'),
-      prefix: 'fall drop closes — ',
-      // Verified shipping offer rides along in the same bar; null when
-      // nothing is confirmed, in which case nothing is appended.
-      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
-      closedText: 'fall drop closed',
-    });
-  }
 
   // Generated pages (/products/<handle>.html) set this. The ?id= form
   // still works so older shared links don't break.
@@ -1417,7 +1394,6 @@
           ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
           <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
           <div class="pd-price tnum" id="pdPrice"></div>
-          <p class="pd-countdown" id="pdCountdown"></p>
           <p class="pd-signup-prop" id="pdSignupProp"></p>
           ${factsHTML}
         </div>
@@ -1654,31 +1630,12 @@
 
     // Same instant as the sitewide banner (scripts/build.js's
     // HEADER_FULL) and index.html's post-Early-Access section — all
-    // three read window.ASIOR_LAUNCH.DROP_CLOSE_TIME via this one
-    // renderer (assets/drop-countdown.js), so none of them can drift
-    // from another.
-    // Display only — this does not disable Buy Now when the clock
-    // passes. Whether to actually stop taking orders at close is a
-    // business call for whoever runs the drop, not something a display
-    // countdown should decide unilaterally.
-    if (A.renderDropCountdown) {
-      A.renderDropCountdown({
-        el: document.getElementById('pdCountdown'),
-        prefix: 'fall drop closes — ',
-        closedText: 'fall drop closed',
-      });
-    }
 
     // Sign-up is how you get a discount — there is no sitewide sale and
     // no code applied on anyone's behalf, so this is the honest offer
     // to make here. 5% is the real welcome code (Shopify SIGNUP pool);
-    // no other number belongs in this sentence.
-    //
-    // No close date here, unlike the cart's version of this line: the
-    // ticking countdown sits directly above it and the teaser bar sits
-    // above that, so stating the deadline a third time reads as
-    // clutter rather than urgency. The cart has no buy-box countdown,
-    // so it carries the date itself.
+    // no other number belongs in this sentence, and no close date does
+    // either — the collection doesn't have one.
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {
       propEl.innerHTML =
@@ -1784,7 +1741,6 @@
       if (!hasOptions) { note.textContent = ''; note.classList.remove('show'); return; }
 
       const v = currentVariant();
-      const haveRealStock = product.variants.some(vv => typeof vv.stockCount === 'number');
 
       if (v && v.available && typeof v.stockCount === 'number') {
         // Real data exists for this exact selection — it's the whole
@@ -1805,22 +1761,18 @@
         return;
       }
 
-      // Real per-size data never came back (fetchVariantStock failed) —
-      // the only honest signal left is how many sizes remain available
-      // across the whole product.
-      if (haveRealStock) { note.textContent = ''; note.classList.remove('show'); return; }
-
-      const total = product.variants.length;
-      const availableCount = product.variants.filter(vv => vv.available).length;
-      if (availableCount > 0 && availableCount <= 2 && availableCount < total) {
-        note.textContent = availableCount === 1
-          ? 'Only 1 size left in stock.'
-          : `Only ${availableCount} sizes left in stock.`;
-        note.classList.add('show');
-      } else {
-        note.textContent = '';
-        note.classList.remove('show');
-      }
+      // No real per-size count for this selection: say nothing.
+      //
+      // There used to be a fallback here that counted how many sizes
+      // were still available and wrote "Only N sizes left in stock".
+      // That number was true, but it is a different claim from the one
+      // the line appears to make, and it rendered precisely when the
+      // real inventory data had failed to load — urgency copy standing
+      // in for the fact we couldn't read. Scarcity is worth showing
+      // only when it comes from live quantityAvailable; the rest of
+      // the time the honest output is nothing at all.
+      note.textContent = '';
+      note.classList.remove('show');
     }
     renderStockNote();
 

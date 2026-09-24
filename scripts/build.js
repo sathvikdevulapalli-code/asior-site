@@ -283,16 +283,16 @@ async function syncPolicy(slug, file) {
    through from the still-locked gate can't browse into the rest of the
    catalog — see the comment on lanyard.html's own <header>. Syncing
    either of those to the shared markup would undo that on purpose. */
-/* Was a "Sign Up For 10% Off" link. Replaced with the drop-close
-   countdown for the Fall run (closes Sep 27) — stacking both would add
-   a second full-width band above the header on every page, which is
-   real height the mobile above-the-fold audit can't spare, and a
-   competing action (email signup) at the very top of a page whose job
-   is now to sell rather than capture email. Text is filled in by
-   assets/drop-countdown.js; see the <script> block near the bottom of
-   each page in SHARED_MARKUP_PAGES. Empty until that runs so it never
-   flashes stale/wrong text. */
-const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Drop announcement"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+/* Was a "Sign Up For 10% Off" link. Replaced with a note for the Fall
+   run — stacking both would add a second full-width band above the
+   header on every page, which is real height the mobile above-the-fold
+   audit can't spare, and a competing action (email signup) at the very
+   top of a page whose job is now to sell rather than capture email.
+
+   Static text. It used to carry a live countdown to a close date; the
+   collection has no end date now, so announcing one would be a
+   deadline we invented. What is left is true and needs no clock. */
+const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
     <nav>
