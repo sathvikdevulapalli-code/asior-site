@@ -1120,12 +1120,26 @@
         price: parseFloat(v.price.amount),
         currency: v.price.currencyCode,
         comparePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null,
-        available: v.availableForSale,
         // null means "unknown" (fetchVariantStock failed, or this
         // variant wasn't in its response) — never treat null as zero.
         // 0 is itself a real, meaningful value (genuinely sold out) and
         // is left as 0, not coerced to null.
         stockCount: stockByVariant && stockByVariant.has(v.id) ? stockByVariant.get(v.id) : null,
+        // Sold out when Shopify says so OR when we can see the real
+        // count is gone.
+        //
+        // availableForSale on its own is not enough: a variant set to
+        // keep selling when out of stock stays available:true while its
+        // quantity runs negative. The JAG Lanyard is sitting at -5 right
+        // now — five units sold that don't exist — and on
+        // availableForSale alone this page would happily sell a sixth.
+        // Any real count at or below zero wins over that flag.
+        //
+        // Unknown (null) still defers to Shopify, because refusing to
+        // sell on missing data would be the more expensive mistake.
+        available: v.availableForSale
+          && !(typeof (stockByVariant && stockByVariant.get(v.id)) === 'number'
+               && stockByVariant.get(v.id) <= 0),
       };
     });
     // FALL_PRODUCTS (assets/launch-config.js) carries the customer-
