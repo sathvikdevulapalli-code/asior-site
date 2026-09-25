@@ -285,6 +285,10 @@ const HEADER_MINIMAL = `  <header>
   <div class="page-top-space"></div>
 `;
 
+/* TikTok handle is @asiorclothing.com, dot and all — TikTok allows
+   periods in usernames, and index.html's own "follow" section already
+   carries this same correction with the same explanation. Without the
+   dot, the link points at a different account (or none). */
 const FOOTER_HTML = `  <footer id="order">
     <div class="fmark">Asior</div>
     <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
@@ -292,7 +296,7 @@ const FOOTER_HTML = `  <footer id="order">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
       </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+      <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
       </a>
     </div>
