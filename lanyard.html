@@ -243,7 +243,7 @@
 
 <footer id="order">
   <div class="fmark">Asior</div>
-  <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+  <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
   <div class="policy-links">
     <a href="privacy-policy.html">Privacy Policy</a>
     <a href="terms-of-service.html">Terms of Service</a>
@@ -285,6 +285,31 @@
     return data.product;
   }
 
+  /* Real stock for this one product, in its own query.
+
+     Deliberately NOT a field on fetchProduct above: an earlier pass
+     added quantityAvailable to a product-catalog query and broke live
+     images and pricing across browsers in production. Isolating it
+     means a permission error or bad response here can only ever cost
+     the sold-out check, never the price, the images, or the page.
+
+     Resolves to null on any failure, and null means "unknown" — the
+     caller then defers to Shopify's own availableForSale. */
+  async function fetchVariantStock(handle) {
+    try {
+      const data = await A.shopifyFetch(`
+        query($handle: String!) {
+          product(handle: $handle) {
+            variants(first: 20) { edges { node { id quantityAvailable } } }
+          }
+        }`, { handle });
+      if (!data.product) return null;
+      return new Map(data.product.variants.edges.map(e => [e.node.id, e.node.quantityAvailable]));
+    } catch (err) {
+      return null;
+    }
+  }
+
   function descriptionFromHtml(html) {
     if (!html) return null;
     const paragraphs = html
@@ -297,7 +322,9 @@
   (async function () {
     let product;
     try {
-      const p = await fetchProduct(HANDLE);
+      const [p, stockByVariant] = await Promise.all([
+        fetchProduct(HANDLE), fetchVariantStock(HANDLE),
+      ]);
       document.getElementById('lpLoading').classList.add('hide');
       if (!p) {
         document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
@@ -313,7 +340,16 @@
           options, variantId: v.id, sku: v.sku,
           price: parseFloat(v.price.amount), currency: v.price.currencyCode,
           comparePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null,
-          available: v.availableForSale,
+          // Sold out when Shopify says so OR when the real count is
+          // gone. availableForSale alone is not enough: a variant set
+          // to keep selling when out of stock stays available:true
+          // while its quantity runs negative, and this exact product
+          // is at -5 right now — five units sold that don't exist. On
+          // availableForSale alone this page would sell a sixth.
+          // Unknown (null) still defers to Shopify.
+          available: v.availableForSale
+            && !(typeof (stockByVariant && stockByVariant.get(v.id)) === 'number'
+                 && stockByVariant.get(v.id) <= 0),
         };
       });
       product = {
