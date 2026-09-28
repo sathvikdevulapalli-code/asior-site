@@ -33,8 +33,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- Still needed for DROP_CLOSE_TIME (assets/drop-countdown.js) —
-     nothing to do with the Early Access gate, which is retired; see
      shop.html's equivalent comment for why. -->
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
@@ -247,9 +245,8 @@
     margin-right: 8px;
   }
 
-  /* Sign-up value prop. Sits with the countdown, states the real close
-     instant and the real welcome discount (5%, the Shopify SIGNUP
-     pool) — no other number. */
+  /* Sign-up value prop. States the real welcome
+     discount (5%, the Shopify SIGNUP pool) — no other number. */
   .cart-signup-prop {
     margin-top: 12px;
     font-size: 11px;
@@ -410,7 +407,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar"><a href="shop.html" id="teaserBar">Fall Collection &mdash; closes Sep 27</a></div>
+  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
     <nav>
@@ -438,7 +435,7 @@
   <!-- FOOTER:START -->
   <footer id="order">
     <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
+    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
@@ -456,7 +453,6 @@
   <!-- FOOTER:END -->
 
 <script src="assets/site.js"></script>
-<script src="assets/drop-countdown.js"></script>
 <script>
   // Storefront + Klaviyo plumbing lives in assets/site.js. The SMS
   // consent copy shown next to the phone field is what makes the
@@ -468,16 +464,6 @@
   // scripts/build.js's comment on HEADER_FULL). cart.html is the
   // closest thing to a "checkout" page in this codebase — the real
   // checkout is Shopify-hosted, off-repo, and out of reach here.
-  if (A.renderDropCountdown) {
-    A.renderDropCountdown({
-      el: document.getElementById('teaserBar'),
-      prefix: 'fall drop closes — ',
-      // Verified shipping offer rides along in the same bar; null when
-      // nothing is confirmed, in which case nothing is appended.
-      suffix: window.Asior.freeShippingBadge && window.Asior.freeShippingBadge(),
-      closedText: 'fall drop closed',
-    });
-  }
 
   /* Discount code entry.
 
@@ -623,16 +609,12 @@
     return sign + n.toFixed(2);
   }
 
-  /* Sign-up value prop. The close instant comes from dropCloseLabel(),
-     which reads the same DROP_CLOSE_TIME as every countdown on the
-     site, so the date here can never drift from the clock above it.
-     5% is the real welcome code (Shopify SIGNUP pool) — no other
-     number goes in this sentence. If the date can't be formatted the
-     sentence drops it rather than printing a blank. */
+  /* Sign-up value prop. 5% is the real welcome code (Shopify SIGNUP
+     pool) and no other number goes in this sentence. It used to open
+     with the drop's close date; the collection has no end date now, so
+     naming one would be a deadline we made up. */
   function signupPropHTML(href) {
-    var when = window.Asior.dropCloseLabel && window.Asior.dropCloseLabel();
-    var closes = when ? 'Fall drop closes ' + A.escapeHtml(when) + '. ' : '';
-    return closes + '<a href="' + href + '">Sign up and get 5% off your first order.</a>';
+    return '<a href="' + href + '">Sign up and get 5% off your first order.</a>';
   }
 
   async function renderLive() {
@@ -755,7 +737,7 @@
     console.error('Cart failed to load:', err);
     document.getElementById('cartLoading').classList.add('hide');
     document.getElementById('cartRoot').innerHTML = `
-      <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> with what you wanted and we'll sort it out.</div>
+      <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a> with what you wanted and we'll sort it out.</div>
     `;
   });
 </script>
