@@ -1450,6 +1450,7 @@
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
             </div>
             <p class="pd-stock-note" id="pdStockNote"></p>
+            ${A.smsSignupHTML()}
           </div>
           ${product.isPreorder
             ? `<p class="pd-note" id="pdNote">${preorderNote}</p>
@@ -1873,6 +1874,10 @@
         <div class="rel-grid">${tiles(priorViews.slice(0, 4))}</div></section>`;
     }
     relRoot.innerHTML = relHTML;
+
+    // The block above renders with the buy box, so it is wired here
+    // rather than on page load like the footer's.
+    A.wireSmsSignup(root);
 
     A.recordView(product.handle);
     A.klaviyoTrack('Viewed Product', { product: product.name, handle: product.handle });

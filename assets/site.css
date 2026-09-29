@@ -409,3 +409,116 @@ footer .policy-links a:hover { color: var(--ink); }
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- native SMS signup ----------
+   One block, three placements: under add-to-cart on a product page, in
+   the footer of every page, and as the whole point of /text. Native
+   markup rather than a Klaviyo form, so it renders with the page and
+   does not depend on form targeting to appear.
+
+   Deliberately never a modal. The popup on this site is closed by most
+   of the people who see it; another one would not do better. */
+.sms-signup {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 24px;
+}
+
+.sms-signup-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.sms-signup-body {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 46ch;
+  margin: 0 0 14px;
+}
+
+.sms-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.sms-form input[type="tel"] {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.sms-form button {
+  flex: 0 0 auto;
+  background: var(--ink);
+  color: var(--bg);
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 20px;
+  min-height: 44px;          /* real tap target on a phone */
+  cursor: pointer;
+  transition: opacity 160ms var(--ease-out);
+}
+
+.sms-form button:hover { opacity: 0.85; }
+.sms-form button:disabled { opacity: 0.5; cursor: default; }
+
+/* Always occupies its line, empty or not. If this collapsed when there
+   was no message, showing one would push everything below it down —
+   layout shift on the most purchase-critical page on the site. */
+.sms-msg {
+  flex: 1 0 100%;
+  min-height: 17px;
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+}
+
+.sms-msg.show { opacity: 1; }
+.sms-msg.is-error { color: #e0a08f; }
+
+.sms-form input[aria-invalid="true"] { border-color: #e0a08f; }
+
+/* Once accepted there is nothing left to type. The status line stays,
+   because it is the only place that says to reply YES. */
+.sms-form.is-done input[type="tel"],
+.sms-form.is-done button { display: none; }
+
+.sms-signup .consent { margin-top: 12px; }
+
+/* Footer placement: same block, condensed, centred with the rest of
+   the footer. */
+.sms-signup--footer {
+  border-top: 0;
+  padding-top: 0;
+  margin: 4px auto 26px;
+  max-width: 460px;
+  text-align: center;
+}
+
+.sms-signup--footer .sms-signup-body { margin-left: auto; margin-right: auto; }
+.sms-signup--footer .consent { margin-left: auto; margin-right: auto; text-align: left; }
+
+/* /text is the page, not a block on one. */
+.sms-signup--page {
+  border-top: 0;
+  padding-top: 0;
+  margin: 0;
+}
+
+@media (max-width: 420px) {
+  .sms-form input[type="tel"] { flex: 1 1 100%; }
+  .sms-form button { flex: 1 1 100%; }
+}

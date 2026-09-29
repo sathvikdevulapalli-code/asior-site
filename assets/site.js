@@ -299,6 +299,190 @@
     }
   }
 
+  /* ---- Native SMS signup -------------------------------------------
+
+     Phone only, straight to the SMS list. Deliberately NOT
+     klaviyoSubscribe(): that one requires an email and treats the
+     number as an optional extra, which is the exact barrier this is
+     meant to remove. Requiring an email to join an SMS list defeats
+     the point of the SMS list.
+
+     UiFFMg is double opt-in (confirmed against the live account: its
+     opt_in_process is "double_opt_in"). A 202 means Klaviyo accepted
+     the number and will text a confirmation. It does NOT mean
+     subscribed, nothing is on the list until they reply, and no flow
+     fires until then. Every caller's success copy has to say so.
+  */
+
+  /* US/CA mobile -> E.164, or null.
+
+     Beyond the ten-digit rule this also enforces NANP's own: area code
+     and exchange both start 2-9. That rejects 000/111 style junk that
+     would otherwise be accepted here and bounce inside Klaviyo, and it
+     cannot reject a real US or Canadian number, because no real one
+     starts either group with 0 or 1. */
+  function toE164(raw) {
+    var digits = String(raw == null ? '' : raw).replace(/\D/g, '');
+    if (digits.length === 11 && digits.charAt(0) === '1') digits = digits.slice(1);
+    if (digits.length !== 10) return null;
+    if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) return null;
+    return '+1' + digits;
+  }
+
+  function smsSubscribeBody(phone, withConsentBlock) {
+    var profile = { phone_number: phone };
+    if (withConsentBlock) {
+      profile.subscriptions = { sms: { marketing: { consent: 'SUBSCRIBED' } } };
+    }
+    return {
+      data: {
+        type: 'subscription',
+        attributes: { profile: { data: { type: 'profile', attributes: profile } } },
+        relationships: { list: { data: { type: 'list', id: KLAVIYO_SMS_LIST_ID } } },
+      },
+    };
+  }
+
+  function postSmsSubscription(phone, withConsentBlock) {
+    return fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'revision': KLAVIYO_REVISION },
+      body: JSON.stringify(smsSubscribeBody(phone, withConsentBlock)),
+    });
+  }
+
+  /* Two payload shapes, because the record disagrees with itself.
+
+     The brief for this build specifies an explicit subscriptions block
+     and says it was verified on the live account. The comment on
+     klaviyoSubscribe() above records the opposite from an earlier live
+     test: that this endpoint has no subscriptions field and 400s if you
+     send one. Both cannot be true, and neither can be checked from the
+     build sandbox, which has no outbound network at all.
+
+     So: send the specified shape. If Klaviyo rejects it as malformed,
+     send the shape this repo has already watched work. One of the two
+     is right, the visitor is subscribed either way, and the console
+     line says which — delete the loser once someone has seen a real
+     202 in production.
+
+     This is the only path that makes a second request, it only runs on
+     an explicit 400, and it never runs on success, on a network error,
+     or from a second click. */
+  async function klaviyoSubscribeSms(phone) {
+    var res = await postSmsSubscription(phone, true);
+    if (res.ok) return res.status;
+    if (res.status === 400) {
+      var fallback = await postSmsSubscription(phone, false);
+      if (fallback.ok) {
+        if (window.console && console.info) {
+          console.info('[asior] SMS subscribe: consent-block payload 400d, bare payload accepted.');
+        }
+        return fallback.status;
+      }
+    }
+    throw new Error('Klaviyo SMS subscribe failed: ' + res.status);
+  }
+
+  /* Wires every <form data-sms-signup> on the page: the PDP block, the
+     footer block and /text all share this, so the validation, the
+     in-flight lock and the wording of success stay in one place.
+
+     Nothing here submits on blur or on load, and no consent box is
+     ever pre-checked — pressing the button IS the consent, which is
+     why the consent sentence sits next to it rather than behind a
+     link. */
+  function wireSmsSignup(scope) {
+    var forms = (scope || document).querySelectorAll('form[data-sms-signup]');
+    Array.prototype.forEach.call(forms, function (form) {
+      if (form.getAttribute('data-sms-wired')) return;   // idempotent
+      form.setAttribute('data-sms-wired', '1');
+
+      var input = form.querySelector('input[type="tel"]');
+      var button = form.querySelector('button');
+      var msg = form.querySelector('[data-sms-msg]');
+      var inFlight = false;
+
+      function say(text, isError) {
+        if (!msg) return;
+        msg.textContent = text;
+        msg.classList.toggle('is-error', !!isError);
+        msg.classList.add('show');
+      }
+
+      input.addEventListener('input', function () {
+        input.removeAttribute('aria-invalid');
+        if (msg) { msg.classList.remove('show', 'is-error'); msg.textContent = ''; }
+      });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        // Set before any await, so a second click during the same tick
+        // is already locked out rather than racing the first request.
+        if (inFlight) return;
+
+        var phone = toE164(input.value);
+        if (!phone) {
+          // Rejected here means no request at all, not a request that
+          // fails later.
+          input.setAttribute('aria-invalid', 'true');
+          say('Enter a 10-digit US or Canadian mobile number.', true);
+          input.focus();
+          return;
+        }
+
+        inFlight = true;
+        button.disabled = true;
+        input.disabled = true;
+        var label = button.textContent;
+        button.textContent = 'Sending';
+
+        try {
+          await klaviyoSubscribeSms(phone);
+          // Double opt-in: accepted, not subscribed. Saying "you're in"
+          // here would be a lie until they reply.
+          form.classList.add('is-done');
+          say('Almost done — check your texts and reply YES to confirm.', false);
+          input.value = '';
+        } catch (err) {
+          say("That didn't go through. Try again in a moment.", true);
+          inFlight = false;
+          button.disabled = false;
+          input.disabled = false;
+          button.textContent = label;
+        }
+      });
+    });
+  }
+
+  /* Markup for the SMS block that product.html renders inside its buy
+     box. The footer's and /text's copies are generated by
+     smsSignupBlock() in scripts/build.js; this is the third, and it
+     lives here because the PDP builds its whole body client-side. The
+     consent sentence must stay identical to that one.
+
+     No discount is mentioned, because there is no signup code. */
+  function smsSignupHTML() {
+    return '<div class="sms-signup sms-signup--pdp">'
+      + '<p class="sms-signup-title">Know before it\'s gone.</p>'
+      + '<p class="sms-signup-body">Sizes sell out and we restock rarely. One text when '
+      + 'something you want is running low. No spam, no daily blasts.</p>'
+      + '<form class="sms-form" data-sms-signup novalidate>'
+      + '<label class="sr-only" for="sms-pdp">Mobile number</label>'
+      + '<input class="field" type="tel" id="sms-pdp" name="phone" placeholder="Mobile number" '
+      + 'autocomplete="tel" inputmode="tel" maxlength="20" required>'
+      + '<button type="submit">Sign up</button>'
+      + '<p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>'
+      + '</form>'
+      + '<p class="consent">By signing up you agree to receive recurring automated marketing '
+      + 'texts from ASIOR at the number provided. Consent is not a condition of purchase. '
+      + 'Message frequency varies. Message and data rates may apply. Reply STOP to cancel, '
+      + 'HELP for help. See our <a href="/terms-of-service.html">Terms</a> and '
+      + '<a href="/privacy-policy.html">Privacy Policy</a>.</p>'
+      + '</div>';
+  }
+
   /* ---- Klaviyo onsite (klaviyo.js) ----------------------------------
      The tag is injected into every page's <head> by scripts/build.js.
      It loads async, so it is usually NOT ready when these are called —
@@ -756,6 +940,11 @@
     isReturningVisitor: isReturningVisitor,
     stockLabel: stockLabel,
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
+    KLAVIYO_SMS_LIST_ID: KLAVIYO_SMS_LIST_ID,
+    toE164: toE164,
+    klaviyoSubscribeSms: klaviyoSubscribeSms,
+    wireSmsSignup: wireSmsSignup,
+    smsSignupHTML: smsSignupHTML,
   };
 
   /* Give the fixed header something solid behind it the moment the page
@@ -777,6 +966,10 @@
   }
 
   wireHeaderScrollState();
+  // Footer block on every page, and the whole of /text. The PDP
+  // block renders after its catalog fetch, so product.html calls
+  // wireSmsSignup() again once it has built the buy box.
+  wireSmsSignup(document);
   refreshCartCount();
   // Capture on every page load, not just at submit time — a visitor
   // can land on one page carrying UTM params and convert on a

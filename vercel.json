@@ -6,6 +6,9 @@
   "outputDirectory": ".",
   "cleanUrls": false,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/text", "destination": "/text.html" }
+  ],
   "redirects": [
     { "source": "/", "destination": "/shop.html", "permanent": true },
     { "source": "/index.html", "destination": "/shop.html", "permanent": true },

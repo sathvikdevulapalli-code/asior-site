@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text List | Asior</title>
+<meta name="description" content="Join the Asior text list. One text when a size you want is running low. No spam, no daily blasts.">
+<meta name="theme-color" content="#0b0a08">
+<link rel="canonical" href="https://asiorclothing.com/text">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL.
+     This page exists to be the destination of an Instagram or TikTok bio
+     link, so what it looks like when pasted matters more here than on
+     most pages. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Text List | Asior">
+<meta property="og:description" content="One text when a size you want is running low. No spam, no daily blasts.">
+<meta property="og:url" content="https://asiorclothing.com/text">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
+<style>
+  @media (hover: hover) and (pointer: fine) {
+    header nav a:hover::after { width: 100%; }
+  }
+
+  @keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .textpage {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 6vh 20px 14vh;
+    animation: pageFadeIn 700ms var(--ease-out) both;
+  }
+
+  .textpage h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 6vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+  }
+
+  .textpage-lede {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--muted);
+    margin: 0 0 30px;
+  }
+
+  /* What the list actually is, in the words a person would use. No
+     discount is offered here, because there is no signup code to
+     redeem — see the comment on SMS_CONSENT in scripts/build.js. */
+  .textpage-what {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  .textpage-what li {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .textpage-what strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .textpage-number {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-top: 30px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .textpage { animation: none; }
+  }
+</style>
+
+<!-- HEAD:START -->
+  <!-- HEAD:END -->
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- HEADER:START -->
+  <!-- HEADER:END -->
+
+  <main id="main">
+
+  <section class="textpage">
+    <h1>Know before it's gone.</h1>
+    <p class="textpage-lede">
+      We make things in small runs and restock rarely. The text list is how you
+      hear that a size is running low while there is still one in your size.
+    </p>
+
+    <ul class="textpage-what">
+      <li><strong>One text</strong> when something you want is running low.</li>
+      <li><strong>Drops first.</strong> The list hears before the feed does.</li>
+      <li><strong>No spam, no daily blasts.</strong> Reply STOP any time and it ends.</li>
+    </ul>
+
+    <!-- The signup block itself is written here at build time from the
+         same source as the footer's, so the consent sentence cannot
+         drift between the two. See smsSignupBlock() in
+         scripts/build.js. -->
+    <!-- SMSBLOCK:START -->
+    <!-- SMSBLOCK:END -->
+
+    <p class="textpage-number">
+      Texts come from +1 888 546 8082.
+    </p>
+  </section>
+
+  </main>
+
+  <!-- FOOTER:START -->
+  <!-- FOOTER:END -->
+
+<script src="assets/site.js"></script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
+</body>
+</html>

@@ -55,7 +55,7 @@ const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 const STATIC_PAGES = [
   '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
-  '/lanyard.html',
+  '/lanyard.html', '/text.html',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -165,6 +165,7 @@ function prerenderedPdp(p) {
       <div class="pd-head"><h1 class="pd-name">${esc(name)}</h1>${priceHtml}</div>
       ${sizeHtml}
       ${descHtml}
+      ${smsSignupBlock('pdp')}
     </div>`;
 }
 
@@ -398,7 +399,59 @@ const HEADER_MINIMAL = `  <header>
   <div class="page-top-space"></div>
 `;
 
+/* ---- native SMS signup, static placements --------------------------
+
+   Two of the three SMS blocks are plain markup in the served HTML: the
+   condensed one in the footer of every page, and the full one on
+   /text. Both are generated from here so the consent sentence exists
+   once rather than once per page. The third lives in product.html's
+   client-rendered buy box and comes from Asior.smsSignupHTML() in
+   assets/site.js; if this copy changes, change that one too.
+
+   Not a Klaviyo form and not a popup, on purpose. The Klaviyo SMS-only
+   form has had zero views in 90 days because its targeting never fires,
+   and the popup that does fire is closed by most people who see it.
+   Markup that ships with the page cannot fail to appear.
+
+   No discount is offered or implied anywhere in here. There is no
+   signup code to redeem, and promising one we cannot honour is how the
+   texts that went out saying "[INSERT COUPON CODE]" happened. */
+const SMS_CONSENT = `<p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>`;
+
+/* id has to be unique per page: the footer block and the /text block
+   both render on /text, and two inputs sharing an id would break the
+   <label for> pairing for both. */
+function smsSignupBlock(variant) {
+  const id = `sms-${variant}`;
+  const footer = variant === 'footer';
+  const heading = footer
+    ? `<p class="sms-signup-title">Text list.</p>
+      <p class="sms-signup-body">First to know when sizes run low.</p>`
+    : `<p class="sms-signup-title">Know before it's gone.</p>
+      <p class="sms-signup-body">Sizes sell out and we restock rarely. One text when something
+        you want is running low. No spam, no daily blasts.</p>`;
+
+  return `<div class="sms-signup sms-signup--${variant}">
+      ${heading}
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="${id}">Mobile number</label>
+        <input class="field" type="tel" id="${id}" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      ${SMS_CONSENT}
+    </div>`;
+}
+
 const FOOTER_HTML = `  <footer id="order">
+    ${smsSignupBlock('footer')}
     <div class="fmark">Asior</div>
     <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
     <div class="social">
@@ -410,6 +463,7 @@ const FOOTER_HTML = `  <footer id="order">
       </a>
     </div>
     <div class="policy-links">
+      <a href="/text">Text List</a>
       <a href="privacy-policy.html">Privacy Policy</a>
       <a href="terms-of-service.html">Terms of Service</a>
       <a href="account.html">Account</a>
@@ -459,7 +513,7 @@ const HEAD_PAGES = [
   'shop.html', 'product.html', 'cart.html', 'community.html', 'contact.html',
   'manufacturing.html', 'account.html', 'privacy-policy.html',
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
-  'index.html',
+  'text.html', 'index.html',
 ];
 
 const SHARED_MARKUP_PAGES = [
@@ -473,6 +527,7 @@ const SHARED_MARKUP_PAGES = [
   ['privacy-policy.html', HEADER_MINIMAL],
   ['terms-of-service.html', HEADER_MINIMAL],
   ['fall-collection.html', HEADER_FULL],
+  ['text.html', HEADER_FULL],
 ];
 
 /* ===================================================================
@@ -636,6 +691,18 @@ function syncBespokeJsonLd(products) {
   return synced;
 }
 
+/* The /text page's own block, from the same source as the footer's so
+   the consent sentence cannot drift between them. */
+function syncSmsPage() {
+  const target = path.join(ROOT, 'text.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const next = replaceBetween(html, '<!-- SMSBLOCK:START -->', '<!-- SMSBLOCK:END -->',
+    '    ' + smsSignupBlock('page') + '\n');
+  if (next === null) throw new Error('text.html: SMSBLOCK markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return 1;
+}
+
 function syncSharedMarkup() {
   let synced = 0;
   for (const [file, header] of SHARED_MARKUP_PAGES) {
@@ -670,6 +737,7 @@ function syncSharedMarkup() {
   try {
     console.log(`✓ shared header/footer synced across ${syncSharedMarkup()} pages`);
     console.log(`✓ shared <head> (klaviyo.js) synced across ${syncSharedHead()} pages`);
+    console.log(`✓ SMS signup block synced into ${syncSmsPage()} standalone page`);
   } catch (err) {
     failed = true;
     console.error('✗ shared markup sync failed:', err.message);
