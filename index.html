@@ -1586,11 +1586,13 @@
              context. One link, one job, instead of two doing the same
              thing at different tiers. -->
         <a class="bracket" href="#lookbook" id="lookbookLink"><b>[</b> lookbook <b>]</b></a>
-        <!-- JAG Sweats aren't purchasable right now — no price, no buy
-             button, just a waitlist. Same tier as lookbook (secondary
-             nav, not a money action) rather than a pill like the lanyard's,
-             since there's nothing to buy yet. -->
-        <a class="bracket" href="jag-sweats.html" id="jagSweatsLink"><b>[</b> jag sweats restock <b>]</b></a>
+        <!-- JAG Sweats are purchasable: the restock landed, and the
+             generated PDP sells the sizes that are in stock and takes
+             back-in-stock signups for the ones that aren't. This used to
+             point at jag-sweats.html, a waitlist page written while there
+             was genuinely nothing to buy; that page is gone and its URL
+             301s here (see vercel.json). -->
+        <a class="bracket" href="/products/jaguar-sweats.html" id="jagSweatsLink"><b>[</b> jag sweats <b>]</b></a>
       </div>
 
       <footer class="rise" style="--in: 820ms">

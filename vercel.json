@@ -9,7 +9,8 @@
   "redirects": [
     { "source": "/", "destination": "/shop.html", "permanent": true },
     { "source": "/index.html", "destination": "/shop.html", "permanent": true },
-    { "source": "/fall-collection.html", "destination": "/shop.html", "permanent": true }
+    { "source": "/fall-collection.html", "destination": "/shop.html", "permanent": true },
+    { "source": "/jag-sweats.html", "destination": "/products/jaguar-sweats.html", "permanent": true }
   ],
   "headers": [
     {

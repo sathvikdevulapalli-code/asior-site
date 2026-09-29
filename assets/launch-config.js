@@ -56,9 +56,9 @@ window.ASIOR_LAUNCH = {
   // Realestate / White Realtor Polo. Those are manufacturing pieces for
   // other brands, not Fall Collection products — do not add them back to
   // this array, even as placeholders, without the founder saying so
-  // again. jaguar-sweats (JAG Sweats) is a separate restock, handled
-  // entirely by jag-sweats.html — it is not part of this array and
-  // should not be.
+  // again. jaguar-sweats (JAG Sweats) is a separate restock with its
+  // own generated PDP at /products/jaguar-sweats.html — it is not part
+  // of this array and should not be, so it stays off the shop grid.
   FALL_PRODUCTS: [
     { name: 'Asior Polo', handle: 'scripture-polo' },
     { name: 'JAG Shorts', handle: 'jag-shorts' },

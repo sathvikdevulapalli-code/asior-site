@@ -55,7 +55,7 @@ const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 const STATIC_PAGES = [
   '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
-  '/lanyard.html', '/jag-sweats.html',
+  '/lanyard.html',
 ];
 
 const esc = s => String(s == null ? '' : s)
@@ -370,16 +370,16 @@ const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" 
   <script defer src="/assets/shopify-analytics.js"></script>
 `;
 
-/* Every page gets the shared head, including the three that carry no
-   shared header/footer: lanyard.html and jag-sweats.html are
-   standalone product pages, and index.html is a 301 stub that a
-   visitor can still briefly land on. Onsite tracking has to be
-   sitewide or the profile stitching has holes in it. */
+/* Every page gets the shared head, including the two that carry no
+   shared header/footer: lanyard.html is a standalone product page, and
+   index.html is a 301 stub that a visitor can still briefly land on.
+   Onsite tracking has to be sitewide or the profile stitching has
+   holes in it. */
 const HEAD_PAGES = [
   'shop.html', 'product.html', 'cart.html', 'community.html', 'contact.html',
   'manufacturing.html', 'account.html', 'privacy-policy.html',
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
-  'jag-sweats.html', 'index.html',
+  'index.html',
 ];
 
 const SHARED_MARKUP_PAGES = [
