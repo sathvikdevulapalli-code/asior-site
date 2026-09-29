@@ -58,6 +58,19 @@ const STATIC_PAGES = [
   '/lanyard.html',
 ];
 
+/* Handles that already have a hand-built page at their own URL.
+   /products/<handle>.html is still generated for them — internal links
+   and anything already indexed must not start 404ing — but that page
+   points its canonical, og:url and JSON-LD at the bespoke one, and only
+   the bespoke URL goes in the sitemap. Two URLs serving the same product
+   both claiming to be canonical is the duplicate this removes, and
+   lanyard.html is the version with the art direction on it.
+
+   The value is the bespoke path, which has to be in STATIC_PAGES too. */
+const BESPOKE_PAGES = {
+  'jag-lanyard': '/lanyard.html',
+};
+
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -170,6 +183,9 @@ function productJsonLd(p, url) {
 function renderProductPage(template, p) {
   const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
   const url = `${BASE}/products/${p.handle}.html`;
+  // Where search engines should send people for this product. Same as
+  // url for everything except the handles in BESPOKE_PAGES.
+  const canonical = BESPOKE_PAGES[p.handle] ? BASE + BESPOKE_PAGES[p.handle] : url;
   const title = `${name} | Asior`;
   const desc = plainDescription(p.descriptionHtml,
     `${name} from Asior — limited-run streetwear made in small batches.`);
@@ -189,10 +205,10 @@ function renderProductPage(template, p) {
   html = html
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`)
     .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
-    .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`)
+    .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${canonical}">`)
     .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${esc(title)}">`)
     .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(desc)}">`)
-    .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`)
+    .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${canonical}">`)
     .replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${esc(img)}">`)
     .replace(/<meta property="og:image:alt" content="[^"]*">/, `<meta property="og:image:alt" content="${esc(alt)}">`);
 
@@ -207,7 +223,7 @@ function renderProductPage(template, p) {
   // tell the page which product it is, plus the prerendered JSON-LD
   html = html.replace('<script src="/assets/site.js"></script>',
     `<script>window.__PRODUCT_HANDLE = ${JSON.stringify(p.handle)};</script>\n`
-    + `<script type="application/ld+json">${productJsonLd(p, url)}</script>\n`
+    + `<script type="application/ld+json">${productJsonLd(p, canonical)}</script>\n`
     + '<script src="/assets/site.js"></script>');
 
   return html;
@@ -217,7 +233,10 @@ function writeSitemap(products) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     ...STATIC_PAGES.map(p => ({ loc: BASE + p, lastmod: today })),
-    ...products.map(p => ({
+    /* Products with a bespoke page are already listed via STATIC_PAGES
+       under that page's own URL; listing the generated one too would put
+       both halves of a duplicate in the sitemap. */
+    ...products.filter(p => !BESPOKE_PAGES[p.handle]).map(p => ({
       loc: `${BASE}/products/${p.handle}.html`,
       lastmod: (p.updatedAt || today).slice(0, 10),
     })),
@@ -530,6 +549,32 @@ function syncSharedHead() {
   return synced;
 }
 
+/* Write each bespoke page's product JSON-LD from the live catalog.
+
+   These pages are the canonical URL for their product, so they are the
+   ones that need the markup — the generated PDP that defers to them is
+   not the page search engines will show. A handle the catalog doesn't
+   contain (unpublished, renamed) leaves the markers empty rather than
+   emitting stale prices: no markup is better than wrong markup, which is
+   what gets shown in search results. */
+function syncBespokeJsonLd(products) {
+  let synced = 0;
+  for (const [handle, page] of Object.entries(BESPOKE_PAGES)) {
+    const target = path.join(ROOT, page.replace(/^\//, ''));
+    if (!fs.existsSync(target)) throw new Error(`${page}: bespoke page missing`);
+    const html = fs.readFileSync(target, 'utf8');
+    const p = products.find(x => x.handle === handle);
+    const block = p
+      ? `<script type="application/ld+json">${productJsonLd(p, BASE + page)}</script>`
+      : '';
+    const next = replaceBetween(html, '<!-- JSONLD:START -->', '<!-- JSONLD:END -->', block + '\n');
+    if (next === null) throw new Error(`${page}: JSONLD markers missing`);
+    if (next !== html) fs.writeFileSync(target, next);
+    if (p) synced++;
+  }
+  return synced;
+}
+
 function syncSharedMarkup() {
   let synced = 0;
   for (const [file, header] of SHARED_MARKUP_PAGES) {
@@ -585,6 +630,7 @@ function syncSharedMarkup() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
+    console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ shop.html grid pre-rendered with ${syncShopGrid(products)} products`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
