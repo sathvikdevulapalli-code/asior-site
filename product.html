@@ -672,6 +672,17 @@
 
   .pd-loading.hide { display: none; }
 
+  /* Wrapper for the build-time product summary that generated pages
+     ship inside #pd-root (scripts/build.js, prerenderedPdp). Not the
+     .pd grid: that grid expects head/media/info areas and this block
+     has no media. Everything inside reuses the real classes, so it
+     reads as the product rather than as a placeholder. */
+  .pd-prerender {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 0;
+  }
+
   @media (max-width: 720px) {
     /* head -> media -> info: see the comment on .pd above. Same three
        blocks as desktop, reordered so price and the buy box don't sit

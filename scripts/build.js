@@ -99,7 +99,7 @@ async function fetchProducts() {
         }
         images(first: 4) { edges { node { url } } }
         variants(first: 40) { edges { node {
-          sku availableForSale price { amount currencyCode } compareAtPrice { amount }
+          title sku availableForSale price { amount currencyCode } compareAtPrice { amount }
         } } }
       } }
     }
@@ -109,11 +109,63 @@ async function fetchProducts() {
 
 /* Strip Shopify's HTML down to a plain sentence for meta/OG description.
    Truncated on a word boundary so it never ends mid-word. */
-function plainDescription(html, fallback) {
+function plainDescription(html, fallback, limit = 160) {
   const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   if (!text) return fallback;
-  if (text.length <= 160) return text;
-  return text.slice(0, 157).replace(/\s+\S*$/, '') + '…';
+  if (text.length <= limit) return text;
+  return text.slice(0, limit - 3).replace(/\s+\S*$/, '') + '…';
+}
+
+/* The product summary that ships inside #pd-root.
+
+   product.html builds its entire body client-side, so without this the
+   served HTML is a "Loading…" div and an empty <div id="pd-root">:
+   nothing for a client that doesn't run JS, and nothing on screen for
+   anyone else until two Storefront queries come back.
+
+   Every value here comes from the live catalog. The price follows the
+   same rule as the JSON-LD — one number only when every variant costs
+   that, a range otherwise, and nothing at all when no variant has a
+   readable price — because a price nobody is charged is worse than no
+   price. Sizes are variant titles, with the sold-out ones marked the
+   same way the real buy box marks them.
+
+   A client that runs JS replaces the whole of #pd-root as soon as the
+   catalog responds, so nothing here has to be interactive, and there is
+   deliberately no buy button: it could not work. */
+function prerenderedPdp(p) {
+  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const variants = p.variants.edges.map(e => e.node);
+  const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
+  const currency = variants[0] ? variants[0].price.currencyCode : 'USD';
+  const money = n => (currency === 'USD' ? '$' : '') + n.toFixed(2);
+
+  let priceHtml = '';
+  if (prices.length) {
+    const low = Math.min(...prices), high = Math.max(...prices);
+    priceHtml = `<div class="pd-price tnum">${low === high ? money(low) : money(low) + '–' + money(high)}</div>`;
+  }
+
+  const sizes = variants.filter(v => v.title && v.title !== 'Default Title');
+  const sizeHtml = sizes.length
+    ? `<div class="pd-sizes"><div class="pd-size-group">
+        <div class="pd-size-label">Size</div>
+        <div class="pd-size-row">${sizes.map(v =>
+          `<span class="pd-size${v.availableForSale ? '' : ' unavailable'}">${esc(v.title)}</span>`
+        ).join('')}</div>
+      </div></div>`
+    : '';
+
+  const body = plainDescription(p.descriptionHtml, '', 600);
+  const descHtml = body
+    ? `<div class="pd-desc"><div class="pd-desc-label">Description</div><p>${esc(body)}</p></div>`
+    : '';
+
+  return `<div class="pd-prerender">
+      <div class="pd-head"><h1 class="pd-name">${esc(name)}</h1>${priceHtml}</div>
+      ${sizeHtml}
+      ${descHtml}
+    </div>`;
 }
 
 function productJsonLd(p, url) {
@@ -225,6 +277,15 @@ function renderProductPage(template, p) {
     `<script>window.__PRODUCT_HANDLE = ${JSON.stringify(p.handle)};</script>\n`
     + `<script type="application/ld+json">${productJsonLd(p, canonical)}</script>\n`
     + '<script src="/assets/site.js"></script>');
+
+  /* Real content in the served body, in place of the empty root and
+     the spinner above it. The spinner ships pre-hidden: on these pages
+     it would otherwise sit above the summary, and a client with no JS
+     would be told it was loading something forever. */
+  html = html
+    .replace('<div id="pd-root"></div>', `<div id="pd-root">${prerenderedPdp(p)}</div>`)
+    .replace('<div class="pd-loading" id="pdLoading">Loading…</div>',
+             '<div class="pd-loading hide" id="pdLoading">Loading…</div>');
 
   return html;
 }
