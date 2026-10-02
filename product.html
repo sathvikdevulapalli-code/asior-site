@@ -317,6 +317,29 @@
      primary action on lanyard.html; this page and
      cart.html's Checkout were the two places still using an outline
      for what should be the loudest thing on screen. */
+  /* Buy Now sits under Add to Cart as the quieter of the two: same
+     size and hit area, outline instead of fill, so the default action
+     reads as the one that keeps you on the page. */
+  .pd-buynow {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--field-line);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 20px;
+    min-height: 48px;
+    cursor: pointer;
+    transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+  }
+
+  .pd-buynow:hover:not([disabled]) { border-color: var(--ink); }
+  .pd-buynow[disabled] { opacity: 0.4; cursor: default; }
+
   .pd-add {
     position: relative;
     background: var(--ink);
@@ -1472,8 +1495,15 @@
               <span id="qtyVal" aria-live="polite">1</span>
               <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
             </div>
+            <!-- Two actions. This page used to have one button that
+                 created a single-line cart and went straight to
+                 checkout, so there was no way to buy two pieces in one
+                 order. Add to Cart is now the primary and leaves you on
+                 the page with the drawer open; Buy Now keeps the old
+                 straight-to-checkout path for people who want it. -->
             <div class="pd-actions">
-              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Buy Now'}</button>
+              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
+              <button class="pd-buynow" id="buyNowBtn">Buy Now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
             </div>
             <p class="pd-stock-note" id="pdStockNote"></p>
@@ -1495,7 +1525,7 @@
           <div class="pd-sticky-price tnum" id="pdStickyPrice"></div>
         </div>
         ${hasOptions ? `<div class="pd-sticky-sizes" id="pdStickySizes"></div>` : ''}
-        <button class="pd-add" id="addBtnSticky">${product.isPreorder ? 'Preorder' : 'Buy Now'}</button>
+        <button class="pd-add" id="addBtnSticky">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
       </div>`;
 
     const currentVariant = () => hasOptions ? findVariant(selection) : product.variants[0];
@@ -1581,6 +1611,7 @@
     function renderAddButton() {
       const v = currentVariant();
       const btn = document.getElementById('addBtn');
+      const buyBtn = document.getElementById('buyNowBtn');
       const stickyBtn = document.getElementById('addBtnSticky');
       const needsPick = hasOptions && product.optionNames.includes('Size') && !selection.Size;
       if (needsPick) {
@@ -1588,13 +1619,18 @@
         // Disabled stays disabled until a real click sets selection.Size.
         btn.textContent = 'Select a Size';
         btn.disabled = true;
+        // Buy Now keeps its own label while disabled: two buttons both
+        // reading "Select a Size" says the same thing twice and hides
+        // what the second one is for.
+        if (buyBtn) buyBtn.disabled = true;
         if (stickyBtn) { stickyBtn.textContent = 'Select a Size'; stickyBtn.disabled = true; }
         return;
       }
       const sold = !v || !v.available;
-      const label = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Buy Now');
+      const label = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Add to Cart');
       btn.textContent = label;
       btn.disabled = sold;
+      if (buyBtn) buyBtn.disabled = sold;
       if (stickyBtn) { stickyBtn.textContent = label; stickyBtn.disabled = sold; }
       if (sold && v) openBackInStock(selection.Size);
     }
@@ -1686,13 +1722,17 @@
 
     // Sign-up is how you get a discount — there is no sitewide sale and
     // no code applied on anyone's behalf, so this is the honest offer
-    // to make here. 5% is the real welcome code (Shopify SIGNUP pool);
-    // no other number belongs in this sentence, and no close date does
-    // either — the collection doesn't have one.
+    // to make here. ASIORTEN is the only redeemable code in the store:
+    // 10% off, all products, no expiry, once per customer. No other
+    // number belongs in this sentence, and no close date does either —
+    // neither the collection nor the code has one.
+    //
+    // It no longer reads as something you get BY signing up, because
+    // you don't: it is a standing public code, and saying otherwise
+    // made a reward out of something anyone can already type in.
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {
-      propEl.innerHTML =
-        '<a href="shop.html#signup">Sign up and get 5% off your first order.</a>';
+      propEl.textContent = 'Use code ASIORTEN for 10% off your first order.';
     }
 
     // ---- quantity ----
@@ -1705,10 +1745,61 @@
     // lanyard.html. Used to add the item and just show "Added, view
     // cart", leaving checkout two clicks away (cart.html, then its own
     // Checkout button). Now it's one: add, then go straight there.
+    // Everything both buttons report, in one place: the two buttons
+    // differ only in which cart they write to and where they leave you.
+    function trackPurchaseIntent(v) {
+      if (selection.Size) A.recordSizeChoice(selection.Size);
+      A.klaviyoAddedToCart({
+        handle: product.handle,
+        name: product.name,
+        url: location.origin + productUrl(product.handle),
+        price: v.price,
+        quantity: qty,
+        size: selection.Size || null,
+      });
+      if (window.AsiorAnalytics) {
+        window.AsiorAnalytics.addToCart({
+          handle: product.handle, name: product.name,
+          variantId: v.variantId, price: v.price,
+          quantity: qty, currency: v.currency,
+        });
+      }
+      A.klaviyoTrack('Added To Cart', {
+        product: product.name, handle: product.handle,
+        size: selection.Size || null, price: v.price, quantity: qty,
+      });
+    }
+
+    // Add to Cart: writes to the saved cart, updates the header count,
+    // opens the drawer, and leaves the shopper on the page so they can
+    // carry on and add something else.
     document.getElementById('addBtn').addEventListener('click', async () => {
       const v = currentVariant();
       if (!v || !v.available) return;
       const btn = document.getElementById('addBtn');
+      const confirmEl = document.getElementById('addConfirm');
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+      try {
+        await A.addToShopifyCart(v.variantId, qty);
+        trackPurchaseIntent(v);
+        confirmEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = label;
+        A.openCartDrawer();
+      } catch (err) {
+        confirmEl.textContent = 'Something went wrong adding that. Try again.';
+        confirmEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    });
+
+    document.getElementById('buyNowBtn').addEventListener('click', async () => {
+      const v = currentVariant();
+      if (!v || !v.available) return;
+      const btn = document.getElementById('buyNowBtn');
       const confirmEl = document.getElementById('addConfirm');
       btn.disabled = true;
       btn.textContent = 'Redirecting…';
@@ -1717,34 +1808,15 @@
         // the saved one. Buying, pressing back, and buying again used to
         // stack a second line, so checkout showed two of the same piece
         // for what the shopper meant as one purchase. Their saved cart
-        // is untouched, so anything quick-added from the grid survives.
+        // is untouched, so anything added above survives.
         const updated = await A.createBuyNowCart(v.variantId, qty);
-        if (selection.Size) A.recordSizeChoice(selection.Size);
-        A.klaviyoAddedToCart({
-          handle: product.handle,
-          name: product.name,
-          url: location.origin + productUrl(product.handle),
-          price: v.price,
-          quantity: qty,
-          size: selection.Size || null,
-        });
-        if (window.AsiorAnalytics) {
-          window.AsiorAnalytics.addToCart({
-            handle: product.handle, name: product.name,
-            variantId: v.variantId, price: v.price,
-            quantity: qty, currency: v.currency,
-          });
-        }
-        A.klaviyoTrack('Added To Cart', {
-          product: product.name, handle: product.handle,
-          size: selection.Size || null, price: v.price, quantity: qty,
-        });
+        trackPurchaseIntent(v);
         location.href = updated.checkoutUrl;
       } catch (err) {
-        confirmEl.textContent = 'Something went wrong adding that. Try again.';
+        confirmEl.textContent = "Couldn't start checkout. Try again.";
         confirmEl.classList.add('show');
         btn.disabled = false;
-        btn.textContent = product.isPreorder ? 'Preorder' : 'Buy Now';
+        btn.textContent = 'Buy Now';
       }
     });
 

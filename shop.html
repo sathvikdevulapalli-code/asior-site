@@ -133,6 +133,18 @@
     text-align: center;
   }
 
+  /* One line under the heading, saying what the number is for.
+     Replaces the old 'Email only? Leave the phone field blank.'
+     which sat in the consent copy and talked people out of the
+     field it was next to. */
+  .shop-klaviyo-sub {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+
   .shop-klaviyo-label {
     font-family: var(--font-mono);
     margin-bottom: 16px;
@@ -568,25 +580,36 @@
   </section>
 
   <section class="shop-klaviyo" id="signup">
-    <div class="shop-klaviyo-label">Get 5% Off Your First Order</div>
+    <div class="shop-klaviyo-label">Get 10% Off With Code ASIORTEN</div>
+    <!-- Phone first, and no longer described as optional.
+
+         This block used to open its consent copy with "Email only?
+         Leave the phone field blank." Text signups were flat for as
+         long as that line was here, which is not a coincidence: the one
+         place on the site that asked for a number told people to skip
+         it. The field is still not required — nothing here rejects an
+         email-only signup — but the copy no longer argues against it.
+
+         The TCPA sentence below is unchanged and must stay that way. -->
+    <p class="shop-klaviyo-sub">Texts go first when sizes run low.</p>
     <form class="shop-signup-form" id="shopSignupForm">
+      <label class="sr-only" for="shopSignupPhone">Mobile number</label>
+      <input type="tel" id="shopSignupPhone" name="phone" placeholder="Mobile number"
+             autocomplete="tel" inputmode="tel">
       <label class="sr-only" for="shopSignupEmail">Email address</label>
       <input type="email" id="shopSignupEmail" name="email" placeholder="Email"
              autocomplete="email" spellcheck="false" required>
-      <label class="sr-only" for="shopSignupPhone">Phone number (optional)</label>
-      <input type="tel" id="shopSignupPhone" name="phone" placeholder="Phone (optional)"
-             autocomplete="tel" inputmode="tel">
       <button type="submit" id="shopSignupBtn">Sign Up</button>
     </form>
     <p class="consent">
-      Email only? Leave the phone field blank. By giving your number you agree to
+      By giving your number you agree to
       receive recurring automated marketing texts from Asior at that number.
       Consent is not a condition of any purchase. Message frequency varies and
       message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
       <a href="privacy-policy.html">Privacy Policy</a> and
       <a href="terms-of-service.html">Terms of Service</a>.
     </p>
-    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite">You're in. Check your inbox for your code.</div>
+    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite">You're in. Code ASIORTEN takes 10% off your first order.</div>
   </section>
 
   </main>

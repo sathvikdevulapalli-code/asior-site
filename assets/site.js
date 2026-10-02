@@ -483,6 +483,151 @@
       + '</div>';
   }
 
+  /* ---- cart drawer -------------------------------------------------
+
+     Until now the product page had no add-to-cart at all: its one
+     button created a single-line cart and went straight to Shopify's
+     checkout, so there was no way to buy two pieces in one order. The
+     header has carried a cart icon and a count the whole time.
+
+     This is the missing half. It reads the saved cart (the same one
+     cart.html reads and the same one addToShopifyCart writes), shows
+     it, and offers the two exits: the full cart page, or checkout.
+
+     Checkout here is the cart's own checkoutUrl, exactly as cart.html
+     and the Buy Now path already use it. Nothing about where checkout
+     lives is decided or rewritten in this file. */
+  var drawerEl = null;
+
+  async function fetchCartForDrawer() {
+    var id = localStorage.getItem('shopify_cart_id');
+    if (!id) return null;
+    var data = await shopifyFetch(
+      'query($id: ID!) {' +
+      '  cart(id: $id) {' +
+      '    id checkoutUrl totalQuantity' +
+      '    cost { subtotalAmount { amount currencyCode } }' +
+      '    lines(first: 50) { edges { node { id quantity merchandise {' +
+      '      ... on ProductVariant { title price { amount currencyCode }' +
+      '        image { url } product { title handle } } } } } }' +
+      '  }' +
+      '}', { id: id });
+    return data.cart || null;
+  }
+
+  function money(n, currency) {
+    var v = parseFloat(n);
+    if (!isFinite(v)) return '';
+    return (currency === 'USD' || !currency ? '$' : '') + v.toFixed(2);
+  }
+
+  function ensureDrawer() {
+    if (drawerEl) return drawerEl;
+    drawerEl = document.createElement('div');
+    drawerEl.className = 'cart-drawer';
+    drawerEl.setAttribute('hidden', '');
+    drawerEl.innerHTML =
+      '<div class="cart-drawer-scrim" data-cart-close></div>' +
+      '<aside class="cart-drawer-panel" role="dialog" aria-modal="true" aria-label="Cart">' +
+      '  <div class="cart-drawer-head">' +
+      '    <span class="cart-drawer-title">Cart</span>' +
+      '    <button type="button" class="cart-drawer-close" data-cart-close aria-label="Close cart">&times;</button>' +
+      '  </div>' +
+      '  <div class="cart-drawer-body" data-cart-body></div>' +
+      '  <div class="cart-drawer-foot" data-cart-foot></div>' +
+      '</aside>';
+    document.body.appendChild(drawerEl);
+
+    drawerEl.addEventListener('click', function (e) {
+      if (e.target.closest('[data-cart-close]')) closeCartDrawer();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !drawerEl.hasAttribute('hidden')) closeCartDrawer();
+    });
+    return drawerEl;
+  }
+
+  function renderDrawer(cart) {
+    var body = drawerEl.querySelector('[data-cart-body]');
+    var foot = drawerEl.querySelector('[data-cart-foot]');
+    var lines = (cart && cart.lines && cart.lines.edges) || [];
+
+    if (!lines.length) {
+      body.innerHTML = '<p class="cart-drawer-empty">Nothing in your cart yet.</p>';
+      foot.innerHTML = '<a class="cart-drawer-secondary" href="/shop.html">Back to Shop All</a>';
+      return;
+    }
+
+    body.innerHTML = lines.map(function (e) {
+      var l = e.node, m = l.merchandise || {};
+      var name = (m.product && m.product.title) || '';
+      // "Default Title" is Shopify's placeholder for a product with no
+      // options; showing it would read as a size nobody chose.
+      var variant = m.title && m.title !== 'Default Title' ? m.title : '';
+      return '<div class="cart-drawer-line">'
+        + (m.image && m.image.url
+            ? '<img src="' + escapeAttr(m.image.url) + '" alt="" width="60" height="80" loading="lazy" decoding="async">'
+            : '<div class="cart-drawer-ph"></div>')
+        + '<div class="cart-drawer-line-meta">'
+        + '  <div class="cart-drawer-line-name">' + escapeHtml(name) + '</div>'
+        + (variant ? '<div class="cart-drawer-line-variant">' + escapeHtml(variant) + '</div>' : '')
+        + '  <div class="cart-drawer-line-qty">Qty ' + l.quantity + '</div>'
+        + '</div>'
+        + '<div class="cart-drawer-line-price tnum">'
+        + money(m.price && m.price.amount, m.price && m.price.currencyCode) + '</div>'
+        + '</div>';
+    }).join('');
+
+    var sub = cart.cost && cart.cost.subtotalAmount;
+    foot.innerHTML =
+      '<div class="cart-drawer-sub"><span>Subtotal</span>'
+      + '<span class="tnum">' + money(sub && sub.amount, sub && sub.currencyCode) + '</span></div>'
+      // Subtotal only. Shipping and any discount are Shopify's to
+      // calculate at checkout, and a number we invent here would be one
+      // we cannot charge.
+      + '<p class="cart-drawer-note">Shipping and discounts are calculated at checkout.</p>'
+      + '<a class="cart-drawer-checkout" href="' + escapeAttr(cart.checkoutUrl || '/cart.html') + '">Checkout</a>'
+      + '<a class="cart-drawer-secondary" href="/cart.html">View cart</a>';
+  }
+
+  async function openCartDrawer() {
+    ensureDrawer();
+    drawerEl.removeAttribute('hidden');
+    // Next frame, so the transition has a start state to animate from.
+    requestAnimationFrame(function () { drawerEl.classList.add('open'); });
+    document.documentElement.classList.add('cart-drawer-locked');
+    drawerEl.querySelector('[data-cart-body]').innerHTML = '<p class="cart-drawer-empty">Loading…</p>';
+    var btn = drawerEl.querySelector('.cart-drawer-close');
+    if (btn) btn.focus();
+    try {
+      renderDrawer(await fetchCartForDrawer());
+    } catch (err) {
+      drawerEl.querySelector('[data-cart-body]').innerHTML =
+        '<p class="cart-drawer-empty">Couldn\'t load your cart. <a href="/cart.html">Open the cart page</a>.</p>';
+    }
+  }
+
+  function closeCartDrawer() {
+    if (!drawerEl) return;
+    drawerEl.classList.remove('open');
+    document.documentElement.classList.remove('cart-drawer-locked');
+    // Match the panel transition before hiding, so it slides out.
+    setTimeout(function () { if (!drawerEl.classList.contains('open')) drawerEl.setAttribute('hidden', ''); }, 260);
+  }
+
+  /* The header cart icon opens the drawer instead of navigating, when
+     there is JS to open it with. Without JS the same icon is still a
+     plain link to /cart.html, which is why this is wired here rather
+     than being a button in the markup. */
+  function wireCartLinks() {
+    document.querySelectorAll('a.cart-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        openCartDrawer();
+      });
+    });
+  }
+
   /* ---- Klaviyo onsite (klaviyo.js) ----------------------------------
      The tag is injected into every page's <head> by scripts/build.js.
      It loads async, so it is usually NOT ready when these are called —
@@ -944,6 +1089,8 @@
     toE164: toE164,
     klaviyoSubscribeSms: klaviyoSubscribeSms,
     wireSmsSignup: wireSmsSignup,
+    openCartDrawer: openCartDrawer,
+    closeCartDrawer: closeCartDrawer,
     smsSignupHTML: smsSignupHTML,
   };
 
@@ -970,6 +1117,7 @@
   // block renders after its catalog fetch, so product.html calls
   // wireSmsSignup() again once it has built the buy box.
   wireSmsSignup(document);
+  wireCartLinks();
   refreshCartCount();
   // Capture on every page load, not just at submit time — a visitor
   // can land on one page carrying UTM params and convert on a
