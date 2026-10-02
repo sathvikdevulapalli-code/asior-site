@@ -1344,11 +1344,19 @@
       ? `<div class="pd-zoom-hint" aria-hidden="true">Click to zoom</div>` : '';
 
     // ---- copy blocks ----
+    // Shipping facts come from the same verified source (A.shippingLine/
+    // A.internationalLine, assets/promo-config.js's ASIOR_SHIPPING) as the
+    // .pd-note just above the buy button — this used to hardcode "Shipping
+    // within the US only for now", which was stale: international shipping
+    // via Shopify Managed Markets has been live since, and that static
+    // line never got updated to match, contradicting the live note on the
+    // same page.
     const shipHTML = `
       <details class="pd-ship">
         <summary>Shipping &amp; Returns</summary>
         <div class="pd-ship-body">
-          <p>Ships within 1-2 business days via USPS. Delivery typically takes 2-5 business days after that. Shipping within the US only for now.</p>
+          <p>${A.escapeHtml(A.shippingLine())}</p>
+          ${A.internationalLine() ? `<p>${A.escapeHtml(A.internationalLine())}</p>` : ''}
           <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
         </div>
       </details>`;
