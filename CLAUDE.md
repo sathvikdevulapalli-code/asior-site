@@ -31,8 +31,10 @@ helpers (`imgTag`/`srcsetFor`), cart mutations
 `checkoutUrl`), Klaviyo helpers, and small localStorage-backed
 personalization (`getViewed`/`recordView` for "recently viewed",
 `recordSizeChoice`/`preferredSize` for a quiet "your size" hint —
-never used to preselect a size for a customer). `assets/drop-countdown.js`
-renders the sitewide countdown off a single timestamp.
+never used to preselect a size for a customer). Shipping facts
+(`shippingLine`/`internationalLine`/`freeShippingBadge`) read
+`assets/promo-config.js`'s `ASIOR_SHIPPING`, the verified source of
+truth for shipping copy anywhere on the site.
 
 ## FALL_PRODUCTS is the source of truth
 
@@ -41,10 +43,10 @@ truth for the drop:
 - `FALL_PRODUCTS`: the real Fall pieces (handle + customer-facing name).
   Anything not in this array is not part of the Fall collection — don't
   add products back to it without the founder saying so.
-- `PUBLIC_LAUNCH_TIME`, `DROP_CLOSE_TIME`: the drop's open/close instants.
-  Every countdown on the site (banner, PDP buy box, etc.) reads
-  `DROP_CLOSE_TIME` and only this value — if the date changes, it only
-  changes here.
+- `PUBLIC_LAUNCH_TIME`: the drop's opening instant. There is no
+  close date — the Fall collection stays open indefinitely, and no page
+  should invent one (`DROP_CLOSE_TIME` and `assets/drop-countdown.js`
+  were removed for exactly this reason).
 - `FALL_COMMERCE_READY`: whether the full Fall set is live for real
   purchase.
 - `EARLY_ACCESS_CODE_SHA`: SHA-256 of the early-access code, a marketing
