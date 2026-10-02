@@ -87,6 +87,12 @@
   }
 
   .pd-media-main img {
+    /* Anchor to the top of the frame. These boxes are 3:4 and the
+       source photos are wider than that, so centring the crop took
+       equal slices off the top and bottom and cut subjects' heads off.
+       Garments hang downward from the shoulders, so the top of a
+       product shot is the part that has to survive. */
+    object-position: center top;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -680,7 +686,28 @@
   .pd-prerender {
     max-width: 640px;
     margin: 0 auto;
-    padding: 48px 0;
+    /* Side gutter matters here: this block is the whole page for a
+       client with no JS, and without it the title and the photo run
+       into both edges of a phone screen. */
+    padding: 48px 20px;
+  }
+
+  /* The build-time product photo. Same 3:4 frame and top-anchored crop
+     as the real gallery, so the swap at hydration is not a visible
+     change of shape. */
+  .pd-prerender-media {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 2px;
+    margin: 22px 0 26px;
+  }
+
+  .pd-prerender-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
   }
 
   @media (max-width: 720px) {

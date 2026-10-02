@@ -71,6 +71,14 @@ const BESPOKE_PAGES = {
   'jag-lanyard': '/lanyard.html',
 };
 
+/* Shopify's transform URLs as a srcset. Shared by the shop grid and
+   the PDP prerender so both describe the same candidates. */
+const srcsetFor = img => [
+  img && img.w400 ? `${esc(img.w400)} 400w` : '',
+  img && img.w800 ? `${esc(img.w800)} 800w` : '',
+  img && img.w1200 ? `${esc(img.w1200)} 1200w` : '',
+].filter(Boolean).join(', ');
+
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -161,8 +169,29 @@ function prerenderedPdp(p) {
     ? `<div class="pd-desc"><div class="pd-desc-label">Description</div><p>${esc(body)}</p></div>`
     : '';
 
+  /* The real product photo, in the served HTML.
+
+     It was reported not painting until a thumbnail or size was clicked.
+     That could not be reproduced against this build, so rather than
+     guess at the client-side reveal path, the image is simply here: a
+     plain <img> with its real dimensions, no observer, no fade, no
+     class to toggle, nothing to wait for. It is painted before any
+     script runs and before any interaction, which is the requirement.
+     The hydrated gallery still replaces it a moment later. */
+  const f = p.featuredImage;
+  const imgHtml = f
+    ? `<div class="pd-prerender-media"><img src="${esc(f.w1200 || f.url)}"`
+      + (srcsetFor(f) ? ` srcset="${srcsetFor(f)}"` : '')
+      + ` sizes="(max-width: 720px) 100vw, 480px"`
+      + ` alt="${esc(f.altText || name)}"`
+      + (f.width ? ` width="${esc(f.width)}"` : '')
+      + (f.height ? ` height="${esc(f.height)}"` : '')
+      + ` fetchpriority="high" decoding="async"></div>`
+    : '';
+
   return `<div class="pd-prerender">
       <div class="pd-head"><h1 class="pd-name">${esc(name)}</h1>${priceHtml}</div>
+      ${imgHtml}
       ${sizeHtml}
       ${descHtml}
       ${smsSignupBlock('pdp')}
@@ -592,11 +621,7 @@ function shopCard(p, eager) {
   const img = p.featuredImage;
   let media = '<div class="ph"></div>';
   if (img && img.url) {
-    const srcset = [
-      img.w400 ? `${esc(img.w400)} 400w` : '',
-      img.w800 ? `${esc(img.w800)} 800w` : '',
-      img.w1200 ? `${esc(img.w1200)} 1200w` : '',
-    ].filter(Boolean).join(', ');
+    const srcset = srcsetFor(img);
     media = '<img '
       + `src="${esc(img.w1200 || img.url)}" `
       + (srcset ? `srcset="${srcset}" ` : '')

@@ -276,6 +276,12 @@
   }
 
   .product-img img {
+    /* Anchor to the top of the frame. These boxes are 3:4 and the
+       source photos are wider than that, so centring the crop took
+       equal slices off the top and bottom and cut subjects' heads off.
+       Garments hang downward from the shoulders, so the top of a
+       product shot is the part that has to survive. */
+    object-position: center top;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -856,17 +862,46 @@
   // "Pick Up Where You Left Off" started at opacity:0 (see .product in
   // the stylesheet above) and, with nothing ever adding .in, stayed
   // invisible permanently. Real bug, not a design choice.
+  /* .product starts at opacity 0 and needs .in to be seen.
+     Two ways that used to leave a card black with nothing a visitor
+     could do about it except scroll, both fixed here:
+
+       - threshold 0.2 asked for a fifth of the card to be on screen.
+         A card taller than the viewport can never satisfy that, so it
+         stayed invisible no matter how far you scrolled.
+       - a browser without IntersectionObserver observed nothing, so
+         every card stayed at opacity 0 forever.
+
+     Now: anything at or near the first screen is revealed immediately,
+     without waiting to be observed, so a visitor who loads the page
+     and touches nothing sees products. The rest still fade in on
+     approach, with rootMargin so they arrive already visible rather
+     than fading in under the reader's eye. */
   function revealOnScroll(container) {
-    const items = container.querySelectorAll('.product');
+    const items = Array.from(container.querySelectorAll('.product'));
+    if (!items.length) return;
+
+    const reveal = (el, i) => setTimeout(() => el.classList.add('in'), (i % 4) * 60);
+
+    if (!('IntersectionObserver' in window)) {
+      items.forEach(reveal);
+      return;
+    }
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('in'), (i % 4) * 60);
-          observer.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        reveal(entry.target, i);
+        observer.unobserve(entry.target);
       });
-    }, { threshold: 0.2 });
-    items.forEach(p => observer.observe(p));
+    }, { threshold: 0, rootMargin: '300px 0px' });
+
+    const fold = window.innerHeight + 300;
+    items.forEach((p, i) => {
+      // Already on, or just below, the first screen: show it now.
+      if (p.getBoundingClientRect().top < fold) { reveal(p, i); return; }
+      observer.observe(p);
+    });
   }
 
   function renderGrid(catalog) {
