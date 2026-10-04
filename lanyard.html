@@ -201,7 +201,28 @@
   .lp-buy:hover { opacity: 0.85; }
   .lp-buy[disabled] { opacity: 0.5; cursor: not-allowed; }
 
+  /* The quieter of the pair: same width and hit area as .lp-buy,
+     outline instead of fill, so Add to Cart stays the default. */
+  .lp-buynow {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--field-line);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 30px;
+    cursor: pointer;
+    transition: border-color 200ms var(--ease-out);
+  }
+  .lp-buynow:hover:not([disabled]) { border-color: var(--ink); }
+  .lp-buynow[disabled] { opacity: 0.4; cursor: not-allowed; }
+
   .lp-msg { margin-top: 14px; font-size: 12px; color: var(--muted); }
+  .lp-msg a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
 
   @media (max-width: 720px) {
     .lp-wrap { grid-template-columns: 1fr; gap: 28px; padding: 2vh 20px 10vh; }
@@ -436,7 +457,15 @@
             <span id="qtyVal" aria-live="polite">1</span>
             <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
           </div>
-          <button class="lp-buy" id="buyBtn">Buy Now</button>
+          <!-- Two actions, matching the product page. This had one
+               button labelled Buy Now that added to the SAVED cart and
+               then redirected, which is the line-stacking bug the
+               product page already fixed: buy, press back, buy again and
+               checkout showed two lanyards for what was meant as one
+               purchase. Add to Cart now owns the saved cart; Buy Now
+               gets its own one-line cart and leaves that one alone. -->
+          <button class="lp-buy" id="lpAddBtn">Add to Cart</button>
+          <button class="lp-buynow" id="buyBtn">Buy Now</button>
           <p class="lp-msg" id="lpMsg" role="status" aria-live="polite"></p>
           ${A.smsSignupHTML()}
         </div>
@@ -477,9 +506,13 @@
 
     function renderBuyButton() {
       const v = currentVariant();
+      const addBtn = document.getElementById('lpAddBtn');
       const btn = document.getElementById('buyBtn');
       const sold = !v || !v.available;
-      btn.textContent = sold ? 'Sold Out' : 'Buy Now';
+      addBtn.textContent = sold ? 'Sold Out' : 'Add to Cart';
+      addBtn.disabled = sold;
+      // Buy Now keeps its own label while disabled: two buttons both
+      // reading "Sold Out" says the same thing twice.
       btn.disabled = sold;
     }
 
@@ -509,6 +542,52 @@
     document.getElementById('qtyDown').addEventListener('click', () => { qty = Math.max(1, qty - 1); qtyVal.textContent = qty; });
     document.getElementById('qtyUp').addEventListener('click', () => { qty += 1; qtyVal.textContent = qty; });
 
+    // Everything both buttons report, in one place: they differ only in
+    // which cart they write to and where they leave you.
+    function trackPurchaseIntent(v) {
+      A.klaviyoTrack('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price });
+      A.klaviyoAddedToCart({
+        handle: HANDLE, name: product.name,
+        url: location.origin + '/lanyard.html',
+        price: v.price, quantity: qty,
+      });
+      if (window.AsiorAnalytics) {
+        window.AsiorAnalytics.addToCart({
+          handle: HANDLE, name: product.name,
+          variantId: v.variantId, price: v.price, quantity: qty,
+        });
+      }
+    }
+
+    // Add to Cart: writes to the saved cart, updates the header count,
+    // opens the drawer, and leaves the shopper here so the lanyard can
+    // go in alongside whatever else they are buying.
+    document.getElementById('lpAddBtn').addEventListener('click', async () => {
+      const v = currentVariant();
+      if (!v || !v.available) return;
+      const btn = document.getElementById('lpAddBtn');
+      const msg = document.getElementById('lpMsg');
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+      try {
+        await A.addToShopifyCart(v.variantId, qty);
+        trackPurchaseIntent(v);
+        // This page has no nav and no cart icon on purpose, so once the
+        // drawer is closed there would otherwise be no way back to the
+        // cart from here. The confirmation stays put and carries the
+        // link rather than putting a nav on a page built without one.
+        msg.innerHTML = 'In your cart \u2014 <a href="/cart.html">view cart</a>';
+        btn.disabled = false;
+        btn.textContent = label;
+        A.openCartDrawer();
+      } catch (err) {
+        msg.textContent = "That didn't go through. Try again in a moment.";
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    });
+
     document.getElementById('buyBtn').addEventListener('click', async () => {
       const v = currentVariant();
       if (!v || !v.available) return;
@@ -517,22 +596,14 @@
       btn.disabled = true;
       btn.textContent = 'Redirecting…';
       try {
-        const updated = await A.addToShopifyCart(v.variantId, qty);
-        A.klaviyoTrack('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price });
-        A.klaviyoAddedToCart({
-          handle: HANDLE, name: product.name,
-          url: location.origin + '/lanyard.html',
-          price: v.price, quantity: qty,
-        });
-        if (window.AsiorAnalytics) {
-          window.AsiorAnalytics.addToCart({
-            handle: HANDLE, name: product.name,
-            variantId: v.variantId, price: v.price, quantity: qty,
-          });
-        }
+        // Its own single-line cart, so pressing back and buying again
+        // cannot stack a second line, and anything already added above
+        // survives untouched.
+        const updated = await A.createBuyNowCart(v.variantId, qty);
+        trackPurchaseIntent(v);
         location.href = updated.checkoutUrl;
       } catch (err) {
-        msg.textContent = "That didn't go through. Try again in a moment.";
+        msg.textContent = "Couldn't start checkout. Try again in a moment.";
         btn.disabled = false;
         btn.textContent = 'Buy Now';
       }
