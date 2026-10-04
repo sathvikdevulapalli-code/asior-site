@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
@@ -77,23 +77,32 @@
     margin: 0 auto;
   }
 
+  /* Four frames, three widths. The row used to be four identical
+     portraits, which is a component; uneven columns read as a spread. */
   .shop-lookbook-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    grid-template-columns: 1.3fr 1fr 1fr 1.45fr;
+    align-items: start;
+    gap: 10px;
   }
 
   .shop-look {
     aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: 0;
+    background: #141210;
   }
+
+  .shop-lookbook-row .shop-look:nth-child(2) { aspect-ratio: 4 / 5; margin-top: 26px; }
+  .shop-lookbook-row .shop-look:nth-child(3) { aspect-ratio: 1 / 1; margin-top: 54px; }
+  .shop-lookbook-row .shop-look:nth-child(4) { aspect-ratio: 2 / 3; }
 
   .shop-look img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s var(--ease-img);
+    object-position: center top;
+    transition: transform 700ms var(--ease-img);
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -102,7 +111,12 @@
 
   .shop-lookbook-link {
     display: inline-block;
-    margin-top: 14px;
+    /* Standalone link, so it needs a real hit area rather than the
+       13px its text happened to occupy. Inline links inside a sentence
+       are exempt from this; a link on its own line is not. */
+    padding: 7px 0;
+    min-height: 24px;
+    margin-top: 12px;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.08em;
@@ -111,10 +125,7 @@
     text-decoration: underline;
   }
 
-  @media (max-width: 640px) {
-    .shop-lookbook { padding: 0 20px 8vh; }
-    .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
-  }
+
 
   /* Email/SMS capture for the browsing majority who don't buy today.
      cart.html has had this exact offer for a while, but only a visitor
@@ -125,13 +136,21 @@
      this page and its own signup form is unreachable dead code. Same
      Klaviyo call, same real 5%-off incentive, same consent copy —
      just on the page where visitors actually land. */
+  /* Left aligned, held to a reading measure, sitting under a hairline.
+     Centred it read as a generic call-to-action card dropped at the
+     bottom of the page — the one shape on here that most looked like
+     it came out of a template. */
   .shop-klaviyo {
-    max-width: 1200px;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 6vh 40px 8vh;
+    padding: 7vh 40px 9vh;
     border-top: 1px solid var(--line);
-    text-align: center;
+    text-align: left;
   }
+
+  .shop-klaviyo .consent,
+  .shop-klaviyo-sub { margin-left: 0; margin-right: 0; max-width: 52ch; }
+  .shop-signup-form { max-width: 560px; }
 
   /* One line under the heading, saying what the number is for.
      Replaces the old 'Email only? Leave the phone field blank.'
@@ -178,19 +197,31 @@
   .shop-signup-form input::placeholder { color: var(--muted); }
   .shop-signup-form input:focus { border-color: var(--ink); }
 
+  /* A bare text submit with only padding-bottom computed to an 18px
+     tall target once the form stacked on a phone. It is the button
+     that captures the list, so it gets a real box: hairline, squared,
+     44px, matching the Add to Cart treatment rather than reading as
+     another underlined word. */
   .shop-signup-form button {
     position: relative;
     background: none;
-    border: none;
-    font-family: var(--font-body);
+    border: 1px solid var(--field-line);
+    border-radius: 0;
+    font-family: var(--font-mono);
     font-size: 11px;
-    font-weight: 300;
-    letter-spacing: 0.12em;
+    font-weight: 400;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink);
     cursor: pointer;
-    padding-bottom: 6px;
-    transition: transform 160ms var(--ease-out);
+    padding: 0 22px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out), color 160ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .shop-signup-form button:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
   }
 
   .shop-signup-form button::after {
@@ -221,12 +252,10 @@
 
   .shop-signup-confirm.show { display: block; }
 
-  .shop-klaviyo .consent { margin-left: auto; margin-right: auto; }
 
   @media (max-width: 640px) {
-    .shop-klaviyo { padding: 5vh 20px 6vh; }
+    .shop-klaviyo { padding: 5vh 16px 6vh; }
     .shop-signup-form { flex-direction: column; align-items: stretch; gap: 14px; }
-    .shop-signup-form input { text-align: center; }
   }
 
   /* ---------- shop grid ----------
@@ -242,99 +271,181 @@
     margin: 0 auto;
   }
 
+  /* Rows are not meant to line up.
+
+     align-items: start lets each tile stand at its own height so the
+     grid staggers the way a contact sheet does, which is the whole
+     difference between a collection and a four-across catalogue. The
+     variation is small and on a fixed cycle, so it reads as rhythm
+     rather than as a layout bug. */
+  /* ---------- opening ----------
+     Two frames and a marker. Held to the same 1180px as the grid so it
+     reads as the top of the page rather than as a hero banner bolted
+     on above it. */
+  .opening {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 6px 40px 40px;
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .opening-frame {
+    overflow: hidden;
+    background: #141210;
+  }
+
+  .opening-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+
+  .opening-frame--tall { aspect-ratio: 3 / 4; }
+  .opening-frame--wide { aspect-ratio: 4 / 3; margin-top: 34px; }
+
+  .opening-mark {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .opening-mark span:first-child { color: var(--ink); }
+
+  /* ---------- full-bleed band ---------- */
+  .band {
+    margin: 0 0 12vh;
+    position: relative;
+  }
+
+  .band img {
+    width: 100%;
+    height: clamp(260px, 46vw, 560px);
+    object-fit: cover;
+    object-position: center 28%;
+    display: block;
+  }
+
+  .band-caption {
+    max-width: 1180px;
+    margin: 10px auto 0;
+    padding: 0 40px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   .shop-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 28px 24px;
+    align-items: start;
+    gap: 34px 18px;
   }
 
   .product {
     display: block;
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
+    transition: opacity 500ms var(--ease-out);
   }
 
-  .product.in { opacity: 1; transform: translateY(0); }
+  .product.in { opacity: 1; }
 
   .product-img {
     position: relative;
     aspect-ratio: 3 / 4;
     overflow: hidden;
-    border-radius: 4px;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
-    transition: transform 160ms var(--ease-out);
+    /* Square corners. Rounded photographs are a UI convention, not a
+       photographic one, and nothing in a printed lookbook has them. */
+    border-radius: 0;
+    background: #141210;
   }
 
-  .price-badge {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    z-index: 2;
-    background: rgba(11, 10, 8, 0.72);
-    backdrop-filter: blur(4px);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    padding: 5px 8px;
-    border-radius: 3px;
-  }
-
-  .price-badge .compare {
-    text-decoration: line-through;
-    opacity: 0.6;
-    margin-right: 5px;
-  }
+  /* The cycle. Four columns, six steps, so the taller and squarer
+     tiles land in a different column on each pass down the page. */
+  .shop-grid > .product:nth-child(6n + 2) .product-img,
+  .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 4 / 5; }
 
   .product-img img {
-    /* Anchor to the top of the frame. These boxes are 3:4 and the
-       source photos are wider than that, so centring the crop took
-       equal slices off the top and bottom and cut subjects' heads off.
-       Garments hang downward from the shoulders, so the top of a
-       product shot is the part that has to survive. */
-    object-position: center top;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
-    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
+    /* The top of the frame is what has to survive: these boxes are
+       taller than the source photographs, so a centred crop takes
+       equal slices off the head and the hem. This rule used to be set
+       and then immediately overwritten by a second object-position two
+       lines below it, which is why heads were still being cut off
+       after that was supposedly fixed. One declaration now. */
+    object-position: center top;
+    transition: transform 700ms var(--ease-img);
   }
 
+  /* No brightness filter and no scale on the tile itself. The image
+     eases in its own frame; that is the whole interaction. */
   @media (hover: hover) and (pointer: fine) {
-    .product:hover .product-img img {
-      transform: scale(1.035);
-      filter: brightness(1.03);
-    }
+    .product:hover .product-img img { transform: scale(1.03); }
   }
 
-  .product:active .product-img { transform: scale(0.985); }
-
+  /* Name left, price right, one line, hairline between them. This is
+     how a garment is captioned on a rail: what it is and what it
+     costs, at the same weight, neither shouting. */
   .name-row {
-    margin-top: 14px;
+    margin-top: 11px;
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 9px;
   }
 
   .product .name {
     font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink);
+    min-width: 0;
   }
 
-  .preorder-tag {
-    flex: none;
-    border: 1px solid var(--muted);
-    color: var(--muted);
+  .product .price {
     font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    flex: none;
+  }
+
+  .product .price .compare {
+    text-decoration: line-through;
+    opacity: 0.55;
+    margin-right: 5px;
+  }
+
+  /* Sold out and preorder are facts about the garment, so they are
+     stated in the caption. They were bordered pills, which is a badge,
+     and badges are what make a page look merchandised at you. */
+  .product-state {
+    margin-top: 5px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding: 3px 7px;
-    border-radius: 2px;
+    color: var(--muted);
   }
 
   /* ---------- quick add ----------
@@ -346,17 +457,17 @@
   .product-link { display: block; }
 
   .quick-add {
-    margin-top: 10px;
+    margin-top: 9px;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
     min-height: 26px;
   }
 
   .qa-size {
-    min-width: 32px;
-    height: 28px;
-    padding: 0 9px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -367,7 +478,7 @@
     font-size: 10px;
     letter-spacing: 0.03em;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 0;
     position: relative;
     overflow: hidden;
     transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out);
@@ -461,17 +572,56 @@
      browsers too old for :has(); this just gets there first. */
   .shop:has(#shopGrid .product) .shop-loading { display: none; }
 
-  @media (max-width: 900px) {
-    .shop-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 1100px) {
+    .shop-grid { grid-template-columns: repeat(3, 1fr); }
+    /* Three columns, so the six-step cycle has to shift or the same
+       column gets every tall tile. */
+    .shop-grid > .product:nth-child(6n + 2) .product-img,
+    .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 3 / 4; }
+    .shop-grid > .product:nth-child(5n + 3) .product-img { aspect-ratio: 4 / 5; }
+  }
+
+  @media (max-width: 760px) {
+    .opening { grid-template-columns: 1fr; padding: 4px 16px 26px; gap: 8px; }
+    /* One frame on a phone. Two stacked is two scroll-lengths of
+       photograph before the first price. */
+    .opening-frame--wide { display: none; }
+    .opening-frame--tall { aspect-ratio: 4 / 5; }
+    .opening-mark { font-size: 8.5px; letter-spacing: 0.06em; gap: 10px; }
+    .band { margin-bottom: 8vh; }
+    .band-caption { padding: 0 16px; }
+    .shop-lookbook { padding: 0 16px 8vh; }
+    .shop-lookbook-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .shop-lookbook-row .shop-look:nth-child(2) { margin-top: 0; }
+    .shop-lookbook-row .shop-look:nth-child(3) { margin-top: 18px; }
+    .shop-lookbook-row .shop-look:nth-child(4) { margin-top: 18px; }
   }
 
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
-    header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
+    header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
+    header .mark { font-size: 13px; }
+    header nav { gap: 14px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 120px); }
     header nav::-webkit-scrollbar { display: none; }
-    .shop { padding: 16px 20px 10vh; }
-    .shop-grid { grid-template-columns: 1fr; gap: 14px; }
+    .shop { padding: 14px 16px 10vh; }
+    /* Two across on a phone, not one. A single column turns a twelve
+       piece collection into a very long scroll and reads like a feed;
+       two reads like a rail. */
+    .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 22px 10px; }
+    .shop-grid > .product:nth-child(5n + 3) .product-img { aspect-ratio: 3 / 4; }
+    .shop-grid > .product:nth-child(4n + 2) .product-img { aspect-ratio: 4 / 5; }
+    .product .name { font-size: 9.5px; letter-spacing: 0.06em; }
+    .product .price { font-size: 9.5px; }
+    .name-row { gap: 6px; padding-top: 7px; margin-top: 9px; }
+    .qa-size { min-width: 24px; height: 24px; font-size: 9.5px; padding: 0 5px; }
+  }
+
+  /* 360 and below: the name and the price must still sit on one line
+     and the size controls must still be tappable. */
+  @media (max-width: 380px) {
+    .shop { padding: 12px 12px 10vh; }
+    .shop-grid { gap: 18px 8px; }
+    .product .name { font-size: 9px; letter-spacing: 0.04em; }
+    .product .price { font-size: 9px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -527,6 +677,35 @@
        not something added for this. -->
   <h1 class="sr-only">Shop All</h1>
 
+  <!-- The page opened on a four-across grid, which answers "what can I
+       buy" and nothing else. It now opens on a photograph, because the
+       first question a stranger has is what this actually looks like
+       on a person.
+
+       Two real frames from images/, side by side at desktop and a
+       single frame on a phone. No overlay copy beyond the collection
+       marker and the season — there is no brand story to tell here
+       that the photographs do not tell better, and inventing one is
+       how storefronts end up sounding generated. -->
+  <section class="opening" aria-label="Fall collection">
+    <figure class="opening-frame opening-frame--tall">
+      <picture>
+        <source type="image/webp" srcset="images/look-02.webp">
+        <img src="images/look-02.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
+      </picture>
+    </figure>
+    <figure class="opening-frame opening-frame--wide">
+      <picture>
+        <source type="image/webp" srcset="images/look-09.webp">
+        <img src="images/look-09.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
+      </picture>
+    </figure>
+    <div class="opening-mark">
+      <span>Fall Collection</span>
+      <span>Limited runs — restocked rarely</span>
+    </div>
+  </section>
+
   <!-- Personalization from real browsing history (assets/site.js's
        getViewed()) — shown before the full catalog, not after, when
        there's real history to act on. A returning visitor sees what's
@@ -568,6 +747,18 @@
        looks worn. Sits after the catalog now: the grid is the reason
        someone's on this page, the lookbook is the closer for anyone
        still scrolling. -->
+  <!-- Full bleed, edge to edge, deliberately wider than the 1180px the
+       rest of the page is held to. It exists to break the column
+       rhythm once so the page does not read as one repeating
+       component from top to bottom. -->
+  <section class="band" aria-label="Fall collection, worn">
+    <picture>
+      <source type="image/webp" srcset="images/look-13.webp">
+      <img src="images/look-13.jpg" alt="Asior Fall collection, worn" width="1600" height="900" loading="lazy" decoding="async">
+    </picture>
+    <p class="band-caption">Fall — worn in</p>
+  </section>
+
   <section class="shop-lookbook">
     <h2 class="rail-label">Lookbook</h2>
     <div class="shop-lookbook-row">
@@ -794,15 +985,13 @@
     return `
       <div class="product">
         <a class="product-link" href="/products/${p.handle}.html">
-          <div class="product-img">
-            ${media}
-            <div class="price-badge tnum">${p.priceLabel}</div>
-          </div>
+          <div class="product-img">${media}</div>
           <div class="name-row">
-            <div class="name">${A.escapeHtml(p.name)}</div>
-            ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
-            ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
+            <span class="name">${A.escapeHtml(p.name)}</span>
+            <span class="price tnum">${p.priceLabel}</span>
           </div>
+          ${p.isPreorder ? `<div class="product-state">Preorder</div>` : ''}
+          ${p.soldOut ? `<div class="product-state">Sold out</div>` : ''}
         </a>
         ${quickAdd}
       </div>`;

@@ -639,15 +639,13 @@ function shopCard(p, eager) {
   return `
       <div class="product in">
         <a class="product-link" href="/products/${esc(p.handle)}.html">
-          <div class="product-img">
-            ${media}
-            <div class="price-badge tnum">${priceLabel}</div>
-          </div>
+          <div class="product-img">${media}</div>
           <div class="name-row">
-            <div class="name">${esc(name)}</div>
-            ${isPreorder ? '<span class="preorder-tag">Preorder</span>' : ''}
-            ${soldOut ? '<span class="preorder-tag">Sold Out</span>' : ''}
+            <span class="name">${esc(name)}</span>
+            <span class="price tnum">${priceLabel}</span>
           </div>
+          ${isPreorder ? '<div class="product-state">Preorder</div>' : ''}
+          ${soldOut ? '<div class="product-state">Sold out</div>' : ''}
         </a>
       </div>`;
 }

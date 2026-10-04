@@ -36,9 +36,25 @@
   --line: #2b2822;
   --field-line: #6b6459;
 
-  --font-display: 'Unbounded', sans-serif;
+  /* Archivo, not a geometric display face.
+
+     Unbounded was here and it was the single loudest thing making this
+     read as a generated template: a wide geometric with circular
+     bowls, the house face of crypto and SaaS landing pages, and
+     nothing a clothing label would set a garment name in. Archivo is
+     a grotesque with editorial lineage — it is what a lookbook or a
+     fashion masthead is set in — and it carries small sizes and tight
+     tracking, which is where this design lives.
+
+     No serif anywhere. A "luxury serif" on a streetwear store is the
+     other default, and it would be a costume. */
+  --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
+
+  /* Hierarchy comes from value and tracking, not from size. --ink-dim
+     is for secondary type that still has to be readable. */
+  --ink-dim: #cfc9bd;
 
   /* Motion tokens. Built-in CSS easings are too weak to read as
      intentional; these are the stronger variants used site-wide.
@@ -143,6 +159,15 @@ img { display: block; max-width: 100%; }
   font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  padding: 0 12px;
+  text-align: center;
+}
+
+/* At 360 the collection line filled the bar edge to edge with no
+   gutter at all. Shrinks rather than wraps: two lines here would push
+   the header and every page's top spacing down. */
+@media (max-width: 420px) {
+  .teaser-bar { font-size: 8.5px; letter-spacing: 0.04em; }
 }
 
 .teaser-bar a {
@@ -168,6 +193,10 @@ img { display: block; max-width: 100%; }
 .teaser-bar a:hover::after { width: 100%; }
 
 /* ---------- header ---------- */
+/* The header used to be 32px of padding on a 12px nav, which with the
+   teaser bar put 144px of fixed chrome above every page before a
+   single garment appeared. It read as an application toolbar. It is
+   now a hairline band: the mark, four small mono labels, the cart. */
 header {
   position: fixed;
   top: 34px;
@@ -176,13 +205,16 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 32px 40px;
-  font-size: 12px;
-  letter-spacing: 0.15em;
+  padding: 17px 24px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-weight: 300;
+  font-weight: 400;
   z-index: 10;
-  color: var(--ink);
+  color: var(--muted);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
 }
 
 /* The header is fixed with no background, so as soon as the page
@@ -194,10 +226,10 @@ header {
 
    Toggled from assets/site.js at >8px rather than by media query,
    because it depends on scroll position, not viewport size. */
-header.is-scrolled {
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-}
+/* Always solid now, so there is no transparent-to-solid state to
+   manage and nothing can show through the nav mid-scroll. The class is
+   still toggled by site.js; it only deepens the rule. */
+header.is-scrolled { border-bottom-color: var(--field-line); }
 
 @media (prefers-reduced-motion: no-preference) {
   header { transition: background 200ms var(--ease-out), border-color 200ms var(--ease-out); }
@@ -205,22 +237,28 @@ header.is-scrolled {
 
 /* Anchors and in-page jumps land under the fixed bar + header without
    this. 34px teaser bar + ~85px header. */
-:target { scroll-margin-top: 125px; }
+:target { scroll-margin-top: 96px; }
 
 header .mark {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
 }
 
 header nav {
   display: flex;
-  gap: 36px;
+  gap: 22px;
+  align-items: center;
 }
+
+header nav a { color: var(--muted); transition: color 180ms var(--ease-out); }
+header nav a:hover { color: var(--ink); }
 
 header nav a {
   position: relative;
-  padding-bottom: 6px;
+  padding-bottom: 3px;
 }
 
 header nav a::after {
@@ -257,7 +295,9 @@ header nav a.cart-link { display: inline-flex; align-items: center; position: re
 
 .cart-count.show { opacity: 1; transform: scale(1); }
 
-.page-top-space { height: 144px; }
+/* Matches the real chrome: 34px teaser + 45px header. Was 144px,
+   which pushed the first garment most of a phone screen down. */
+.page-top-space { height: 92px; }
 
 /* ---------- rail label ----------
    The mono uppercase label that opens most pages. It is an <h1> on
