@@ -675,10 +675,19 @@ function shopCard(p, eager) {
   const altImg = all.find(im => im && im.url && im.url !== firstUrl);
   const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
 
+  /* Same two-link shape as card() in shop.html: the photograph and the
+     caption link separately so the quick view trigger can sit on the
+     frame. The trigger itself is NOT pre-rendered -- it does nothing
+     without JS, and a dead button in the served HTML is worse than no
+     button. The live grid adds it a moment later. */
   return `
       <div class="product in" data-handle="${esc(p.handle)}">
+        <div class="product-frame">
+          <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
+            <div class="product-img"${altAttr}>${media}</div>
+          </a>
+        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
-          <div class="product-img"${altAttr}>${media}</div>
           <div class="name-row">
             <span class="name">${esc(name)}</span>
             <span class="price tnum">${priceLabel}</span>

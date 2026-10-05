@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
      shop.html's equivalent comment for why. -->
@@ -407,11 +407,13 @@
   /* Filled, not outlined — same reasoning as product.html's .pd-add:
      checkout is the dominant action on this page and shouldn't share
      visual weight with the signup form underneath it. */
+  /* Matches the product page's Add to Cart: the accent marks the step
+     that takes money, everywhere it appears. */
   .checkout-btn {
     margin-top: 24px;
     width: 100%;
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--accent);
+    color: var(--on-accent);
     border: 0;
     font-family: var(--font-body);
     font-weight: 600;

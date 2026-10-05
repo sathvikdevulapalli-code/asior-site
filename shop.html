@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
@@ -281,6 +281,209 @@
     margin: 0 auto;
   }
 
+  /* ---------- quick view ----------
+     A real <dialog>, so the backdrop, the top layer, Escape and the
+     focus trap are the browser's job rather than ours. */
+  .peek {
+    border: 0;
+    padding: 0;
+    /* margin:auto explicitly. A modal <dialog> is centred by the UA's
+       own `margin: auto`, and the site's reset zeroes margins on
+       everything -- which left this pinned to the left edge. */
+    margin: auto;
+    width: min(880px, 92vw);
+    /* A definite height, not a max: the media column scrolls inside the
+       dialog, and a scroll container needs a bounded parent or it just
+       makes the dialog taller. */
+    height: min(680px, 88vh);
+    background: var(--surface);
+    color: var(--ink);
+    overflow: hidden;
+  }
+
+  .peek::backdrop { background: rgba(6, 5, 9, 0.82); }
+
+  .peek-in {
+    display: grid;
+    grid-template-columns: 1fr minmax(290px, 350px);
+    height: 100%;
+    position: relative;
+  }
+
+  /* The photographs scroll on their own, so a long gallery never
+     pushes Add to Cart off the bottom of the dialog. */
+  /* Flex column, not grid. As a grid with a definite height, the rows
+     were being compressed to share the 680px between them, so each
+     photograph showed as a ~225px band of its own middle. Flex items
+     that cannot shrink keep their aspect ratio and the column
+     scrolls, which is what a gallery is. */
+  .peek-media {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #0a0910;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: thin;
+  }
+
+  .peek-media > * { flex: 0 0 auto; scroll-snap-align: start; }
+
+  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; }
+  .peek-shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+  .peek-ph { aspect-ratio: 2 / 3; background: #141219; }
+
+  .peek-buy {
+    padding: 26px 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .peek-name {
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 800;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .peek-price { font-family: var(--font-mono); font-size: 15px; color: var(--ink-dim); }
+
+  .peek-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .peek-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .peek-sizes .qa-size[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+  .peek-msg {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+    min-height: 1em;
+  }
+
+  .peek-trust {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 6px;
+  }
+
+  .peek-trust li {
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .peek-full { margin-top: 4px; }
+
+  .peek-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
+
+  .peek-wait {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 60px 30px;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- quick view trigger ----------
+     Hidden until the tile is hovered on a pointer device; always
+     present on touch, where there is no hover to reveal it and the
+     control would otherwise be unreachable. */
+  .product-frame { position: relative; }
+
+  .product-peek {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    /* Above the hover frame, which is z-index 1 in this same context. */
+    z-index: 2;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--field-line);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .product-frame:hover .product-peek,
+    /* focus-within as well as hover, so tabbing to the trigger reveals
+       it rather than leaving a keyboard user pressing something they
+       cannot see. */
+    .product-frame:focus-within .product-peek,
+    .product-peek:focus-visible {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+  }
+
+  /* No hover on a touch screen, so the control is simply always there
+     -- a button that only appears on hover is a button a phone can
+     never reach. */
+  @media (hover: none), (pointer: coarse) {
+    .product-peek { opacity: 1; transform: none; pointer-events: auto; }
+  }
+
+  /* ---------- toolbar ----------
+     Sits on the shop's own left edge so the count lines up with the
+     first tile below it, and the controls run out to the right margin.
+     No box, no fill: it is a row of type until you press something. */
+  .shop-tools {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .shop-tools-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 10px 0 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .shop-count {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    /* Pushes every control to the right edge. */
+    margin-right: auto;
+  }
+
+  .shop-tools-group { display: flex; gap: 2px; }
+
+  /* The density pair reads as one control, so it keeps a hairline
+     between its two halves rather than sitting as two loose buttons. */
+  .shop-cols { margin-left: 10px; box-shadow: inset 0 0 0 1px var(--line); }
+  .shop-cols .btn { padding: 0 10px; }
+
+  .shop-empty .btn { margin-left: 6px; }
+
   /* Rows line up. They used to be deliberately staggered -- each tile
      at its own height, contact-sheet style -- and measured, that put
      the names and prices of one row on three different baselines.
@@ -310,7 +513,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 60px 32px 22px;
+    padding: 110px 32px 28px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -318,25 +521,37 @@
     background: linear-gradient(to top, rgba(11, 10, 8, 0.72), rgba(11, 10, 8, 0));
   }
 
-  .campaign-label {
+  .campaign-text { display: grid; gap: 6px; }
+
+  .campaign-eyebrow {
     font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--ink-dim);
   }
 
-  .campaign-link {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
+  /* The signature. The collection was named in 11px tracked-out mono
+     sitting in the corner of the photograph -- a caption, which is why
+     the page read as a layout containing a picture rather than as a
+     campaign. Set on Archivo's width axis at the size the photograph
+     can carry, it is the one piece of type on the site allowed to be
+     loud, and everything else stays quiet around it. */
+  .campaign-title {
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 800;
+    font-size: clamp(34px, 6.4vw, 92px);
+    line-height: 0.84;
+    letter-spacing: -0.035em;
     text-transform: uppercase;
     color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 3px;
-    min-height: 24px;
+    margin: 0;
   }
+
+  /* An outlined button, not the accent: this moves you down the page,
+     it does not buy anything, and the violet has exactly one job. */
+  .campaign-link { flex: none; backdrop-filter: blur(2px); }
 
   /* ---------- drop intro ---------- */
   .drop-intro {
@@ -389,6 +604,12 @@
     gap: 34px 18px;
   }
 
+  /* Density, set by the toolbar. Only honoured where there is room for
+     it -- the narrow breakpoints below pin their own column count, and
+     a four-across grid at 390px is not a view anyone wants. */
+  .shop-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); gap: 34px 24px; }
+  .shop-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
+
   .product {
     display: block;
     opacity: 0;
@@ -440,6 +661,12 @@
     opacity: 0;
     transition: opacity 320ms var(--ease-out);
     z-index: 1;
+    /* Decorative, and it covers the whole frame. Without this it ate
+       the clicks meant for the quick view trigger sitting on top of
+       it, because .product-img is positioned but creates no stacking
+       context, so the hover frame's z-index:1 competed with the
+       trigger instead of staying inside the photograph. */
+    pointer-events: none;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -479,11 +706,17 @@
     padding-top: 9px;
   }
 
+  /* Display, not mono. Eleven product names set in 10.5px tracked-out
+     monospace made the grid read as a table of SKUs; the same names in
+     the display face read as a collection. The price stays mono beside
+     it, which is the one thing on the tile that genuinely is data. */
   .product .name {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    line-height: 1.35;
-    letter-spacing: 0.09em;
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.12;
+    letter-spacing: -0.005em;
     text-transform: uppercase;
     color: var(--ink);
     min-width: 0;
@@ -493,7 +726,7 @@
        line below their neighbours' in the same grid row. The price
        stays on the first baseline either way -- it is a flex sibling
        aligned to baseline, not to the box. */
-    min-height: 2.7em;
+    min-height: 2.24em;
   }
 
   .product .price {
@@ -647,13 +880,20 @@
   .shop:has(#shopGrid .product) .shop-loading { display: none; }
 
   @media (max-width: 1100px) {
-    .shop-grid { grid-template-columns: repeat(3, 1fr); }
+    /* Written to match .shop-grid[data-cols="N"]'s (0,2,0), which
+       would otherwise win here and hold four columns on a tablet. */
+    .shop-grid,
+    .shop-grid[data-cols="2"],
+    .shop-grid[data-cols="4"] { grid-template-columns: repeat(3, 1fr); }
+    /* Below this width the grid picks its own column count, so a
+       density control would be a button that does nothing. */
+    .shop-cols { display: none; }
   }
 
   @media (max-width: 760px) {
     .campaign img { height: 62vh; }
-    .campaign-plate { padding: 48px 16px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
-    .campaign-label, .campaign-link { font-size: 10px; letter-spacing: 0.12em; }
+    .campaign-plate { padding: 90px 16px 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
+    .campaign-eyebrow { font-size: 9.5px; letter-spacing: 0.18em; }
     .drop-intro { padding: 20px 16px 10px; font-size: 9.5px; letter-spacing: 0.1em; }
     .band { margin-bottom: 8vh; }
     .band-caption { padding: 0 16px; }
@@ -676,7 +916,12 @@
     /* Two across on a phone, not one. A single column turns a twelve
        piece collection into a very long scroll and reads like a feed;
        two reads like a rail. */
-    .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 22px 10px; }
+    .shop-grid,
+    .shop-grid[data-cols="2"],
+    .shop-grid[data-cols="4"] { grid-template-columns: repeat(2, 1fr); gap: 22px 10px; }
+    .shop-tools { padding: 0 16px; }
+    .shop-tools-row { padding: 8px 0 12px; gap: 4px; }
+    .shop-count { width: 100%; margin: 0 0 8px; }
     .product .name { font-size: 9.5px; letter-spacing: 0.06em; }
     .product .price { font-size: 9.5px; }
     .name-row { gap: 6px; padding-top: 7px; margin-top: 9px; }
@@ -772,8 +1017,13 @@
       <img src="images/look-02.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
     </picture>
     <div class="campaign-plate">
-      <span class="campaign-label">Fall Collection</span>
-      <a class="campaign-link" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>
+      <div class="campaign-text">
+        <!-- "Fall 2026" is the drop this repo exists for (see CLAUDE.md),
+             not a season invented to fill an eyebrow. -->
+        <span class="campaign-eyebrow">Fall 2026</span>
+        <h2 class="campaign-title">Fall Collection</h2>
+      </div>
+      <a class="campaign-link btn btn--ghost" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
 
@@ -801,6 +1051,15 @@
          JS from assets/promo-config.js and left empty when nothing is
          confirmed, so an unverified claim can never render here. -->
     <p class="shop-shipping" id="shopShipping" hidden></p>
+
+    <!-- Toolbar. Every control here acts on data the catalogue already
+         carries -- price, availability, title -- so nothing in it can
+         state something the shop does not know. It is written into the
+         page by JS rather than served as static markup, because none of
+         it does anything without JS and a dead row of buttons is worse
+         than no row. See buildToolbar(). -->
+    <div class="shop-tools" id="shopTools" hidden></div>
+
     <div class="shop-loading" id="shopLoading">Loading the shop…</div>
     <!-- scripts/build.js bakes the real catalog between these markers at
          deploy time, so the served HTML contains actual products for
@@ -1081,10 +1340,19 @@
             </button>`).join('')}
         </div>`
       : '';
+    /* The photograph and the caption are two links to the same page
+       rather than one wrapping both, because the quick view trigger has
+       to sit on the photograph and a <button> cannot legally live
+       inside an <a>. The frame is what positions it. */
     return `
       <div class="product" data-handle="${A.escapeAttr(p.handle)}">
+        <div class="product-frame">
+          <a class="product-link" href="/products/${p.handle}.html" tabindex="-1" aria-hidden="true">
+            <div class="product-img"${alt}>${media}</div>
+          </a>
+          <button type="button" class="product-peek btn btn--sm" data-peek="${A.escapeAttr(p.handle)}">Quick view</button>
+        </div>
         <a class="product-link" href="/products/${p.handle}.html">
-          <div class="product-img"${alt}>${media}</div>
           <div class="name-row">
             <span class="name">${A.escapeHtml(p.name)}</span>
             <span class="price tnum">${p.priceLabel}</span>
@@ -1250,6 +1518,10 @@
     });
   }
 
+  /* Called once on load and again on every toolbar change, always with
+     the full catalogue -- the sort and filter are applied here, so the
+     source of truth stays the catalogue and the toolbar only ever
+     describes a view of it. */
   function renderGrid(catalog) {
     document.getElementById('shopLoading').classList.add('hide');
     const grid = document.getElementById('shopGrid');
@@ -1262,13 +1534,33 @@
       return;
     }
 
+    const view = applyView(catalog);
+    renderCount(view.length, catalog.length);
+
+    // Filtering to nothing is a state the shopper caused and can undo,
+    // so it says which control to reach for rather than reading like
+    // the shop is empty.
+    if (view.length === 0) {
+      grid.innerHTML = '';
+      empty.innerHTML = 'Everything is sold out right now. '
+        + '<button type="button" class="btn btn--quiet btn--sm" id="clearFilters">Show all</button>';
+      empty.classList.add('show');
+      const clear = document.getElementById('clearFilters');
+      if (clear) clear.addEventListener('click', () => {
+        VIEW.stock = 'all'; writeView(); syncToolbar(); renderGrid(CATALOG);
+      });
+      return;
+    }
+    empty.classList.remove('show');
+    empty.textContent = '';
+
     // Whatever's already shown in "Pick Up Where You Left Off" is
     // excluded from the main grid below it — a product should never
     // appear twice on the same page. Computed here, before the main
     // grid renders, so the exclusion is real (not a guess at what the
     // rail will show).
-    const shownInRecent = renderRecentlyViewed(catalog);
-    const mainCatalog = catalog.filter(p => !shownInRecent.has(p.handle));
+    const shownInRecent = renderRecentlyViewed(view);
+    const mainCatalog = view.filter(p => !shownInRecent.has(p.handle));
 
     // The first row is the LCP candidate, so it loads eagerly; the rest
     // are lazy. Never lazy-load the largest above-the-fold image.
@@ -1343,8 +1635,312 @@
     return [...fall, ...rest];
   }
 
+  /* ---- quick view ---------------------------------------------------
+
+     A shopper on the grid who wants a second look at a piece had two
+     options: add a size blind from the chips, or leave the grid for the
+     product page and come back. This is the third -- the photographs,
+     the price, the size run and Add to Cart, over the grid, with the
+     scroll position still underneath it.
+
+     <dialog> rather than a hand-built modal: focus trapping, Escape,
+     inertness of the page behind it and the top layer all come from the
+     element. It fetches the one product it needs on open, from the same
+     query the product page uses, so nothing here is a second copy of
+     the catalogue that can drift.
+
+     It is not a replacement for the product page. Measurements, the
+     description and shipping live there, and "Full details" is always
+     the first thing after the buy controls. */
+  let peekEl = null;
+  let peekBusy = false;
+  const peekCache = new Map();
+
+  function ensurePeek() {
+    if (peekEl) return peekEl;
+    peekEl = document.createElement('dialog');
+    peekEl.className = 'peek';
+    peekEl.innerHTML = '<div class="peek-in" id="peekIn"></div>';
+    document.body.appendChild(peekEl);
+    // Clicking the backdrop closes. The dialog's own box stops the
+    // click, so this only fires on the area outside it.
+    peekEl.addEventListener('click', (e) => { if (e.target === peekEl) peekEl.close(); });
+    peekEl.addEventListener('close', () => { document.documentElement.style.overflow = ''; });
+    return peekEl;
+  }
+
+  async function fetchOne(handle) {
+    if (peekCache.has(handle)) return peekCache.get(handle);
+    const data = await A.shopifyFetch(`
+      query($handle: String!) {
+        product(handle: $handle) {
+          title handle
+          images(first: 6) { edges { node { ${A.IMAGE_FIELDS} } } }
+          options { name values }
+          variants(first: 40) { edges { node {
+            id title availableForSale price { amount } selectedOptions { name value }
+          } } }
+        }
+      }`, { handle });
+    peekCache.set(handle, data.product);
+    return data.product;
+  }
+
+  async function openPeek(handle) {
+    if (peekBusy) return;
+    peekBusy = true;
+    const dlg = ensurePeek();
+    const box = document.getElementById('peekIn');
+    box.innerHTML = '<p class="peek-wait">Loading\u2026</p>';
+    document.documentElement.style.overflow = 'hidden';
+    dlg.showModal();
+    try {
+      renderPeek(await fetchOne(handle), handle);
+    } catch (err) {
+      console.error('Quick view failed:', err);
+      box.innerHTML = '<p class="peek-wait">Couldn\'t load this piece. '
+        + `<a href="/products/${encodeURIComponent(handle)}.html">Open the full page</a>.</p>`;
+    } finally {
+      peekBusy = false;
+    }
+  }
+
+  function renderPeek(product, handle) {
+    const box = document.getElementById('peekIn');
+    if (!product) {
+      box.innerHTML = '<p class="peek-wait">That piece isn\'t in the catalog.</p>';
+      return;
+    }
+    const images = product.images.edges.map(e => e.node);
+    const variants = product.variants.edges.map(e => e.node);
+    const sizeOnly = product.options.length === 1 && product.options[0].name === 'Size';
+    const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => isFinite(n));
+    const lo = Math.min(...prices), hi = Math.max(...prices);
+    const priceLabel = lo === hi ? `$${lo.toFixed(2)}` : `From $${lo.toFixed(2)}`;
+    const allOut = variants.length > 0 && variants.every(v => !v.availableForSale);
+
+    box.innerHTML = `
+      <button type="button" class="peek-close btn btn--quiet btn--sm" id="peekClose" aria-label="Close quick view">Close</button>
+      <div class="peek-media">
+        ${images.length
+          ? images.slice(0, 4).map((im, i) => `<figure class="peek-shot">${A.imgTag(im, {
+              alt: im.altText || product.title, eager: i === 0, sizes: '(max-width: 760px) 86vw, 420px',
+            })}</figure>`).join('')
+          : '<div class="peek-ph"></div>'}
+      </div>
+      <div class="peek-buy">
+        <h2 class="peek-name">${A.escapeHtml(product.title)}</h2>
+        <div class="peek-price tnum">${priceLabel}</div>
+        ${sizeOnly && !allOut ? `
+          <div class="peek-label">Size</div>
+          <div class="peek-sizes" id="peekSizes">
+            ${variants.map(v => {
+              const size = (v.selectedOptions.find(o => o.name === 'Size') || {}).value || v.title;
+              return `<button type="button" class="qa-size${v.availableForSale ? '' : ' unavailable'}"
+                        data-variant-id="${A.escapeAttr(v.id)}" data-size="${A.escapeAttr(size)}"
+                        ${v.availableForSale ? '' : 'disabled'}
+                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out`}"
+                        aria-pressed="false">${A.escapeHtml(size)}</button>`;
+            }).join('')}
+          </div>` : ''}
+        <button type="button" class="btn btn--primary btn--lg btn--block" id="peekAdd"
+                ${allOut ? 'disabled' : ''}>${allOut ? 'Sold Out' : 'Add to Cart'}</button>
+        <p class="peek-msg" id="peekMsg" role="status" aria-live="polite"></p>
+        <!-- The same two lines the product page states, read from the
+             same helper so the shipping sentence cannot say one thing
+             here and another there. Measurements and the description
+             are not duplicated -- those are what "Full details" is
+             for. -->
+        <ul class="peek-trust">
+          <li>${A.escapeHtml(A.shippingLine())}</li>
+          <li>14-day returns on unworn, unwashed items with tags.</li>
+        </ul>
+        <a class="peek-full btn btn--ghost btn--block" href="/products/${encodeURIComponent(handle)}.html">Full details</a>
+      </div>`;
+
+    document.getElementById('peekClose').addEventListener('click', () => peekEl.close());
+
+    // One selected size at a time, and the button only becomes live
+    // once there is a variant to add. Same rule as the product page.
+    let picked = sizeOnly ? null : (variants.find(v => v.availableForSale) || null);
+    const addBtn = document.getElementById('peekAdd');
+    const msg = document.getElementById('peekMsg');
+    const sizes = document.getElementById('peekSizes');
+    if (sizes) {
+      addBtn.disabled = true;
+      sizes.addEventListener('click', (e) => {
+        const b = e.target.closest('button.qa-size');
+        if (!b || b.disabled) return;
+        picked = variants.find(v => v.id === b.dataset.variantId) || null;
+        sizes.querySelectorAll('.qa-size').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        addBtn.disabled = !picked;
+        msg.textContent = '';
+        A.recordSizeChoice(b.dataset.size);
+      });
+    }
+
+    addBtn.addEventListener('click', async () => {
+      if (!picked || addBtn.disabled) return;
+      addBtn.disabled = true;
+      const was = addBtn.textContent;
+      addBtn.textContent = 'Adding\u2026';
+      try {
+        await A.addToShopifyCart(picked.id, 1);
+        addBtn.textContent = 'Added';
+        msg.textContent = 'In your cart.';
+        // Close and hand over to the drawer, which is where the rest of
+        // the cart already lives -- two cart surfaces at once is one too
+        // many.
+        setTimeout(() => { peekEl.close(); A.openCartDrawer(); }, 450);
+      } catch (err) {
+        console.error('Quick view add failed:', err);
+        addBtn.textContent = was;
+        addBtn.disabled = false;
+        msg.textContent = "That didn't go through. Try again in a moment.";
+      }
+    });
+  }
+
+  // Delegated on the document, so it covers both grids and survives
+  // every re-render the toolbar causes.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-peek]');
+    if (!b) return;
+    e.preventDefault();
+    openPeek(b.dataset.peek);
+  });
+
+  /* ---- toolbar ------------------------------------------------------
+
+     Three controls, all acting on what the catalogue already knows:
+
+       Sort        the order of the grid. "Featured" is the real
+                   merchandising order (sortForMerchandising) and stays
+                   the default -- the Fall pieces first -- so the shop
+                   still opens the way the founder arranged it.
+       In stock    hides pieces where every variant is sold out. Not a
+                   stock count and not a claim about quantity: a
+                   product is in the list or it is not.
+       Density     two across or four. A phone is always two, so the
+                   control only exists where it changes something.
+
+     State lives in the URL (?sort=&stock=&cols=) so a filtered grid
+     can be sent to someone and arrive filtered, and so the back button
+     works. Nothing is persisted beyond that. */
+  let CATALOG = [];
+  const VIEW = { sort: 'featured', stock: 'all', cols: 4 };
+
+  const SORTS = [
+    ['featured', 'Featured'],
+    ['price-asc', 'Price \u2191'],
+    ['price-desc', 'Price \u2193'],
+    ['az', 'A\u2013Z'],
+  ];
+
+  function readView() {
+    const q = new URLSearchParams(location.search);
+    if (SORTS.some(([k]) => k === q.get('sort'))) VIEW.sort = q.get('sort');
+    if (q.get('stock') === 'in') VIEW.stock = 'in';
+    if (q.get('cols') === '2' || q.get('cols') === '4') VIEW.cols = +q.get('cols');
+  }
+
+  function writeView() {
+    const q = new URLSearchParams(location.search);
+    const set = (k, v, dflt) => v === dflt ? q.delete(k) : q.set(k, v);
+    set('sort', VIEW.sort, 'featured');
+    set('stock', VIEW.stock, 'all');
+    set('cols', String(VIEW.cols), '4');
+    const qs = q.toString();
+    // replaceState, not pushState: changing a sort should not fill the
+    // back button with steps a shopper has to press through to leave.
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+  }
+
+  // The lowest price a product can actually be bought at, which is what
+  // the tile shows, so sorting by price agrees with what is on screen.
+  const lowestPrice = p => {
+    const n = parseFloat(String(p.priceLabel).replace(/[^0-9.]/g, ''));
+    return isFinite(n) ? n : Infinity;
+  };
+
+  function applyView(catalog) {
+    let out = catalog.slice();
+    if (VIEW.stock === 'in') out = out.filter(p => !p.soldOut);
+    if (VIEW.sort === 'price-asc') out.sort((a, b) => lowestPrice(a) - lowestPrice(b));
+    else if (VIEW.sort === 'price-desc') out.sort((a, b) => lowestPrice(b) - lowestPrice(a));
+    else if (VIEW.sort === 'az') out.sort((a, b) => a.name.localeCompare(b.name));
+    return out;
+  }
+
+  function buildToolbar() {
+    const el = document.getElementById('shopTools');
+    const soldOutCount = CATALOG.filter(p => p.soldOut).length;
+    el.innerHTML = `
+      <div class="shop-tools-row">
+        <div class="shop-count" id="shopCount"></div>
+        <div class="shop-tools-group" role="group" aria-label="Sort">
+          ${SORTS.map(([k, label]) => `
+            <button type="button" class="btn btn--quiet btn--sm" data-sort="${k}"
+                    aria-pressed="${VIEW.sort === k}">${label}</button>`).join('')}
+        </div>
+        ${soldOutCount ? `
+          <button type="button" class="btn btn--quiet btn--sm" id="stockToggle"
+                  aria-pressed="${VIEW.stock === 'in'}">In stock only</button>` : ''}
+        <div class="shop-tools-group shop-cols" role="group" aria-label="Grid size">
+          <button type="button" class="btn btn--quiet btn--sm" data-cols="2"
+                  aria-pressed="${VIEW.cols === 2}" aria-label="Two across">
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="currentColor">
+              <rect x="0" y="2" width="7" height="12"/><rect x="9" y="2" width="7" height="12"/></svg>
+          </button>
+          <button type="button" class="btn btn--quiet btn--sm" data-cols="4"
+                  aria-pressed="${VIEW.cols === 4}" aria-label="Four across">
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="currentColor">
+              <rect x="0" y="2" width="3" height="12"/><rect x="4.3" y="2" width="3" height="12"/>
+              <rect x="8.6" y="2" width="3" height="12"/><rect x="13" y="2" width="3" height="12"/></svg>
+          </button>
+        </div>
+      </div>`;
+    el.hidden = false;
+
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.sort) VIEW.sort = b.dataset.sort;
+      else if (b.dataset.cols) VIEW.cols = +b.dataset.cols;
+      else if (b.id === 'stockToggle') VIEW.stock = VIEW.stock === 'in' ? 'all' : 'in';
+      else return;
+      writeView();
+      syncToolbar();
+      renderGrid(CATALOG);
+    });
+  }
+
+  function syncToolbar() {
+    const el = document.getElementById('shopTools');
+    el.querySelectorAll('[data-sort]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.sort === VIEW.sort)));
+    el.querySelectorAll('[data-cols]').forEach(b =>
+      b.setAttribute('aria-pressed', String(+b.dataset.cols === VIEW.cols)));
+    const st = document.getElementById('stockToggle');
+    if (st) st.setAttribute('aria-pressed', String(VIEW.stock === 'in'));
+    document.getElementById('shopGrid').dataset.cols = VIEW.cols;
+  }
+
+  // Plain count, no adjectives. "11 pieces" is a fact; "only 11 left"
+  // would be a stock claim the catalogue cannot support.
+  function renderCount(shown, total) {
+    const el = document.getElementById('shopCount');
+    if (!el) return;
+    el.textContent = shown === total
+      ? `${total} ${total === 1 ? 'piece' : 'pieces'}`
+      : `${shown} of ${total}`;
+  }
+
+  readView();
+
   fetchCatalog()
     .then(sortForMerchandising)
+    .then((catalog) => { CATALOG = catalog; buildToolbar(); syncToolbar(); return catalog; })
     .then(renderGrid)
     .catch((err) => {
       // fail open and honest, no fake stock left standing. Logged

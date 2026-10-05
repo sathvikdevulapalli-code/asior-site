@@ -28,7 +28,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <!-- Still needed for FALL_PRODUCTS (customer-facing name overrides).
@@ -88,6 +88,13 @@
        rather than shrinks (object-fit: cover below), so the frame
        stays full width. */
     max-height: 86vh;
+    /* Width-driven, so the cap crops the frame instead of shrinking it.
+       aspect-ratio with only a max-height lets the box shrink both
+       dimensions to keep the ratio, which pulled the photograph in to
+       550px inside an 830px column and left a third of the gallery
+       empty. The image inside is object-fit: cover, so the height cap
+       takes it off the bottom of the frame and nothing is letterboxed. */
+    width: 100%;
     overflow: hidden;
     background: #141210;
     cursor: zoom-in;
@@ -229,12 +236,17 @@
   /* A garment name is a label, not a headline. Down from 2.2rem/700
      with the tracking pulled in, so it reads as a caption on the
      photograph rather than as a page title above a product. */
+  /* The garment's name is the first thing the panel has to answer, so
+     it is set like a name and not like a field label: Archivo pushed
+     out on its width axis, heavy, tight, and large enough that it is
+     read before the price under it. */
   .pd-name {
     font-family: var(--font-display);
-    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-variation-settings: var(--display-wide);
+    font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+    font-weight: 800;
+    line-height: 0.96;
+    letter-spacing: -0.025em;
     text-transform: uppercase;
   }
 
@@ -395,12 +407,16 @@
   .pd-buynow:hover:not([disabled]) { border-color: var(--ink); }
   .pd-buynow[disabled] { opacity: 0.4; cursor: default; }
 
+  /* The accent, not off-white. This was --ink on --bg: the same two
+     values as the body text, the footer links and the teaser bar, so
+     the one control that buys the garment was styled identically to
+     everything that does not. Colour is what makes it findable. */
   .pd-add {
     position: relative;
     display: block;
     width: 100%;
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--accent);
+    color: var(--on-accent);
     border: 0;
     border-radius: 0;
     font-family: var(--font-mono);
