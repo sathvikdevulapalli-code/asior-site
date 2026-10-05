@@ -274,26 +274,45 @@ header nav a::after {
 
 header nav a:hover::after { width: 100%; }
 
-header nav a.cart-link { display: inline-flex; align-items: center; position: relative; }
+header nav a.cart-link { display: inline-flex; align-items: baseline; gap: 4px; position: relative; color: var(--ink); }
 
 /* Live cart count, populated by site.js from the real Shopify cart.
-   Hidden entirely at zero rather than showing a "0" badge. */
+   It used to be an inverted pill badge next to a bag glyph, hidden
+   entirely at zero -- so an empty cart looked like a broken one. It is
+   now part of the words "Cart (0)" and always rendered. */
 .cart-count {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: inherit;
+  letter-spacing: inherit;
   line-height: 1;
-  margin-left: 5px;
-  padding: 2px 4px;
-  border-radius: 2px;
-  background: var(--ink);
-  color: var(--bg);
-  font-weight: 500;
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.cart-count.show { opacity: 1; transform: scale(1); }
+/* Non-zero reads in full ink so a loaded cart is visible at a glance. */
+.cart-count.show { color: var(--ink); }
+
+/* ---------- menu toggle + mobile panel ----------
+   All three are phone-only and hidden here: at desktop widths the four
+   nav links sit inline and carry the cart with them, so a hamburger
+   over a 1280px viewport would hide navigation for no reason. The
+   mobile rules are in the max-width: 640px block below. */
+.cart-link--bar,
+.nav-toggle,
+.nav-close {
+  display: none;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  font: inherit;
+  font-family: var(--font-mono);
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 32px;
+}
 
 /* Matches the real chrome: 34px teaser + 45px header. Was 144px,
    which pushed the first garment most of a phone screen down. */
@@ -429,15 +448,86 @@ footer .policy-links a:hover { color: var(--ink); }
 @media (max-width: 640px) {
   header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
   header .mark { font-size: 12px; }
-  header nav {
-    gap: 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    min-width: 0;
-    max-width: calc(100vw - 130px);
+
+  /* The scrolling link strip is replaced by a panel. Full viewport,
+     one link per line at a real tap size, in source order -- nothing
+     clipped off the right edge any more. */
+  .nav-toggle { display: inline-block; }
+
+  /* mark | cart | menu, with the wordmark holding the left edge. */
+  header { justify-content: flex-start; gap: 16px; }
+  header .mark { margin-right: auto; }
+
+  a.cart-link--bar {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--ink);
+    /* Matches .nav-toggle's box exactly, so CART and MENU sit on the
+       same line in the bar instead of one riding 6px high. */
+    min-height: 32px;
+    padding: 6px 0;
   }
-  header nav::-webkit-scrollbar { display: none; }
+
+  a.cart-link--bar::after { display: none; }
+
+  header nav {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    padding: 0 22px;
+    background: var(--bg);
+    font-family: var(--font-display);
+    font-size: clamp(26px, 8vw, 38px);
+    letter-spacing: -0.02em;
+    text-transform: none;
+    z-index: 60;
+    /* Not display:none, so the real links stay in the served HTML for
+       crawlers and the panel can transition. */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 220ms var(--ease-out), visibility 220ms var(--ease-out);
+  }
+
+  body.nav-open header nav { visibility: visible; opacity: 1; }
+
+  header nav a {
+    color: var(--ink);
+    padding: 11px 0;
+    width: 100%;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* The animated underline is a desktop hover affordance; on a panel
+     this size it just draws a line under a line. */
+  header nav a::after { display: none; }
+
+  header nav a.cart-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding-top: 22px;
+    border-bottom: 0;
+  }
+
+  .nav-close {
+    display: inline-block;
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    min-height: 44px;
+    min-width: 44px;
+    text-align: right;
+  }
+
   .page-top-space { height: 118px; }
 }
 
@@ -664,11 +754,43 @@ html.cart-drawer-locked { overflow: hidden; }
 }
 
 .cart-drawer-line-variant,
+/* Was the read-only text "Qty 1". A shopper who wanted two had to
+   leave the drawer, go back to the product page and add it again. */
 .cart-drawer-line-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 7px;
+  border: 1px solid var(--field-line);
+}
+
+.cart-drawer-line-qty.busy { opacity: 0.45; pointer-events: none; }
+
+.cart-drawer-qty-down,
+.cart-drawer-qty-up {
+  appearance: none;
+  background: none;
+  border: 0;
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cart-drawer-qty-down:hover,
+.cart-drawer-qty-up:hover { background: var(--field-line); }
+
+.cart-drawer-qty-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  min-width: 16px;
+  text-align: center;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .cart-drawer-line-price {

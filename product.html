@@ -50,108 +50,146 @@
   /* ---------- product detail ----------
      Named grid areas, not source order, decide what a shopper sees
      first — because those two need to disagree. Desktop keeps the
-     gallery on the left spanning both rows, name/price/facts (.pd-head)
-     and the buy box (.pd-info) stacked on the right, same visual result
+     gallery on the left and the buy panel on the right, same result
      the old plain 2-column grid gave. On mobile (see the max-width:720px
      query below) the SAME three blocks collapse into a single column in
      head -> media -> info order instead of source order (which was
      media -> info) — so price and the Add to Cart button land inside
      the first mobile screen instead of below a full-bleed 3:4 image
      that alone is taller than most phones' viewport. */
-  /* The photograph is the product. It was sharing the page 50/50 with
-     a purchase panel that does not need half a screen; it now takes
-     nearly three fifths, and the panel tightens around it. */
+  /* Photography scrolls; the purchase panel does not.
+
+     Two columns, no grid-areas. The left column is every real shot the
+     product has, stacked. The right column sticks, so the name, price,
+     size run and Add to Cart stay on screen however far down the
+     photography a shopper goes. That is the whole answer to "where do
+     I buy this". */
   .pd {
-    max-width: 1180px;
+    max-width: 1340px;
     margin: 0 auto;
-    padding: 0 40px 14vh;
+    padding: 0 32px 12vh;
     display: grid;
-    grid-template-columns: 1.45fr 1fr;
-    grid-template-areas: "media head" "media info";
-    gap: 6px 54px;
+    grid-template-columns: minmax(0, 1.75fr) minmax(330px, 0.85fr);
+    gap: 40px;
     align-items: start;
-    animation: pageFadeIn 500ms var(--ease-out);
+    animation: pageFadeIn 400ms var(--ease-out);
   }
 
-  .pd-head { grid-area: head; }
-  .pd-media { grid-area: media; }
-  .pd-info { grid-area: info; }
+  .pd-gallery { display: grid; gap: 6px; }
 
-  .pd-media {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  /* Capped against the viewport, not just the column. At 1.45fr the
-     3:4 frame computed taller than the window and pushed the thumbnail
-     strip off the bottom of the screen, so the gallery looked like a
-     single image. The cap keeps the photograph dominant and the rest
-     of the set in view. */
-  .pd-media-main {
-    aspect-ratio: 3 / 4;
-    max-height: 74vh;
+  .pd-shot {
+    margin: 0;
+    aspect-ratio: 2 / 3;
+    /* Capped against the window, not just the column. The gallery
+       column is about 830px wide at 1440px, so an uncapped 2:3 frame
+       computes 1248px tall and the first photograph alone is taller
+       than the screen -- you cannot see the whole garment at once, and
+       the rest of the set is two scroll-lengths away. The cap crops
+       rather than shrinks (object-fit: cover below), so the frame
+       stays full width. */
+    max-height: 86vh;
     overflow: hidden;
-    border-radius: 0;
     background: #141210;
+    cursor: zoom-in;
   }
 
-  .pd-media-main img {
-    /* Anchor to the top of the frame. These boxes are 3:4 and the
-       source photos are wider than that, so centring the crop took
-       equal slices off the top and bottom and cut subjects' heads off.
-       Garments hang downward from the shoulders, so the top of a
-       product shot is the part that has to survive. */
+  .pd-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     object-position: center top;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.8s var(--ease-img);
+    display: block;
   }
 
-  /* Hover gated behind a real pointer: on touch, :hover latches after a
-     tap and leaves the image stuck mid-zoom. */
-  @media (hover: hover) and (pointer: fine) {
-    .pd-media-main:hover img { transform: scale(1.035); }
+  .pd-panel { position: sticky; top: 104px; }
+
+  /* The panel can outgrow the viewport once the accordions open, so it
+     scrolls inside itself rather than sticking something off-screen. */
+  .pd-panel-in {
+    max-height: calc(100vh - 128px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-right: 2px;
   }
 
-  .pd-media-thumbs {
+  /* Quantity sits beside the button, not on a row above it. It used to
+     add a whole step between choosing a size and buying. */
+  .pd-qtyrow {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
   }
 
-  .pd-thumb {
-    width: 64px;
-    aspect-ratio: 3 / 4;
-    padding: 0;
-    border: 1px solid var(--field-line);
-    background: none;
+  .pd-qty-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-trustlines {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 7px;
+  }
+
+  .pd-trustlines li {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  /* Detail lives here, below the buying controls, closed by default.
+     Nothing was deleted -- description, measurements, shipping and
+     returns are all still on the page, just no longer in front of the
+     button. */
+  .pd-acc { margin-top: 22px; border-top: 1px solid var(--line); }
+
+  .pd-row { border-bottom: 1px solid var(--line); }
+
+  .pd-row > summary {
+    list-style: none;
     cursor: pointer;
-    overflow: hidden;
-    border-radius: 0;
-    opacity: 0.5;
-    transition: opacity 200ms var(--ease-out), border-color 200ms var(--ease-out), transform 160ms var(--ease-out);
+    padding: 15px 0;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .pd-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .pd-row > summary::-webkit-details-marker { display: none; }
+  .pd-row > summary::after { content: '+'; color: var(--muted); font-size: 14px; }
+  .pd-row[open] > summary::after { content: '\2013'; }
+
+  .pd-row-body {
+    padding: 0 0 16px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--muted);
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .pd-thumb:hover { opacity: 0.85; }
+  .pd-row-body p + p { margin-top: 9px; }
+
+  /* Everything that is not part of buying. */
+  .pd-below {
+    max-width: 1340px;
+    margin: 0 auto;
+    padding: 0 32px 14vh;
   }
 
-  .pd-thumb:active { transform: scale(0.96); }
-
-  .pd-thumb.selected {
-    opacity: 1;
-    border-color: var(--ink);
-  }
-
-  .pd-media .ph {
+  .pd-gallery .ph {
+    aspect-ratio: 2 / 3;
     width: 100%;
     height: 100%;
     display: flex;
@@ -160,14 +198,12 @@
     background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
   }
 
-  .pd-media .ph span {
+  .pd-gallery .ph span {
     font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--muted);
   }
-
-  .pd-info { padding-top: 8px; }
 
   /* Preorder is a materially different purchase (you're charged now,
      it ships later), so it gets a solid fill rather than the muted
@@ -202,9 +238,9 @@
     text-transform: uppercase;
   }
 
-  /* Bumped from 14px/var(--muted) — the price is now a lead element in
-     .pd-head (see the grid-areas comment on .pd), so it needs to read
-     at a glance, not at the same weight as secondary metadata. */
+  /* Bumped from 14px/var(--muted) — the price is a lead element in the
+     buy panel now, so it needs to read at a glance rather than at the
+     same weight as secondary metadata. */
   .pd-price {
     font-family: var(--font-mono);
     margin-top: 9px;
@@ -342,7 +378,7 @@
   .pd-buynow {
     display: block;
     width: 100%;
-    margin-top: 10px;
+    margin-top: 8px;
     background: transparent;
     color: var(--ink);
     border: 1px solid var(--field-line);
@@ -361,18 +397,31 @@
 
   .pd-add {
     position: relative;
+    display: block;
+    width: 100%;
     background: var(--ink);
     color: var(--bg);
     border: 0;
     border-radius: 0;
     font-family: var(--font-mono);
     font-weight: 500;
-    font-size: 11px;
-    letter-spacing: 0.16em;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    padding: 16px 28px;
+    padding: 19px 20px;
+    min-height: 54px;
     cursor: pointer;
     transition: opacity 160ms var(--ease-out);
+  }
+
+  /* Disabled still reads as the buy button, just not yet usable. It
+     must not look like a different, dead control. */
+  .pd-add[disabled] {
+    opacity: 1;
+    background: #58524733;
+    color: #8b8475;
+    box-shadow: inset 0 0 0 1px #585247;
+    cursor: default;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -381,12 +430,6 @@
 
   .pd-add:not([disabled]):active { transform: scale(0.97); }
 
-  .pd-add[disabled] {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .pd-add[disabled]:hover { opacity: 0.4; }
 
   /* Mobile sticky buy bar. A long PDP (gallery, then price, then
      variants, then description) scrolls the real Add-to-Cart button
@@ -397,13 +440,24 @@
      yet needs to be able to finish the purchase from here, not be
      bounced back to the top of the page to do it. Desktop keeps the
      real buy box in easy reach already, so this never shows there. */
+  /* Two rows, not one.
+
+     This was a single flex row -- name/price, size chips and the
+     button, with flex-shrink:0 on both the chips and the button. At
+     390px the three together measured wider than the viewport and the
+     button was pushed clean off the right edge (measured left 154,
+     right 512 on a 390px screen), so the sticky bar's whole reason for
+     existing was unreachable. The button now owns its own full-width
+     row, which is also what the primary action is supposed to look
+     like everywhere else on this page. */
   .pd-sticky {
     display: none;
     position: fixed;
     left: 0; right: 0; bottom: 0;
     z-index: 40;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
     padding: 10px 16px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     background: var(--bg);
@@ -417,6 +471,15 @@
 
   @media (max-width: 900px) {
     .pd-sticky { display: flex; }
+  }
+
+  /* Row one: what it is and what it costs, beside the size chips. */
+  .pd-sticky-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
   }
 
   .pd-sticky-info { min-width: 0; flex-shrink: 1; }
@@ -447,7 +510,8 @@
   }
 
   .pd-sticky .pd-add {
-    flex-shrink: 0;
+    width: 100%;
+    min-height: 48px;
     padding: 11px 20px;
     font-size: 11px;
   }
@@ -562,9 +626,9 @@
   .pd-note + .pd-note { margin-top: 8px; }
 
   /* Restated where the decision actually happens (right under the
-     price, above everything else in .pd-head), not just in the
-     sitewide banner — same instant, read from the same source
-     the same source, so the two can never disagree. */
+     price, at the top of the buy panel), not just in the sitewide
+     banner — same instant, read from the same source, so the two can
+     never disagree. */
   /* Sign-up value prop. Carries the real welcome discount (5%, the
      Shopify SIGNUP pool) and no other number, and no price on this
      page is ever struck through for it. It used to sit under a
@@ -753,30 +817,56 @@
     display: block;
   }
 
-  @media (max-width: 720px) {
-    /* head -> media -> info: see the comment on .pd above. Same three
-       blocks as desktop, reordered so price and the buy box don't sit
-       below a full-width image taller than the viewport. */
+  @media (max-width: 900px) {
+    /* One column, source order: gallery, then the panel. Nothing is
+       repositioned by grid-areas any more -- the markup is already in
+       the order a phone wants, which is image, then name and price,
+       then size, then the button.
+
+       The first shot is capped so the photograph leads without burying
+       the price, and the rest of the gallery moves below the panel so
+       the buying controls are not stranded behind four full-height
+       images. */
     .pd {
       grid-template-columns: 1fr;
-      /* Image first on a phone, which is the order the brief asks for
-         and the order a lookbook uses. The previous head-first order
-         existed because an uncapped 3:4 image was taller than the
-         viewport and buried the price; .pd-media-main is now capped
-         against vh, so the photograph leads and the name, price and
-         buy box still land inside the first screen. */
-      grid-template-areas: "media" "head" "info";
-      gap: 16px;
+      gap: 14px;
+      padding: 0 16px 10vh;
     }
-    .pd-media-main { max-height: 56vh; }
-    .pd-head { margin-bottom: 0; }
+
+    .pd-gallery {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      margin: 0 -16px;
+      padding: 0 16px;
+    }
+
+    .pd-gallery::-webkit-scrollbar { display: none; }
+
+    /* A swipeable row rather than a vertical stack: four 2:3 frames
+       stacked on a phone is four screens of scrolling before the
+       price. */
+    .pd-shot {
+      flex: 0 0 86%;
+      scroll-snap-align: start;
+      aspect-ratio: 3 / 4;
+    }
+
+    .pd-panel { position: static; }
+    .pd-panel-in { max-height: none; overflow: visible; }
   }
 
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .pd { padding: 0 20px 10vh; }
   }
 
@@ -812,35 +902,11 @@
     line-height: 1.5;
   }
 
-  /* ---------- image zoom ---------- */
-  .pd-media-main { position: relative; cursor: zoom-in; }
-
-  .pd-zoom-hint {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 9px;
-    border-radius: 0;
-    background: rgba(11, 10, 8, 0.66);
-    backdrop-filter: blur(6px);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    opacity: 0;
-    transition: opacity 200ms var(--ease-out);
-    pointer-events: none;
-  }
-
-  /* Touch devices fire :hover on tap, so the hint would stick after a
-     tap. Only offer it where there's a real pointer. */
-  @media (hover: hover) and (pointer: fine) {
-    .pd-media-main:hover .pd-zoom-hint { opacity: 1; }
-  }
+  /* ---------- image zoom ----------
+     Every frame in the gallery opens the lightbox (wireGallery), so the
+     cursor is the affordance. The old "Click to zoom" chip hung off
+     a hover state on an element that no longer exists. */
+  .pd-shot { cursor: zoom-in; }
 
   .pd-lightbox {
     border: none;
@@ -1042,12 +1108,21 @@
   <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
-    <nav>
+    <!-- Phone-only duplicate. The cart lives inside <nav> for the
+         desktop row, and <nav> becomes the hidden full-screen panel on
+         a phone -- which would leave the top bar with no cart at all.
+         renderCartCount() writes to every .cart-count and
+         wireCartLinks() binds every a.cart-link, so the copy needs no
+         special handling. -->
+    <a href="cart.html" class="cart-link cart-link--bar">Cart <span class="cart-count">(0)</span></a>
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
+    <nav id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
+      <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
 
@@ -1347,7 +1422,7 @@
     const label = tables ? 'Size Guide' : 'How to Measure';
 
     return `
-      <details class="pd-ship pd-size-chart">
+      <details class="pd-row pd-ship pd-size-chart">
         <summary>${label}</summary>
         <div class="pd-ship-body">${body}</div>
       </details>`;
@@ -1413,41 +1488,47 @@
     const selection = hasOptions ? {} : { ...product.variants[0].options };
 
     // ---- media ----
-    const mainImg = product.images.length
-      ? A.imgTag(product.images[0], {
-          id: 'pdMainImg', eager: true, alt: product.images[0].altText || product.name,
-          sizes: '(max-width: 720px) 100vw, 480px',
-        })
+    // Every real image the product has, at full size, stacked. The
+    // thumbnail strip is gone: it hid the rest of the photography
+    // behind 64px squares, and photography is what sells the garment.
+    // Nothing is duplicated to fill space -- a product with one image
+    // renders one frame.
+    const galleryHTML = product.images.length
+      ? product.images.map((im, i) => `
+          <figure class="pd-shot" data-index="${i}">
+            ${A.imgTag(im, {
+              id: i === 0 ? 'pdMainImg' : '',
+              eager: i === 0,
+              alt: im.altText || product.name + (i ? ' view ' + (i + 1) : ''),
+              sizes: '(max-width: 900px) 100vw, 60vw',
+            })}
+          </figure>`).join('')
       : `<div class="ph"><span>No image available</span></div>`;
 
-    const thumbs = product.images.length > 1
-      ? `<div class="pd-media-thumbs" id="pdThumbs">${product.images.map((img, i) => `
-          <button type="button" class="pd-thumb${i === 0 ? ' selected' : ''}" data-index="${i}"
-                  aria-pressed="${i === 0}" aria-label="View image ${i + 1} of ${product.images.length}">
-            ${A.imgTag(img, { alt: img.altText || product.name + ' view ' + (i + 1), sizes: '64px' })}
-          </button>`).join('')}</div>`
-      : '';
-
-    const zoomHint = product.images.length
-      ? `<div class="pd-zoom-hint" aria-hidden="true">Click to zoom</div>` : '';
 
     // ---- copy blocks ----
     const shipHTML = `
-      <details class="pd-ship">
+      <details class="pd-row pd-ship">
         <summary>Shipping &amp; Returns</summary>
-        <div class="pd-ship-body">
+        <div class="pd-row-body pd-ship-body">
           <p>Ships within 1-2 business days via USPS. Delivery typically takes 2-5 business days after that. Shipping within the US only for now.</p>
           <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
         </div>
       </details>`;
 
+    // Closed by default and in the same accordion rhythm as the rest.
+    // The copy is Shopify's own and is kept verbatim -- it is factual
+    // (cut, length, fabric), it is simply no longer in front of the
+    // button.
     const descHTML = product.description
-      ? `<div class="pd-desc">
-          <div class="pd-desc-label">Description</div>
+      ? `<details class="pd-row">
+          <summary>Description</summary>
+          <div class="pd-row-body">
           ${product.description.length && product.description[0].length < 60 && product.description.length > 2
             ? `<ul>${product.description.map(l => `<li>${A.escapeHtml(l)}</li>`).join('')}</ul>`
             : product.description.map(p => `<p>${A.escapeHtml(p)}</p>`).join('')}
-        </div>${shipHTML}`
+          </div>
+        </details>${shipHTML}`
       : shipHTML;
 
     // Renders nothing until assets/reviews.js has a real entry for this
@@ -1490,22 +1571,49 @@
       ? `You'll be charged now. This drop is expected to ship ${A.escapeHtml(details.shipBy)}.`
       : "You'll be charged now and it ships as soon as this drop is ready. Ships in 1-2 business days via USPS after that.";
 
+    /* The panel answers four questions in order, and nothing is
+       allowed between them: what is it, what does it cost, what size,
+       how do I buy it.
+
+       What used to sit in that space and has been moved out:
+         - the quantity stepper, now inline beside the button instead of
+           a row above it;
+         - the HOW TO MEASURE disclosure, now an accordion below;
+         - the shipping and returns paragraphs, now two short lines
+           under the button with the detail in an accordion;
+         - the product description, now an accordion;
+         - the whole SMS signup block with its six lines of consent
+           copy, which sat between the buy controls and the shipping
+           information. It is still on the page, below the fold, where
+           it can be read by someone who is not mid-purchase. */
     root.innerHTML = `
       <div class="pd">
-        <div class="pd-head">
-          ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
-          <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
-          <div class="pd-price tnum" id="pdPrice"></div>
-          <p class="pd-signup-prop" id="pdSignupProp"></p>
-          ${factsHTML}
-        </div>
-        <div class="pd-media">
-          <div class="pd-media-main">${mainImg}${zoomHint}</div>
-          ${thumbs}
-        </div>
-        <div class="pd-info">
-          <div class="pd-buy" id="pdBuy">
+        <div class="pd-gallery">${galleryHTML}</div>
+
+        <aside class="pd-panel">
+          <div class="pd-panel-in">
+            ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
+            <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
+            <div class="pd-price tnum" id="pdPrice"></div>
+            ${factsHTML}
+
             ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
+
+            <div class="pd-actions">
+              <div class="pd-qtyrow">
+                <span class="pd-qty-label">Qty</span>
+                <div class="pd-qty">
+                  <button type="button" id="qtyDown" aria-label="Decrease quantity">-</button>
+                  <span id="qtyVal" aria-live="polite">1</span>
+                  <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
+                </div>
+              </div>
+              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
+              <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
+              <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
+            </div>
+            <p class="pd-stock-note" id="pdStockNote"></p>
+
             <div class="pd-bis" id="pdBis">
               <div class="pd-bis-label" id="pdBisLabel">Email me when this is back</div>
               <div class="pd-bis-row">
@@ -1516,42 +1624,35 @@
               </div>
               <p class="pd-bis-msg" id="pdBisMsg" role="status" aria-live="polite"></p>
             </div>
-            ${sizeGuideHTML(product)}
-            <div class="pd-qty">
-              <button type="button" id="qtyDown" aria-label="Decrease quantity">-</button>
-              <span id="qtyVal" aria-live="polite">1</span>
-              <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
+
+            <ul class="pd-trustlines">
+              ${product.isPreorder
+                ? `<li id="pdNote">${A.escapeHtml(preorderNote)}</li>
+                   <li>14-day returns on unworn, unwashed items with tags.</li>`
+                : `<li id="pdNote">${A.escapeHtml(A.shippingLine())}</li>
+                   <li>14-day returns on unworn, unwashed items with tags.</li>`}
+              <li class="pd-signup-prop" id="pdSignupProp"></li>
+            </ul>
+
+            <div class="pd-acc">
+              ${descHTML}
+              ${sizeGuideHTML(product)}
             </div>
-            <!-- Two actions. This page used to have one button that
-                 created a single-line cart and went straight to
-                 checkout, so there was no way to buy two pieces in one
-                 order. Add to Cart is now the primary and leaves you on
-                 the page with the drawer open; Buy Now keeps the old
-                 straight-to-checkout path for people who want it. -->
-            <div class="pd-actions">
-              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
-              <button class="pd-buynow" id="buyNowBtn">Buy Now</button>
-              <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
-            </div>
-            <p class="pd-stock-note" id="pdStockNote"></p>
-            ${A.smsSignupHTML()}
           </div>
-          ${product.isPreorder
-            ? `<p class="pd-note" id="pdNote">${preorderNote}</p>
-               <p class="pd-note">14-day returns on unworn, unwashed items with tags attached.</p>`
-            : `<p class="pd-note" id="pdNote">${A.escapeHtml(A.shippingLine())}</p>
-              ${A.internationalLine() ? `<p class="pd-note pd-note-intl">${A.escapeHtml(A.internationalLine())}</p>` : ''}
-               <p class="pd-note">14-day returns on unworn, unwashed items with tags attached. No account needed at checkout.</p>`}
-          ${descHTML}
-          ${trustBlockHTML(product.handle)}
-        </div>
+        </aside>
       </div>
+      <section class="pd-below">
+        ${trustBlockHTML(product.handle)}
+        ${A.smsSignupHTML()}
+      </section>
       <div class="pd-sticky" id="pdSticky">
-        <div class="pd-sticky-info">
-          <div class="pd-sticky-name">${A.escapeHtml(product.name)}</div>
-          <div class="pd-sticky-price tnum" id="pdStickyPrice"></div>
+        <div class="pd-sticky-top">
+          <div class="pd-sticky-info">
+            <div class="pd-sticky-name">${A.escapeHtml(product.name)}</div>
+            <div class="pd-sticky-price tnum" id="pdStickyPrice"></div>
+          </div>
+          ${hasOptions ? `<div class="pd-sticky-sizes" id="pdStickySizes"></div>` : ''}
         </div>
-        ${hasOptions ? `<div class="pd-sticky-sizes" id="pdStickySizes"></div>` : ''}
         <button class="pd-add" id="addBtnSticky">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
       </div>`;
 
@@ -1642,19 +1743,29 @@
       const stickyBtn = document.getElementById('addBtnSticky');
       const needsPick = hasOptions && product.optionNames.includes('Size') && !selection.Size;
       if (needsPick) {
-        // Genuinely nothing chosen — not sold out, not ready to buy.
-        // Disabled stays disabled until a real click sets selection.Size.
-        btn.textContent = 'Select a Size';
+        // Nothing chosen yet. The button keeps saying what it does and
+        // is simply disabled: it used to relabel itself "Select a Size",
+        // which made the one control that buys the product read as a
+        // dead grey box and was the single clearest complaint about
+        // this page.
+        btn.textContent = 'Add to Cart';
         btn.disabled = true;
         // Buy Now keeps its own label while disabled: two buttons both
         // reading "Select a Size" says the same thing twice and hides
         // what the second one is for.
         if (buyBtn) buyBtn.disabled = true;
-        if (stickyBtn) { stickyBtn.textContent = 'Select a Size'; stickyBtn.disabled = true; }
+        // Same reasoning as the main button above: it says what it
+        // does and is disabled until a size is chosen. It used to be
+        // relabelled "Select a Size" here, which left the two Add to
+        // Cart controls on the same page reading differently.
+        if (stickyBtn) { stickyBtn.textContent = 'Add to Cart'; stickyBtn.disabled = true; }
         return;
       }
       const sold = !v || !v.available;
-      const label = sold ? 'Sold Out' : (product.isPreorder ? 'Preorder' : 'Add to Cart');
+      const price = v ? ' \u2014 $' + v.price : '';
+      const label = sold
+        ? 'Sold Out'
+        : (product.isPreorder ? 'Preorder' + price : 'Add to Cart' + price);
       btn.textContent = label;
       btn.disabled = sold;
       if (buyBtn) buyBtn.disabled = sold;
@@ -1701,23 +1812,15 @@
     // ---- gallery + zoom ----
     let currentIndex = 0;
 
+    // Every shot is on the page, so there is nothing to swap -- a
+    // click just opens that shot full size.
     function wireGallery() {
-      const img = document.getElementById('pdMainImg');
-      const thumbEls = document.querySelectorAll('.pd-thumb');
-      if (!img) return;
-      thumbEls.forEach(btn => {
-        btn.addEventListener('click', () => {
-          currentIndex = parseInt(btn.dataset.index, 10);
-          const next = product.images[currentIndex];
-          img.src = next.w1200 || next.url;
-          img.srcset = A.srcsetFor(next);
-          img.alt = next.altText || product.name;
-          thumbEls.forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed', 'false'); });
-          btn.classList.add('selected');
-          btn.setAttribute('aria-pressed', 'true');
+      document.querySelectorAll('.pd-shot').forEach(fig => {
+        fig.addEventListener('click', () => {
+          currentIndex = parseInt(fig.dataset.index, 10) || 0;
+          openZoom();
         });
       });
-      document.querySelector('.pd-media-main').addEventListener('click', openZoom);
     }
 
     // 56% of shoppers' first action on a product page is exploring the

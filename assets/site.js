@@ -162,6 +162,41 @@
     return updated;
   }
 
+  /* Change the quantity of a line already in the saved cart.
+
+     This did not exist. The cart page rendered quantity as read-only
+     text and the only edit available was removing the line, so a
+     shopper who wanted two had to go back to the product page. Setting
+     a quantity of 0 is how Shopify removes a line, so the caller is
+     responsible for not sending one by accident -- the steppers clamp
+     at 1 and removal goes through cartLinesRemove. */
+  async function updateCartLine(lineId, quantity) {
+    var cart = await getOrCreateCart();
+    var data = await shopifyFetch(
+      'mutation($cartId: ID!, $lines: [CartLineUpdateInput!]!) {' +
+      '  cartLinesUpdate(cartId: $cartId, lines: $lines) { cart { id checkoutUrl totalQuantity } }' +
+      '}',
+      { cartId: cart.id, lines: [{ id: lineId, quantity: quantity }] }
+    );
+    var updated = data.cartLinesUpdate.cart;
+    renderCartCount(updated.totalQuantity);
+    return updated;
+  }
+
+  /* Remove a line outright. */
+  async function removeCartLine(lineId) {
+    var cart = await getOrCreateCart();
+    var data = await shopifyFetch(
+      'mutation($cartId: ID!, $lineIds: [ID!]!) {' +
+      '  cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { id checkoutUrl totalQuantity } }' +
+      '}',
+      { cartId: cart.id, lineIds: [lineId] }
+    );
+    var updated = data.cartLinesRemove.cart;
+    renderCartCount(updated.totalQuantity);
+    return updated;
+  }
+
   /* Buy Now: a throwaway cart holding exactly this one line.
 
      Deliberately does NOT touch the persisted cart. Buy Now used to add
@@ -234,12 +269,15 @@
     }, 0);
   }
 
-  /* Cart count in the header. Only rendered once the real number is
-     known, and hidden at zero — an empty cart shouldn't wear a badge. */
+  /* The header reads "Cart (0)" in words now, so the count is always
+     rendered -- an empty cart says it is empty instead of showing
+     nothing and leaving the visitor to guess. .show only changes its
+     colour; it no longer controls whether the number exists. */
   function renderCartCount(n) {
+    var q = n > 0 ? n : 0;
     document.querySelectorAll('.cart-count').forEach(function (el) {
-      if (n > 0) { el.textContent = n; el.classList.add('show'); }
-      else { el.textContent = ''; el.classList.remove('show'); }
+      el.textContent = '(' + q + ')';
+      if (q > 0) el.classList.add('show'); else el.classList.remove('show');
     });
   }
 
@@ -498,6 +536,7 @@
      and the Buy Now path already use it. Nothing about where checkout
      lives is decided or rewritten in this file. */
   var drawerEl = null;
+  var drawerBusy = false;
 
   async function fetchCartForDrawer() {
     var id = localStorage.getItem('shopify_cart_id');
@@ -538,8 +577,33 @@
       '</aside>';
     document.body.appendChild(drawerEl);
 
-    drawerEl.addEventListener('click', function (e) {
-      if (e.target.closest('[data-cart-close]')) closeCartDrawer();
+    /* One delegated handler, because the body is re-rendered on every
+       change and per-button listeners would be rebound each time.
+       drawerBusy is a lock: two taps on + before the first mutation
+       lands would both read quantity 1 and both write 2. */
+    drawerEl.addEventListener('click', async function (e) {
+      if (e.target.closest('[data-cart-close]')) { closeCartDrawer(); return; }
+
+      var step = e.target.closest('.cart-drawer-qty-up, .cart-drawer-qty-down');
+      if (!step || drawerBusy) return;
+      var lineId = step.getAttribute('data-line');
+      var row = step.closest('.cart-drawer-line-qty');
+      var current = parseInt(row.querySelector('.cart-drawer-qty-val').textContent, 10);
+      if (!lineId || !isFinite(current)) return;
+      var next = step.classList.contains('cart-drawer-qty-up') ? current + 1 : current - 1;
+
+      drawerBusy = true;
+      row.classList.add('busy');
+      try {
+        // Below one is a removal, not a quantity of zero.
+        if (next < 1) await removeCartLine(lineId);
+        else await updateCartLine(lineId, next);
+        renderDrawer(await fetchCartForDrawer());
+      } catch (err) {
+        row.classList.remove('busy');
+      } finally {
+        drawerBusy = false;
+      }
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && !drawerEl.hasAttribute('hidden')) closeCartDrawer();
@@ -564,6 +628,7 @@
       // "Default Title" is Shopify's placeholder for a product with no
       // options; showing it would read as a size nobody chose.
       var variant = m.title && m.title !== 'Default Title' ? m.title : '';
+      var unit = parseFloat((m.price && m.price.amount) || 0) || 0;
       return '<div class="cart-drawer-line">'
         + (m.image && m.image.url
             ? '<img src="' + escapeAttr(m.image.url) + '" alt="" width="60" height="80" loading="lazy" decoding="async">'
@@ -571,10 +636,16 @@
         + '<div class="cart-drawer-line-meta">'
         + '  <div class="cart-drawer-line-name">' + escapeHtml(name) + '</div>'
         + (variant ? '<div class="cart-drawer-line-variant">' + escapeHtml(variant) + '</div>' : '')
-        + '  <div class="cart-drawer-line-qty">Qty ' + l.quantity + '</div>'
+        + '  <div class="cart-drawer-line-qty" data-line="' + escapeAttr(l.id) + '">'
+        + '    <button type="button" class="cart-drawer-qty-down" data-line="' + escapeAttr(l.id) + '" aria-label="Decrease quantity">&minus;</button>'
+        + '    <span class="cart-drawer-qty-val">' + l.quantity + '</span>'
+        + '    <button type="button" class="cart-drawer-qty-up" data-line="' + escapeAttr(l.id) + '" aria-label="Increase quantity">+</button>'
+        + '  </div>'
         + '</div>'
+        // Line total, not unit price. With a stepper beside it, a unit
+        // price next to "2" reads as the cost of the line and is wrong.
         + '<div class="cart-drawer-line-price tnum">'
-        + money(m.price && m.price.amount, m.price && m.price.currencyCode) + '</div>'
+        + money(unit * l.quantity, m.price && m.price.currencyCode) + '</div>'
         + '</div>';
     }).join('');
 
@@ -615,8 +686,71 @@
     setTimeout(function () { if (!drawerEl.classList.contains('open')) drawerEl.setAttribute('hidden', ''); }, 260);
   }
 
-  /* The header cart icon opens the drawer instead of navigating, when
-     there is JS to open it with. Without JS the same icon is still a
+  /* ---- mobile menu panel -------------------------------------------
+     The phone header used to hold all four nav links in a strip
+     clipped to calc(100vw - 130px) with the overflow scrollable and
+     the scrollbar hidden, so MANUFACTURING was off-screen with nothing
+     to say it was there. The links now open as a full-screen panel
+     behind one MENU button.
+
+     The <nav> keeps the real anchors in the served HTML, so with
+     JavaScript off the panel is simply not openable rather than the
+     navigation being gone. Nothing here runs at desktop widths, where
+     .nav-toggle is display:none and the links sit inline. */
+  function wireNav() {
+    var toggle = document.getElementById('navToggle');
+    var nav = document.getElementById('siteNav');
+    if (!toggle || !nav) return;
+
+    /* moveFocus is false when the panel is closing because a link in
+       it was followed: the cart link opens the drawer in place (see
+       wireCartLinks) and pulling focus back to the MENU button would
+       take it straight out of the dialog that just opened. */
+    function setOpen(open, moveFocus) {
+      moveFocus = moveFocus !== false;
+      document.body.classList.toggle('nav-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      // Scrolling the page behind an open full-screen panel is how you
+      // end up somewhere else when you close it.
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      if (!moveFocus) return;
+      if (open) {
+        var first = nav.querySelector('a');
+        if (first) first.focus();
+      } else {
+        toggle.focus();
+      }
+    }
+
+    toggle.addEventListener('click', function () {
+      setOpen(!document.body.classList.contains('nav-open'));
+    });
+
+    var close = document.getElementById('navClose');
+    if (close) close.addEventListener('click', function () { setOpen(false); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('nav-open')) setOpen(false);
+    });
+
+    /* Same-page links (the cart link, or Shop while already on Shop)
+       leave the panel open over the page they land on, because no
+       navigation happens. Close on any link tap -- through setOpen, so
+       the scroll lock comes off with it. Dropping the class alone left
+       <html> at overflow:hidden and the page unscrollable. */
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setOpen(false, false);
+    });
+
+    /* Resizing past the breakpoint with the panel open leaves the
+       desktop header behind a full-screen overlay. */
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 640 && document.body.classList.contains('nav-open')) setOpen(false);
+    });
+  }
+
+  /* The header cart link opens the drawer instead of navigating, when
+     there is JS to open it with. Without JS the same link is still a
      plain link to /cart.html, which is why this is wired here rather
      than being a button in the markup. */
   function wireCartLinks() {
@@ -1062,6 +1196,8 @@
     escapeHtml: escapeHtml,
     getOrCreateCart: getOrCreateCart,
     addToShopifyCart: addToShopifyCart,
+    updateCartLine: updateCartLine,
+    removeCartLine: removeCartLine,
     createBuyNowCart: createBuyNowCart,
     applyDiscountCodes: applyDiscountCodes,
     cartDiscountTotal: cartDiscountTotal,
@@ -1117,7 +1253,11 @@
   // block renders after its catalog fetch, so product.html calls
   // wireSmsSignup() again once it has built the buy box.
   wireSmsSignup(document);
+  wireNav();
   wireCartLinks();
+  // Renders "(0)" immediately so the header never shows a bare "Cart"
+  // while the real count is still in flight.
+  renderCartCount(0);
   refreshCartCount();
   // Capture on every page load, not just at submit time — a visitor
   // can land on one page carrying UTM params and convert on a

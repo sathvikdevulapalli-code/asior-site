@@ -181,8 +181,11 @@
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .fall { padding: 0 20px 10vh; }
     .fall-grid { grid-template-columns: 1fr; gap: 14px; }
   }
@@ -207,12 +210,21 @@
   <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
-    <nav>
+    <!-- Phone-only duplicate. The cart lives inside <nav> for the
+         desktop row, and <nav> becomes the hidden full-screen panel on
+         a phone -- which would leave the top bar with no cart at all.
+         renderCartCount() writes to every .cart-count and
+         wireCartLinks() binds every a.cart-link, so the copy needs no
+         special handling. -->
+    <a href="cart.html" class="cart-link cart-link--bar">Cart <span class="cart-count">(0)</span></a>
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
+    <nav id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
+      <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
 

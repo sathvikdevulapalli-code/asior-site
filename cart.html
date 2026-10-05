@@ -117,10 +117,50 @@
     color: var(--muted);
   }
 
+  /* A real stepper, not a printed number. The cart could only remove a
+     line before this; changing your mind about quantity meant going
+     back to the product page. */
   .cart-item .qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--field-line);
+    height: 36px;
+  }
+
+  .cart-item .qty.is-busy { opacity: 0.5; pointer-events: none; }
+
+  .cart-item .qty button {
+    width: 32px;
+    height: 34px;
+    background: none;
+    border: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .cart-item .qty button:hover { background: var(--line); }
+
+  .cart-item .qty-val {
+    min-width: 26px;
+    text-align: center;
+    font-family: var(--font-mono);
     font-size: 12px;
+  }
+
+  .cart-item-meta .variant {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--muted);
-    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  .cart-item-meta .remove {
+    margin-top: 8px;
+    display: inline-block;
   }
 
   .cart-item .remove {
@@ -392,11 +432,17 @@
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .cart-wrap { padding: 0 20px 10vh; }
     .cart-item { grid-template-columns: 60px 1fr auto; }
-    .cart-item .qty { grid-column: 2 / 3; }
+    /* justify-self, because a grid item stretches to fill its track by
+       default: the stepper was spanning the whole 1fr column with "-",
+       "2" and "+" strung 90px apart. */
+    .cart-item .qty { grid-column: 2 / 3; justify-self: start; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -422,12 +468,21 @@
   <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
-    <nav>
+    <!-- Phone-only duplicate. The cart lives inside <nav> for the
+         desktop row, and <nav> becomes the hidden full-screen panel on
+         a phone -- which would leave the top bar with no cart at all.
+         renderCartCount() writes to every .cart-count and
+         wireCartLinks() binds every a.cart-link, so the copy needs no
+         special handling. -->
+    <a href="cart.html" class="cart-link cart-link--bar">Cart <span class="cart-count">(0)</span></a>
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
+    <nav id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
+      <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
 
@@ -644,15 +699,24 @@
     const rows = cart.lines.edges.map(({ node }) => {
       const v = node.merchandise;
       const media = v.image ? `<img src="${v.image.url}" alt="${v.product.title}" width="${v.image.width || 300}" height="${v.image.height || 400}" loading="lazy" decoding="async">` : `<div class="ph"></div>`;
+      // "Default Title" is Shopify's placeholder for a product with no
+      // options; printing it would read as a size nobody chose.
+      const variant = v.title && v.title !== 'Default Title' ? v.title : '';
+      const lineTotal = (parseFloat(v.price.amount) * node.quantity).toFixed(2);
       return `
         <div class="cart-item">
           <div class="thumb">${media}</div>
-          <div>
+          <div class="cart-item-meta">
             <div class="name">${v.product.title}</div>
-            <div class="price">$${v.price.amount}</div>
+            ${variant ? `<div class="variant">${variant}</div>` : ''}
+            <button class="remove" data-line="${node.id}">Remove</button>
           </div>
-          <div class="qty">Qty ${node.quantity}</div>
-          <button class="remove" data-line="${node.id}">Remove</button>
+          <div class="qty" data-line="${node.id}">
+            <button type="button" class="qty-down" data-line="${node.id}" aria-label="Decrease quantity">-</button>
+            <span class="qty-val" aria-live="polite">${node.quantity}</span>
+            <button type="button" class="qty-up" data-line="${node.id}" aria-label="Increase quantity">+</button>
+          </div>
+          <div class="price tnum">$${lineTotal}</div>
         </div>`;
     }).join('');
 
@@ -735,6 +799,26 @@
         <div class="cart-signup-confirm" id="cartSignupConfirm" role="status" aria-live="polite">You're in. Code ASIORTEN takes 10% off your first order.</div>
       </div>
     `;
+
+    // One request per press, and the row locks while it is in flight
+    // so a double tap cannot send two.
+    let qtyBusy = false;
+    document.querySelectorAll('.qty-up, .qty-down').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (qtyBusy) return;
+        const row = btn.closest('.qty');
+        const current = parseInt(row.querySelector('.qty-val').textContent, 10) || 1;
+        const next = btn.classList.contains('qty-up') ? current + 1 : current - 1;
+        // Stepping below one is a removal, and removal has its own
+        // mutation; it is not a quantity of zero.
+        if (next < 1) { await A.removeCartLine(btn.dataset.line); renderLive(); return; }
+        qtyBusy = true;
+        row.classList.add('is-busy');
+        try { await A.updateCartLine(btn.dataset.line, next); await renderLive(); }
+        catch (err) { row.classList.remove('is-busy'); }
+        finally { qtyBusy = false; }
+      });
+    });
 
     document.querySelectorAll('.remove').forEach(btn => {
       btn.addEventListener('click', async () => {

@@ -51,8 +51,18 @@
   /* Scoped to this page only (this <style> block doesn't reach any
      other page) — the shared header markup (scripts/build.js's
      HEADER_FULL) is untouched, just restyled here for the page ad
-     traffic actually lands on now. */
-  header { backdrop-filter: blur(10px); background: rgba(11, 10, 8, 0.82); }
+     traffic actually lands on now.
+
+     This page used to also re-declare the header as
+     `backdrop-filter: blur(10px); background: rgba(11,10,8,0.82)`,
+     which did two unwanted things. It reintroduced a translucent
+     header on the one page that explicitly made it solid so nothing
+     shows through the nav mid-scroll. And backdrop-filter makes an
+     element the containing block for fixed-position descendants, so
+     the mobile menu panel's `inset: 0` filled the 390x60 header box
+     instead of the viewport -- the panel opened as a sliver over the
+     bar with its links above the top edge. Removed; the shared
+     opaque header is the intended one. */
   header nav a[href="shop.html"] {
     color: var(--ink);
     position: relative;
@@ -271,64 +281,81 @@
     margin: 0 auto;
   }
 
-  /* Rows are not meant to line up.
-
-     align-items: start lets each tile stand at its own height so the
-     grid staggers the way a contact sheet does, which is the whole
-     difference between a collection and a four-across catalogue. The
-     variation is small and on a fixed cycle, so it reads as rhythm
-     rather than as a layout bug. */
-  /* ---------- opening ----------
-     Two frames and a marker. Held to the same 1180px as the grid so it
-     reads as the top of the page rather than as a hero banner bolted
-     on above it. */
-  .opening {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 6px 40px 40px;
-    display: grid;
-    grid-template-columns: 1fr 1.25fr;
-    gap: 10px;
-    align-items: start;
+  /* Rows line up. They used to be deliberately staggered -- each tile
+     at its own height, contact-sheet style -- and measured, that put
+     the names and prices of one row on three different baselines.
+     See the note on .product-img: the rhythm now comes from the
+     campaign band and the lookbook, and the price list reads as a
+     price list. */
+  /* ---------- campaign frame ----------
+     Full bleed, one photograph, type sitting on it. The page used to
+     open on two cropped frames and a caption rule, which still read as
+     a layout; this reads as a campaign. */
+  .campaign {
+    position: relative;
+    margin-bottom: 0;
   }
 
-  .opening-frame {
-    overflow: hidden;
-    background: #141210;
-  }
-
-  .opening-frame img {
+  .campaign img {
     width: 100%;
-    height: 100%;
+    height: clamp(420px, 74vh, 760px);
     object-fit: cover;
-    object-position: center top;
+    object-position: center 22%;
     display: block;
   }
 
-  .opening-frame--tall { aspect-ratio: 3 / 4; }
-  .opening-frame--wide {
-    aspect-ratio: 1 / 1;
-    margin-top: 34px;
+  /* A scrim only under the type, so the photograph is not dimmed. */
+  .campaign-plate {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 60px 32px 22px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    background: linear-gradient(to top, rgba(11, 10, 8, 0.72), rgba(11, 10, 8, 0));
   }
 
-  .opening-frame--wide img { object-position: center 30%; }
-
-  .opening-mark {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    border-top: 1px solid var(--line);
-    padding-top: 10px;
-    margin-top: 4px;
+  .campaign-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .campaign-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 3px;
+    min-height: 24px;
   }
 
-  .opening-mark span:first-child { color: var(--ink); }
+  /* ---------- drop intro ---------- */
+  .drop-intro {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 26px 40px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .drop-intro span { color: var(--ink); }
+  .drop-intro a { color: var(--muted); text-decoration: none; }
+  .drop-intro a:hover { color: var(--ink); }
 
   /* ---------- full-bleed band ---------- */
   .band {
@@ -380,10 +407,21 @@
     background: #141210;
   }
 
-  /* The cycle. Four columns, six steps, so the taller and squarer
-     tiles land in a different column on each pass down the page. */
-  .shop-grid > .product:nth-child(6n + 2) .product-img,
-  .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 3 / 4; }
+  /* One ratio for every tile, at every width.
+
+     This cycled 2:3 and 3:4 across a six-step pattern so the grid
+     would read as a lookbook rather than a table. Measured, it did
+     not: the tiles in a row ended at different heights, so the names
+     and prices in a single row sat on three different baselines
+     (43px apart at 1440px) and a shopper scanning across read it as
+     misalignment, not rhythm -- the same conclusion the phone
+     breakpoint had already reached on its own.
+
+     The variation now comes from the things that can carry it without
+     breaking a price list: the full-bleed campaign band between grid
+     sections, and the lookbook row's three real widths. 2:3 because
+     that is the actual ratio of five of the eleven live product
+     photographs and the closest common frame for the rest. */
 
   /* Per-product crop overrides hang off this hook. Nothing uses it
      today: the frame matches the source ratio closely enough across
@@ -392,6 +430,21 @@
      without touching the grid, e.g.
          .product[data-handle="jag-shorts"] .product-img img
            { object-position: center 40%; } */
+
+  /* The hover frame, inserted by wireHoverSwap() on first pointer
+     entry. Stacked over the primary shot and cross-faded, so the tile
+     never flashes empty while the second photograph decodes. */
+  .product-img .alt-shot {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 320ms var(--ease-out);
+    z-index: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .product:hover .product-img .alt-shot.ready { opacity: 1; }
+  }
 
   .product-img img {
     width: 100%;
@@ -429,10 +482,18 @@
   .product .name {
     font-family: var(--font-mono);
     font-size: 10.5px;
+    line-height: 1.35;
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink);
     min-width: 0;
+    /* Two lines held open. Most names are one line; the long ones
+       ("Kova Eternal Lotus Graphic T-Shirt", "Helia Pendant & Chain,
+       Silver") wrap to two and used to push their own quick-add row a
+       line below their neighbours' in the same grid row. The price
+       stays on the first baseline either way -- it is a flex sibling
+       aligned to baseline, not to the box. */
+    min-height: 2.7em;
   }
 
   .product .price {
@@ -587,20 +648,13 @@
 
   @media (max-width: 1100px) {
     .shop-grid { grid-template-columns: repeat(3, 1fr); }
-    /* Three columns, so the six-step cycle has to shift or the same
-       column gets every tall tile. */
-    .shop-grid > .product:nth-child(6n + 2) .product-img,
-    .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 2 / 3; }
-    .shop-grid > .product:nth-child(5n + 3) .product-img { aspect-ratio: 3 / 4; }
   }
 
   @media (max-width: 760px) {
-    .opening { grid-template-columns: 1fr; padding: 4px 16px 26px; gap: 8px; }
-    /* One frame on a phone. Two stacked is two scroll-lengths of
-       photograph before the first price. */
-    .opening-frame--wide { display: none; }
-    .opening-frame--tall { aspect-ratio: 4 / 5; }
-    .opening-mark { font-size: 8.5px; letter-spacing: 0.06em; gap: 10px; }
+    .campaign img { height: 62vh; }
+    .campaign-plate { padding: 48px 16px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .campaign-label, .campaign-link { font-size: 10px; letter-spacing: 0.12em; }
+    .drop-intro { padding: 20px 16px 10px; font-size: 9.5px; letter-spacing: 0.1em; }
     .band { margin-bottom: 8vh; }
     .band-caption { padding: 0 16px; }
     .shop-lookbook { padding: 0 16px 8vh; }
@@ -613,25 +667,16 @@
   @media (max-width: 640px) {
     header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
     header .mark { font-size: 13px; }
-    header nav { gap: 14px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 120px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .shop { padding: 14px 16px 10vh; }
     /* Two across on a phone, not one. A single column turns a twelve
        piece collection into a very long scroll and reads like a feed;
        two reads like a rail. */
     .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 22px 10px; }
-    /* Two across on a phone keeps one ratio. Irregular rows at 180px
-       wide stop reading as rhythm and start reading as misalignment,
-       and usability wins at that size.
-
-       Written with the same nth-child selectors rather than a plain
-       descendant rule: .shop-grid > .product .product-img is 0,3,0 and
-       loses to the 0,4,0 of the staggered rules above it, so the
-       simpler version was silently doing nothing here. */
-    .shop-grid > .product:nth-child(6n + 2) .product-img,
-    .shop-grid > .product:nth-child(6n + 3) .product-img,
-    .shop-grid > .product:nth-child(5n + 3) .product-img,
-    .shop-grid > .product:nth-child(4n + 2) .product-img { aspect-ratio: 2 / 3; }
     .product .name { font-size: 9.5px; letter-spacing: 0.06em; }
     .product .price { font-size: 9.5px; }
     .name-row { gap: 6px; padding-top: 7px; margin-top: 9px; }
@@ -679,12 +724,21 @@
   <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
-    <nav>
+    <!-- Phone-only duplicate. The cart lives inside <nav> for the
+         desktop row, and <nav> becomes the hidden full-screen panel on
+         a phone -- which would leave the top bar with no cart at all.
+         renderCartCount() writes to every .cart-count and
+         wireCartLinks() binds every a.cart-link, so the copy needs no
+         special handling. -->
+    <a href="cart.html" class="cart-link cart-link--bar">Cart <span class="cart-count">(0)</span></a>
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
+    <nav id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
+      <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
 
@@ -703,31 +757,31 @@
   <!-- The page opened on a four-across grid, which answers "what can I
        buy" and nothing else. It now opens on a photograph, because the
        first question a stranger has is what this actually looks like
-       on a person.
+       on a person. No overlay copy beyond the collection marker —
+       there is no brand story to tell here that the photographs do not
+       tell better, and inventing one is how storefronts end up
+       sounding generated.
 
-       Two real frames from images/, side by side at desktop and a
-       single frame on a phone. No overlay copy beyond the collection
-       marker and the season — there is no brand story to tell here
-       that the photographs do not tell better, and inventing one is
-       how storefronts end up sounding generated. -->
-  <section class="opening" aria-label="Fall collection">
-    <figure class="opening-frame opening-frame--tall">
-      <picture>
-        <source type="image/webp" srcset="images/look-02.webp">
-        <img src="images/look-02.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
-      </picture>
-    </figure>
-    <figure class="opening-frame opening-frame--wide">
-      <picture>
-        <source type="image/webp" srcset="images/look-09.webp">
-        <img src="images/look-09.jpg" alt="Asior Fall collection, worn" width="800" height="1200" loading="lazy" decoding="async">
-      </picture>
-    </figure>
-    <div class="opening-mark">
-      <span>Fall Collection</span>
-      <span>Limited runs — restocked rarely</span>
+       A campaign frame, not a hero. No heading, no paragraph, no pair
+       of buttons: one photograph running the width of the page, the
+       collection named in small type over it, and one way in. The
+       grid starts below it. -->
+  <section class="campaign" aria-label="Fall collection">
+    <picture>
+      <source type="image/webp" srcset="images/look-02.webp">
+      <img src="images/look-02.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
+    </picture>
+    <div class="campaign-plate">
+      <span class="campaign-label">Fall Collection</span>
+      <a class="campaign-link" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
+
+  <!-- One small row instead of a section heading. -->
+  <div class="drop-intro">
+    <span>Current drop</span>
+    <a href="#shop">Shop all <span aria-hidden="true">&rarr;</span></a>
+  </div>
 
   <!-- Personalization from real browsing history (assets/site.js's
        getViewed()) — shown before the full catalog, not after, when
@@ -926,6 +980,13 @@
             handle
             options { name values }
             featuredImage { ${A.IMAGE_FIELDS} }
+            # Two, not one: the second is the hover frame. Every live
+            # product has three real photographs, and showing the same
+            # single shot on hover is what makes a grid feel like a
+            # catalogue export. Only the URL is fetched here -- the
+            # bytes are not requested until a pointer actually enters
+            # the tile (see wireHoverSwap).
+            images(first: 2) { edges { node { ${A.IMAGE_FIELDS} } } }
             variants(first: 20) {
               edges { node {
                 id availableForSale price { amount } compareAtPrice { amount }
@@ -956,6 +1017,12 @@
           handle: node.handle,
           name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
           image: node.featuredImage,
+          // The first image that is not the one already on the tile.
+          altImage: (() => {
+            const all = ((node.images && node.images.edges) || []).map(x => x.node);
+            const first = node.featuredImage && node.featuredImage.url;
+            return all.find(im => im && im.url && im.url !== first) || null;
+          })(),
           isPreorder: /\[preorder\]/i.test(node.title),
           soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
           priceLabel: minPrice === maxPrice
@@ -992,6 +1059,14 @@
           sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
         })
       : '';
+    /* The hover frame rides along as data and is only turned into a
+       real <img> when a pointer enters the tile. A second lazy <img>
+       per tile would be fetched as soon as the tile scrolled into
+       view, doubling the grid's image requests for an effect most of
+       those visitors (every touch device) can never see. */
+    const alt = p.altImage
+      ? ` data-alt-src="${A.escapeAttr(p.altImage.w800 || p.altImage.url)}"`
+      : '';
     const mine = A.preferredSize();
     // .product is a plain wrapper now, not itself the link: a <button>
     // can't legally nest inside an <a>, and quick-add needs both a
@@ -1009,7 +1084,7 @@
     return `
       <div class="product" data-handle="${A.escapeAttr(p.handle)}">
         <a class="product-link" href="/products/${p.handle}.html">
-          <div class="product-img">${media}</div>
+          <div class="product-img"${alt}>${media}</div>
           <div class="name-row">
             <span class="name">${A.escapeHtml(p.name)}</span>
             <span class="price tnum">${p.priceLabel}</span>
@@ -1113,6 +1188,41 @@
      and touches nothing sees products. The rest still fade in on
      approach, with rootMargin so they arrive already visible rather
      than fading in under the reader's eye. */
+  /* Second-image-on-hover.
+
+     Delegated to the grid container and bound once, because the cards
+     are re-rendered wholesale on every fetch. The <img> is created on
+     the first pointer entry and then kept, so a tile fetches its hover
+     frame at most once and a tile nobody hovers never fetches one at
+     all. .ready is added on decode so the cross-fade starts from a
+     painted image rather than from a blank box.
+
+     Pointer-gated: a touch "hover" latches after a tap and would leave
+     the second photograph stuck over the first, so this binds nothing
+     on a phone. */
+  function wireHoverSwap(container) {
+    if (!container || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    /* pointerover, not pointerenter: pointerenter does not bubble, so
+       a single delegated listener on the grid never heard it. The
+       guard below (an .alt-shot already present) makes the extra
+       pointerover events a no-op. */
+    container.addEventListener('pointerover', function (e) {
+      const box = e.target.closest ? e.target.closest('.product-img') : null;
+      if (!box) return;
+      const src = box.getAttribute('data-alt-src');
+      if (!src || box.querySelector('.alt-shot')) return;
+      const img = document.createElement('img');
+      img.className = 'alt-shot';
+      img.alt = '';
+      img.decoding = 'async';
+      img.addEventListener('load', () => img.classList.add('ready'));
+      // A hover frame that 404s should leave the tile exactly as it was.
+      img.addEventListener('error', () => img.remove());
+      img.src = src;
+      box.appendChild(img);
+    });
+  }
+
   function revealOnScroll(container) {
     const items = Array.from(container.querySelectorAll('.product'));
     if (!items.length) return;
@@ -1164,6 +1274,10 @@
     // are lazy. Never lazy-load the largest above-the-fold image.
     grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 3)).join('');
     bindQuickAdd(grid);
+    // Outside the branch below: the reveal animation is skipped on a
+    // pre-rendered page because the cards are already visible, but the
+    // hover swap has to be bound either way.
+    wireHoverSwap(grid);
     if (WAS_PRERENDERED) {
       // Swapping pre-rendered cards for live ones should be invisible.
       grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
@@ -1199,6 +1313,7 @@
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
     revealOnScroll(recentGrid);
+    wireHoverSwap(recentGrid);
     section.classList.add('show');
     return new Set(seen.map(p => p.handle));
   }

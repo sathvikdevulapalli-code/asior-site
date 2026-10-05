@@ -105,7 +105,14 @@ async function fetchProducts() {
           w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
           w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
         }
-        images(first: 4) { edges { node { url } } }
+        # w800 as well as url: the prerendered grid card carries the
+        # second photograph's URL as data-alt-src for the hover swap,
+        # and it has to be the same sized rendition the client-side
+        # card() uses, or the two cards disagree.
+        images(first: 4) { edges { node {
+          url
+          w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
+        } } }
         variants(first: 40) { edges { node {
           title sku availableForSale price { amount currencyCode } compareAtPrice { amount }
         } } }
@@ -190,7 +197,8 @@ function prerenderedPdp(p) {
     : '';
 
   return `<div class="pd-prerender">
-      <div class="pd-head"><h1 class="pd-name">${esc(name)}</h1>${priceHtml}</div>
+      <h1 class="pd-name">${esc(name)}</h1>
+      ${priceHtml}
       ${imgHtml}
       ${sizeHtml}
       ${descHtml}
@@ -402,15 +410,37 @@ async function syncPolicy(slug, file) {
    Static text. It used to carry a live countdown to a close date; the
    collection has no end date now, so announcing one would be a
    deadline we invented. What is left is true and needs no clock. */
+/* The bag glyph is gone and the cart reads "Cart (0)" in words. An
+   outline bag at 15px is a guess the visitor has to make; the count was
+   also hidden entirely at zero, so there was nothing to tell them the
+   cart was empty rather than broken.
+
+   On a phone the four nav links used to sit in a horizontally
+   scrolling strip clipped to calc(100vw - 130px) -- MANUFACTURING was
+   off the edge with no indication it was there. They now live in a
+   full-screen panel behind one MENU button; see wireNav() in
+   assets/site.js. The <nav> keeps the real links in the served HTML,
+   so it still works and is still crawlable with JavaScript off. */
+const CART_LINK = '<a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>';
+
 const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
   <header>
     <a class="mark" href="shop.html">Asior</a>
-    <nav>
+    <!-- Phone-only duplicate. The cart lives inside <nav> for the
+         desktop row, and <nav> becomes the hidden full-screen panel on
+         a phone -- which would leave the top bar with no cart at all.
+         renderCartCount() writes to every .cart-count and
+         wireCartLinks() binds every a.cart-link, so the copy needs no
+         special handling. -->
+    ${CART_LINK.replace('class="cart-link"', 'class="cart-link cart-link--bar"')}
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
+    <nav id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
       <a href="community.html">Community</a>
       <a href="contact.html">Contact</a>
       <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
+      ${CART_LINK}
     </nav>
   </header>
 
@@ -636,10 +666,19 @@ function shopCard(p, eager) {
   // .in is applied up front: .product starts at opacity 0 and is
   // revealed by an IntersectionObserver, so without it these cards
   // would be invisible to exactly the no-JS visitors they exist for.
+  /* Hover frame, matching card()'s data-alt-src in shop.html. The two
+     card implementations -- this server one and the client one -- have
+     to stay in step; a visitor sees this markup until the live fetch
+     replaces it. */
+  const all = ((p.images && p.images.edges) || []).map(x => x.node);
+  const firstUrl = p.featuredImage && p.featuredImage.url;
+  const altImg = all.find(im => im && im.url && im.url !== firstUrl);
+  const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
+
   return `
       <div class="product in" data-handle="${esc(p.handle)}">
         <a class="product-link" href="/products/${esc(p.handle)}.html">
-          <div class="product-img">${media}</div>
+          <div class="product-img"${altAttr}>${media}</div>
           <div class="name-row">
             <span class="name">${esc(name)}</span>
             <span class="price tnum">${priceLabel}</span>

@@ -67,8 +67,11 @@
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .legal { padding: 0 20px 12vh; }
   }
 
