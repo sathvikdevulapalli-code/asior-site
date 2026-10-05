@@ -545,7 +545,7 @@
     // Everything both buttons report, in one place: they differ only in
     // which cart they write to and where they leave you.
     function trackPurchaseIntent(v) {
-      A.klaviyoTrack('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price });
+      A.trackCart('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price, source: 'lanyard' });
       A.klaviyoAddedToCart({
         handle: HANDLE, name: product.name,
         url: location.origin + '/lanyard.html',

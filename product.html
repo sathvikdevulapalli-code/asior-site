@@ -1910,9 +1910,12 @@
           quantity: qty, currency: v.currency,
         });
       }
-      A.klaviyoTrack('Added To Cart', {
+      // trackCart merges the first touch, so every Added To Cart on
+      // the site carries the same attribution.
+      A.trackCart('Added To Cart', {
         product: product.name, handle: product.handle,
         size: selection.Size || null, price: v.price, quantity: qty,
+        source: 'pdp',
       });
     }
 

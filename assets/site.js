@@ -180,6 +180,7 @@
     );
     var updated = data.cartLinesUpdate.cart;
     renderCartCount(updated.totalQuantity);
+    trackCart('Cart Quantity Changed', { quantity: quantity, cart_quantity: updated.totalQuantity });
     return updated;
   }
 
@@ -194,6 +195,7 @@
     );
     var updated = data.cartLinesRemove.cart;
     renderCartCount(updated.totalQuantity);
+    trackCart('Cart Item Removed', { cart_quantity: updated.totalQuantity });
     return updated;
   }
 
@@ -367,8 +369,29 @@
     return '+1' + digits;
   }
 
-  function smsSubscribeBody(phone, withConsentBlock) {
+  function smsSubscribeBody(phone, withConsentBlock, location) {
     var profile = { phone_number: phone };
+
+    /* First-touch attribution on the profile.
+
+       The subscription carried the number and nothing else, so every
+       SMS signup landed in Klaviyo indistinguishable from every other
+       one: a launch seeded through five creators produced one
+       undifferentiated list, and the question the founder actually has
+       -- which seeding grew the list -- was unanswerable. getUTMParams()
+       returns the FIRST touch, so a creator keeps the credit even if
+       the signup happens on a later visit through a branded search.
+
+       Profile properties, not event properties, and the phone number
+       goes nowhere near a URL or an analytics event -- that constraint
+       is unchanged. These are plain custom properties; nothing here
+       asks Klaviyo for a field that has to exist first. */
+    var utm = getUTMParams();
+    var props = {};
+    Object.keys(utm).forEach(function (k) { props[k] = utm[k]; });
+    if (location) props.signup_location = location;
+    if (Object.keys(props).length) profile.properties = props;
+
     if (withConsentBlock) {
       profile.subscriptions = { sms: { marketing: { consent: 'SUBSCRIBED' } } };
     }
@@ -381,11 +404,11 @@
     };
   }
 
-  function postSmsSubscription(phone, withConsentBlock) {
+  function postSmsSubscription(phone, withConsentBlock, location) {
     return fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'revision': KLAVIYO_REVISION },
-      body: JSON.stringify(smsSubscribeBody(phone, withConsentBlock)),
+      body: JSON.stringify(smsSubscribeBody(phone, withConsentBlock, location)),
     });
   }
 
@@ -407,11 +430,11 @@
      This is the only path that makes a second request, it only runs on
      an explicit 400, and it never runs on success, on a network error,
      or from a second click. */
-  async function klaviyoSubscribeSms(phone) {
-    var res = await postSmsSubscription(phone, true);
+  async function klaviyoSubscribeSms(phone, location) {
+    var res = await postSmsSubscription(phone, true, location);
     if (res.ok) return res.status;
     if (res.status === 400) {
-      var fallback = await postSmsSubscription(phone, false);
+      var fallback = await postSmsSubscription(phone, false, location);
       if (fallback.ok) {
         if (window.console && console.info) {
           console.info('[asior] SMS subscribe: consent-block payload 400d, bare payload accepted.');
@@ -477,12 +500,28 @@
         button.textContent = 'Sending';
 
         try {
-          await klaviyoSubscribeSms(phone);
+          /* Which block on which page produced the signup. The PDP's
+             copy, the footer's and /text's are the same offer in three
+             very different contexts, and without this they are one
+             number. */
+          var where = form.closest('[data-sms-location]');
+          await klaviyoSubscribeSms(phone, where ? where.getAttribute('data-sms-location') : null);
           // Double opt-in: accepted, not subscribed. Saying "you're in"
           // here would be a lie until they reply.
           form.classList.add('is-done');
           say('Almost done — check your texts and reply YES to confirm.', false);
           input.value = '';
+          /* An event as well as the subscription, so the signup shows
+             up in Klaviyo's stream against the same first touch and can
+             be segmented on. Deliberately carries NO phone number: the
+             standing rule is that the number never reaches a URL, a
+             query string or an analytics event, and this is an
+             analytics event. It rides on the anonymous id instead. */
+          var ev = {};
+          var u = getUTMParams();
+          Object.keys(u).forEach(function (k) { ev[k] = u[k]; });
+          if (where) ev.signup_location = where.getAttribute('data-sms-location');
+          klaviyoTrack('SMS Signup', ev);
         } catch (err) {
           say("That didn't go through. Try again in a moment.", true);
           inFlight = false;
@@ -502,7 +541,7 @@
 
      No discount is mentioned, because there is no signup code. */
   function smsSignupHTML() {
-    return '<div class="sms-signup sms-signup--pdp">'
+    return '<div class="sms-signup sms-signup--pdp" data-sms-location="pdp">'
       + '<p class="sms-signup-title">Know before it\'s gone.</p>'
       + '<p class="sms-signup-body">Sizes sell out and we restock rarely. One text when '
       + 'something you want is running low. No spam, no daily blasts.</p>'
@@ -584,6 +623,14 @@
     drawerEl.addEventListener('click', async function (e) {
       if (e.target.closest('[data-cart-close]')) { closeCartDrawer(); return; }
 
+      // The drawer's Checkout is an <a> and stays one -- it navigates on
+      // its own, with or without this listener. Nothing is intercepted
+      // and no href is rewritten.
+      if (e.target.closest('.cart-drawer-checkout')) {
+        trackCart('Begin Checkout', { source: 'cart_drawer' });
+        return;
+      }
+
       var step = e.target.closest('.cart-drawer-qty-up, .cart-drawer-qty-down');
       if (!step || drawerBusy) return;
       var lineId = step.getAttribute('data-line');
@@ -661,7 +708,8 @@
       + '<a class="cart-drawer-secondary" href="/cart.html">View cart</a>';
   }
 
-  async function openCartDrawer() {
+  async function openCartDrawer(source) {
+    trackCart('Cart Drawer Opened', { source: source || 'header' });
     ensureDrawer();
     drawerEl.removeAttribute('hidden');
     // Next frame, so the transition has a start state to animate from.
@@ -684,6 +732,92 @@
     document.documentElement.classList.remove('cart-drawer-locked');
     // Match the panel transition before hiding, so it slides out.
     setTimeout(function () { if (!drawerEl.classList.contains('open')) drawerEl.setAttribute('hidden', ''); }, 260);
+  }
+
+  /* ---- cart funnel events -------------------------------------------
+
+     The journey was instrumented at its ends -- Viewed Product and
+     Added to Cart -- and nowhere in between, so the questions the
+     launch actually raises could not be answered: how many adds reach
+     the drawer, how many carts get edited rather than abandoned, how
+     many reach checkout. These are the missing steps.
+
+     No PII anywhere in them. Line ids and handles only, on the
+     anonymous id, which is what klaviyoTrack falls back to. Nothing
+     here blocks the action it describes -- klaviyoTrack already
+     swallows its own failures. */
+  function trackCart(metric, props) {
+    try {
+      var out = props || {};
+      var utm = getUTMParams();
+      // First touch travels with every funnel step, so revenue can be
+      // attributed to the creator who actually started the journey.
+      Object.keys(utm).forEach(function (k) { if (!(k in out)) out[k] = utm[k]; });
+      klaviyoTrack(metric, out);
+    } catch (err) { /* instrumentation is never load-bearing */ }
+  }
+
+  /* ---- drop state ----------------------------------------------------
+
+     A drop is an event, and the storefront is supposed to know which
+     part of it we are in. Four states, every one of them derived --
+     never configured as a mood:
+
+       pre-drop   PUBLIC_LAUNCH_TIME is set and still in the future.
+       live       that instant has passed and something is buyable.
+       sold-out   it has passed and every Fall piece is sold out, as
+                  the live Shopify catalogue reports it.
+       evergreen  no launch instant is configured at all.
+
+     The first, second and fourth are answerable from
+     assets/launch-config.js alone and are therefore known before the
+     catalogue request finishes, so the opening does not flash. Only
+     sold-out needs the catalogue, and it is an upgrade applied once
+     the real data lands.
+
+     Nothing here can invent scarcity. "Sold out" requires every piece
+     in FALL_PRODUCTS to come back from Shopify unavailable; a launch
+     date is only shown when one is really configured and really still
+     ahead. There is no low-stock state on purpose -- Shopify's
+     quantities are not reliable enough across this catalogue to make a
+     claim like that, and a wrong one costs more than a missing one. */
+  function dropState(catalog) {
+    var cfg = window.ASIOR_LAUNCH || {};
+    var at = cfg.PUBLIC_LAUNCH_TIME ? Date.parse(cfg.PUBLIC_LAUNCH_TIME) : NaN;
+
+    if (isFinite(at) && Date.now() < at) return { state: 'pre-drop', at: at };
+    if (!isFinite(at)) return { state: 'evergreen', at: null };
+
+    // Needs the catalogue. Until it arrives, a launched drop is live.
+    if (!catalog || !catalog.length) return { state: 'live', at: at };
+
+    var handles = (cfg.FALL_PRODUCTS || []).map(function (p) { return p.handle; });
+    var fall = catalog.filter(function (p) { return handles.indexOf(p.handle) !== -1; });
+    // No Fall pieces in the catalogue at all is not the same as all of
+    // them being sold out, and must not be reported as one.
+    if (!fall.length) return { state: 'live', at: at };
+    var allGone = fall.every(function (p) { return p.soldOut; });
+    return { state: allGone ? 'sold-out' : 'live', at: at };
+  }
+
+  /* The launch instant in the visitor's own timezone, which is the only
+     one they can act on. Returns null rather than a guess when the
+     configured value will not parse. */
+  function launchDateLabel(at) {
+    if (!isFinite(at)) return null;
+    try {
+      var d = new Date(at);
+      var opts = {
+        weekday: 'long', month: 'long', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      };
+      // The year only when it is not this one. "Friday, March 5" is how
+      // a person says a date a few weeks out; "Friday, March 5, 2027" is
+      // how they say one that is further away, and leaving the year off
+      // that one is ambiguous rather than clean.
+      if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+      return d.toLocaleString(undefined, opts);
+    } catch (err) { return null; }
   }
 
   /* ---- mobile menu panel -------------------------------------------
@@ -824,6 +958,11 @@
         payload.$value = item.price * (item.quantity || 1);
       }
       if (item.size) payload.Size = item.size;
+      /* Where the add happened. One metric, not four -- duplicating
+         "Added to Cart" per surface would double-count every purchase
+         funnel. A property instead makes the PLP quick-add rate and the
+         PDP add rate separable without inventing a second event. */
+      if (item.source) payload.Source = item.source;
       klaviyoOnsite().push(['track', 'Added to Cart', payload]);
     } catch (err) { /* never block the add */ }
   }
@@ -926,13 +1065,32 @@
     var utm = {};
     try {
       var params = new URLSearchParams(location.search);
-      ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
+      /* utm_content and utm_term as well as the first three.
+         utm_content is the slot a creator link actually carries -- it
+         is what separates one seeded post from another inside the same
+         campaign -- so capturing source/medium/campaign alone made
+         per-creator attribution impossible: every creator on a launch
+         arrives as tiktok/creator/fall26 and is indistinguishable.
+
+         Also the common click-id params, which are what the ad
+         platforms themselves attribute by and which a UTM set does not
+         replace. */
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+       'ttclid', 'fbclid', 'gclid'].forEach(function (k) {
         var v = params.get(k);
-        if (v) utm[k] = v;
+        // Bounded: these end up in a Klaviyo profile and on events, and
+        // a pasted link can carry a very long value.
+        if (v) utm[k] = String(v).slice(0, 200);
       });
       if (Object.keys(utm).length) {
-        localStorage.setItem('asior_utm', JSON.stringify(utm));
-        return utm;
+        /* First touch wins. A visitor who lands from a creator link and
+           then comes back through a branded search should still be
+           credited to the creator -- overwriting here would quietly
+           reassign every conversion to the last channel, which is the
+           one that needed the least work. */
+        var prior = localStorage.getItem('asior_utm');
+        if (!prior) localStorage.setItem('asior_utm', JSON.stringify(utm));
+        return prior ? JSON.parse(prior) : utm;
       }
       var stored = localStorage.getItem('asior_utm');
       return stored ? JSON.parse(stored) : {};
@@ -1209,7 +1367,10 @@
     klaviyoIdentify: klaviyoIdentify,
     klaviyoSubscribeToList: klaviyoSubscribeToList,
     klaviyoTrack: klaviyoTrack,
+    trackCart: trackCart,
     klaviyoBackInStock: klaviyoBackInStock,
+    dropState: dropState,
+    launchDateLabel: launchDateLabel,
     getAnonId: getAnonId,
     getUTMParams: getUTMParams,
     getVariant: getVariant,

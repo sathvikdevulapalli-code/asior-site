@@ -364,6 +364,11 @@
   }
 
   .peek-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* In the quick view a sold-out size does something -- it asks for
+     that size back -- so it does not wear the not-allowed cursor the
+     grid's quick-add chips do, where the only job is to add. */
+  .peek-sizes .qa-size.unavailable { cursor: pointer; }
   .peek-sizes .qa-size[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
   .peek-msg {
@@ -373,6 +378,21 @@
     margin: 0;
     min-height: 1em;
   }
+
+  .peek-bis {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    display: grid;
+    gap: 8px;
+  }
+
+  /* An author `display` beats the UA's `[hidden] { display: none }`, so
+     without this the capture was visible on every piece including the
+     ones you can buy. */
+  .peek-bis[hidden] { display: none; }
+
+  .peek-bis-row { display: flex; gap: 8px; align-items: flex-end; }
+  .peek-bis-row .field { flex: 1 1 auto; min-width: 0; }
 
   .peek-trust {
     list-style: none;
@@ -1016,7 +1036,12 @@
       <source type="image/webp" srcset="images/look-02.webp">
       <img src="images/look-02.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
     </picture>
-    <div class="campaign-plate">
+    <!-- The plate is written by renderCampaign() from the real drop
+         state (see Asior.dropState). The markup served here is the
+         live-drop case, so the page is correct for a crawler and for a
+         visitor whose JS has not run; the only states that replace it
+         are ones that need JS to be true anyway. -->
+    <div class="campaign-plate" id="campaignPlate">
       <div class="campaign-text">
         <!-- "Fall 2026" is the drop this repo exists for (see CLAUDE.md),
              not a season invented to fill an eyebrow. -->
@@ -1401,7 +1426,7 @@
       try {
         await A.addToShopifyCart(variantId, 1);
         A.recordSizeChoice(size);
-        A.klaviyoTrack('Added To Cart', { handle, size, source: 'shop-grid' });
+        A.trackCart('Added To Cart', { handle, size, source: 'shop-grid' });
         // Onsite twin, for Klaviyo's Abandoned Cart flow. No price:
         // the card shows a label that can be a range or a markdown
         // pair, and a guessed number is worse than none — the helper
@@ -1412,6 +1437,7 @@
           url: location.origin + '/products/' + handle + '.html',
           size,
           quantity: 1,
+          source: 'shop-grid',
         });
         // No price here either, for the same reason: the grid's label
         // can be a range or a markdown pair, and a midpoint or a low
@@ -1425,6 +1451,11 @@
         wrap.innerHTML = `<span class="qa-msg">Added ${A.escapeHtml(size)} — <a href="/cart.html">view cart</a></span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } catch (err) {
+        // A failed add is the one funnel step with no other trace: the
+        // shopper sees an error and leaves, and nothing downstream ever
+        // records that they tried. No existing metric covers it, so this
+        // is a new one rather than a duplicate.
+        A.trackCart('Quick Add Failed', { handle, size, source: 'shop-grid' });
         wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } finally {
@@ -1635,6 +1666,64 @@
     return [...fall, ...rest];
   }
 
+  /* ---- drop state on the opening -------------------------------------
+
+     The opening changes purpose with the drop rather than being one
+     fixed hero, which is the difference between a storefront and a
+     campaign. Asior.dropState() decides; this only renders.
+
+     Every state says something true:
+       pre-drop   names the real configured instant, in the visitor's
+                  own timezone, and offers the list -- there is nothing
+                  to buy yet, so "Shop the drop" would be a dead end.
+       live       what the served markup already says.
+       sold-out   says so plainly and offers the list. No "hurry", no
+                  count, no restock promise -- we do not know one.
+       evergreen  the collection with no date attached to it.
+
+     Called twice: once before the catalogue lands (config-only states,
+     so there is no flash), once after (so sold-out can be proven). */
+  function renderCampaign(catalog) {
+    const plate = document.getElementById('campaignPlate');
+    if (!plate) return;
+    const { state, at } = A.dropState(catalog);
+    if (plate.dataset.state === state) return;
+    plate.dataset.state = state;
+
+    const title = '<h2 class="campaign-title">Fall Collection</h2>';
+    const when = A.launchDateLabel(at);
+
+    if (state === 'pre-drop') {
+      plate.innerHTML = `
+        <div class="campaign-text">
+          <span class="campaign-eyebrow">${when ? `Drops ${A.escapeHtml(when)}` : 'Coming soon'}</span>
+          ${title}
+        </div>
+        <a class="campaign-link btn btn--primary" href="/text">Get first access</a>`;
+      return;
+    }
+
+    if (state === 'sold-out') {
+      plate.innerHTML = `
+        <div class="campaign-text">
+          <span class="campaign-eyebrow">Sold out</span>
+          ${title}
+        </div>
+        <a class="campaign-link btn btn--ghost" href="/text">Tell me when it's back</a>`;
+      return;
+    }
+
+    plate.innerHTML = `
+      <div class="campaign-text">
+        <span class="campaign-eyebrow">${state === 'evergreen' ? 'Asior' : 'Fall 2026'}</span>
+        ${title}
+      </div>
+      <a class="campaign-link btn btn--ghost" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>`;
+  }
+
+  // Config-only states are knowable now; sold-out waits for the fetch.
+  renderCampaign(null);
+
   /* ---- quick view ---------------------------------------------------
 
      A shopper on the grid who wants a second look at a piece had two
@@ -1731,21 +1820,45 @@
       <div class="peek-buy">
         <h2 class="peek-name">${A.escapeHtml(product.title)}</h2>
         <div class="peek-price tnum">${priceLabel}</div>
-        ${sizeOnly && !allOut ? `
+        ${sizeOnly ? `
           <div class="peek-label">Size</div>
           <div class="peek-sizes" id="peekSizes">
             ${variants.map(v => {
               const size = (v.selectedOptions.find(o => o.name === 'Size') || {}).value || v.title;
+              /* A sold-out size here is not disabled, in either sense.
+                 `disabled` fires no click at all, so "press the size
+                 that is gone to ask for it back" could never have
+                 worked; `aria-disabled` is worse -- it tells a screen
+                 reader the control is dead while it quietly still
+                 acts. It is an ordinary enabled button whose label
+                 says what pressing it does. The strike-through is the
+                 same information for a sighted shopper. */
               return `<button type="button" class="qa-size${v.availableForSale ? '' : ' unavailable'}"
                         data-variant-id="${A.escapeAttr(v.id)}" data-size="${A.escapeAttr(size)}"
-                        ${v.availableForSale ? '' : 'disabled'}
-                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out`}"
+                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out \u2014 ask to be emailed when it is back`}"
                         aria-pressed="false">${A.escapeHtml(size)}</button>`;
             }).join('')}
           </div>` : ''}
         <button type="button" class="btn btn--primary btn--lg btn--block" id="peekAdd"
                 ${allOut ? 'disabled' : ''}>${allOut ? 'Sold Out' : 'Add to Cart'}</button>
         <p class="peek-msg" id="peekMsg" role="status" aria-live="polite"></p>
+
+        <!-- A sold-out piece was a dead end: the chips were disabled and
+             that was the end of the journey. The same back-in-stock
+             capture the product page offers now lives here, so a
+             stockout becomes a demand signal instead. It says nothing
+             about when -- we do not know, and a restock promise we
+             cannot keep is worse than none. -->
+        <div class="peek-bis" id="peekBis" ${allOut ? '' : 'hidden'}>
+          <div class="peek-label" id="peekBisLabel">Email me when it's back</div>
+          <div class="peek-bis-row">
+            <label class="sr-only" for="peekBisEmail">Email address</label>
+            <input class="field" type="email" id="peekBisEmail" name="email" placeholder="Email"
+                   autocomplete="email" spellcheck="false" required>
+            <button type="button" class="btn btn--ghost btn--sm" id="peekBisBtn">Notify me</button>
+          </div>
+          <p class="peek-msg" id="peekBisMsg" role="status" aria-live="polite"></p>
+        </div>
         <!-- The same two lines the product page states, read from the
              same helper so the shipping sentence cannot say one thing
              here and another there. Measurements and the description
@@ -1770,14 +1883,66 @@
       addBtn.disabled = true;
       sizes.addEventListener('click', (e) => {
         const b = e.target.closest('button.qa-size');
-        if (!b || b.disabled) return;
-        picked = variants.find(v => v.id === b.dataset.variantId) || null;
+        if (!b) return;
+        const v = variants.find(x => x.id === b.dataset.variantId) || null;
         sizes.querySelectorAll('.qa-size').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+
+        // A sold-out size is still a choice worth hearing: pressing it
+        // asks for that size back rather than doing nothing.
+        if (!v || !v.availableForSale) {
+          picked = null;
+          addBtn.disabled = true;
+          msg.textContent = '';
+          openPeekBis(b.dataset.size, v);
+          return;
+        }
+
+        picked = v;
         addBtn.disabled = !picked;
         msg.textContent = '';
+        if (!allOut) document.getElementById('peekBis').hidden = true;
         A.recordSizeChoice(b.dataset.size);
       });
     }
+
+    /* Back in stock. The variant matters -- Klaviyo subscribes against a
+       specific variant, so asking for a sold-out M has to send the M. */
+    let bisVariant = allOut ? (variants[0] || null) : null;
+    const bisBox = document.getElementById('peekBis');
+
+    function openPeekBis(sizeLabel, variant) {
+      if (variant) bisVariant = variant;
+      document.getElementById('peekBisLabel').textContent =
+        sizeLabel ? `Sold out in ${sizeLabel}. Email me when it's back.` : "Email me when it's back";
+      document.getElementById('peekBisMsg').textContent = '';
+      bisBox.hidden = false;
+    }
+
+    document.getElementById('peekBisBtn').addEventListener('click', async () => {
+      const input = document.getElementById('peekBisEmail');
+      const bmsg = document.getElementById('peekBisMsg');
+      const btn = document.getElementById('peekBisBtn');
+      if (!input.checkValidity()) { input.reportValidity(); return; }
+      btn.disabled = true;
+      try {
+        await A.klaviyoBackInStock(input.value, bisVariant && bisVariant.id, {
+          product: product.title, handle: handle,
+          size: bisVariant ? (bisVariant.selectedOptions.find(o => o.name === 'Size') || {}).value || null : null,
+          source: 'quick_view',
+        });
+        bmsg.textContent = "You're on the list. We'll email you the moment it's back.";
+        input.style.display = 'none';
+        btn.style.display = 'none';
+      } catch (err) {
+        console.error('Quick view back-in-stock failed:', err);
+        bmsg.textContent = "That didn't go through. Try again in a moment.";
+        btn.disabled = false;
+      }
+    });
+
+    // Sitewide "sold out" state opens the capture with no size named,
+    // because no single size is the one that went.
+    if (allOut) openPeekBis(null, variants[0] || null);
 
     addBtn.addEventListener('click', async () => {
       if (!picked || addBtn.disabled) return;
@@ -1786,14 +1951,27 @@
       addBtn.textContent = 'Adding\u2026';
       try {
         await A.addToShopifyCart(picked.id, 1);
+        const pickedSize = (picked.selectedOptions.find(o => o.name === 'Size') || {}).value || null;
+        A.trackCart('Added To Cart', { handle, size: pickedSize, source: 'quick_view' });
+        A.klaviyoAddedToCart({
+          handle,
+          name: product.title,
+          url: location.origin + '/products/' + handle + '.html',
+          size: pickedSize,
+          price: parseFloat(picked.price.amount),
+          quantity: 1,
+          source: 'quick_view',
+        });
+        if (pickedSize) A.recordSizeChoice(pickedSize);
         addBtn.textContent = 'Added';
         msg.textContent = 'In your cart.';
         // Close and hand over to the drawer, which is where the rest of
         // the cart already lives -- two cart surfaces at once is one too
         // many.
-        setTimeout(() => { peekEl.close(); A.openCartDrawer(); }, 450);
+        setTimeout(() => { peekEl.close(); A.openCartDrawer('quick_view'); }, 450);
       } catch (err) {
         console.error('Quick view add failed:', err);
+        A.trackCart('Quick Add Failed', { handle, source: 'quick_view' });
         addBtn.textContent = was;
         addBtn.disabled = false;
         msg.textContent = "That didn't go through. Try again in a moment.";
@@ -1940,7 +2118,13 @@
 
   fetchCatalog()
     .then(sortForMerchandising)
-    .then((catalog) => { CATALOG = catalog; buildToolbar(); syncToolbar(); return catalog; })
+    .then((catalog) => {
+      CATALOG = catalog;
+      // Now the catalogue can prove or disprove a sold-out drop.
+      renderCampaign(catalog);
+      buildToolbar(); syncToolbar();
+      return catalog;
+    })
     .then(renderGrid)
     .catch((err) => {
       // fail open and honest, no fake stock left standing. Logged

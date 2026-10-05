@@ -496,7 +496,7 @@ function smsSignupBlock(variant) {
       <p class="sms-signup-body">Sizes sell out and we restock rarely. One text when something
         you want is running low. No spam, no daily blasts.</p>`;
 
-  return `<div class="sms-signup sms-signup--${variant}">
+  return `<div class="sms-signup sms-signup--${variant}" data-sms-location="${esc(variant)}">
       ${heading}
       <form class="sms-form" data-sms-signup novalidate>
         <label class="sr-only" for="${id}">Mobile number</label>

@@ -830,6 +830,15 @@
     });
 
     document.getElementById('checkoutBtn').addEventListener('click', () => {
+      /* Fire-and-forget, before the redirect. A.trackCart never awaits
+         and swallows its own failures, so this cannot delay or block
+         checkout -- and the redirect itself is unchanged: still
+         cart.checkoutUrl, still the domain Shopify gives us. */
+      A.trackCart('Begin Checkout', {
+        source: 'cart_page',
+        cart_quantity: cart.totalQuantity,
+        value: cart.cost && cart.cost.totalAmount ? parseFloat(cart.cost.totalAmount.amount) : undefined,
+      });
       location.href = cart.checkoutUrl;
     });
     bindDiscountForm(cart.id);
