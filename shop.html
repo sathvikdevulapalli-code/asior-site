@@ -306,7 +306,12 @@
   }
 
   .opening-frame--tall { aspect-ratio: 3 / 4; }
-  .opening-frame--wide { aspect-ratio: 4 / 3; margin-top: 34px; }
+  .opening-frame--wide {
+    aspect-ratio: 1 / 1;
+    margin-top: 34px;
+  }
+
+  .opening-frame--wide img { object-position: center 30%; }
 
   .opening-mark {
     grid-column: 1 / -1;
@@ -367,7 +372,7 @@
 
   .product-img {
     position: relative;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
     /* Square corners. Rounded photographs are a UI convention, not a
        photographic one, and nothing in a printed lookbook has them. */
@@ -378,7 +383,15 @@
   /* The cycle. Four columns, six steps, so the taller and squarer
      tiles land in a different column on each pass down the page. */
   .shop-grid > .product:nth-child(6n + 2) .product-img,
-  .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 4 / 5; }
+  .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 3 / 4; }
+
+  /* Per-product crop overrides hang off this hook. Nothing uses it
+     today: the frame matches the source ratio closely enough across
+     the live catalogue that no product needed one. It exists so that
+     a single photograph that crops badly can be corrected on its own
+     without touching the grid, e.g.
+         .product[data-handle="jag-shorts"] .product-img img
+           { object-position: center 40%; } */
 
   .product-img img {
     width: 100%;
@@ -577,8 +590,8 @@
     /* Three columns, so the six-step cycle has to shift or the same
        column gets every tall tile. */
     .shop-grid > .product:nth-child(6n + 2) .product-img,
-    .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 3 / 4; }
-    .shop-grid > .product:nth-child(5n + 3) .product-img { aspect-ratio: 4 / 5; }
+    .shop-grid > .product:nth-child(6n + 3) .product-img { aspect-ratio: 2 / 3; }
+    .shop-grid > .product:nth-child(5n + 3) .product-img { aspect-ratio: 3 / 4; }
   }
 
   @media (max-width: 760px) {
@@ -607,8 +620,18 @@
        piece collection into a very long scroll and reads like a feed;
        two reads like a rail. */
     .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 22px 10px; }
-    .shop-grid > .product:nth-child(5n + 3) .product-img { aspect-ratio: 3 / 4; }
-    .shop-grid > .product:nth-child(4n + 2) .product-img { aspect-ratio: 4 / 5; }
+    /* Two across on a phone keeps one ratio. Irregular rows at 180px
+       wide stop reading as rhythm and start reading as misalignment,
+       and usability wins at that size.
+
+       Written with the same nth-child selectors rather than a plain
+       descendant rule: .shop-grid > .product .product-img is 0,3,0 and
+       loses to the 0,4,0 of the staggered rules above it, so the
+       simpler version was silently doing nothing here. */
+    .shop-grid > .product:nth-child(6n + 2) .product-img,
+    .shop-grid > .product:nth-child(6n + 3) .product-img,
+    .shop-grid > .product:nth-child(5n + 3) .product-img,
+    .shop-grid > .product:nth-child(4n + 2) .product-img { aspect-ratio: 2 / 3; }
     .product .name { font-size: 9.5px; letter-spacing: 0.06em; }
     .product .price { font-size: 9.5px; }
     .name-row { gap: 6px; padding-top: 7px; margin-top: 9px; }
@@ -697,7 +720,7 @@
     <figure class="opening-frame opening-frame--wide">
       <picture>
         <source type="image/webp" srcset="images/look-09.webp">
-        <img src="images/look-09.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
+        <img src="images/look-09.jpg" alt="Asior Fall collection, worn" width="800" height="1200" loading="lazy" decoding="async">
       </picture>
     </figure>
     <div class="opening-mark">
@@ -778,29 +801,26 @@
          Leave the phone field blank." Text signups were flat for as
          long as that line was here, which is not a coincidence: the one
          place on the site that asked for a number told people to skip
-         it. The field is still not required — nothing here rejects an
-         email-only signup — but the copy no longer argues against it.
+         it.
 
-         The TCPA sentence below is unchanged and must stay that way. -->
-    <p class="shop-klaviyo-sub">Texts go first when sizes run low.</p>
+         It no longer asks for a number at all. The sitewide footer
+         block on this same page is an SMS signup, so the page was
+         asking for a phone twice, in two different shapes, a screen
+         apart. This one keeps EMAIL — which the footer block cannot
+         capture — and the footer keeps SMS. One channel each.
+
+         The TCPA sentence went with the phone field, and that is
+         correct rather than a loss: the disclosure is required at the
+         point a number is collected, and nothing here collects one now.
+         The footer block, which does, carries it verbatim. -->
+    <p class="shop-klaviyo-sub">Drops, restocks and what is running low.</p>
     <form class="shop-signup-form" id="shopSignupForm">
-      <label class="sr-only" for="shopSignupPhone">Mobile number</label>
-      <input type="tel" id="shopSignupPhone" name="phone" placeholder="Mobile number"
-             autocomplete="tel" inputmode="tel">
       <label class="sr-only" for="shopSignupEmail">Email address</label>
       <input type="email" id="shopSignupEmail" name="email" placeholder="Email"
              autocomplete="email" spellcheck="false" required>
       <button type="submit" id="shopSignupBtn">Sign Up</button>
     </form>
-    <p class="consent">
-      By giving your number you agree to
-      receive recurring automated marketing texts from Asior at that number.
-      Consent is not a condition of any purchase. Message frequency varies and
-      message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
-      <a href="privacy-policy.html">Privacy Policy</a> and
-      <a href="terms-of-service.html">Terms of Service</a>.
-    </p>
-    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite">You're in. Code ASIORTEN takes 10% off your first order.</div>
+    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite"></div>
   </section>
 
   </main>
@@ -862,17 +882,21 @@
       const btn = document.getElementById('shopSignupBtn');
       const confirmEl = document.getElementById('shopSignupConfirm');
       const email = document.getElementById('shopSignupEmail').value;
-      const phone = document.getElementById('shopSignupPhone').value;
 
       btn.disabled = true;
       try {
-        await A.klaviyoSubscribe(email, phone);
+        // Email only. klaviyoSubscribe's second argument is the phone
+        // number and it is deliberately omitted: a falsy phone skips
+        // the SMS list entirely, so this form can only ever produce
+        // email consent. SMS consent on this page comes from the
+        // footer block, through its own path.
+        await A.klaviyoSubscribe(email);
         A.klaviyoTrack('Early Access Signup',
           Object.assign({ source: 'website', signup_location: 'shop', campaign: 'fall_2026', interest: 'fall_collection' },
             A.getUTMParams()),
           { email: email });
         form.style.display = 'none';
-        confirmEl.textContent = "You're in. Check your inbox for your code.";
+        confirmEl.textContent = "You're on the list. Code ASIORTEN takes 10% off your first order.";
         confirmEl.classList.add('show');
       } catch (err) {
         confirmEl.textContent = 'Something went wrong, try again in a moment.';
@@ -983,7 +1007,7 @@
         </div>`
       : '';
     return `
-      <div class="product">
+      <div class="product" data-handle="${A.escapeAttr(p.handle)}">
         <a class="product-link" href="/products/${p.handle}.html">
           <div class="product-img">${media}</div>
           <div class="name-row">

@@ -637,7 +637,7 @@ function shopCard(p, eager) {
   // revealed by an IntersectionObserver, so without it these cards
   // would be invisible to exactly the no-JS visitors they exist for.
   return `
-      <div class="product in">
+      <div class="product in" data-handle="${esc(p.handle)}">
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-img">${media}</div>
           <div class="name-row">
