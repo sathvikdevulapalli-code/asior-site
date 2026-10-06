@@ -2311,9 +2311,7 @@
         // stale-feeling "sizes left" note driven by a *different*,
         // unrelated size being low.
         if (v.stockCount > 0 && v.stockCount <= 3) {
-          note.textContent = v.stockCount === 1
-            ? `Only 1 left in ${v.options.Size || 'this size'}.`
-            : `Only ${v.stockCount} left in ${v.options.Size || 'this size'}.`;
+          note.textContent = `Only ${v.stockCount} left in ${v.options.Size || 'this size'}.`;
           note.classList.add('show');
         } else {
           note.textContent = '';

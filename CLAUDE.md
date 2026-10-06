@@ -109,6 +109,49 @@ is a 404 — while product copy promises 14-day returns. Returns copy is
 gated on the real policy existing; see `RETURNS_POLICY_PUBLISHED` in
 `scripts/build.js`.
 
+## Brand and design
+
+The site should read as a small real label run by a person. Research
+basis: Peace in War, Corteiz, Eric Emanuel, Online Ceramics, Hellstar,
+Madhappy, Aime Leon Dore, Cole Buxton, Represent, Stray Rats.
+
+**Never ship any of these.** `scripts/check-slop.js` greps the built HTML
+and fails on a hit, so this list is enforced rather than remembered:
+
+- The phrases "elevate your style", "discover our collection", "crafted
+  with passion", "timeless", "join the movement", "unleash", "premium
+  quality", "why choose us", "our mission".
+- Three-icon feature rows (Quality / Shipping / Secure checkout).
+  Testimonial carousels. "As seen in" strips.
+- Gradient or blurred-blob heroes, glassmorphism, floating 3D mockups,
+  emoji bullets, rounded cards everywhere.
+- Load-time discount popups. Fake timers. "X people viewing". Any stock
+  count not from live Shopify data.
+- Star ratings of any kind.
+- AI-generated product or model images. Real photos only.
+
+**Palette:** near-black `#0E0E0D`, off-white `#F0ECE4`, one muted grey
+`#96928A`. No other colour except the product photographs themselves.
+
+**Type:** one face, Archivo. Nav and labels all caps at 0.08em tracking;
+product copy sentence case. Square corners, 1px rules instead of cards,
+photos edge to edge on mobile. No motion beyond an image fade-in.
+
+**Voice:** short, texted rather than written. Lowercase is fine in body
+copy. "nothing in here yet." not "Your cart is currently empty."
+
+**Sold out stays visible.** A sold-out product or size is left in the
+grid with its label. It reads as proof that things sell, which is why
+Corteiz and Hellstar do it, and hiding it throws that away.
+
+**AI-generated imagery.** `isGeneratedImage()` in `scripts/build.js`
+detects generator filenames (Firefly, Midjourney, DALL-E, Stable
+Diffusion, "GeminiFlash", `nano-banana`). Such an image is never the
+grid tile, the OG image or the first PDP frame; a real photograph is
+promoted ahead of it. Kova's Shopify `featuredImage` is a Firefly render
+as of 2026-10-06 and is demoted this way. It is not deleted — that is
+the founder's call in Shopify Admin.
+
 ## Build step (`scripts/build.js`)
 
 Run via `npm run build`. It:

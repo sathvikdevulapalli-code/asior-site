@@ -1,9 +1,10 @@
 {
   "name": "asior-site",
   "private": true,
-  "description": "Asior storefront — static HTML on the Shopify Storefront API.",
+  "description": "Asior storefront \u2014 static HTML on the Shopify Storefront API.",
   "scripts": {
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js && node scripts/check-slop.js",
+    "check:slop": "node scripts/check-slop.js"
   },
   "engines": {
     "node": ">=18"

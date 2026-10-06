@@ -185,7 +185,7 @@ function prerenderedPdp(p) {
      class to toggle, nothing to wait for. It is painted before any
      script runs and before any interaction, which is the requirement.
      The hydrated gallery still replaces it a moment later. */
-  const f = p.featuredImage;
+  const f = leadImage(p);
   const imgHtml = f
     ? `<div class="pd-prerender-media"><img src="${esc(f.w1200 || f.url)}"`
       + (srcsetFor(f) ? ` srcset="${srcsetFor(f)}"` : '')
@@ -204,6 +204,46 @@ function prerenderedPdp(p) {
       ${descHtml}
       ${smsSignupBlock('pdp')}
     </div>`;
+}
+
+/* Is this image a generator's output?
+
+   Detected by filename, because that is what the generators leave
+   behind: Adobe Firefly writes "Firefly_...", and the rest are just as
+   literal. Kova's Shopify featuredImage as of 2026-10-06 is
+   "Firefly_GeminiFlash_maketheproportionsthesameas...png" -- so the
+   render was the shop tile, the Open Graph image and the first frame
+   on the product page, which is every place a stranger forms their
+   first impression of the garment.
+
+   Brief v13 §0: real photos only, flag it, keep it until the founder
+   replaces it, never use it in hero or OG. So it is demoted rather
+   than dropped -- it stays in the gallery, and a real photograph is
+   promoted ahead of it. Deleting it is a Shopify Admin decision and
+   not this repo's to make. */
+function isGeneratedImage(img) {
+  const url = (img && (img.url || img)) || '';
+  return /Firefly_|Midjourney|DALL-?E|StableDiffusion|GeminiFlash|nano-banana|AIGenerated/i.test(url);
+}
+
+/* The image a product should lead with: its first real photograph.
+
+   Falls back to the generated one only when there is nothing else,
+   because a product with no image at all converts worse than one with
+   a flawed image, and the point is to stop a render being the FIRST
+   thing shown rather than to hide the product. */
+function leadImage(p) {
+  const all = ((p.images && p.images.edges) || []).map(e => e.node);
+  const featured = p.featuredImage;
+  if (featured && !isGeneratedImage(featured)) return featured;
+  const real = all.find(im => im && im.url && !isGeneratedImage(im));
+  if (real) {
+    if (featured) {
+      console.log(`  ${p.handle}: featuredImage is a generated render, promoting a real photograph`);
+    }
+    return real;
+  }
+  return featured || all[0] || null;
 }
 
 function productJsonLd(p, url) {
@@ -279,8 +319,9 @@ function renderProductPage(template, p) {
   const title = `${name} | Asior`;
   const desc = plainDescription(p.descriptionHtml,
     `${name} from Asior — limited-run streetwear made in small batches.`);
-  const img = p.featuredImage ? p.featuredImage.url : `${BASE}/assets/og-default.jpg`;
-  const alt = p.featuredImage && p.featuredImage.altText ? p.featuredImage.altText : name;
+  const lead = leadImage(p);
+  const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
+  const alt = lead && lead.altText ? lead.altText : name;
 
   let html = template;
 
@@ -304,7 +345,7 @@ function renderProductPage(template, p) {
 
   // Shopify's own images aren't 1200x630; drop the dimension hints
   // rather than state wrong ones.
-  if (p.featuredImage) {
+  if (lead) {
     html = html
       .replace(/<meta property="og:image:width" content="[^"]*">\n?/, '')
       .replace(/<meta property="og:image:height" content="[^"]*">\n?/, '');
@@ -750,7 +791,7 @@ function shopCard(p, eager) {
   const isPreorder = /\[preorder\]/i.test(p.title);
   const soldOut = variants.length > 0 && variants.every(v => !v.availableForSale);
 
-  const img = p.featuredImage;
+  const img = leadImage(p);
   let media = '<div class="ph"></div>';
   if (img && img.url) {
     const srcset = srcsetFor(img);
@@ -773,7 +814,7 @@ function shopCard(p, eager) {
      to stay in step; a visitor sees this markup until the live fetch
      replaces it. */
   const all = ((p.images && p.images.edges) || []).map(x => x.node);
-  const firstUrl = p.featuredImage && p.featuredImage.url;
+  const firstUrl = leadImage(p) && leadImage(p).url;
   const altImg = all.find(im => im && im.url && im.url !== firstUrl);
   const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
 
