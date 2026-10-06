@@ -573,6 +573,57 @@
      it does not buy anything, and the violet has exactly one job. */
   .campaign-link { flex: none; backdrop-filter: blur(2px); }
 
+  /* ---------- proposition ----------
+     A rule-separated row of three, not a card grid. Measured against
+     the page's own type scale: the lead reads at body size and the
+     three facts sit under mono keys, so it scans in about four
+     seconds and then gets out of the way of the products. */
+  .proposition {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 34px 40px 6px;
+  }
+
+  .proposition-lead {
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 700;
+    font-size: clamp(17px, 2vw, 23px);
+    line-height: 1.22;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0 0 22px;
+    max-width: 30ch;
+  }
+
+  .proposition-facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 26px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+
+  .proposition-facts li {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .proposition-k {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 7px;
+  }
+
   /* ---------- drop intro ---------- */
   .drop-intro {
     max-width: 1180px;
@@ -915,6 +966,8 @@
     .campaign-plate { padding: 90px 16px 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
     .campaign-eyebrow { font-size: 9.5px; letter-spacing: 0.18em; }
     .drop-intro { padding: 20px 16px 10px; font-size: 9.5px; letter-spacing: 0.1em; }
+    .proposition { padding: 26px 16px 2px; }
+    .proposition-facts { grid-template-columns: 1fr; gap: 18px; }
     .band { margin-bottom: 8vh; }
     .band-caption { padding: 0 16px; }
     .shop-lookbook { padding: 0 16px 8vh; }
@@ -1050,6 +1103,39 @@
       </div>
       <a class="campaign-link btn btn--ghost" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>
     </div>
+  </section>
+
+  <!-- What Asior is, in three facts a visitor can check.
+
+       The homepage resolved straight to a product grid, so a stranger
+       got prices before they got any reason to care. This is the
+       answer, and every line of it is already true and already
+       published somewhere on this site -- the production pipeline is
+       manufacturing.html's own claim, the small-run framing is the
+       founder's, and the dispatch time comes from the verified
+       shipping config. No mission statement, no origin story, nothing
+       about craft or passion. Three checkable facts and a way in. -->
+  <section class="proposition" aria-label="About Asior">
+    <p class="proposition-lead">
+      Asior is a small-run streetwear label that makes its own garments.
+    </p>
+    <ul class="proposition-facts">
+      <li>
+        <span class="proposition-k">Made, not sourced</span>
+        Fabric sourcing, decoration and quality control run through our own
+        production line &mdash; the same one we open to other brands.
+      </li>
+      <li>
+        <span class="proposition-k">Small runs</span>
+        Pieces are made in limited quantities and restocked rarely. When a
+        size is gone it is gone until we make more.
+      </li>
+      <li>
+        <span class="proposition-k">Ships from the US</span>
+        <span id="propShipping">Dispatched in 1&ndash;2 business days.</span>
+        14-day returns on unworn items with tags.
+      </li>
+    </ul>
   </section>
 
   <!-- One small row instead of a section heading. -->
@@ -1720,6 +1806,13 @@
       </div>
       <a class="campaign-link btn btn--ghost" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>`;
   }
+
+  /* The proposition's shipping line comes from the same helper the
+     product page and the cart use, so all three can never disagree. */
+  (() => {
+    const el = document.getElementById('propShipping');
+    if (el && A.shippingLine) el.textContent = A.shippingLine();
+  })();
 
   // Config-only states are knowable now; sold-out waits for the fetch.
   renderCampaign(null);

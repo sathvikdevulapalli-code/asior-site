@@ -1000,3 +1000,28 @@ html.cart-drawer-locked { overflow: hidden; }
 }
 
 .btn--primary:focus-visible { outline-color: var(--ink); }
+
+/* The B2B row, deliberately quieter than the policy links above it and
+   clearly labelled, so a clothing customer can tell at a glance that it
+   is not for them. */
+.business-links {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.business-links .business-label { color: var(--muted); }
+.business-links a { color: var(--ink-dim); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+.business-links a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+@media (max-width: 640px) {
+  .business-links { flex-direction: column; gap: 6px; text-align: center; }
+}

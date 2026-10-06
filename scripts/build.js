@@ -367,6 +367,51 @@ async function syncPolicy(slug, file) {
     .replace(/\s(class|style|id)="[^"]*"/g, '')
     .trim();
 
+  /* Shopify's policy templates ship with literal "[LINK]" placeholders
+     where the merchant is meant to link their other policies. Four of
+     them were live on the public Terms and Privacy pages: "our Privacy
+     Policy [LINK]", "our Refund Policy [LINK]", "viewed here [LINK]".
+     A legal page telling a customer to follow a placeholder is the
+     cheapest possible way to look unfinished at the moment they are
+     deciding whether to trust you with a card.
+
+     Resolved here rather than in Shopify Admin, because this repo does
+     not write to Admin -- and resolved by WHAT THE SENTENCE SAYS, not
+     positionally, so a reordered policy cannot silently point Privacy
+     at Refunds. A [LINK] whose sentence names no policy we host is
+     dropped rather than guessed at: a wrong legal link is worse than a
+     missing one. Whoever owns the Shopify policies should still fill
+     these in at the source; this keeps the public page honest until
+     they do. */
+  const POLICY_HREFS = [
+    [/privacy\s+polic/i, '/privacy-policy.html', 'Privacy Policy'],
+    [/refund\s+polic|return\s+polic/i, '/refund-policy.html', 'Refund Policy'],
+    [/terms\s+of\s+service/i, '/terms-of-service.html', 'Terms of Service'],
+    [/shipping\s+polic/i, '/shipping-policy.html', 'Shipping Policy'],
+    // Only pages this site actually serves. /refund-policy.html and
+    // /shipping-policy.html are listed because Shopify's text refers to
+    // them, but neither exists in this repo today -- the existence check
+    // below drops those rather than pointing a legal page at a 404.
+  ].filter(([, href]) => fs.existsSync(path.join(ROOT, href.replace(/^\//, ''))));
+  let resolved = 0, dropped = 0;
+  body = body.replace(/\s*\[LINK\]/g, (match, offset) => {
+    // Look back over the sentence this placeholder ends, so the link
+    // text comes from the clause that introduced it.
+    const before = body.slice(Math.max(0, offset - 180), offset);
+    const sentence = before.split(/[.;]\s/).pop() || before;
+    for (const [re, href, label] of POLICY_HREFS) {
+      if (re.test(sentence)) {
+        resolved++;
+        return ` (<a href="${href}">${label}</a>)`;
+      }
+    }
+    dropped++;
+    return '';
+  });
+  if (resolved || dropped) {
+    console.log(`  ${slug}: ${resolved} [LINK] placeholder(s) resolved, ${dropped} dropped as unmatched`);
+  }
+
   const target = path.join(ROOT, file);
   const html = fs.readFileSync(target, 'utf8');
   const start = html.indexOf('<!-- POLICY:START -->');
@@ -437,9 +482,8 @@ const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Collect
     <nav id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
+      <a href="community.html">Lookbook</a>
+      <a href="contact.html">Support</a>
       ${CART_LINK}
     </nav>
   </header>
@@ -523,9 +567,20 @@ const FOOTER_HTML = `  <footer id="order">
     </div>
     <div class="policy-links">
       <a href="/text">Text List</a>
+      <a href="account.html">Account</a>
       <a href="privacy-policy.html">Privacy Policy</a>
       <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+    </div>
+    <!-- Manufacturing is a B2B service for other brands. It was sitting
+         in the main shopping nav between Contact and the cart, which put
+         a different buyer's destination in the middle of a clothing
+         customer's journey. Nothing is removed -- the page, its URL and
+         its form all still work -- it is just reached from here, where
+         someone looking for it will look, instead of from the nav a
+         shopper uses to find a tee. -->
+    <div class="business-links">
+      <span class="business-label">For brands</span>
+      <a href="manufacturing.html">Manufacturing &amp; production</a>
     </div>
   </footer>
 `;

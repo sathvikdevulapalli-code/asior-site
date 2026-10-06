@@ -1297,22 +1297,69 @@
     return parts.join(', and ') + '.';
   }
 
+  /* "Dispatched in", not "Ships in".
+
+     FULFILMENT is handling time -- the config says so in its own
+     comment -- but the sentence rendered it as "Ships in 1-2 business
+     days", which a customer reads as arrival. The real cheapest US
+     rate is 5-8 business days in transit on top of that, so the page
+     was setting an expectation the carrier cannot meet, at the exact
+     moment the shopper decides to trust it. Transit is named here as
+     a separate thing and left to checkout, which is the only place it
+     is actually known for a given address. */
   function shippingLine() {
     var s = shippingConfig();
     var fulfil = s.FULFILMENT || '1-2 business days';
     var region = s.REGION ? ', ' + s.REGION : '';
     if (freeShippingActive() && s.FREE_THRESHOLD === 0) {
-      return 'Free shipping on every order, no minimum. Ships in ' + fulfil + region + '.';
+      return 'Free shipping on every order, no minimum. Dispatched in ' + fulfil + region + '.';
     }
     if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
-      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Ships in ' + fulfil + region + '.';
+      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Dispatched in ' + fulfil + region + '.';
     }
     if (typeof s.FROM_PRICE === 'number') {
-      return 'Ships in ' + fulfil + '. Shipping from $' + s.FROM_PRICE.toFixed(2)
-        + ' in the US, calculated at checkout.';
+      return 'Dispatched in ' + fulfil + '. Delivery is on top of that \u2014 US shipping from $'
+        + s.FROM_PRICE.toFixed(2) + ', calculated at checkout.';
     }
-    return 'Ships in ' + fulfil + '. Shipping calculated at checkout'
-      + (s.REGION ? ' — ' + s.REGION : '') + '.';
+    return 'Dispatched in ' + fulfil + '. Delivery and shipping calculated at checkout'
+      + (s.REGION ? ' \u2014 ' + s.REGION : '') + '.';
+  }
+
+  /* The full shipping picture, built from the verified rate card rather
+     than written as prose.
+
+     The product page used to carry a hardcoded sentence that disagreed
+     with the configuration in three ways at once: it promised delivery
+     in "2-5 business days" when the real rates are 5-8 (Economy) and
+     3-4 (Standard), and it said "shipping within the US only for now"
+     when international has been live through Managed Markets to 28
+     countries. Prose drifts from the rate card; this cannot, because
+     it is the rate card. Every number here comes from
+     assets/promo-config.js and nothing is written twice. */
+  function shippingDetailHTML() {
+    var s = shippingConfig();
+    var out = '<p>' + escapeHtml(shippingLine()) + '</p>';
+
+    var rates = Array.isArray(s.RATES) ? s.RATES : [];
+    if (rates.length) {
+      out += '<table class="ship-rates"><caption class="sr-only">US shipping rates</caption>'
+        + '<thead><tr><th scope="col">US option</th><th scope="col">Cost</th>'
+        + '<th scope="col">In transit</th></tr></thead><tbody>'
+        + rates.map(function (r) {
+            return '<tr><th scope="row">' + escapeHtml(r.label) + '</th>'
+              + '<td class="tnum">$' + Number(r.price).toFixed(2) + '</td>'
+              + '<td>' + escapeHtml(r.transit) + '</td></tr>';
+          }).join('')
+        + '</tbody></table>'
+        // Transit is business days after dispatch, not from the order.
+        + '<p class="ship-note">Transit time starts when the parcel leaves us, not when you order.</p>';
+    }
+
+    var intl = internationalLine();
+    if (intl) out += '<p>' + escapeHtml(intl) + '</p>';
+    var note = internationalCheckoutNote();
+    if (note) out += '<p>' + escapeHtml(note) + '</p>';
+    return out;
   }
 
   /* Short badge for the announcement bar and shop grid. Null when
@@ -1344,6 +1391,7 @@
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
     shippingLine: shippingLine,
+    shippingDetailHTML: shippingDetailHTML,
     internationalLine: internationalLine,
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,

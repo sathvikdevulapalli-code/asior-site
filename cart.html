@@ -33,7 +33,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-     shop.html's equivalent comment for why. -->
+<!-- launch-config.js is loaded here for the same reason shop.html loads
+     it: it carries FALL_PRODUCTS and the commerce flag, and anything
+     that decides what a visitor sees has to be able to read it
+     synchronously before paint. -->
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
 <style>
@@ -440,6 +443,20 @@
        overriding the shared rule, which is why the panel opened at
        the width of the old strip. */
     .cart-wrap { padding: 0 20px 10vh; }
+
+    /* The signup is two fields and a button. As a centred wrapping flex
+       row at 390px it broke into a ragged stack -- phone on one line,
+       email and SIGN UP sharing the next on different baselines. One
+       column, full width, button last: the same shape as every other
+       form on the site at this width. */
+    .cart-signup-form {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+
+    .cart-signup-form input { min-width: 0; width: 100%; }
+    .cart-signup-form button { width: 100%; min-height: 44px; }
     .cart-item { grid-template-columns: 60px 1fr auto; }
     /* justify-self, because a grid item stretches to fill its track by
        default: the stepper was spanning the whole 1fr column with "-",

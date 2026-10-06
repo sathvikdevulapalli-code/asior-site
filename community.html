@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community | Asior</title>
-<meta name="description" content="Asior worn by the people who buy it — community photos and what customers say about the fit and quality.">
+<title>Lookbook | Asior</title>
+<meta name="description" content="The Fall collection worn and styled. Every look links to the pieces in it.">
 <meta name="theme-color" content="#0b0a08">
 <link rel="canonical" href="https://asiorclothing.com/community.html">
 
@@ -12,8 +12,8 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Community | Asior">
-<meta property="og:description" content="Asior worn by the people who buy it — community photos and what customers say about the fit and quality.">
+<meta property="og:title" content="Lookbook | Asior">
+<meta property="og:description" content="The Fall collection worn and styled. Every look links to the pieces in it.">
 <meta property="og:url" content="https://asiorclothing.com/community.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
@@ -35,6 +35,15 @@
     padding: 0 40px 9vh;
     max-width: 1180px;
     margin: 0 auto;
+  }
+
+  .look-intro {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: -14px 0 26px;
+    max-width: 48ch;
   }
 
   .gallery {
@@ -149,8 +158,20 @@
 
   <main id="main">
 
+  <!-- Renamed from "Community" to what it actually is.
+
+       The page was a six-image gallery under a Community heading, with
+       no way for anybody to participate -- no submissions, no customer
+       stories, no event. A title is not a community programme, and
+       calling a lookbook one is the kind of small overclaim that makes
+       a visitor discount everything else on the page.
+
+       The URL stays /community.html so no existing link, share or
+       index entry breaks. The slot for real customer looks is below,
+       commented out until there is permissioned content to put in it. -->
   <section class="lookbook" id="look">
-    <h1 class="rail-label">Community</h1>
+    <h1 class="rail-label">Lookbook</h1>
+    <p class="look-intro">The Fall collection, worn. Shot on the people who actually wear it.</p>
     <div class="gallery">
       <div class="look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior look 01" width="800" height="1200" fetchpriority="high" decoding="async"></picture></div>
       <div class="look"><picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Asior look 02" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
@@ -160,6 +181,25 @@
       <div class="look"><picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="Asior look 06" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
     </div>
   </section>
+
+  <!-- ===== Customer looks =====================================
+       The extensible slot the lookbook is meant to grow into. It stays
+       commented out rather than rendering an empty "be the first"
+       state, because an empty community section advertises that there
+       is no community.
+
+       To turn it on: populate window.ASIOR_CUSTOMER_LOOKS in
+       assets/product-details.js with { image, handle, size, name,
+       permission } entries -- every one of which needs the wearer's
+       recorded permission, a real product handle so the look links to
+       the piece, and the size worn so it doubles as fit evidence.
+       Then uncomment this section.
+
+       <section class="customer-looks">
+         <h2 class="rail-label">Worn by</h2>
+         <div class="gallery" id="customerLooks"></div>
+       </section>
+       ========================================================= -->
 
   <!-- Testimonials removed. The two quotes that were here were not
      attributed to a named, permissioned person, and nobody has

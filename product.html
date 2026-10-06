@@ -250,6 +250,32 @@
     text-transform: uppercase;
   }
 
+  /* The count sits at the same weight as the average on purpose --
+     see ratingHTML(). Nothing here is a star row: five glyphs make one
+     review look like a verdict. */
+  .pd-set-note {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  .pd-set-note a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+
+  .pd-rating {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 7px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .pd-rating-value { color: var(--ink); }
+  .pd-rating-count { color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; }
+
   /* Bumped from 14px/var(--muted) — the price is a lead element in the
      buy panel now, so it needs to read at a glance rather than at the
      same weight as secondary metadata. */
@@ -599,6 +625,38 @@
   }
 
   .pd-ship-body p + p { margin-top: 10px; }
+
+  /* The real US rate card, rendered from assets/promo-config.js. Each
+     transit time stays attached to the rate it belongs to -- quoting
+     the 3-4 day Standard speed next to the $4.90 Economy price would
+     advertise a combination nobody can actually buy. */
+  .ship-rates {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+
+  .ship-rates th,
+  .ship-rates td {
+    text-align: left;
+    padding: 7px 10px 7px 0;
+    border-bottom: 1px solid var(--line);
+    font-weight: 400;
+    color: var(--ink-dim);
+  }
+
+  .ship-rates thead th {
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .ship-rates tbody th { color: var(--ink); }
+  .ship-rates td.tnum { font-variant-numeric: tabular-nums; }
+  .ship-note { font-size: 11.5px; color: var(--muted); }
 
   .pd-size-chart-note {
     font-size: 11px;
@@ -1221,6 +1279,15 @@
       query($handle: String!) {
         product(handle: $handle) {
           id title handle descriptionHtml
+          # Real customer ratings. Shopify's standard reviews.* fields,
+          # written by the Judge.me app the store already runs -- not a
+          # second review system and not anything this site invents. Four
+          # reviews exist across the whole catalogue as of this build, so
+          # the count is always rendered beside the average; an average
+          # from one review presented on its own would imply a body of
+          # evidence that is not there.
+          rating: metafield(namespace: "reviews", key: "rating") { value }
+          ratingCount: metafield(namespace: "reviews", key: "rating_count") { value }
           images(first: 12) { edges { node { ${A.IMAGE_FIELDS} } } }
           options { name values }
           variants(first: 40) {
@@ -1335,6 +1402,20 @@
       optionNames,
       variants,
       isPreorder: /\[preorder\]/i.test(node.title),
+      // Parsed defensively: the metafield is a JSON string, it can be
+      // absent on most products (only three carry one), and a product
+      // with no reviews must render nothing rather than "0 / 5".
+      rating: (() => {
+        try {
+          if (!node.rating || !node.ratingCount) return null;
+          const r = JSON.parse(node.rating.value);
+          const value = parseFloat(r.value);
+          const count = parseInt(node.ratingCount.value, 10);
+          const max = parseFloat(r.scale_max) || 5;
+          if (!isFinite(value) || !isFinite(count) || count < 1) return null;
+          return { value, count, max };
+        } catch (err) { return null; }
+      })(),
     };
   }
 
@@ -1403,6 +1484,57 @@
         <p class="pd-size-chart-note">Garment measured flat, not body measurements. Compare against a piece you already own and like the fit of.</p>
         <ul>${which}</ul>
       </div>`;
+  }
+
+  /* The JAG Set's one real sizing constraint, said out loud.
+
+     Checked against Shopify: the set is a single product with one Size
+     option (XS/S/M/L) and one $80 price per variant. There is no
+     separate top and bottom inventory behind it, so a customer who
+     takes a different size on top than on the bottom genuinely cannot
+     buy the set -- and the page used to let them find that out by
+     failing to find the combination they wanted.
+
+     Separate top/bottom selection is not implemented, because it would
+     be a lie about what checkout can fulfil. Restructuring the bundle
+     is a Shopify Admin change and not this repo's to make. What the
+     page can do is say so, and point at the thing that does work: the
+     crewneck and the sweats are both sold separately, at $45 each. */
+  function setSizingNote(product) {
+    const d = (window.ASIOR_PRODUCT_DETAILS || {})[product.handle];
+    if (!d || d.garment !== 'set') return '';
+    return `
+      <p class="pd-set-note">
+        One size covers both pieces. If you take a different size on top,
+        buy the <a href="/products/jaguar-crewneck.html">crewneck</a> and
+        <a href="/products/jaguar-sweats.html">sweats</a> separately.
+      </p>`;
+  }
+
+  /* Real customer rating, or nothing.
+
+     The store runs Judge.me and Shopify carries its numbers in the
+     standard reviews.rating / reviews.rating_count metafields, but this
+     storefront never showed them -- so genuine proof the brand had
+     already earned was invisible while the page asked people to trust
+     it.
+
+     Two rules, both about not overstating thin evidence. The count is
+     always rendered beside the average, never suppressed, because
+     "5 / 5" from a single review implies a body of evidence that does
+     not exist. And every rating is shown, including the low one: a
+     storefront that displays its 5.0 and hides its 1.0 is not showing
+     customer proof, it is advertising. If a rating should not be
+     public, that belongs in Judge.me, not in a display filter here. */
+  function ratingHTML(product) {
+    const r = product.rating;
+    if (!r) return '';
+    const rounded = Math.round(r.value * 10) / 10;
+    return `
+      <p class="pd-rating">
+        <span class="pd-rating-value tnum">${rounded} / ${r.max}</span>
+        <span class="pd-rating-count">${r.count} ${r.count === 1 ? 'review' : 'reviews'}</span>
+      </p>`;
   }
 
   function sizeGuideHTML(product) {
@@ -1527,7 +1659,7 @@
       <details class="pd-row pd-ship">
         <summary>Shipping &amp; Returns</summary>
         <div class="pd-row-body pd-ship-body">
-          <p>Ships within 1-2 business days via USPS. Delivery typically takes 2-5 business days after that. Shipping within the US only for now.</p>
+          ${A.shippingDetailHTML()}
           <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
         </div>
       </details>`;
@@ -1611,9 +1743,11 @@
             ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
             <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
             <div class="pd-price tnum" id="pdPrice"></div>
+            ${ratingHTML(product)}
             ${factsHTML}
 
             ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
+            ${setSizingNote(product)}
 
             <div class="pd-actions">
               <div class="pd-qtyrow">
