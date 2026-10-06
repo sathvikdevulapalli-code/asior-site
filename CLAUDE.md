@@ -54,6 +54,61 @@ Never invent product facts — prices, inventory, compare-at pricing,
 measurements, sizes, or copy — that aren't actually coming from Shopify
 or this config file.
 
+## Discounts
+
+One live code: **ASIORTEN, 10% off, once per customer, no expiry.** It is
+the only code the site may mention. Any other discount copy is a bug —
+including "5% off", a welcome-signup percentage, free shipping, or
+"subscriber pricing". None of those exist in Shopify.
+
+Discount *amounts* are never computed here. Shopify rounds per line
+(3 x $42.99 at 10% is 3 x $4.29 = $12.87, not $12.897), so the figure
+shown must come from the Storefront cart's `discountAllocations` /
+`discountCodes` or it will disagree with checkout.
+
+## Data sources
+
+Everything the site states about a product or an order comes from one of
+these. Nothing else is a source, and nothing may be written from memory.
+
+**Shopify product metafields** (storefront PUBLIC_READ, created 2026-10-05):
+- `custom.fit_notes` (multi-line text) — the fit sentence above the size
+  picker. Filled for the Polo and both shorts; empty elsewhere.
+- `custom.size_chart` (JSON) —
+  `{"unit":"in","columns":["Chest","Length"],"rows":{"S":[20,27]}}`.
+  Empty everywhere as of this writing; the founder measures. Render the
+  table only when it parses, and drop the "How to Measure" accordion
+  when it does not.
+- `custom.model_info`, `custom.fabric_care` (text) — empty; render only
+  when set.
+- `reviews.rating` / `reviews.rating_count` — real Judge.me numbers.
+  Four reviews exist in total. If ratings are shown at all, every one
+  is shown including the 1.0: suppressing negative reviews is an FTC
+  problem, not a design choice.
+- Do **not** render `shopify.fabric` or the other `shopify.*` taxonomy
+  values. Those are Shopify's auto-suggestions, not verified facts.
+
+**Shipping** (live Shopify config, 2026-10-05) lives in
+`assets/promo-config.js`:
+- Dispatch 1–2 business days. That is handling time, not delivery.
+- US rates: Economy $4.90 (0–5 lb), Standard $6.90 (0–1 lb) / $9.90
+  (1–5 lb). Transit: Economy 5–8 business days, Standard 3–4. Each
+  transit time belongs to its own rate and may not be quoted next to a
+  different one.
+- **No country count may be stated anywhere.** Delivery zones are active
+  for 244 countries, the policy text still says "US only for now", and
+  the founder has not decided which is true. Until he does, the site
+  says nothing about where it ships beyond the US rates above.
+
+**Support email** is one address site-wide, from `SUPPORT_EMAIL` in
+`scripts/build.js`. It is Shopify's contact address. Do not switch it to
+`hello@` until someone confirms that inbox is read.
+
+**No refund policy exists** — not in Shopify, and `/refund-policy.html`
+is a 404 — while product copy promises 14-day returns. Returns copy is
+gated on the real policy existing; see `RETURNS_POLICY_PUBLISHED` in
+`scripts/build.js`.
+
 ## Build step (`scripts/build.js`)
 
 Run via `npm run build`. It:
