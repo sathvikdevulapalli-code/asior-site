@@ -1267,7 +1267,7 @@
      filled in renders nothing rather than a vague claim. */
   function internationalLine() {
     var s = shippingConfig();
-    if (!s.INTERNATIONAL) return null;
+    if (!s.INTERNATIONAL || !s.INTERNATIONAL_STANCE_CONFIRMED) return null;
     var n = s.INTERNATIONAL_COUNTRIES;
     if (typeof n !== 'number' || !(n > 0)) return null;
     var line = 'Ships worldwide to ' + n + ' countries.';
@@ -1285,7 +1285,7 @@
      phone number and Chinese customs requires the ID. */
   function internationalCheckoutNote() {
     var s = shippingConfig();
-    if (!s.INTERNATIONAL) return null;
+    if (!s.INTERNATIONAL || !s.INTERNATIONAL_STANCE_CONFIRMED) return null;
     var parts = [];
     if (s.INTERNATIONAL_PHONE_REQUIRED) {
       parts.push('International orders ask for a phone number because the carrier requires one');

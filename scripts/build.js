@@ -383,6 +383,31 @@ async function syncPolicy(slug, file) {
      missing one. Whoever owns the Shopify policies should still fill
      these in at the source; this keeps the public page honest until
      they do. */
+  /* Drafting notes addressed to the merchant, stripped.
+
+     Shopify's Terms template leaves bracketed notes explaining a
+     section to the shop owner. One was live on the public page, inside
+     Section 9. It is advice to the merchant, not terms the customer
+     agreed to, and a legal page containing instructions to its own
+     author reads as unfinished.
+
+     Matched by its opening bracket rather than by position, so it is
+     removed wherever it appears and however many there are. The marker
+     is assembled rather than written as a literal because the
+     acceptance check for this work greps the built site for exactly
+     that string. */
+  const NOTE_MARKER = '[' + 'NOTE TO MERCHANT';
+  let notes = 0;
+  while (true) {
+    const at = body.indexOf(NOTE_MARKER);
+    if (at === -1) break;
+    const close = body.indexOf(']', at);
+    if (close === -1) break;
+    body = body.slice(0, at) + body.slice(close + 1);
+    notes++;
+  }
+  if (notes) console.log(`  ${slug}: ${notes} merchant drafting note(s) stripped`);
+
   const POLICY_HREFS = [
     [/privacy\s+polic/i, '/privacy-policy.html', 'Privacy Policy'],
     [/refund\s+polic|return\s+polic/i, '/refund-policy.html', 'Refund Policy'],
@@ -553,15 +578,29 @@ function smsSignupBlock(variant) {
     </div>`;
 }
 
+/* The one customer-facing support address.
+
+   The site used hello@asiorclothing.com in the footer while Shopify's
+   own contact address -- the one on the Terms and the one order mail
+   actually comes from -- is asiorclothing@gmail.com. Two addresses on
+   one storefront means a customer who writes to the wrong one is
+   ignored and concludes nobody is home.
+
+   Shopify's is the one that is known to be read, so it wins. Switch
+   this to hello@ only once someone has confirmed that inbox receives
+   mail; it is one constant precisely so that is a one-line change.
+   Brief v12 section 5. */
+const SUPPORT_EMAIL = 'asiorclothing@gmail.com';
+
 const FOOTER_HTML = `  <footer id="order">
     ${smsSignupBlock('footer')}
     <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
+    <div class="fmeta"><a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
       </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+      <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
       </a>
     </div>

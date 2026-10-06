@@ -253,6 +253,24 @@
   /* The count sits at the same weight as the average on purpose --
      see ratingHTML(). Nothing here is a star row: five glyphs make one
      review look like a verdict. */
+  /* The fit sentence sits directly above the size picker, where the
+     decision it informs is made. Brief v12 section 7. */
+  .pd-fit {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    margin-top: 14px;
+  }
+
+  .pd-care {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
   .pd-set-note {
     font-family: var(--font-body);
     font-size: 12px;
@@ -703,8 +721,8 @@
      price, at the top of the buy panel), not just in the sitewide
      banner — same instant, read from the same source, so the two can
      never disagree. */
-  /* Sign-up value prop. Carries the real welcome discount (5%, the
-     Shopify SIGNUP pool) and no other number, and no price on this
+  /* Sign-up value prop. Carries the real welcome discount (the
+     one Shopify code) and no other number, and no price on this
      page is ever struck through for it. It used to sit under a
      countdown to a close date; the collection has no end date now, so
      the offer stands on its own. */
@@ -1219,12 +1237,12 @@
   <!-- FOOTER:START -->
   <footer id="order">
     <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
+    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
       </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
+      <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
       </a>
     </div>
@@ -1289,22 +1307,68 @@
      the rating is absent, which is the same as it was before it
      existed. Best case it renders. Neither case can stop a visitor
      buying. */
-  async function fetchRating(handle) {
+  /* Every metafield the page would like but can live without, in one
+     optional request.
+
+     custom.fit_notes is filled for the Polo and both shorts;
+     custom.size_chart, custom.model_info and custom.fabric_care are
+     defined but empty everywhere as of 2026-10-06. Each renders only
+     when it has a value, so an empty field produces no empty box.
+
+     Deliberately NOT part of the product query: see fetchProduct. A
+     metafield the Storefront API will not serve returns a GraphQL
+     error, and shopifyFetch throws on errors, so asking for these
+     alongside the product would let a permissions problem take down
+     every product page. Here it just means no fit line. */
+  async function fetchExtras(handle) {
     try {
       const d = await A.shopifyFetch(`
         query($handle: String!) {
           product(handle: $handle) {
             rating: metafield(namespace: "reviews", key: "rating") { value }
             ratingCount: metafield(namespace: "reviews", key: "rating_count") { value }
+            fitNotes: metafield(namespace: "custom", key: "fit_notes") { value }
+            sizeChart: metafield(namespace: "custom", key: "size_chart") { value }
+            modelInfo: metafield(namespace: "custom", key: "model_info") { value }
+            fabricCare: metafield(namespace: "custom", key: "fabric_care") { value }
           }
         }`, { handle });
       return d.product || null;
     } catch (err) {
-      // Expected on a store that has not exposed the definition. Logged
-      // once, never surfaced, never retried.
-      console.info('[asior] product rating unavailable:', err && err.message);
+      // Expected on a store that has not exposed the definitions.
+      // Logged once, never surfaced, never retried.
+      console.info('[asior] product metafields unavailable:', err && err.message);
       return null;
     }
+  }
+
+  /* A metafield's text, or null. Never an empty string, so callers can
+     test truthiness and render nothing for a field that exists but has
+     not been filled in. */
+  function metaText(node, key) {
+    const v = node && node[key] && node[key].value;
+    const t = typeof v === 'string' ? v.trim() : '';
+    return t || null;
+  }
+
+  /* The size chart, only when it really parses.
+
+     Shape: {"unit":"in","columns":["Chest","Length"],"rows":{"S":[20,27]}}
+     Anything malformed returns null rather than a half-drawn table --
+     a measurement table is the one thing on this page a shopper will
+     act on, so a broken one is worse than none. */
+  function parseSizeChart(raw) {
+    try {
+      if (!raw) return null;
+      const d = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (!d || !Array.isArray(d.columns) || !d.columns.length) return null;
+      if (!d.rows || typeof d.rows !== 'object') return null;
+      const sizes = Object.keys(d.rows);
+      if (!sizes.length) return null;
+      const ok = sizes.every(sz => Array.isArray(d.rows[sz]) && d.rows[sz].length === d.columns.length);
+      if (!ok) return null;
+      return { unit: d.unit === 'cm' ? 'cm' : 'in', columns: d.columns, rows: d.rows, sizes };
+    } catch (err) { return null; }
   }
 
   async function fetchProduct(handle) {
@@ -1565,12 +1629,51 @@
       </p>`;
   }
 
+  /* Shopify's custom.size_chart, rendered in both units.
+
+     The stored unit is authoritative and the other is computed, so one
+     of the two columns is always derived rather than separately
+     entered -- there is no way for the inches and the centimetres to
+     disagree. One decimal, because a garment measured to a tenth of a
+     centimetre is precision nobody has. */
+  function shopifySizeChart(chart) {
+    const other = chart.unit === 'in' ? 'cm' : 'in';
+    const conv = v => chart.unit === 'in'
+      ? Math.round(v * 2.54 * 10) / 10
+      : Math.round((v / 2.54) * 10) / 10;
+    return `
+      <table class="pd-measure-table">
+        <thead>
+          <tr>
+            <th scope="col">Size</th>
+            ${chart.columns.map(c => `<th scope="col">${A.escapeHtml(c)} (${chart.unit} / ${other})</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${chart.sizes.map(sz => `
+            <tr>
+              <th scope="row">${A.escapeHtml(sz)}</th>
+              ${chart.rows[sz].map(v => {
+                const n = Number(v);
+                return `<td>${isFinite(n) ? n + ' / ' + conv(n) : '\u2014'}</td>`;
+              }).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
   function sizeGuideHTML(product) {
     if (!product.optionNames.includes('Size')) return '';
     const kind = details && details.garment ? details.garment : 'top';
 
+    /* Shopify's custom.size_chart wins over the local file: it is the
+       one the founder can edit without a deploy, and the local
+       measurements in assets/product-details.js are still empty for
+       every handle. */
     let tables = '';
-    if (details && details.measurements) {
+    if (product.sizeChart) {
+      tables = shopifySizeChart(product.sizeChart);
+    } else if (details && details.measurements) {
       if (kind === 'set') {
         tables = measurementTable('Crewneck', 'top', details.measurements.top)
                + measurementTable('Sweats', 'bottom', details.measurements.bottom);
@@ -1587,19 +1690,27 @@
     // just the real, always-true comparison method (howToMeasure), which
     // stands on its own as useful guidance. Never invented numbers to
     // fill the gap instead.
-    const body = tables ? tables + model + howToMeasure(kind) : model + howToMeasure(kind);
+    const careBlock = product.fabricCare
+      ? `<p class="pd-care">${A.escapeHtml(product.fabricCare)}</p>` : '';
 
-    // Label it for what's actually inside. Until this garment has real
-    // measurements in product-details.js there is no table here, only
-    // the how-to-measure method — and "Size Guide" on a panel with no
-    // sizes in it spends a shopper's attention and returns nothing,
-    // which is worse than not offering the link. The moment real
-    // numbers land, this becomes a Size Guide again automatically.
-    const label = tables ? 'Size Guide' : 'How to Measure';
+    /* No table and nothing else real to say means no accordion at all.
+
+       This used to fall back to a generic "How to Measure" method with
+       no garment numbers behind it. Brief v12 section 7: drop it unless
+       a real chart exists. A panel that teaches a shopper to measure
+       themselves and then gives them nothing to compare against spends
+       their attention and returns nothing -- and it is the specific
+       thing the audit called out on the Polo. The method is still shown
+       alongside a chart, where it is useful. */
+    if (!tables && !model && !careBlock) return '';
+
+    const body = tables
+      ? tables + model + careBlock + howToMeasure(kind)
+      : model + careBlock;
 
     return `
       <details class="pd-row pd-ship pd-size-chart">
-        <summary>${label}</summary>
+        <summary>${tables ? 'Size Guide' : 'Fit &amp; Care'}</summary>
         <div class="pd-ship-body">${body}</div>
       </details>`;
   }
@@ -1612,8 +1723,8 @@
       // internally and resolve null instead) — that's what makes them
       // safe to run alongside the two queries that must succeed for the
       // page to render at all.
-      const [p, c, stock, ratingNode] = await Promise.all([
-        fetchProduct(HANDLE), fetchCatalogLite(), fetchVariantStock(HANDLE), fetchRating(HANDLE),
+      const [p, c, stock, extras] = await Promise.all([
+        fetchProduct(HANDLE), fetchCatalogLite(), fetchVariantStock(HANDLE), fetchExtras(HANDLE),
       ]);
       stockByVariant = stock;
       document.getElementById('pdLoading').classList.add('hide');
@@ -1632,7 +1743,11 @@
       product = normalizeProduct(p, stockByVariant);
       // After normalizeProduct, not before: it builds a fresh object
       // from the raw node, so a field set on the node never arrives.
-      product.rating = parseRating(ratingNode);
+      product.rating = parseRating(extras);
+      product.fitNotes = metaText(extras, 'fitNotes');
+      product.modelInfo = metaText(extras, 'modelInfo');
+      product.fabricCare = metaText(extras, 'fabricCare');
+      product.sizeChart = parseSizeChart(metaText(extras, 'sizeChart'));
       catalog = c;
     } catch (err) {
       console.error('Product page failed to load:', err);
@@ -1691,7 +1806,7 @@
         <summary>Shipping &amp; Returns</summary>
         <div class="pd-row-body pd-ship-body">
           ${A.shippingDetailHTML()}
-          <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
+          <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
         </div>
       </details>`;
 
@@ -1777,6 +1892,7 @@
             ${ratingHTML(product)}
             ${factsHTML}
 
+            ${product.fitNotes ? `<p class="pd-fit">${A.escapeHtml(product.fitNotes)}</p>` : ''}
             ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
             ${setSizingNote(product)}
 

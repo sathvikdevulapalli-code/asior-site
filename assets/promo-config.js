@@ -153,8 +153,32 @@ window.ASIOR_SHIPPING = {
   // claim — if the country list changes, it changes here and nowhere
   // else.
   REGION: null,
+
+  // Zones really are active for 244 countries, so this stays true as a
+  // statement of capability. What the site is allowed to PROMISE is a
+  // separate question, gated below.
   INTERNATIONAL: true,
-  INTERNATIONAL_COUNTRIES: 28,
+
+  // The one switch for every international claim on the site.
+  //
+  // Shopify's policy text says "US only for now" while 244 delivery
+  // zones are live. Both cannot be the promise. Until someone decides,
+  // the site makes no international statement at all -- not a country
+  // count, and not the checkout notes about phone numbers and Chinese
+  // customs either, because mentioning what international checkout
+  // asks for implies international shipping is on offer.
+  //
+  // Set true only alongside a Shopify policy that agrees with it.
+  INTERNATIONAL_STANCE_CONFIRMED: false,
+  // No country count may be stated. Delivery zones are active for 244
+  // countries (a 28-country International zone with carrier-calculated
+  // rates, plus Rest of World on DHL/FedEx), while the Shopify policy
+  // text still reads "US only for now". Those cannot both be the
+  // promise, and the founder has not decided which is. Until he does
+  // the site says nothing about where it ships beyond the US rates --
+  // null makes internationalLine() render nothing at all rather than
+  // pick a number. Brief v12 section 6.
+  INTERNATIONAL_COUNTRIES: null,
   INTERNATIONAL_DUTIES_INCLUDED: true,
   INTERNATIONAL_PHONE_REQUIRED: true,
   INTERNATIONAL_CHINA_RESIDENT_ID: true,
