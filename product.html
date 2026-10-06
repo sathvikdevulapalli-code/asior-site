@@ -1274,20 +1274,44 @@
   // every product added. Now: everything for the product being viewed,
   // and only handle/title/one image for the related rail.
   // ---------------------------------------------------------------
+  /* The ratings are asked for separately from everything else, on
+     purpose.
+
+     shopifyFetch throws on any GraphQL error, so one unrecognised field
+     takes the whole response down -- and a Storefront API that will not
+     serve reviews.rating (the definition has to be exposed to the
+     storefront, which cannot be confirmed from the build sandbox) would
+     therefore have broken every product page rather than just hiding a
+     rating. On the pages ads land on.
+
+     So: the product query never mentions metafields, and the rating is
+     a second, optional request whose failure is swallowed. Worst case
+     the rating is absent, which is the same as it was before it
+     existed. Best case it renders. Neither case can stop a visitor
+     buying. */
+  async function fetchRating(handle) {
+    try {
+      const d = await A.shopifyFetch(`
+        query($handle: String!) {
+          product(handle: $handle) {
+            rating: metafield(namespace: "reviews", key: "rating") { value }
+            ratingCount: metafield(namespace: "reviews", key: "rating_count") { value }
+          }
+        }`, { handle });
+      return d.product || null;
+    } catch (err) {
+      // Expected on a store that has not exposed the definition. Logged
+      // once, never surfaced, never retried.
+      console.info('[asior] product rating unavailable:', err && err.message);
+      return null;
+    }
+  }
+
   async function fetchProduct(handle) {
     const data = await A.shopifyFetch(`
       query($handle: String!) {
         product(handle: $handle) {
           id title handle descriptionHtml
-          # Real customer ratings. Shopify's standard reviews.* fields,
-          # written by the Judge.me app the store already runs -- not a
-          # second review system and not anything this site invents. Four
-          # reviews exist across the whole catalogue as of this build, so
-          # the count is always rendered beside the average; an average
-          # from one review presented on its own would imply a body of
-          # evidence that is not there.
-          rating: metafield(namespace: "reviews", key: "rating") { value }
-          ratingCount: metafield(namespace: "reviews", key: "rating_count") { value }
           images(first: 12) { edges { node { ${A.IMAGE_FIELDS} } } }
           options { name values }
           variants(first: 40) {
@@ -1402,21 +1426,25 @@
       optionNames,
       variants,
       isPreorder: /\[preorder\]/i.test(node.title),
-      // Parsed defensively: the metafield is a JSON string, it can be
-      // absent on most products (only three carry one), and a product
-      // with no reviews must render nothing rather than "0 / 5".
-      rating: (() => {
-        try {
-          if (!node.rating || !node.ratingCount) return null;
-          const r = JSON.parse(node.rating.value);
-          const value = parseFloat(r.value);
-          const count = parseInt(node.ratingCount.value, 10);
-          const max = parseFloat(r.scale_max) || 5;
-          if (!isFinite(value) || !isFinite(count) || count < 1) return null;
-          return { value, count, max };
-        } catch (err) { return null; }
-      })(),
+      // Filled in afterwards from fetchRating(), which is a separate
+      // optional request -- see the comment there.
+      rating: null,
     };
+  }
+
+  /* Parsed defensively: the metafield is a JSON string, it is absent on
+     most products (only three carry one), and a product with no reviews
+     must render nothing rather than "0 / 5". */
+  function parseRating(node) {
+    try {
+      if (!node || !node.rating || !node.ratingCount) return null;
+      const r = JSON.parse(node.rating.value);
+      const value = parseFloat(r.value);
+      const count = parseInt(node.ratingCount.value, 10);
+      const max = parseFloat(r.scale_max) || 5;
+      if (!isFinite(value) || !isFinite(count) || count < 1) return null;
+      return { value, count, max };
+    } catch (err) { return null; }
   }
 
   // ---------------------------------------------------------------
@@ -1580,12 +1608,12 @@
   (async function () {
     let product, catalog, stockByVariant;
     try {
-      // fetchVariantStock never throws (it catches internally and
-      // resolves null instead) — that's what makes it safe to run
-      // alongside the two queries that must succeed for the page to
-      // render at all.
-      const [p, c, stock] = await Promise.all([
-        fetchProduct(HANDLE), fetchCatalogLite(), fetchVariantStock(HANDLE),
+      // fetchVariantStock and fetchRating never throw (both catch
+      // internally and resolve null instead) — that's what makes them
+      // safe to run alongside the two queries that must succeed for the
+      // page to render at all.
+      const [p, c, stock, ratingNode] = await Promise.all([
+        fetchProduct(HANDLE), fetchCatalogLite(), fetchVariantStock(HANDLE), fetchRating(HANDLE),
       ]);
       stockByVariant = stock;
       document.getElementById('pdLoading').classList.add('hide');
@@ -1602,6 +1630,9 @@
         return;
       }
       product = normalizeProduct(p, stockByVariant);
+      // After normalizeProduct, not before: it builds a fresh object
+      // from the raw node, so a field set on the node never arrives.
+      product.rating = parseRating(ratingNode);
       catalog = c;
     } catch (err) {
       console.error('Product page failed to load:', err);
@@ -2037,6 +2068,12 @@
         quantity: qty,
         size: selection.Size || null,
       });
+      if (window.AsiorAds) {
+        window.AsiorAds.addToCart({
+          handle: product.handle, name: product.name,
+          price: v.price, currency: v.currency, quantity: qty,
+        });
+      }
       if (window.AsiorAnalytics) {
         window.AsiorAnalytics.addToCart({
           handle: product.handle, name: product.name,
@@ -2267,6 +2304,13 @@
     // Klaviyo's Browse Abandonment flow keys off — the Client API
     // event above rides an anonymous_id of our own and can't trigger
     // it. Prices and names come from the live product, never invented.
+    if (window.AsiorAds) {
+      window.AsiorAds.viewContent({
+        handle: product.handle, name: product.name,
+        price: product.variants[0] ? product.variants[0].price : undefined,
+        currency: product.variants[0] ? product.variants[0].currency : 'USD',
+      });
+    }
     A.klaviyoViewedProduct({
       handle: product.handle,
       name: product.name,

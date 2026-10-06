@@ -851,6 +851,13 @@
          and swallows its own failures, so this cannot delay or block
          checkout -- and the redirect itself is unchanged: still
          cart.checkoutUrl, still the domain Shopify gives us. */
+      if (window.AsiorAds) {
+        window.AsiorAds.beginCheckout({
+          value: cart.cost && cart.cost.totalAmount ? parseFloat(cart.cost.totalAmount.amount) : undefined,
+          currency: cart.cost && cart.cost.totalAmount ? cart.cost.totalAmount.currencyCode : 'USD',
+          quantity: cart.totalQuantity,
+        });
+      }
       A.trackCart('Begin Checkout', {
         source: 'cart_page',
         cart_quantity: cart.totalQuantity,
