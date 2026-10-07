@@ -19,11 +19,16 @@ API (public token in `assets/site.js`); email/SMS is Klaviyo's public
 Client API. Neither is touched from this repo's admin side — no writes to
 Shopify Admin, no Klaviyo campaign edits, ever, from here.
 
-Key pages: `shop.html` (catalog/grid), `product.html` (PDP, driven by
-`?id=<handle>`, generated per-product into `/products/<handle>.html` at
-build time), `cart.html`, `lanyard.html` (a standalone product page,
-outside the generated set). `community.html`, `contact.html`,
-`manufacturing.html`, `account.html` round out the nav.
+Key pages: `shop.html` (catalog/grid — and the homepage, since `/`
+301s to it), `product.html` (PDP, driven by `?id=<handle>`, generated
+per-product into `/products/<handle>.html` at build time), `cart.html`,
+`lanyard.html` (a standalone product page, outside the generated set).
+`archive.html` (every product, sold out included, labelled AVAILABLE /
+SOLD OUT), `about.html`, `community.html` (the lookbook — the URL keeps
+its old name so existing links don't break), `contact.html`,
+`manufacturing.html`, `account.html` round out the nav. `404.html` is
+served by Vercel for any unmatched path; it carries the shared header
+and footer but is deliberately absent from the sitemap.
 
 Shared plumbing lives in `assets/site.js`: `shopifyFetch`, image
 helpers (`imgTag`/`srcsetFor`), cart mutations
@@ -81,10 +86,14 @@ these. Nothing else is a source, and nothing may be written from memory.
   when it does not.
 - `custom.model_info`, `custom.fabric_care` (text) — empty; render only
   when set.
-- `reviews.rating` / `reviews.rating_count` — real Judge.me numbers.
-  Four reviews exist in total. If ratings are shown at all, every one
-  is shown including the 1.0: suppressing negative reviews is an FTC
-  problem, not a design choice.
+- `reviews.rating` / `reviews.rating_count` — real Judge.me numbers
+  (four reviews in total). **The site does not render ratings in any
+  form**, and these fields are not read. Not stars, not a numeric
+  average, not a review count, not "rated by N people" — nowhere, on
+  any page. Four reviews is not a sample anyone should be shown an
+  average of, and a partial display was the standing FTC risk (showing
+  some and not the 1.0). Removing them entirely settles both. If this
+  is ever reversed, every review shows, including the 1.0.
 - Do **not** render `shopify.fabric` or the other `shopify.*` taxonomy
   values. Those are Shopify's auto-suggestions, not verified facts.
 
@@ -105,9 +114,15 @@ these. Nothing else is a source, and nothing may be written from memory.
 `hello@` until someone confirms that inbox is read.
 
 **No refund policy exists** — not in Shopify, and `/refund-policy.html`
-is a 404 — while product copy promises 14-day returns. Returns copy is
-gated on the real policy existing; see `RETURNS_POLICY_PUBLISHED` in
-`scripts/build.js`.
+is a 404. Returns copy is therefore gated on
+`RETURNS_POLICY_PUBLISHED` in `assets/promo-config.js` (client-readable,
+next to the shipping facts — every returns string is rendered from JS,
+so a build-time constant could not reach them). It is `false`, and
+`Asior.returnsLine()` returns `''`, so the PDP spec list, the quick
+view and the shipping accordion all say nothing about returns. With no
+policy published the site makes no returns promise and no refusal
+either. To turn it on: publish the policy in Shopify Admin, confirm
+`/refund-policy.html` serves it, then flip the flag.
 
 ## Brand and design
 
@@ -127,7 +142,7 @@ and fails on a hit, so this list is enforced rather than remembered:
   emoji bullets, rounded cards everywhere.
 - Load-time discount popups. Fake timers. "X people viewing". Any stock
   count not from live Shopify data.
-- Star ratings of any kind.
+- Ratings of any kind — stars, numeric averages, review counts.
 - AI-generated product or model images. Real photos only.
 
 **Palette:** near-black `#0E0E0D`, off-white `#F0ECE4`, one muted grey

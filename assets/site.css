@@ -15,39 +15,38 @@
 :root {
   color-scheme: dark;
 
-  /* The ground was #0b0a08, a warm brown-black -- the neutral every
-     dark template lands on. The photography this store is built from
-     was shot in hard Southwest daylight against concrete, galvanised
-     steel and stucco, and its shadows are blue, not brown. Cooling the
-     ground to match is what lets the garments' own colour sit on the
-     page without going muddy. */
-  --bg: #0c0b10;
-  --ink: #f5f3ee;
-  --muted: #9b97a6;
+  /* Three values and the photographs. Brief v14.
 
-  /* The accent is the violet of the animal-print patches on the tees
-     and the polo trim. It is the brand's own colour, read off the
-     product, not picked off a palette -- which is the point. The site
-     had no colour at all before this, and a storefront with no colour
-     is a wireframe, however well set.
+     The violet accent is gone. It was read off the garments and it was
+     real, but a second colour competing with the product photography
+     is exactly what the reference labels do not do -- Corteiz, Eric
+     Emanuel, Online Ceramics and the rest run near-black, off-white
+     and one grey, and let the clothes be the only colour on the page.
 
-     Reserved for one thing: the control that buys the garment. Every
-     other surface stays achromatic so the violet always means "press
-     this". */
-  --accent: #7b6cf6;
-  --accent-press: #6456e0;
-  --on-accent: #0c0b10;
+     Anything that needs to stand out does it with contrast, weight or
+     a rule, not a hue. */
+  --bg: #0e0e0d;
+  --ink: #f0ece4;
+  --muted: #96928a;
 
-  /* Sold out, errors, anything that stops a purchase. Oxidised steel,
-     from the handrails in the same photographs. */
-  --alert: #d2561f;
+  /* The primary action is off-white on near-black: the highest
+     contrast the palette has, which is what makes it the loudest thing
+     on a screen without introducing a colour. */
+  --accent: #f0ece4;
+  --accent-press: #ffffff;
+  --on-accent: #0e0e0d;
 
-  /* One step up from the page, for anything that floats: the quick
-     view, the drawer, toolbar controls. */
-  --surface: #16151d;
+  /* Sold out and error states are the muted grey, stated in words. A
+     warning colour would be a fourth value and the word already says
+     it. */
+  --alert: #96928a;
 
-  /* The accent at the weight an outline needs. */
-  --violet-edge: #3a3270;
+  /* One step up from the page for anything that floats. Near-black
+     lifted, not tinted. */
+  --surface: #161614;
+
+  /* The disabled primary's outline. */
+  --violet-edge: #3a3936;
 
   /* Two line colours, deliberately.
 
@@ -63,8 +62,8 @@
      bottom border and nothing else, so at 1.35:1 a low-vision user
      could not see where to type. 3.39:1 against --bg, and it keeps
      the warm grey hue of --muted so nothing looks bolted on. */
-  --line: #2b2822;
-  --field-line: #6b6459;
+  --line: #262523;
+  --field-line: #6a6762;
 
   /* Archivo, not a geometric display face.
 
@@ -92,7 +91,7 @@
 
   /* Hierarchy comes from value and tracking, not from size. --ink-dim
      is for secondary type that still has to be readable. */
-  --ink-dim: #cfc9bd;
+  --ink-dim: #c9c5bd;
 
   /* Motion tokens. Built-in CSS easings are too weak to read as
      intentional; these are the stronger variants used site-wide.
@@ -359,7 +358,17 @@ header nav a.cart-link { display: inline-flex; align-items: baseline; gap: 4px; 
 
 /* Matches the real chrome: 34px teaser + 45px header. Was 144px,
    which pushed the first garment most of a phone screen down. */
-.page-top-space { height: 92px; }
+/* Clears the fixed header, whose real height depends on the loaded
+   font and the wrapped nav rather than on a number anyone can write
+   here. The two values below are the measured defaults and are only
+   the fallback: site.js sets --header-h from the header's actual
+   bottom edge on load, on resize and once the webfont has swapped in.
+
+   This used to be a flat 118px on mobile against a header ending at
+   95px. On every page with a dark background above the fold the 23px
+   of slack was invisible; under the homepage's full-bleed photograph
+   it was a black band between the nav and the image. */
+.page-top-space { height: var(--header-h, 92px); }
 
 /* ---------- rail label ----------
    The mono uppercase label that opens most pages. It is an <h1> on
@@ -571,7 +580,7 @@ footer .policy-links a:hover { color: var(--ink); }
     text-align: right;
   }
 
-  .page-top-space { height: 118px; }
+  .page-top-space { height: var(--header-h, 118px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -660,9 +669,12 @@ footer .policy-links a:hover { color: var(--ink); }
 }
 
 .sms-msg.show { opacity: 1; }
-.sms-msg.is-error { color: #e0a08f; }
+/* An error reads as an error through contrast and wording, not a
+   fourth colour: full ink against the muted grey every other message
+   uses, with the sentence saying what went wrong. */
+.sms-msg.is-error { color: var(--ink); }
 
-.sms-form input[aria-invalid="true"] { border-color: #e0a08f; }
+.sms-form input[aria-invalid="true"] { border-color: var(--ink); }
 
 /* Once accepted there is nothing left to type. The status line stays,
    because it is the only place that says to reply YES. */

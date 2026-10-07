@@ -55,7 +55,7 @@ const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 const STATIC_PAGES = [
   '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
-  '/lanyard.html', '/text.html',
+  '/lanyard.html', '/text.html', '/archive.html', '/about.html',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -104,6 +104,13 @@ async function fetchProducts() {
           w400: url(transform:{maxWidth:400, preferredContentType:WEBP})
           w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
           w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
+          # The homepage hero is full-bleed, so 1200 is the fallback
+          # rendition and not the largest one it can ask for. These are
+          # transform URLs on an image already being fetched, not new
+          # data -- nothing like the quantityAvailable field that broke
+          # live pricing when it was mixed into a catalog query.
+          w1600: url(transform:{maxWidth:1600, preferredContentType:WEBP})
+          w2000: url(transform:{maxWidth:2000, preferredContentType:WEBP})
         }
         # w800 as well as url: the prerendered grid card carries the
         # second photograph's URL as data-alt-src for the hover swap,
@@ -295,7 +302,17 @@ function productJsonLd(p, url) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: p.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-    image: p.images.edges.map(e => e.node.url),
+    /* Real photographs only. This array is what Google renders in a
+       rich result or in Shopping, so a generated render listed here is
+       an AI image shown as the product in search -- the same rule as
+       the grid tile and the OG image, in the place with the widest
+       reach. Falls back to whatever exists rather than emitting an
+       empty image array. */
+    image: (() => {
+      const urls = p.images.edges.map(e => e.node.url);
+      const real = urls.filter(u => !isGeneratedImage(u));
+      return real.length ? real : urls;
+    })(),
     brand: { '@type': 'Brand', name: 'Asior' },
   };
   if (offers) ld.offers = offers;
@@ -317,8 +334,13 @@ function renderProductPage(template, p) {
   // url for everything except the handles in BESPOKE_PAGES.
   const canonical = BESPOKE_PAGES[p.handle] ? BASE + BESPOKE_PAGES[p.handle] : url;
   const title = `${name} | Asior`;
+  /* "made in small batches" was a production claim. Asior works with a
+     manufacturer and does not make its own garments -- the founder
+     corrected this -- so the fallback says how the runs are sized and
+     sold, which is true, and claims nothing about who sews them. Only
+     a product whose Shopify description is empty ever sees it. */
   const desc = plainDescription(p.descriptionHtml,
-    `${name} from Asior — limited-run streetwear made in small batches.`);
+    `${name} from Asior — small-run streetwear from Texas.`);
   const lead = leadImage(p);
   const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
   const alt = lead && lead.altText ? lead.altText : name;
@@ -548,8 +570,9 @@ const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Collect
     <nav id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
+      <a href="archive.html">Archive</a>
       <a href="community.html">Lookbook</a>
-      <a href="contact.html">Support</a>
+      <a href="about.html">About</a>
       ${CART_LINK}
     </nav>
   </header>
@@ -598,8 +621,15 @@ const SMS_CONSENT = `<p class="consent">
    <label for> pairing for both. */
 function smsSignupBlock(variant) {
   const id = `sms-${variant}`;
+  /* 'about' and 'home' carry no heading of their own: on both pages the
+     sentence immediately above the form already says what the form is
+     for, and repeating it is the kind of stacked-heading padding brief
+     v14 is asking to strip out. */
+  const bare = variant === 'about' || variant === 'home';
   const footer = variant === 'footer';
-  const heading = footer
+  const heading = bare
+    ? ''
+    : footer
     ? `<p class="sms-signup-title">Text list.</p>
       <p class="sms-signup-body">First to know when sizes run low.</p>`
     : `<p class="sms-signup-title">Know before it's gone.</p>
@@ -633,9 +663,19 @@ function smsSignupBlock(variant) {
    Brief v12 section 5. */
 const SUPPORT_EMAIL = 'asiorclothing@gmail.com';
 
+/* One optional line on the About page, in Sathvik's own words: why he
+   started it. Empty means the line simply does not render -- brief v14
+   is explicit that an unfilled value hides the line rather than failing
+   the build or getting written for him. Everything else on that page is
+   verified: Texas from the Shopify address, 2025 from the store's own
+   history, the fit lines from custom.fit_notes, the dispatch time from
+   the shipping config. */
+const ABOUT_WHY = '';
+
 const FOOTER_HTML = `  <footer id="order">
     ${smsSignupBlock('footer')}
     <div class="fmark">Asior</div>
+    <div class="fline">Small runs from Texas.</div>
     <div class="fmeta"><a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -659,8 +699,9 @@ const FOOTER_HTML = `  <footer id="order">
          someone looking for it will look, instead of from the nav a
          shopper uses to find a tee. -->
     <div class="business-links">
-      <span class="business-label">For brands</span>
-      <a href="manufacturing.html">Manufacturing &amp; production</a>
+      <a href="contact.html">Contact</a>
+      <span class="business-sep" aria-hidden="true">/</span>
+      <a href="manufacturing.html">For brands</a>
     </div>
   </footer>
 `;
@@ -715,7 +756,7 @@ const HEAD_PAGES = [
   'shop.html', 'product.html', 'cart.html', 'community.html', 'contact.html',
   'manufacturing.html', 'account.html', 'privacy-policy.html',
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
-  'text.html', 'index.html',
+  'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
 ];
 
 const SHARED_MARKUP_PAGES = [
@@ -730,6 +771,13 @@ const SHARED_MARKUP_PAGES = [
   ['terms-of-service.html', HEADER_MINIMAL],
   ['fall-collection.html', HEADER_FULL],
   ['text.html', HEADER_FULL],
+  ['archive.html', HEADER_FULL],
+  ['about.html', HEADER_FULL],
+  /* The 404 page gets the shared header and footer like any other page
+     -- that is the whole point of it, somewhere to go -- but it is
+     deliberately absent from STATIC_PAGES: a sitemap that lists an
+     error page is asking for it to be indexed. */
+  ['404.html', HEADER_FULL],
 ];
 
 /* ===================================================================
@@ -815,7 +863,12 @@ function shopCard(p, eager) {
      replaces it. */
   const all = ((p.images && p.images.edges) || []).map(x => x.node);
   const firstUrl = leadImage(p) && leadImage(p).url;
-  const altImg = all.find(im => im && im.url && im.url !== firstUrl);
+  /* The hover frame has to clear the same bar as the tile. Picking the
+     first image that merely differs from the lead handed the swap to
+     the generated render on any product whose featuredImage was
+     demoted -- the tile showed a photograph and turned into a Firefly
+     render under the pointer. */
+  const altImg = all.find(im => im && im.url && im.url !== firstUrl && !isGeneratedImage(im));
   const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
 
   /* Same two-link shape as card() in shop.html: the photograph and the
@@ -848,6 +901,108 @@ function renderShopGrid(products) {
     .map((p, i) => shopCard(p, i < 3))
     .filter(Boolean)
     .join('\n') + '\n';
+}
+
+/* The archive rows.
+
+   Deliberately not the shop card: no price, no photograph, no quick
+   add. The archive answers one question -- what has this label made,
+   and can I still get it -- and a text row answers it in one line.
+   Baking a price here would be a second place for a stale number to
+   live, and the PDP is one click away.
+
+   Sold out rows stay in place and keep their label. CLAUDE.md: hiding
+   them throws away the only proof the site has that things sell. */
+function archiveRow(p, i) {
+  const variants = p.variants.edges.map(e => e.node);
+  if (!variants.length) return '';
+  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const soldOut = variants.every(v => !v.availableForSale);
+  const n = String(i + 1).padStart(2, '0');
+
+  return `
+      <li class="arch-row${soldOut ? ' is-out' : ''}" data-handle="${esc(p.handle)}">
+        <a class="arch-link" href="/products/${esc(p.handle)}.html">
+          <span class="arch-n tnum">${n}</span>
+          <span class="arch-name">${esc(name)}</span>
+          <span class="arch-state" data-arch-state>${soldOut ? 'Sold out' : 'Available'}</span>
+        </a>
+      </li>`;
+}
+
+function syncArchive(products) {
+  const target = path.join(ROOT, 'archive.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const rows = sortForMerchandising(products)
+    .map(archiveRow)
+    .filter(Boolean)
+    .join('\n') + '\n';
+  const next = replaceBetween(html, '<!-- ARCHIVE:START -->', '<!-- ARCHIVE:END -->', rows);
+  if (next === null) throw new Error('archive.html: ARCHIVE markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return sortForMerchandising(products).length;
+}
+
+/* The homepage photograph.
+
+   Written from the live catalog rather than hardcoded, for the same
+   reason nothing else on the grid is hardcoded: the founder changes a
+   product photo in Shopify Admin and the homepage follows on the next
+   deploy instead of pointing at a URL that has moved.
+
+   The Polo is the lead Fall piece (FALL_PRODUCTS[0]) and its
+   photograph is one of the real shoot frames -- the OLI-prefixed files
+   off the camera roll, which is the photo brief v14 asks for. If that
+   product is ever gone from the catalog, the first merchandised
+   product with a real photograph stands in. leadImage() is what makes
+   that "real": a generator filename is never promoted here, so the
+   biggest image on the site cannot end up being a render.
+
+   No markers written means the served fallback photograph stays, which
+   is a local file that is always there. */
+const HERO_HANDLE = 'scripture-polo';
+
+function heroImage(products) {
+  const byHandle = new Map(products.map(p => [p.handle, p]));
+  const preferred = byHandle.get(HERO_HANDLE);
+  const candidates = preferred
+    ? [preferred, ...sortForMerchandising(products)]
+    : sortForMerchandising(products);
+  for (const p of candidates) {
+    const img = leadImage(p);
+    if (img && img.url && !isGeneratedImage(img)) return img;
+  }
+  return null;
+}
+
+function syncHero(products) {
+  const target = path.join(ROOT, 'shop.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const img = heroImage(products);
+  let block = '';
+  if (img) {
+    const srcset = [
+      img.w800 ? `${esc(img.w800)} 800w` : '',
+      img.w1200 ? `${esc(img.w1200)} 1200w` : '',
+      img.w1600 ? `${esc(img.w1600)} 1600w` : '',
+      img.w2000 ? `${esc(img.w2000)} 2000w` : '',
+    ].filter(Boolean).join(', ');
+    /* fetchpriority high and no lazy attribute: this is the LCP element
+       on the highest-traffic page on the site. sizes is 100vw because
+       the frame is the window. */
+    block = `      <img src="${esc(img.w1600 || img.w1200 || img.url)}"`
+      + (srcset ? ` srcset="${srcset}"` : '')
+      + ' sizes="100vw"'
+      + ` alt="${esc(img.altText || 'Asior, worn')}"`
+      + (img.width ? ` width="${esc(img.width)}"` : '')
+      + (img.height ? ` height="${esc(img.height)}"` : '')
+      + ' fetchpriority="high" decoding="async">\n';
+  }
+  const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
+    block || '\n');
+  if (next === null) throw new Error('shop.html: HERO markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return img ? 1 : 0;
 }
 
 function syncShopGrid(products) {
@@ -905,16 +1060,44 @@ function syncBespokeJsonLd(products) {
   return synced;
 }
 
-/* The /text page's own block, from the same source as the footer's so
-   the consent sentence cannot drift between them. */
-function syncSmsPage() {
-  const target = path.join(ROOT, 'text.html');
+/* Every standalone signup block, from the same source as the footer's so
+   the consent sentence cannot drift between them. Each page picks its own
+   variant: /text gets the full pitch, About and the homepage get the bare
+   field under a sentence they already wrote. */
+const SMS_BLOCK_PAGES = [
+  ['text.html', 'page'],
+  ['about.html', 'about'],
+  ['shop.html', 'home'],
+];
+
+function syncSmsPages() {
+  let synced = 0;
+  for (const [file, variant] of SMS_BLOCK_PAGES) {
+    const target = path.join(ROOT, file);
+    const html = fs.readFileSync(target, 'utf8');
+    const next = replaceBetween(html, '<!-- SMSBLOCK:START -->', '<!-- SMSBLOCK:END -->',
+      '    ' + smsSignupBlock(variant) + '\n');
+    if (next === null) throw new Error(`${file}: SMSBLOCK markers missing`);
+    if (next !== html) fs.writeFileSync(target, next);
+    synced++;
+  }
+  return synced;
+}
+
+/* The one optional About line. An empty ABOUT_WHY writes nothing between
+   the markers, so the paragraph does not exist in the output at all --
+   not an empty <p> holding vertical space. */
+function syncAboutWhy() {
+  const target = path.join(ROOT, 'about.html');
   const html = fs.readFileSync(target, 'utf8');
-  const next = replaceBetween(html, '<!-- SMSBLOCK:START -->', '<!-- SMSBLOCK:END -->',
-    '    ' + smsSignupBlock('page') + '\n');
-  if (next === null) throw new Error('text.html: SMSBLOCK markers missing');
+  const block = ABOUT_WHY.trim()
+    ? `      <p>${esc(ABOUT_WHY.trim())}</p>\n`
+    : '';
+  const next = replaceBetween(html, '<!-- ABOUTWHY:START -->', '<!-- ABOUTWHY:END -->',
+    block ? '\n' + block : '\n');
+  if (next === null) throw new Error('about.html: ABOUTWHY markers missing');
   if (next !== html) fs.writeFileSync(target, next);
-  return 1;
+  return block ? 1 : 0;
 }
 
 function syncSharedMarkup() {
@@ -951,7 +1134,8 @@ function syncSharedMarkup() {
   try {
     console.log(`✓ shared header/footer synced across ${syncSharedMarkup()} pages`);
     console.log(`✓ shared <head> (klaviyo.js) synced across ${syncSharedHead()} pages`);
-    console.log(`✓ SMS signup block synced into ${syncSmsPage()} standalone page`);
+    console.log(`✓ SMS signup block synced into ${syncSmsPages()} standalone pages`);
+    console.log(`✓ About optional line: ${syncAboutWhy() ? 'rendered' : 'unset, omitted'}`);
   } catch (err) {
     failed = true;
     console.error('✗ shared markup sync failed:', err.message);
@@ -974,7 +1158,9 @@ function syncSharedMarkup() {
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
+    console.log(`✓ homepage hero: ${syncHero(products) ? 'live photograph' : 'none, served fallback stands'}`);
     console.log(`✓ shop.html grid pre-rendered with ${syncShopGrid(products)} products`);
+    console.log(`✓ archive.html listed ${syncArchive(products)} products`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
     // which is far better than publishing a site whose shop links all

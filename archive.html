@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lookbook | Asior</title>
-<meta name="description" content="The Fall collection worn and styled. Every look links to the pieces in it.">
+<title>Archive | Asior</title>
+<meta name="description" content="Everything Asior has made. Sold out stays listed.">
 <meta name="theme-color" content="var(--bg)">
-<link rel="canonical" href="https://asiorclothing.com/community.html">
+<link rel="canonical" href="https://asiorclothing.com/archive.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Lookbook | Asior">
-<meta property="og:description" content="The Fall collection worn and styled. Every look links to the pieces in it.">
-<meta property="og:url" content="https://asiorclothing.com/community.html">
+<meta property="og:title" content="Archive | Asior">
+<meta property="og:description" content="Everything Asior has made. Sold out stays listed.">
+<meta property="og:url" content="https://asiorclothing.com/archive.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -31,24 +31,15 @@
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <style>
-  /* Full-bleed lookbook. Brief v14: six images, full width.
-
-     The two-up grid inside a 1180px rail with a 20px gutter made each
-     look about 560px wide on a desktop and read like a contact sheet.
-     One column, edge to edge, is what the reference labels do and it
-     is the only way a garment photograph gets to be the size of the
-     garment. Square corners -- the 2px radius here was the last
-     rounded edge on the site. */
-  .lookbook {
-    padding: 0 0 9vh;
-    max-width: none;
-    margin: 0;
+  /* The archive is a list, not a grid. Rows separated by 1px rules,
+     name left, state right, no cards. */
+  .arch {
+    padding: 0 40px 10vh;
+    max-width: 1180px;
+    margin: 0 auto;
   }
 
-  .lookbook .rail-label,
-  .look-intro { padding-left: 40px; padding-right: 40px; }
-
-  .look-intro {
+  .arch-note {
     font-family: var(--font-body);
     font-size: 13px;
     line-height: 1.6;
@@ -57,49 +48,67 @@
     max-width: 48ch;
   }
 
-  .gallery {
+  .arch-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .arch-row { border-bottom: 1px solid var(--line); }
+
+  .arch-link {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
+    grid-template-columns: 3.5ch 1fr auto;
+    align-items: baseline;
+    gap: 18px;
+    padding: 20px 2px;
+    text-decoration: none;
+    color: var(--ink);
   }
 
-  .look {
-    position: relative;
-    /* Taller than 3/4 because the frame is now the full width of the
-       window: at 1440px a 3/4 box is 1920px tall and one photograph
-       becomes two screens of scrolling. */
-    aspect-ratio: 16 / 11;
-    overflow: hidden;
-    opacity: 0;
-    transition: opacity 600ms var(--ease-out);
+  .arch-n {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
   }
 
-  .look.in { opacity: 1; }
-
-  .look img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
+  .arch-name {
+    font-size: 19px;
+    line-height: 1.25;
   }
+
+  .arch-state {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* A sold-out row is dimmed, never removed and never struck through:
+     it is still a real thing this label made and the PDP it links to
+     still tells you about it. */
+  .arch-row.is-out .arch-name { color: var(--ink-dim); }
+
+  @media (hover: hover) and (pointer: fine) {
+    .arch-link:hover .arch-name { color: var(--accent); }
+    .arch-link:hover .arch-state { color: var(--ink); }
+  }
+
+  .arch-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .arch-foot { margin: 34px 0 0; }
 
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    /* The phone nav is a full-screen panel now, defined once in
-       assets/site.css. The horizontally scrolling link strip this
-       page used to redeclare for itself is gone -- it was also
-       overriding the shared rule, which is why the panel opened at
-       the width of the old strip. */
-    .lookbook .rail-label,
-    .look-intro { padding-left: 20px; padding-right: 20px; }
-    /* Portrait on a phone: the window is narrow, so a wide crop would
-       throw away most of the subject. */
-    .look { aspect-ratio: 3 / 4; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .look { opacity: 1 !important; }
+    .arch { padding: 0 20px 7vh; }
+    .arch-link { gap: 12px; padding: 17px 2px; }
+    .arch-name { font-size: 17px; }
   }
 </style>
 
@@ -149,57 +158,28 @@
 
   <main id="main">
 
-  <!-- Renamed from "Community" to what it actually is.
+  <!-- The archive lists every Active product, sold out included, which
+       is the whole point of the page: a sold-out row is the only honest
+       proof that things sell here. Nothing is hidden and nothing is
+       counted -- "SOLD OUT" is the variant availability Shopify returns,
+       not a number invented to create urgency.
 
-       The page was a six-image gallery under a Community heading, with
-       no way for anybody to participate -- no submissions, no customer
-       stories, no event. A title is not a community programme, and
-       calling a lookbook one is the kind of small overclaim that makes
-       a visitor discount everything else on the page.
+       Rows are rendered at build time from the live catalog so the page
+       works with JS off, then refreshed once from the Storefront API so
+       a stale build can never tell someone a size is available when it
+       is not. If that fetch fails the served labels simply stay. -->
+  <section class="arch">
+    <h1 class="rail-label">Archive</h1>
+    <p class="arch-note">Everything we&rsquo;ve made. Sold out stays listed.</p>
 
-       The URL stays /community.html so no existing link, share or
-       index entry breaks. The slot for real customer looks is below,
-       commented out until there is permissioned content to put in it. -->
-  <section class="lookbook" id="look">
-    <h1 class="rail-label">Lookbook</h1>
-    <p class="look-intro">The Fall collection, worn. Shot on the people who actually wear it.</p>
-    <div class="gallery">
-      <div class="look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior look 01" width="800" height="1200" fetchpriority="high" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Asior look 02" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="Asior look 03" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior look 04" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="Asior look 05" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="Asior look 06" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-    </div>
+    <ol class="arch-list" id="archList">
+      <!-- ARCHIVE:START -->
+      <!-- ARCHIVE:END -->
+    </ol>
+
+    <p class="arch-foot"><a class="link-arrow" href="/shop.html">Shop what&rsquo;s available</a></p>
   </section>
 
-  <!-- ===== Customer looks =====================================
-       The extensible slot the lookbook is meant to grow into. It stays
-       commented out rather than rendering an empty "be the first"
-       state, because an empty community section advertises that there
-       is no community.
-
-       To turn it on: populate window.ASIOR_CUSTOMER_LOOKS in
-       assets/product-details.js with { image, handle, size, name,
-       permission } entries -- every one of which needs the wearer's
-       recorded permission, a real product handle so the look links to
-       the piece, and the size worn so it doubles as fit evidence.
-       Then uncomment this section.
-
-       <section class="customer-looks">
-         <h2 class="rail-label">Worn by</h2>
-         <div class="gallery" id="customerLooks"></div>
-       </section>
-       ========================================================= -->
-
-  <!-- Testimonials removed. The two quotes that were here were not
-     attributed to a named, permissioned person, and nobody has
-     confirmed they came from real customers. Brief v6 section 6 says
-     to delete them if that confirmation doesn't arrive, and the
-     acceptance checklist requires that no review, rating or
-     testimonial text renders anywhere on the site. Unverifiable social
-     proof is the one thing on a storefront that is worse than none.
-     Restore only with real names and permission on record. -->
 
   </main>
 
@@ -259,21 +239,98 @@
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
 <script>
-  // Sitewide banner (the old email-signup teaser bar, replaced — see
-  // scripts/build.js's comment on HEADER_FULL). This page doesn't
-  // otherwise need launch-config.js, so it is
-  // loaded here rather than assumed already present.
+  /* The archive's rows, live.
 
-  const looks = document.querySelectorAll('.look');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.2 });
-  looks.forEach(l => observer.observe(l));
+     Two jobs, because the page has to be complete in both cases:
+
+       1. The build pre-rendered rows (the normal case -- see
+          syncArchive in scripts/build.js). Then this only corrects the
+          AVAILABLE / SOLD OUT labels, so a stale build can never tell
+          someone a piece is available when it is not.
+
+       2. The build wrote nothing, because its Shopify fetch failed.
+          Then this renders the rows itself. The shop grid has always
+          had a client-side render behind its pre-rendered one for
+          exactly this reason; the archive needs it more, because a
+          grid missing a row still sells something and an archive
+          missing a row is just wrong.
+
+     availableForSale is the boolean, never quantityAvailable: an exact
+     count mixed into a catalog query is what broke live pricing across
+     browsers earlier this launch, and the archive has no use for one.
+     No price is read or written here at all. */
+  (function () {
+    var A = window.Asior;
+    var list = document.getElementById('archList');
+    if (!A || !A.shopifyFetch || !list) return;
+
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    /* Same order the grid uses: the Fall pieces in their configured
+       order first, then everything else. launch-config.js is the single
+       source of truth for which handles those are. */
+    function sortForMerchandising(catalog) {
+      var fallHandles = ((window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_PRODUCTS) || [])
+        .map(function (p) { return p.handle; });
+      var byHandle = {};
+      catalog.forEach(function (p) { byHandle[p.handle] = p; });
+      var fall = fallHandles.map(function (h) { return byHandle[h]; }).filter(Boolean);
+      var seen = {};
+      fall.forEach(function (p) { seen[p.handle] = true; });
+      return fall.concat(catalog.filter(function (p) { return !seen[p.handle]; }));
+    }
+
+    function row(p, i) {
+      var n = String(i + 1);
+      if (n.length < 2) n = '0' + n;
+      return '<li class="arch-row' + (p.soldOut ? ' is-out' : '') + '" data-handle="' + esc(p.handle) + '">'
+        + '<a class="arch-link" href="/products/' + esc(p.handle) + '.html">'
+        + '<span class="arch-n tnum">' + n + '</span>'
+        + '<span class="arch-name">' + esc(p.name) + '</span>'
+        + '<span class="arch-state" data-arch-state>' + (p.soldOut ? 'Sold out' : 'Available') + '</span>'
+        + '</a></li>';
+    }
+
+    A.shopifyFetch('{ products(first: 50) { edges { node { title handle variants(first: 20) { edges { node { availableForSale } } } } } } }')
+      .then(function (data) {
+        var items = (((data || {}).products || {}).edges || []).map(function (e) {
+          var p = e && e.node;
+          if (!p || !p.handle) return null;
+          var vs = (((p.variants || {}).edges) || []).map(function (x) { return x.node; })
+            .filter(Boolean);
+          if (!vs.length) return null;
+          return {
+            handle: p.handle,
+            name: String(p.title || '').replace(/\s*\[preorder\]\s*/i, '').trim(),
+            soldOut: !vs.some(function (v) { return v.availableForSale; })
+          };
+        }).filter(Boolean);
+        if (!items.length) return;
+
+        var ordered = sortForMerchandising(items);
+
+        /* Nothing pre-rendered -> render the whole list. Rows present
+           -> correct their labels and leave the served order alone, so
+           the list does not reshuffle under someone mid-read. */
+        if (!list.querySelector('.arch-row')) {
+          list.innerHTML = ordered.map(row).join('');
+          return;
+        }
+
+        ordered.forEach(function (p) {
+          var el = list.querySelector('[data-handle="' + p.handle.replace(/"/g, '') + '"]');
+          if (!el) return;
+          var state = el.querySelector('[data-arch-state]');
+          if (state) state.textContent = p.soldOut ? 'Sold out' : 'Available';
+          el.classList.toggle('is-out', p.soldOut);
+        });
+      })
+      .catch(function () { /* served rows stand */ });
+  })();
 </script>
 
 </body>

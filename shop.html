@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shop All Drops | Asior</title>
 <meta name="description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="var(--bg)">
 <link rel="canonical" href="https://asiorclothing.com/shop.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
@@ -100,7 +100,7 @@
     aspect-ratio: 3 / 4;
     overflow: hidden;
     border-radius: 0;
-    background: #141210;
+    background: #161614;
   }
 
   .shop-lookbook-row .shop-look:nth-child(2) { aspect-ratio: 4 / 5; margin-top: 26px; }
@@ -146,128 +146,6 @@
      this page and its own signup form is unreachable dead code. Same
      Klaviyo call, same real incentive, same consent copy —
      just on the page where visitors actually land. */
-  /* Left aligned, held to a reading measure, sitting under a hairline.
-     Centred it read as a generic call-to-action card dropped at the
-     bottom of the page — the one shape on here that most looked like
-     it came out of a template. */
-  .shop-klaviyo {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 7vh 40px 9vh;
-    border-top: 1px solid var(--line);
-    text-align: left;
-  }
-
-  .shop-klaviyo .consent,
-  .shop-klaviyo-sub { margin-left: 0; margin-right: 0; max-width: 52ch; }
-  .shop-signup-form { max-width: 560px; }
-
-  /* One line under the heading, saying what the number is for.
-     Replaces the old 'Email only? Leave the phone field blank.'
-     which sat in the consent copy and talked people out of the
-     field it was next to. */
-  .shop-klaviyo-sub {
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    line-height: 1.6;
-    color: var(--muted);
-    margin: 0 0 18px;
-  }
-
-  .shop-klaviyo-label {
-    font-family: var(--font-mono);
-    margin-bottom: 16px;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .shop-signup-form {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 18px;
-    flex-wrap: wrap;
-  }
-
-  .shop-signup-form input {
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--field-line);
-    padding: 8px 2px;
-    font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 300;
-    color: var(--ink);
-    min-width: 150px;
-    transition: border-color 0.3s ease;
-  }
-
-  .shop-signup-form input::placeholder { color: var(--muted); }
-  .shop-signup-form input:focus { border-color: var(--ink); }
-
-  /* A bare text submit with only padding-bottom computed to an 18px
-     tall target once the form stacked on a phone. It is the button
-     that captures the list, so it gets a real box: hairline, squared,
-     44px, matching the Add to Cart treatment rather than reading as
-     another underlined word. */
-  .shop-signup-form button {
-    position: relative;
-    background: none;
-    border: 1px solid var(--field-line);
-    border-radius: 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink);
-    cursor: pointer;
-    padding: 0 22px;
-    min-height: 44px;
-    flex: 0 0 auto;
-    transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out), color 160ms var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .shop-signup-form button:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-  }
-
-  .shop-signup-form button::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 300ms var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .shop-signup-form button:hover::after { width: 100%; }
-  }
-
-  .shop-signup-form button:not([disabled]):active { transform: scale(0.96); }
-  .shop-signup-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
-
-  .shop-signup-confirm {
-    display: none;
-    margin-top: 10px;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-
-  .shop-signup-confirm.show { display: block; }
-
-
-  @media (max-width: 640px) {
-    .shop-klaviyo { padding: 5vh 16px 6vh; }
-    .shop-signup-form { flex-direction: column; align-items: stretch; gap: 14px; }
-  }
-
   /* ---------- shop grid ----------
      20px/16px top padding is the only thing separating the grid from
      the fixed header (via .page-top-space, which just clears the
@@ -508,140 +386,115 @@
      at its own height, contact-sheet style -- and measured, that put
      the names and prices of one row on three different baselines.
      See the note on .product-img: the rhythm now comes from the
-     campaign band and the lookbook, and the price list reads as a
+     hero, the band and the lookbook, and the price list reads as a
      price list. */
-  /* ---------- campaign frame ----------
-     Full bleed, one photograph, type sitting on it. The page used to
-     open on two cropped frames and a caption rule, which still read as
-     a layout; this reads as a campaign. */
-  .campaign {
+  /* ---------- hero ----------
+     One photograph, the width of the window, and two lines of type on
+     it. No eyebrow, no display-size collection title, no button: brief
+     v14 took all three out, and what is left is the photograph doing
+     the work it was shot to do.
+
+     The height is clamped rather than driven by the image's own aspect
+     ratio, because the photograph is portrait and a full-width portrait
+     frame is three screens tall on a desktop. */
+  .hero {
     position: relative;
     margin-bottom: 0;
   }
 
-  .campaign img {
+  .hero img {
     width: 100%;
-    height: clamp(420px, 74vh, 760px);
+    height: clamp(440px, 78vh, 820px);
     object-fit: cover;
     object-position: center 22%;
     display: block;
   }
 
-  /* A scrim only under the type, so the photograph is not dimmed. */
-  .campaign-plate {
+  /* The local fallback only shows when the build wrote no live
+     photograph. Two <img> elements would otherwise both render and the
+     page would open on two heroes. :has() is how the fallback knows --
+     supported everywhere this site is used, and the @supports guard
+     below keeps the no-:has() case to the fallback rather than to
+     nothing. */
+  .hero:has(> img) .hero-fallback { display: none; }
+
+  @supports not selector(:has(*)) {
+    .hero > img { display: none; }
+  }
+
+  /* A scrim only under the type, so the photograph itself is not
+     dimmed. */
+  .hero-plate {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 110px 32px 28px;
+    padding: 96px 32px 26px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 18px;
-    background: linear-gradient(to top, rgba(11, 10, 8, 0.72), rgba(11, 10, 8, 0));
+    background: linear-gradient(to top, rgba(14, 14, 13, 0.74), rgba(14, 14, 13, 0));
   }
 
-  .campaign-text { display: grid; gap: 6px; }
-
-  .campaign-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-  }
-
-  /* The signature. The collection was named in 11px tracked-out mono
-     sitting in the corner of the photograph -- a caption, which is why
-     the page read as a layout containing a picture rather than as a
-     campaign. Set on Archivo's width axis at the size the photograph
-     can carry, it is the one piece of type on the site allowed to be
-     loud, and everything else stays quiet around it. */
-  .campaign-title {
+  /* The one line on the page allowed to be set large. Archivo's width
+     axis, tracking pulled in rather than let out, so it reads as a
+     statement and not as a caption sitting in the corner of a photo. */
+  .hero-line {
     font-family: var(--font-display);
     font-variation-settings: var(--display-wide);
     font-weight: 800;
-    font-size: clamp(34px, 6.4vw, 92px);
-    line-height: 0.84;
-    letter-spacing: -0.035em;
+    font-size: clamp(26px, 4.1vw, 56px);
+    line-height: 0.94;
+    letter-spacing: -0.03em;
     text-transform: uppercase;
     color: var(--ink);
     margin: 0;
+    max-width: 22ch;
   }
 
-  /* An outlined button, not the accent: this moves you down the page,
-     it does not buy anything, and the violet has exactly one job. */
-  .campaign-link { flex: none; backdrop-filter: blur(2px); }
-
-  /* ---------- proposition ----------
-     A rule-separated row of three, not a card grid. Measured against
-     the page's own type scale: the lead reads at body size and the
-     three facts sit under mono keys, so it scans in about four
-     seconds and then gets out of the way of the products. */
-  .proposition {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 34px 40px 6px;
-  }
-
-  .proposition-lead {
-    font-family: var(--font-display);
-    font-variation-settings: var(--display-wide);
-    font-weight: 700;
-    font-size: clamp(17px, 2vw, 23px);
-    line-height: 1.22;
-    letter-spacing: -0.015em;
-    color: var(--ink);
-    margin: 0 0 22px;
-    max-width: 30ch;
-  }
-
-  .proposition-facts {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 26px;
-    border-top: 1px solid var(--line);
-    padding-top: 18px;
-  }
-
-  .proposition-facts li {
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    line-height: 1.6;
-    color: var(--muted);
-  }
-
-  .proposition-k {
-    display: block;
+  /* A link, not a button. It moves you 600px down the same page; a
+     filled control here competes with Add to Cart for the same
+     attention and wins nothing. */
+  .hero-link {
+    flex: none;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--ink);
-    margin-bottom: 7px;
+    text-decoration: none;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--ink);
+    transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out);
   }
 
-  /* ---------- drop intro ---------- */
-  .drop-intro {
+  .hero-link:hover { color: var(--muted); border-bottom-color: var(--muted); }
+  .hero-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+  /* ---------- homepage signup ----------
+     One line and a field, under the grid. The footer carries the same
+     form on every page; this one exists because the homepage is where
+     a visitor who is not ready to buy decides whether to leave with
+     nothing. The lookbook strip sits between the two so they are never
+     on screen together. */
+  .home-sms {
     max-width: 1180px;
     margin: 0 auto;
-    padding: 26px 40px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 16px;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
+    padding: 6vh 40px 2vh;
+    border-top: 1px solid var(--line);
   }
 
-  .drop-intro span { color: var(--ink); }
-  .drop-intro a { color: var(--muted); text-decoration: none; }
-  .drop-intro a:hover { color: var(--ink); }
+  .home-sms-line {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.62;
+    color: var(--muted);
+    margin: 0 0 20px;
+    max-width: 52ch;
+  }
+
+  .home-sms .sms-signup { max-width: 52ch; }
 
   /* ---------- full-bleed band ---------- */
   .band {
@@ -696,7 +549,7 @@
     /* Square corners. Rounded photographs are a UI convention, not a
        photographic one, and nothing in a printed lookbook has them. */
     border-radius: 0;
-    background: #141210;
+    background: #161614;
   }
 
   /* One ratio for every tile, at every width.
@@ -962,12 +815,10 @@
   }
 
   @media (max-width: 760px) {
-    .campaign img { height: 62vh; }
-    .campaign-plate { padding: 90px 16px 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
-    .campaign-eyebrow { font-size: 9.5px; letter-spacing: 0.18em; }
-    .drop-intro { padding: 20px 16px 10px; font-size: 9.5px; letter-spacing: 0.1em; }
-    .proposition { padding: 26px 16px 2px; }
-    .proposition-facts { grid-template-columns: 1fr; gap: 18px; }
+    .hero img { height: 68vh; }
+    .hero-plate { padding: 86px 16px 18px; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .hero-line { font-size: clamp(25px, 8.4vw, 36px); max-width: 16ch; }
+    .home-sms { padding: 5vh 16px 2vh; }
     .band { margin-bottom: 8vh; }
     .band-caption { padding: 0 16px; }
     .shop-lookbook { padding: 0 16px 8vh; }
@@ -1032,6 +883,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -1053,9 +912,9 @@
     <nav id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
+      <a href="archive.html">Archive</a>
+      <a href="community.html">Lookbook</a>
+      <a href="about.html">About</a>
       <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
@@ -1072,87 +931,41 @@
        not something added for this. -->
   <h1 class="sr-only">Shop All</h1>
 
-  <!-- The page opened on a four-across grid, which answers "what can I
-       buy" and nothing else. It now opens on a photograph, because the
-       first question a stranger has is what this actually looks like
-       on a person. No overlay copy beyond the collection marker —
-       there is no brand story to tell here that the photographs do not
-       tell better, and inventing one is how storefronts end up
-       sounding generated.
+  <!-- Brief v14. The page opened on a campaign frame, then a lead
+       sentence, then a three-fact row, then a "Current drop" rule, and
+       only then the products: four blocks of preamble before anything
+       buyable. The feedback was that the site "still looks the exact
+       same", and the reason is that every pass added another band
+       above the grid instead of taking the preamble out.
 
-       A campaign frame, not a hero. No heading, no paragraph, no pair
-       of buttons: one photograph running the width of the page, the
-       collection named in small type over it, and one way in. The
-       grid starts below it. -->
-  <section class="campaign" aria-label="Fall collection">
-    <picture>
+       So: one photograph running the window, one line of type, one way
+       in, grid. The three facts are not deleted -- they moved to
+       /about.html, where someone who wants them can read them, rather
+       than standing between a stranger and the clothes.
+
+       The ASIOR mark top left is the sitewide header's, not a second
+       one printed on the photograph. One wordmark per screen. -->
+  <section class="hero" aria-label="Asior">
+    <!-- scripts/build.js writes the live product photograph between
+         these markers (syncHero). The markup below it is the served
+         fallback: a real local file, so the page is never heroless if
+         a build cannot reach Shopify. -->
+    <!-- HERO:START -->
+    <!-- HERO:END -->
+    <picture class="hero-fallback">
       <source type="image/webp" srcset="images/look-02.webp">
-      <img src="images/look-02.jpg" alt="Asior Fall collection, worn" width="800" height="1200" fetchpriority="high" decoding="async">
+      <img src="images/look-02.jpg" alt="Asior, worn" width="800" height="1200" decoding="async">
     </picture>
-    <!-- The plate is written by renderCampaign() from the real drop
-         state (see Asior.dropState). The markup served here is the
-         live-drop case, so the page is correct for a crawler and for a
-         visitor whose JS has not run; the only states that replace it
-         are ones that need JS to be true anyway. -->
-    <div class="campaign-plate" id="campaignPlate">
-      <div class="campaign-text">
-        <!-- "Fall 2026" is the drop this repo exists for (see CLAUDE.md),
-             not a season invented to fill an eyebrow. -->
-        <span class="campaign-eyebrow">Fall 2026</span>
-        <h2 class="campaign-title">Fall Collection</h2>
-      </div>
-      <a class="campaign-link btn btn--ghost" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>
+
+    <div class="hero-plate" id="heroPlate">
+      <!-- The one line. It is the founder's framing of how the label
+           works and it is true of the catalog: small quantities,
+           restocked rarely. No countdown, no "only N left", nothing
+           that needs a number to land. -->
+      <p class="hero-line">Small runs. Run again rarely.</p>
+      <a class="hero-link" href="#shop">Shop all <span aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
-
-  <!-- What Asior is, in three facts a visitor can check.
-
-       The homepage resolved straight to a product grid, so a stranger
-       got prices before they got any reason to care.
-
-       An earlier version of this block led with "a small-run streetwear
-       label that makes its own garments", taken from manufacturing.html's
-       own copy. The founder corrected it: Asior works with a
-       manufacturer and does not make its own garments. Nothing here
-       claims production any more. What is left is what can actually be
-       checked -- the fabric weights come from the Shopify product
-       descriptions, the small-run framing is the founder's own, and the
-       dispatch line reads the same verified shipping config as the
-       product page and the cart.
-
-       Note the deliberate limit on the fabric claim: only two products
-       have a stated GSM in Shopify, so the weight is named for those
-       two and the rest is "where we have it" rather than a number
-       generalised across the catalogue. -->
-  <section class="proposition" aria-label="About Asior">
-    <p class="proposition-lead">
-      Asior is a small-run streetwear label out of the US.
-    </p>
-    <ul class="proposition-facts">
-      <li>
-        <span class="proposition-k">Heavyweight cotton</span>
-        Thick enough to hold its shape rather than thin blanks &mdash; 290+ GSM
-        on the Ja-yu tee, 250+ on the Kova. Fabric weight is listed on the
-        pieces we have it measured for.
-      </li>
-      <li>
-        <span class="proposition-k">Small runs</span>
-        Pieces are produced in limited quantities and restocked rarely. When a
-        size is gone it is gone until we run it again.
-      </li>
-      <li>
-        <span class="proposition-k">Ships from the US</span>
-        <span id="propShipping">Dispatched in 1&ndash;2 business days.</span>
-        14-day returns on unworn items with tags.
-      </li>
-    </ul>
-  </section>
-
-  <!-- One small row instead of a section heading. -->
-  <div class="drop-intro">
-    <span>Current drop</span>
-    <a href="#shop">Shop all <span aria-hidden="true">&rarr;</span></a>
-  </div>
 
   <!-- Personalization from real browsing history (assets/site.js's
        getViewed()) — shown before the full catalog, not after, when
@@ -1199,6 +1012,44 @@
     <div class="shop-empty" id="shopEmpty"></div>
   </section>
 
+  <!-- One line and a field. Brief v14.
+
+       What stood here was a boxed email signup: a tracked-out label, a
+       sub-line, a field and a button, under its own heading -- and the
+       footer on this same page already carried a second signup. Two
+       signup blocks a screen apart is what a visitor reads as a site
+       that wants something from them.
+
+       This is the SMS line, written by scripts/build.js from the same
+       source as the footer's so the TCPA consent sentence cannot drift
+       between the two. The band and the lookbook strip sit between this
+       and the footer block, so the two are never on screen together.
+
+       Email is not lost with the old block: the cart and every
+       back-in-stock form still collect it. -->
+  <section class="home-sms" id="signup">
+    <p class="home-sms-line">Sizes sell out and we run them again rarely. One text when something you want is going.</p>
+    <!-- SMSBLOCK:START -->
+    <div class="sms-signup sms-signup--home" data-sms-location="home">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-home">Mobile number</label>
+        <input class="field" type="tel" id="sms-home" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
+  <!-- SMSBLOCK:END -->
+  </section>
+
   <!-- Real photography from the lookbook (images/look-*.jpg, same
        files community.html uses) — proof of how a piece actually
        looks worn. Sits after the catalog now: the grid is the reason
@@ -1227,41 +1078,30 @@
     <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
   </section>
 
-  <section class="shop-klaviyo" id="signup">
-    <div class="shop-klaviyo-label">Get 10% Off With Code ASIORTEN</div>
-    <!-- Phone first, and no longer described as optional.
-
-         This block used to open its consent copy with "Email only?
-         Leave the phone field blank." Text signups were flat for as
-         long as that line was here, which is not a coincidence: the one
-         place on the site that asked for a number told people to skip
-         it.
-
-         It no longer asks for a number at all. The sitewide footer
-         block on this same page is an SMS signup, so the page was
-         asking for a phone twice, in two different shapes, a screen
-         apart. This one keeps EMAIL — which the footer block cannot
-         capture — and the footer keeps SMS. One channel each.
-
-         The TCPA sentence went with the phone field, and that is
-         correct rather than a loss: the disclosure is required at the
-         point a number is collected, and nothing here collects one now.
-         The footer block, which does, carries it verbatim. -->
-    <p class="shop-klaviyo-sub">Drops, restocks and what is running low.</p>
-    <form class="shop-signup-form" id="shopSignupForm">
-      <label class="sr-only" for="shopSignupEmail">Email address</label>
-      <input type="email" id="shopSignupEmail" name="email" placeholder="Email"
-             autocomplete="email" spellcheck="false" required>
-      <button type="submit" id="shopSignupBtn">Sign Up</button>
-    </form>
-    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite"></div>
-  </section>
-
   </main>
 
   <!-- FOOTER:START -->
   <footer id="order">
+    <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      <p class="sms-signup-title">Text list.</p>
+      <p class="sms-signup-body">First to know when sizes run low.</p>
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
     <div class="fmark">Asior</div>
+    <div class="fline">Small runs from Texas.</div>
     <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -1272,9 +1112,22 @@
       </a>
     </div>
     <div class="policy-links">
+      <a href="/text">Text List</a>
+      <a href="account.html">Account</a>
       <a href="privacy-policy.html">Privacy Policy</a>
       <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+    </div>
+    <!-- Manufacturing is a B2B service for other brands. It was sitting
+         in the main shopping nav between Contact and the cart, which put
+         a different buyer's destination in the middle of a clothing
+         customer's journey. Nothing is removed -- the page, its URL and
+         its form all still work -- it is just reached from here, where
+         someone looking for it will look, instead of from the nav a
+         shopper uses to find a tee. -->
+    <div class="business-links">
+      <a href="contact.html">Contact</a>
+      <span class="business-sep" aria-hidden="true">/</span>
+      <a href="manufacturing.html">For brands</a>
     </div>
   </footer>
   <!-- FOOTER:END -->
@@ -1302,42 +1155,6 @@
     const el = document.getElementById('shopShipping');
     el.textContent = badge;
     el.hidden = false;
-  })();
-
-  // Same signup cart.html has had — real Klaviyo list, real
-  // incentive, same consent copy — just reachable from the page every
-  // visitor actually lands on, not only the ones who already added
-  // something to cart.
-  (function bindShopSignupForm() {
-    const form = document.getElementById('shopSignupForm');
-    if (!form) return;
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('shopSignupBtn');
-      const confirmEl = document.getElementById('shopSignupConfirm');
-      const email = document.getElementById('shopSignupEmail').value;
-
-      btn.disabled = true;
-      try {
-        // Email only. klaviyoSubscribe's second argument is the phone
-        // number and it is deliberately omitted: a falsy phone skips
-        // the SMS list entirely, so this form can only ever produce
-        // email consent. SMS consent on this page comes from the
-        // footer block, through its own path.
-        await A.klaviyoSubscribe(email);
-        A.klaviyoTrack('Early Access Signup',
-          Object.assign({ source: 'website', signup_location: 'shop', campaign: 'fall_2026', interest: 'fall_collection' },
-            A.getUTMParams()),
-          { email: email });
-        form.style.display = 'none';
-        confirmEl.textContent = "You're on the list. Code ASIORTEN takes 10% off your first order.";
-        confirmEl.classList.add('show');
-      } catch (err) {
-        confirmEl.textContent = 'Something went wrong, try again in a moment.';
-        confirmEl.classList.add('show');
-        btn.disabled = false;
-      }
-    });
   })();
 
   // Real, live catalog. Whatever's Active in Shopify shows here; Draft
@@ -1396,12 +1213,21 @@
         acc.push({
           handle: node.handle,
           name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-          image: node.featuredImage,
-          // The first image that is not the one already on the tile.
+          /* A.leadImage, not featuredImage: Kova's featuredImage in
+             Shopify is an Adobe Firefly render, and reading it raw
+             here put that render on the grid tile a moment after the
+             build had demoted it. CLAUDE.md: a generated image is
+             never the grid tile. */
+          image: A.leadImage(node.featuredImage, ((node.images && node.images.edges) || []).map(x => x.node)),
+          /* The first REAL photograph that is not the one already on
+             the tile. Without the generated-image filter the hover
+             swap did the demotion in reverse -- the tile showed a
+             photograph and swapped to the render on pointer enter. */
           altImage: (() => {
             const all = ((node.images && node.images.edges) || []).map(x => x.node);
-            const first = node.featuredImage && node.featuredImage.url;
-            return all.find(im => im && im.url && im.url !== first) || null;
+            const lead = A.leadImage(node.featuredImage, all);
+            const first = lead && lead.url;
+            return A.orderImages(all).find(im => im.url !== first) || null;
           })(),
           isPreorder: /\[preorder\]/i.test(node.title),
           soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
@@ -1549,7 +1375,7 @@
             variantId, quantity: 1,
           });
         }
-        wrap.innerHTML = `<span class="qa-msg">Added ${A.escapeHtml(size)} — <a href="/cart.html">view cart</a></span>`;
+        wrap.innerHTML = `<span class="qa-msg">added ${A.escapeHtml(size)}. <a href="/cart.html">View cart</a></span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } catch (err) {
         // A failed add is the one funnel step with no other trace: the
@@ -1661,7 +1487,7 @@
 
     if (catalog.length === 0) {
       grid.innerHTML = '';
-      empty.textContent = 'Nothing in the shop right now, check back soon.';
+      empty.textContent = 'nothing in the shop right now. check back soon.';
       empty.classList.add('show');
       return;
     }
@@ -1769,68 +1595,51 @@
 
   /* ---- drop state on the opening -------------------------------------
 
-     The opening changes purpose with the drop rather than being one
-     fixed hero, which is the difference between a storefront and a
-     campaign. Asior.dropState() decides; this only renders.
+     The headline is fixed now -- "Small runs. Run again rarely." is
+     true in every state, which is the point of it -- so this no longer
+     rewrites the plate. What it still does is swap the one link, so the
+     opening never offers a dead end:
 
-     Every state says something true:
-       pre-drop   names the real configured instant, in the visitor's
-                  own timezone, and offers the list -- there is nothing
-                  to buy yet, so "Shop the drop" would be a dead end.
-       live       what the served markup already says.
+       pre-drop   there is nothing to buy yet, so "Shop all" would
+                  scroll a visitor to an empty grid. Offers the list
+                  and names the real configured instant in the
+                  visitor's own timezone.
        sold-out   says so plainly and offers the list. No "hurry", no
                   count, no restock promise -- we do not know one.
-       evergreen  the collection with no date attached to it.
+       live /
+       evergreen  the served markup, untouched.
 
      Called twice: once before the catalogue lands (config-only states,
      so there is no flash), once after (so sold-out can be proven). */
-  function renderCampaign(catalog) {
-    const plate = document.getElementById('campaignPlate');
+  function renderHero(catalog) {
+    const plate = document.getElementById('heroPlate');
     if (!plate) return;
+    const link = plate.querySelector('.hero-link');
+    if (!link) return;
+
     const { state, at } = A.dropState(catalog);
     if (plate.dataset.state === state) return;
     plate.dataset.state = state;
 
-    const title = '<h2 class="campaign-title">Fall Collection</h2>';
-    const when = A.launchDateLabel(at);
-
     if (state === 'pre-drop') {
-      plate.innerHTML = `
-        <div class="campaign-text">
-          <span class="campaign-eyebrow">${when ? `Drops ${A.escapeHtml(when)}` : 'Coming soon'}</span>
-          ${title}
-        </div>
-        <a class="campaign-link btn btn--primary" href="/text">Get first access</a>`;
+      const when = A.launchDateLabel(at);
+      link.href = '/text';
+      link.textContent = when ? `Drops ${when} \u2014 get first access` : 'Get first access';
       return;
     }
 
     if (state === 'sold-out') {
-      plate.innerHTML = `
-        <div class="campaign-text">
-          <span class="campaign-eyebrow">Sold out</span>
-          ${title}
-        </div>
-        <a class="campaign-link btn btn--ghost" href="/text">Tell me when it's back</a>`;
+      link.href = '/text';
+      link.textContent = "Sold out \u2014 tell me when it's back";
       return;
     }
 
-    plate.innerHTML = `
-      <div class="campaign-text">
-        <span class="campaign-eyebrow">${state === 'evergreen' ? 'Asior' : 'Fall 2026'}</span>
-        ${title}
-      </div>
-      <a class="campaign-link btn btn--ghost" href="#shop">Shop the drop <span aria-hidden="true">&rarr;</span></a>`;
+    link.href = '#shop';
+    link.innerHTML = 'Shop all <span aria-hidden="true">&rarr;</span>';
   }
 
-  /* The proposition's shipping line comes from the same helper the
-     product page and the cart use, so all three can never disagree. */
-  (() => {
-    const el = document.getElementById('propShipping');
-    if (el && A.shippingLine) el.textContent = A.shippingLine();
-  })();
-
   // Config-only states are knowable now; sold-out waits for the fetch.
-  renderCampaign(null);
+  renderHero(null);
 
   /* ---- quick view ---------------------------------------------------
 
@@ -1908,7 +1717,9 @@
       box.innerHTML = '<p class="peek-wait">That piece isn\'t in the catalog.</p>';
       return;
     }
-    const images = product.images.edges.map(e => e.node);
+    // Same ordering rule as the PDP gallery: a photograph is the
+    // first frame in the quick view, never a generated render.
+    const images = A.orderImages(product.images.edges.map(e => e.node));
     const variants = product.variants.edges.map(e => e.node);
     const sizeOnly = product.options.length === 1 && product.options[0].name === 'Size';
     const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => isFinite(n));
@@ -1967,14 +1778,15 @@
           </div>
           <p class="peek-msg" id="peekBisMsg" role="status" aria-live="polite"></p>
         </div>
-        <!-- The same two lines the product page states, read from the
-             same helper so the shipping sentence cannot say one thing
-             here and another there. Measurements and the description
-             are not duplicated -- those are what "Full details" is
-             for. -->
+        <!-- The same lines the product page states, read from the same
+             helpers so neither sentence can say one thing here and
+             another there. The returns line is gated on a published
+             policy (A.returnsLine) and renders nothing while there
+             isn't one. Measurements and the description are not
+             duplicated -- those are what "Full details" is for. -->
         <ul class="peek-trust">
           <li>${A.escapeHtml(A.shippingLine())}</li>
-          <li>14-day returns on unworn, unwashed items with tags.</li>
+          ${A.returnsLine() ? `<li>${A.escapeHtml(A.returnsLine())}</li>` : ''}
         </ul>
         <a class="peek-full btn btn--ghost btn--block" href="/products/${encodeURIComponent(handle)}.html">Full details</a>
       </div>`;
@@ -2071,7 +1883,7 @@
           source: 'quick_view',
         });
         if (pickedSize) A.recordSizeChoice(pickedSize);
-        addBtn.textContent = 'Added';
+        addBtn.textContent = 'added.';
         msg.textContent = 'In your cart.';
         // Close and hand over to the drawer, which is where the rest of
         // the cart already lives -- two cart surfaces at once is one too
@@ -2229,7 +2041,7 @@
     .then((catalog) => {
       CATALOG = catalog;
       // Now the catalogue can prove or disprove a sold-out drop.
-      renderCampaign(catalog);
+      renderHero(catalog);
       buildToolbar(); syncToolbar();
       return catalog;
     })

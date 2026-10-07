@@ -664,7 +664,7 @@
     var lines = (cart && cart.lines && cart.lines.edges) || [];
 
     if (!lines.length) {
-      body.innerHTML = '<p class="cart-drawer-empty">Nothing in your cart yet.</p>';
+      body.innerHTML = '<p class="cart-drawer-empty">nothing in here yet.</p>';
       foot.innerHTML = '<a class="cart-drawer-secondary" href="/shop.html">Back to Shop All</a>';
       return;
     }
@@ -1237,6 +1237,53 @@
      1-2 business days" is how long before it leaves; transit is how
      long it then takes to arrive. Stating one number invites the
      reader to hear the other. */
+  /* AI-generated imagery, client side.
+
+     scripts/build.js has had isGeneratedImage()/leadImage() for the
+     pre-rendered markup, but the grid, the quick view and the PDP all
+     re-render from a live fetch a moment after load -- and they read
+     featuredImage straight off the response. So Kova's tile was
+     demoted to a real photograph at build time and then swapped BACK
+     to the Firefly render by the client, which is the one thing
+     CLAUDE.md says must never be the grid tile.
+
+     Same detector as the build's, deliberately: one list of generator
+     filenames, two runtimes. Keep them in step.
+
+     Note what this does NOT do: it never hides a product and never
+     deletes an image. The render stays reachable in the PDP gallery as
+     a later frame -- removing it from Shopify is the founder's call,
+     not this file's. All this decides is what goes FIRST. */
+  var GENERATED_IMAGE_RE = /Firefly_|Midjourney|DALL-?E|StableDiffusion|GeminiFlash|nano-banana|AIGenerated/i;
+
+  function isGeneratedImage(img) {
+    var url = (img && (img.url || img)) || '';
+    return GENERATED_IMAGE_RE.test(url);
+  }
+
+  /* The image a product should lead with: its first real photograph.
+     Falls back to the generated one only when there is nothing else --
+     a product with no image at all is worse than one with a flawed
+     image, and the point is to stop a render being FIRST, not to hide
+     the product. */
+  function leadImage(featured, images) {
+    var all = (images || []).filter(function (im) { return im && im.url; });
+    if (featured && !isGeneratedImage(featured)) return featured;
+    var real = all.filter(function (im) { return !isGeneratedImage(im); })[0];
+    if (real) return real;
+    return featured || all[0] || null;
+  }
+
+  /* A product's images, real photographs first, generated renders last
+     and never dropped. Used wherever a list of frames is rendered in
+     order (the PDP gallery, the quick view) so the first frame is a
+     photograph without any image disappearing. */
+  function orderImages(images) {
+    var all = (images || []).filter(function (im) { return im && im.url; });
+    return all.filter(function (im) { return !isGeneratedImage(im); })
+      .concat(all.filter(isGeneratedImage));
+  }
+
   function shippingConfig() {
     return window.ASIOR_SHIPPING || {};
   }
@@ -1336,6 +1383,22 @@
      countries. Prose drifts from the rate card; this cannot, because
      it is the rate card. Every number here comes from
      assets/promo-config.js and nothing is written twice. */
+  /* The returns sentence, or nothing.
+
+     Gated on ASIOR_SHIPPING.RETURNS_POLICY_PUBLISHED, which is false:
+     no refund or return policy exists in Shopify and
+     /refund-policy.html is a 404, so a stated return window is a
+     promise with nothing behind it. Returns '' in that case and every
+     caller renders nothing rather than a hedge. See the long note on
+     the flag in assets/promo-config.js. */
+  function returnsLine() {
+    var s = shippingConfig();
+    if (!s.RETURNS_POLICY_PUBLISHED) return '';
+    var days = Number(s.RETURNS_WINDOW_DAYS);
+    if (!isFinite(days) || days <= 0) return '';
+    return days + '-day returns on unworn, unwashed items with tags.';
+  }
+
   function shippingDetailHTML() {
     var s = shippingConfig();
     var out = '<p>' + escapeHtml(shippingLine()) + '</p>';
@@ -1392,6 +1455,11 @@
     IMAGE_FIELDS: IMAGE_FIELDS,
     shippingLine: shippingLine,
     shippingDetailHTML: shippingDetailHTML,
+    returnsLine: returnsLine,
+    shippingConfig: shippingConfig,
+    isGeneratedImage: isGeneratedImage,
+    leadImage: leadImage,
+    orderImages: orderImages,
     internationalLine: internationalLine,
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
@@ -1458,6 +1526,34 @@
   }
 
   wireHeaderScrollState();
+
+  /* Publish the fixed header's real height as --header-h, which
+     .page-top-space uses to clear it.
+
+     The spacer was two hardcoded numbers (92px / 118px) against a
+     header that is actually 87px / 95px tall, because its height
+     depends on the loaded font and on whether the nav wraps. The slack
+     was invisible on a dark page and became a black band between the
+     nav and the homepage's full-bleed photograph.
+
+     Measured on load, on resize, and again once the webfont has
+     swapped in -- Archivo is loaded with display=swap, so the first
+     measurement is taken against the fallback face and can be a couple
+     of pixels out. The CSS keeps the old numbers as its fallback, so a
+     visitor with no JS gets exactly what they got before. */
+  function syncHeaderHeight() {
+    var header = document.querySelector('header');
+    if (!header) return;
+    var h = Math.round(header.getBoundingClientRect().bottom);
+    if (h > 0) document.documentElement.style.setProperty('--header-h', h + 'px');
+  }
+
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight, { passive: true });
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(syncHeaderHeight).catch(function () {});
+  }
+
   // Footer block on every page, and the whole of /text. The PDP
   // block renders after its catalog fetch, so product.html calls
   // wireSmsSignup() again once it has built the buy box.

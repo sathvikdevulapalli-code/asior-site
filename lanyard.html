@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior Lanyard — Out Now</title>
 <meta name="description" content="The Asior lanyard. Out now.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="var(--bg)">
 <link rel="canonical" href="https://asiorclothing.com/lanyard.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Product structured data, written at build time from the live
@@ -82,7 +82,7 @@
      (very tall or very wide) dominating the layout. */
   .lp-media {
     border-radius: 2px;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -250,6 +250,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>

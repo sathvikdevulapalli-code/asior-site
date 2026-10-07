@@ -185,6 +185,32 @@ window.ASIOR_SHIPPING = {
 
   // Null = nothing about free shipping may render. See FREE_THRESHOLD.
   VERIFIED: null,
+
+  /* ---------------------------------------------------------------
+     RETURNS. The same rule as the promotion above: the site may only
+     promise what already exists.
+
+     Right now nothing does. There is no refund or return policy in
+     Shopify, /refund-policy.html is a 404 (which is why the policy
+     link resolver in scripts/build.js drops links to it), and the
+     product page, the quick view and the shipping accordion were all
+     promising "14-day returns on unworn, unwashed items with tags"
+     anyway. A stated return window with no policy behind it is a
+     promise the store cannot be held to and the customer cannot read
+     -- which is an FTC problem, not a copy preference.
+
+     So the copy is gated on this flag and the flag is false. With it
+     false the site says nothing about returns at all. It does not say
+     returns are refused either: silence is not a no, and inventing a
+     "no returns" policy would be the same mistake in the other
+     direction.
+
+     To turn it on: publish the real policy in Shopify Admin, confirm
+     /refund-policy.html serves it, then set this true and write the
+     real window into RETURNS_WINDOW_DAYS. CLAUDE.md records this gate
+     as standing policy for the repo. */
+  RETURNS_POLICY_PUBLISHED: false,
+  RETURNS_WINDOW_DAYS: 14,
 };
 
 /* ===================================================================

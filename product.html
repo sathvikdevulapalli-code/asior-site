@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior</title>
 <meta name="description" content="Asior makes limited-run streetwear in small batches.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="var(--bg)">
 <link rel="canonical" href="https://asiorclothing.com/product.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
@@ -96,7 +96,7 @@
        takes it off the bottom of the frame and nothing is letterboxed. */
     width: 100%;
     overflow: hidden;
-    background: #141210;
+    background: #161614;
     cursor: zoom-in;
   }
 
@@ -136,6 +136,13 @@
     color: var(--muted);
   }
 
+  /* Shipping and returns moved into .pd-spec, so this list now carries
+     only the preorder notice and the signup line -- and on a normal
+     product with no signup line yet, nothing at all. :has() drops the
+     rule and the padding in that case rather than leaving a hairline
+     under the button with nothing beneath it. The empty <li> the
+     signup line renders into does not count as content, which is what
+     the :not(:empty) is for. */
   .pd-trustlines {
     list-style: none;
     margin: 18px 0 0;
@@ -143,6 +150,12 @@
     border-top: 1px solid var(--line);
     display: grid;
     gap: 7px;
+  }
+
+  .pd-trustlines:not(:has(li:not(:empty))) {
+    margin: 0;
+    padding: 0;
+    border-top: 0;
   }
 
   .pd-trustlines li {
@@ -202,7 +215,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
   }
 
   .pd-gallery .ph span {
@@ -250,49 +263,6 @@
     text-transform: uppercase;
   }
 
-  /* The count sits at the same weight as the average on purpose --
-     see ratingHTML(). Nothing here is a star row: five glyphs make one
-     review look like a verdict. */
-  /* The fit sentence sits directly above the size picker, where the
-     decision it informs is made. Brief v12 section 7. */
-  .pd-fit {
-    font-family: var(--font-body);
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--ink-dim);
-    margin-top: 14px;
-  }
-
-  .pd-care {
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    line-height: 1.6;
-    color: var(--muted);
-    margin-top: 10px;
-  }
-
-  .pd-set-note {
-    font-family: var(--font-body);
-    font-size: 12px;
-    line-height: 1.55;
-    color: var(--muted);
-    margin-top: 10px;
-  }
-
-  .pd-set-note a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
-
-  .pd-rating {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-top: 7px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-  }
-
-  .pd-rating-value { color: var(--ink); }
-  .pd-rating-count { color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; }
 
   /* Bumped from 14px/var(--muted) — the price is a lead element in the
      buy panel now, so it needs to read at a glance rather than at the
@@ -479,7 +449,7 @@
   .pd-add[disabled] {
     opacity: 1;
     background: #58524733;
-    color: #8b8475;
+    color: var(--muted);
     box-shadow: inset 0 0 0 1px #585247;
     cursor: default;
   }
@@ -824,7 +794,7 @@
   .rel-item .ph {
     width: 100%;
     height: 100%;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
   }
 
   .rel-item:hover img { transform: scale(1.04); }
@@ -965,22 +935,57 @@
   /* ---------- facts row ----------
      Fabric and fit, stated plainly under the price. Only renders for
      fields that are actually filled in on assets/product-details.js. */
-  .pd-facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
+  /* ---------- spec lines ----------
+     Brief v14. The facts were a wrapping row of bordered, tracked-out
+     pills, which made "100% cotton" and "Runs true to size" look like
+     the same kind of thing. A key/value list separated by hairlines
+     reads as a spec, and the key column tells you which is which
+     without reading the value.
+
+     Rendered empty when a product has no real spec at all -- :empty
+     then removes the border and the margin, so there is no orphan rule
+     floating under the price. */
+  .pd-spec {
+    margin: 18px 0 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
   }
 
-  .pd-fact {
+  .pd-spec:empty { display: none; }
+
+  .pd-spec-row {
+    display: grid;
+    /* px, not em. An em here resolves against the grid container's
+       16px, not the 10px the key is actually set in, so a 7.5em column
+       came out 120px wide to hold a 40px word and the value floated
+       half an inch off its label. 84px fits the longest key
+       ("PENDANT") at its real size with room to breathe. */
+    grid-template-columns: 84px 1fr;
+    gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pd-spec dt {
     font-family: var(--font-mono);
     font-size: 10px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
-    border: 1px solid var(--line);
-    border-radius: 0;
-    padding: 5px 9px;
+    padding-top: 2px;
+  }
+
+  .pd-spec dd {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  @media (max-width: 560px) {
+    .pd-spec-row { grid-template-columns: 76px 1fr; gap: 10px; }
+    .pd-spec dd { font-size: 12.5px; }
   }
 
   /* ---------- model reference ----------
@@ -1190,6 +1195,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -1211,9 +1224,9 @@
     <nav id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
+      <a href="archive.html">Archive</a>
+      <a href="community.html">Lookbook</a>
+      <a href="about.html">About</a>
       <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
@@ -1236,7 +1249,26 @@
 
   <!-- FOOTER:START -->
   <footer id="order">
+    <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      <p class="sms-signup-title">Text list.</p>
+      <p class="sms-signup-body">First to know when sizes run low.</p>
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
     <div class="fmark">Asior</div>
+    <div class="fline">Small runs from Texas.</div>
     <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -1247,9 +1279,22 @@
       </a>
     </div>
     <div class="policy-links">
+      <a href="/text">Text List</a>
+      <a href="account.html">Account</a>
       <a href="privacy-policy.html">Privacy Policy</a>
       <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+    </div>
+    <!-- Manufacturing is a B2B service for other brands. It was sitting
+         in the main shopping nav between Contact and the cart, which put
+         a different buyer's destination in the middle of a clothing
+         customer's journey. Nothing is removed -- the page, its URL and
+         its form all still work -- it is just reached from here, where
+         someone looking for it will look, instead of from the nav a
+         shopper uses to find a tee. -->
+    <div class="business-links">
+      <a href="contact.html">Contact</a>
+      <span class="business-sep" aria-hidden="true">/</span>
+      <a href="manufacturing.html">For brands</a>
     </div>
   </footer>
   <!-- FOOTER:END -->
@@ -1292,19 +1337,19 @@
   // every product added. Now: everything for the product being viewed,
   // and only handle/title/one image for the related rail.
   // ---------------------------------------------------------------
-  /* The ratings are asked for separately from everything else, on
+  /* The metafields are asked for separately from everything else, on
      purpose.
 
      shopifyFetch throws on any GraphQL error, so one unrecognised field
      takes the whole response down -- and a Storefront API that will not
-     serve reviews.rating (the definition has to be exposed to the
+     serve a custom metafield (the definition has to be exposed to the
      storefront, which cannot be confirmed from the build sandbox) would
      therefore have broken every product page rather than just hiding a
-     rating. On the pages ads land on.
+     fit line. On the pages ads land on.
 
-     So: the product query never mentions metafields, and the rating is
+     So: the product query never mentions metafields, and they are
      a second, optional request whose failure is swallowed. Worst case
-     the rating is absent, which is the same as it was before it
+     the fit line is absent, which is the same as it was before it
      existed. Best case it renders. Neither case can stop a visitor
      buying. */
   /* Every metafield the page would like but can live without, in one
@@ -1325,8 +1370,6 @@
       const d = await A.shopifyFetch(`
         query($handle: String!) {
           product(handle: $handle) {
-            rating: metafield(namespace: "reviews", key: "rating") { value }
-            ratingCount: metafield(namespace: "reviews", key: "rating_count") { value }
             fitNotes: metafield(namespace: "custom", key: "fit_notes") { value }
             sizeChart: metafield(namespace: "custom", key: "size_chart") { value }
             modelInfo: metafield(namespace: "custom", key: "model_info") { value }
@@ -1485,31 +1528,18 @@
     return {
       handle: node.handle,
       name: fallOverride ? fallOverride.name : node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-      images: node.images.edges.map(e => e.node),
+      /* Real photographs first, the generated render last and never
+         dropped. CLAUDE.md: such an image is never the first PDP
+         frame, but deleting it is the founder's call in Shopify
+         Admin, not this file's. */
+      images: A.orderImages(node.images.edges.map(e => e.node)),
       description: descriptionFromHtml(node.descriptionHtml),
       optionNames,
       variants,
       isPreorder: /\[preorder\]/i.test(node.title),
-      // Filled in afterwards from fetchRating(), which is a separate
-      // optional request -- see the comment there.
-      rating: null,
     };
   }
 
-  /* Parsed defensively: the metafield is a JSON string, it is absent on
-     most products (only three carry one), and a product with no reviews
-     must render nothing rather than "0 / 5". */
-  function parseRating(node) {
-    try {
-      if (!node || !node.rating || !node.ratingCount) return null;
-      const r = JSON.parse(node.rating.value);
-      const value = parseFloat(r.value);
-      const count = parseInt(node.ratingCount.value, 10);
-      const max = parseFloat(r.scale_max) || 5;
-      if (!isFinite(value) || !isFinite(count) || count < 1) return null;
-      return { value, count, max };
-    } catch (err) { return null; }
-  }
 
   // ---------------------------------------------------------------
   // Size guide, built from assets/product-details.js.
@@ -1603,31 +1633,6 @@
       </p>`;
   }
 
-  /* Real customer rating, or nothing.
-
-     The store runs Judge.me and Shopify carries its numbers in the
-     standard reviews.rating / reviews.rating_count metafields, but this
-     storefront never showed them -- so genuine proof the brand had
-     already earned was invisible while the page asked people to trust
-     it.
-
-     Two rules, both about not overstating thin evidence. The count is
-     always rendered beside the average, never suppressed, because
-     "5 / 5" from a single review implies a body of evidence that does
-     not exist. And every rating is shown, including the low one: a
-     storefront that displays its 5.0 and hides its 1.0 is not showing
-     customer proof, it is advertising. If a rating should not be
-     public, that belongs in Judge.me, not in a display filter here. */
-  function ratingHTML(product) {
-    const r = product.rating;
-    if (!r) return '';
-    const rounded = Math.round(r.value * 10) / 10;
-    return `
-      <p class="pd-rating">
-        <span class="pd-rating-value tnum">${rounded} / ${r.max}</span>
-        <span class="pd-rating-count">${r.count} ${r.count === 1 ? 'review' : 'reviews'}</span>
-      </p>`;
-  }
 
   /* Shopify's custom.size_chart, rendered in both units.
 
@@ -1719,7 +1724,7 @@
   (async function () {
     let product, catalog, stockByVariant;
     try {
-      // fetchVariantStock and fetchRating never throw (both catch
+      // fetchVariantStock and fetchExtras never throw (both catch
       // internally and resolve null instead) — that's what makes them
       // safe to run alongside the two queries that must succeed for the
       // page to render at all.
@@ -1743,7 +1748,6 @@
       product = normalizeProduct(p, stockByVariant);
       // After normalizeProduct, not before: it builds a fresh object
       // from the raw node, so a field set on the node never arrives.
-      product.rating = parseRating(extras);
       product.fitNotes = metaText(extras, 'fitNotes');
       product.modelInfo = metaText(extras, 'modelInfo');
       product.fabricCare = metaText(extras, 'fabricCare');
@@ -1801,12 +1805,21 @@
 
 
     // ---- copy blocks ----
+    /* The returns paragraph is gated with the rest of the returns copy
+       (A.returnsLine / RETURNS_POLICY_PUBLISHED). With no policy
+       published it does not render, and the accordion is titled
+       "Shipping" rather than promising a Returns section that is not
+       there. */
+    const returnsPara = A.returnsLine()
+      ? `<p>Returns and exchanges accepted within ${A.escapeHtml(String(A.shippingConfig().RETURNS_WINDOW_DAYS))} days of delivery, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>`
+      : '';
+
     const shipHTML = `
       <details class="pd-row pd-ship">
-        <summary>Shipping &amp; Returns</summary>
+        <summary>${returnsPara ? 'Shipping &amp; Returns' : 'Shipping'}</summary>
         <div class="pd-row-body pd-ship-body">
           ${A.shippingDetailHTML()}
-          <p>Returns and exchanges accepted within 14 days of delivery, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>
+          ${returnsPara}
         </div>
       </details>`;
 
@@ -1844,20 +1857,53 @@
         </section>`;
     }
 
-    // No fit note fabricated when there isn't one — simply omitted, same
-    // as fabric/chainLength/pendantSize below when those are unset.
-    const fitFact = details && details.fit ? details.fit : null;
+    /* ---- spec lines ----
 
-    const facts = [
-      details && details.fabric,
-      fitFact,
-      details && details.chainLength && 'Chain ' + details.chainLength,
-      details && details.pendantSize && 'Pendant ' + details.pendantSize,
-    ].filter(Boolean);
+       Brief v14: plain spec lines instead of a row of tracked-out
+       chips. Same facts, read as a key/value list, which is how
+       anybody actually reads a spec -- the chips put "100% cotton" and
+       "Runs true to size" in identical pills and left the shopper to
+       work out which was which.
 
-    const factsHTML = facts.length
-      ? `<div class="pd-facts">${facts.map(f => `<span class="pd-fact">${A.escapeHtml(f)}</span>`).join('')}</div>`
-      : '';
+       Every line is omitted unless its value is real. Nothing here has
+       a fallback string, because a spec line is exactly the place a
+       made-up number would look most credible.
+
+       GSM comes out of the product's OWN Shopify description, parsed,
+       not from a number typed in here: two products state a weight
+       ("290+ GSM" on the Ja-yu, "250+ GSM" on the Kova) and the rest
+       do not, so the rest get no fabric line. The old homepage block
+       generalised those two weights across the catalogue; that is the
+       mistake this parse exists to avoid. */
+    function statedGsm(paragraphs) {
+      const text = (paragraphs || []).join(' ');
+      const m = text.match(/(\d{3})\s*\+?\s*GSM/i);
+      if (!m) return null;
+      const plus = /\d{3}\s*\+\s*GSM/i.test(text) ? '+' : '';
+      return m[1] + plus + ' GSM';
+    }
+
+    const gsm = statedGsm(product.description);
+    const fabricSpec = (details && details.fabric)
+      || (gsm ? gsm + ' cotton' : null);
+
+    const specs = [
+      ['Fabric', fabricSpec],
+      ['Fit', details && details.fit],
+      ['Chain', details && details.chainLength],
+      ['Pendant', details && details.pendantSize],
+      /* "Ships in 1-2 business days" is handling time, never delivery
+         -- it reads off the same verified shipping config the cart and
+         the shipping accordion use, so the three can never disagree. */
+      ['Ships', `In ${A.shippingConfig().FULFILMENT || '1-2 business days'} from Texas`],
+      /* Empty string while no return policy exists in Shopify. See
+         returnsLine() and the note on RETURNS_POLICY_PUBLISHED. */
+      ['Returns', A.returnsLine()],
+    ].filter(([, v]) => v);
+
+    const factsHTML = `<dl class="pd-spec">${specs.map(([k, v]) =>
+      `<div class="pd-spec-row"><dt>${A.escapeHtml(k)}</dt><dd>${A.escapeHtml(v)}</dd></div>`
+    ).join('')}</dl>`;
 
     // A preorder with no stated date defaults you to the FTC's 30-day
     // rule. If a real window is set in product-details.js, say it.
@@ -1889,7 +1935,6 @@
             ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
             <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
             <div class="pd-price tnum" id="pdPrice"></div>
-            ${ratingHTML(product)}
             ${factsHTML}
 
             ${product.fitNotes ? `<p class="pd-fit">${A.escapeHtml(product.fitNotes)}</p>` : ''}
@@ -1907,7 +1952,7 @@
               </div>
               <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
-              <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">Added, <a href="/cart.html">view cart</a></div>
+              <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
             <p class="pd-stock-note" id="pdStockNote"></p>
 
@@ -1922,12 +1967,14 @@
               <p class="pd-bis-msg" id="pdBisMsg" role="status" aria-live="polite"></p>
             </div>
 
+            <!-- Shipping and returns moved up into the spec list, so
+                 this is now only the two things that are specific to
+                 how you are buying: a preorder's charge-now notice,
+                 and the signup line. Both render nothing when they have
+                 nothing to say -- the empty <li> that used to hold the
+                 signup line open is gone with :empty below. -->
             <ul class="pd-trustlines">
-              ${product.isPreorder
-                ? `<li id="pdNote">${A.escapeHtml(preorderNote)}</li>
-                   <li>14-day returns on unworn, unwashed items with tags.</li>`
-                : `<li id="pdNote">${A.escapeHtml(A.shippingLine())}</li>
-                   <li>14-day returns on unworn, unwashed items with tags.</li>`}
+              ${product.isPreorder ? `<li id="pdNote">${A.escapeHtml(preorderNote)}</li>` : ''}
               <li class="pd-signup-prop" id="pdSignupProp"></li>
             </ul>
 

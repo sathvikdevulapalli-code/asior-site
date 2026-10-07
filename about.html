@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fall Collection | Asior</title>
-<meta name="description" content="The Asior Fall Collection — limited run, dropping soon.">
+<title>About | Asior</title>
+<meta name="description" content="ASIOR is a small-run streetwear label from Texas, selling since 2025.">
 <meta name="theme-color" content="var(--bg)">
-<link rel="canonical" href="https://asiorclothing.com/fall-collection.html">
+<link rel="canonical" href="https://asiorclothing.com/about.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Fall Collection | Asior">
-<meta property="og:description" content="The Asior Fall Collection — limited run, dropping soon.">
-<meta property="og:url" content="https://asiorclothing.com/fall-collection.html">
+<meta property="og:title" content="About | Asior">
+<meta property="og:description" content="ASIOR is a small-run streetwear label from Texas, selling since 2025.">
+<meta property="og:url" content="https://asiorclothing.com/about.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -27,171 +27,45 @@
      nowhere, so it is not requested here. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- Single source of truth for FALL_COLLECTION_HANDLES and
-     FALL_COMMERCE_READY — see assets/launch-config.js. Activating this
-     page for real is a change to that one file, not this one. -->
-<script src="assets/launch-config.js"></script>
-<script src="assets/promo-config.js"></script>
-<!-- Early Access gate: redirects to index.html before this page renders
-     unless the visitor has entered ASIOR8 or the public drop has
-     passed. See assets/early-access-gate.js. -->
-<script src="assets/early-access-gate.js"></script>
 <style>
-  @media (hover: hover) and (pointer: fine) {
-    header nav a:hover::after { width: 100%; }
-  }
-
-  /* Same grid as shop.html on purpose — this page's whole job is
-     commerce once it's live, not a different visual system. The only
-     difference from Shop All is that it's a filtered, curated set. */
-  .fall {
-    padding: 0 40px 14vh;
+  /* About is text. One column, measure capped so a line never runs
+     wider than it can be read, and nothing else on the page. */
+  .about {
+    padding: 0 40px 10vh;
     max-width: 1180px;
     margin: 0 auto;
   }
 
-  .fall-head { margin-bottom: 8px; }
-  .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: 13px; }
-
-  .fall-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+  .about-body {
+    max-width: 54ch;
+    margin: -8px 0 0;
   }
 
-  .product {
-    display: block;
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
-  }
-
-  .product.in { opacity: 1; transform: translateY(0); }
-
-  .product-img {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 2px;
-    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
-    transition: transform 160ms var(--ease-out);
-  }
-
-  .price-badge {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    z-index: 2;
-    background: rgba(11, 10, 8, 0.72);
+  .about-body p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.72;
     color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    padding: 5px 8px;
-    border-radius: 2px;
+    margin: 0 0 18px;
   }
 
-  .price-badge .compare { text-decoration: line-through; opacity: 0.6; margin-right: 5px; }
-  .price-badge .save { opacity: 0.85; margin-left: 5px; }
-
-  /* ---------- placeholder cards ----------
-     Same grid shape as a real card, so the layout never jumps when
-     real Shopify data replaces these — just the honest opposite of a
-     real card's content: no image, no price, no link. */
-  .product.placeholder { cursor: default; }
-  .placeholder-img {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
-  }
-  .placeholder-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-  .price-placeholder {
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-
-  .product-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .product:hover .product-img img { transform: scale(1.035); filter: brightness(1.03); }
-  }
-
-  .product:active .product-img { transform: scale(0.985); }
-
-  .name-row { margin-top: 14px; display: flex; align-items: center; gap: 8px; }
-
-  .product .name {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  .preorder-tag {
-    flex: none;
-    border: 1px solid var(--muted);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 3px 7px;
-    border-radius: 2px;
-  }
-
-  /* Real-inventory urgency only — see A.stockLabel in assets/site.js.
-     Never rendered unless Shopify actually reports a low quantity. */
-  .stock-note {
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-
-  .fall-empty { padding: 6vh 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
-
-  @media (max-width: 900px) {
-    .fall-grid { grid-template-columns: repeat(2, 1fr); }
+  /* The signup sits under the sentence that introduces it, at the same
+     measure, with a rule above it instead of a panel. */
+  .about .sms-signup {
+    max-width: 54ch;
+    margin: 30px 0 0;
+    padding: 26px 0 0;
+    border-top: 1px solid var(--line);
   }
 
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    /* The phone nav is a full-screen panel now, defined once in
-       assets/site.css. The horizontally scrolling link strip this
-       page used to redeclare for itself is gone -- it was also
-       overriding the shared rule, which is why the panel opened at
-       the width of the old strip. */
-    .fall { padding: 0 20px 10vh; }
-    .fall-grid { grid-template-columns: 1fr; gap: 14px; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .product { opacity: 1 !important; transform: none !important; }
+    .about { padding: 0 20px 7vh; }
+    .about-body p { font-size: 15px; }
   }
 </style>
 
@@ -241,14 +115,45 @@
 
   <main id="main">
 
-  <!-- Filtered to FALL_COLLECTION_HANDLES below, once that list is real.
-       Until then this renders the honest empty state — never a guessed
-       product grid. -->
-  <section class="fall" id="fallSection">
-    <h1 class="rail-label fall-head">Fall Collection</h1>
-    <p class="fall-sub" id="fallSub"></p>
-    <div class="fall-grid" id="fallGrid"></div>
-    <div class="fall-empty" id="fallEmpty"></div>
+  <!-- Every sentence here is checked. "From Texas" is the Shopify
+       business address and the only fulfilment location (Cedar Park,
+       TX). The fit lines are the custom.fit_notes metafields verbatim.
+       The dispatch time is the same shipping config the product page
+       and the cart read. ABOUT_WHY is the founder's own line and is
+       omitted entirely when unset -- it is not written for him. -->
+  <section class="about">
+    <h1 class="rail-label">About</h1>
+    <div class="about-body">
+      <p>ASIOR is a small-run streetwear label from Texas, selling since 2025.</p>
+      <p>We make small runs. When a size sells out, it&rsquo;s gone until we run it again,
+         and that doesn&rsquo;t happen often.</p>
+      <p>The polo fits true to size, a little slim. The shorts are cut long and baggy.
+         The JAG Set is the crewneck and sweats together, one size for both.</p>
+      <p>Every order ships from Texas in 1-2 business days.</p>
+      <!-- ABOUTWHY:START -->
+
+  <!-- ABOUTWHY:END -->
+      <p>Want to know when we drop? Leave your number and you&rsquo;ll get a text.</p>
+    </div>
+    <!-- SMSBLOCK:START -->
+    <div class="sms-signup sms-signup--about" data-sms-location="about">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-about">Mobile number</label>
+        <input class="field" type="tel" id="sms-about" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
+  <!-- SMSBLOCK:END -->
   </section>
 
   </main>
@@ -306,27 +211,8 @@
   <!-- FOOTER:END -->
 
 <script src="assets/site.js"></script>
-<!-- Shared with index.html's post-Early-Access state — see
-     assets/fall-grid.js for the placeholder-vs-real rendering logic
-     and assets/launch-config.js for FALL_PRODUCTS/FALL_COMMERCE_READY,
-     the two facts that decide what actually renders. -->
-<script src="assets/fall-grid.js"></script>
-<script>
-  // This page is in scripts/build.js's sitemap and, as of the sitewide
-  // banner replacing the old email-signup teaser bar, linked from every
-  // page's header too — noindexed only for as long as
-  // FALL_COMMERCE_READY is false (not fully wired up yet).
-  if (!window.ASIOR_LAUNCH.FALL_COMMERCE_READY) {
-    document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
-  }
-
-
-  window.Asior.renderFallGrid({
-    gridEl: document.getElementById('fallGrid'),
-    emptyEl: document.getElementById('fallEmpty'),
-    subEl: document.getElementById('fallSub'),
-  });
-</script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 
 </body>
 </html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cart | Asior</title>
 <meta name="description" content="Your Asior cart.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="var(--bg)">
 <link rel="canonical" href="https://asiorclothing.com/cart.html">
 <!-- No search value, and the cart renders a different page per session. -->
 <meta name="robots" content="noindex, follow">
@@ -20,7 +20,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
@@ -105,7 +105,7 @@
   .cart-item .thumb .ph {
     width: 100%;
     height: 100%;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
   }
 
   .cart-item .name {
@@ -479,6 +479,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -500,9 +508,9 @@
     <nav id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
       <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
+      <a href="archive.html">Archive</a>
+      <a href="community.html">Lookbook</a>
+      <a href="about.html">About</a>
       <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
     </nav>
   </header>
@@ -522,7 +530,26 @@
 
   <!-- FOOTER:START -->
   <footer id="order">
+    <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      <p class="sms-signup-title">Text list.</p>
+      <p class="sms-signup-body">First to know when sizes run low.</p>
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
     <div class="fmark">Asior</div>
+    <div class="fline">Small runs from Texas.</div>
     <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
     <div class="social">
       <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -533,9 +560,22 @@
       </a>
     </div>
     <div class="policy-links">
+      <a href="/text">Text List</a>
+      <a href="account.html">Account</a>
       <a href="privacy-policy.html">Privacy Policy</a>
       <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+    </div>
+    <!-- Manufacturing is a B2B service for other brands. It was sitting
+         in the main shopping nav between Contact and the cart, which put
+         a different buyer's destination in the middle of a clothing
+         customer's journey. Nothing is removed -- the page, its URL and
+         its form all still work -- it is just reached from here, where
+         someone looking for it will look, instead of from the nav a
+         shopper uses to find a tee. -->
+    <div class="business-links">
+      <a href="contact.html">Contact</a>
+      <span class="business-sep" aria-hidden="true">/</span>
+      <a href="manufacturing.html">For brands</a>
     </div>
   </footer>
   <!-- FOOTER:END -->
@@ -713,7 +753,7 @@
     document.getElementById('cartLoading').classList.add('hide');
 
     if (!cart || cart.lines.edges.length === 0) {
-      root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
+      root.innerHTML = `<div class="cart-empty">nothing in here yet. <a href="shop.html">Shop all</a></div>`;
       return;
     }
 
