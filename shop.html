@@ -362,57 +362,17 @@
   .home-row:last-of-type { padding-bottom: 54px; }
 
   /* ---------- campaign frame [measured: 945px, full bleed] -------- */
-  .campaign-frame {
-    position: relative;
-    height: 945px;
-    overflow: hidden;
-    margin-top: 54px;
-    background: var(--surface);
-  }
 
-  .campaign-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 30%;
-    display: block;
-  }
 
   /* [measured] 116x34, 1px white border, transparent, 12px 500,
      letter-spacing 1px, padding 7px 20px, square. */
-  .btn-outline {
-    position: absolute;
-    left: 50%;
-    bottom: 96px;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 116px;
-    height: 34px;
-    padding: 7px 20px;
-    border: 1px solid #fff;
-    border-radius: var(--btn-radius);
-    background: transparent;
-    color: #fff;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
-  }
 
-  .btn-outline:hover { background: #fff; color: #000; }
-  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
   /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
        30px side padding] ---------- */
   .tiles {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     padding: 54px 30px;
   }
@@ -473,10 +433,8 @@
     .home-row:last-of-type { padding-bottom: 34px; }
     .row-head { margin-bottom: 20px; }
 
-    .campaign-frame { height: 62vh; min-height: 400px; margin-top: 34px; }
-    .btn-outline { bottom: 48px; }
 
-    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 34px 15px; }
     .tile-label { bottom: 16px; font-size: 12px; }
   }
 

@@ -819,9 +819,6 @@ ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).
     <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
 
     <div class="header-right">
-      <!-- Static, not a picker. One market is enabled in Shopify, so a
-           dropdown here would offer a choice that does not exist. -->
-      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
       ${CART_LINK}
     </div>
   </header>
@@ -988,7 +985,12 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
       </div>
     </div>
 
-    <div class="footer-base">&copy; ASIOR ${new Date().getFullYear()}</div>
+    <div class="footer-base">
+      <span>&copy; ASIOR ${new Date().getFullYear()}</span>
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+    </div>
   </footer>
 `;
 

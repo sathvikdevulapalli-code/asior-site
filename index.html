@@ -271,13 +271,17 @@
   }
 
   /* ---------- hero ----------
-     Asymmetric two-portrait composition. The garment stays whole. */
+     One photograph carries the page. The right column is negative
+     space with the brand line anchored to the photograph's baseline,
+     not a headline floating at the top of it: at 49px that line was
+     the loudest thing on the site and the only element off the
+     reference's type scale, whose largest role is 36px. The statement
+     is a caption on the image now, not a billboard over it. */
   .hero {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
+    grid-template-columns: 1.55fr 1fr;
     gap: 0;
-    align-items: start;
-    padding: 0 0 7vh;
+    padding: 0 0 clamp(72px, 9vh, 128px);
     background: var(--bg);
   }
 
@@ -285,40 +289,41 @@
 
   .hero-primary img {
     width: 100%;
-    height: min(86vh, 860px);
+    height: min(88vh, 900px);
     object-fit: cover;
-    object-position: center 28%;
+    object-position: center 26%;
     display: block;
   }
 
   .hero:has(.hero-primary > img) .hero-fallback { display: none; }
   @supports not selector(:has(*)) { .hero-primary > img { display: none; } }
 
-  /* The right column is mostly negative space on purpose: the line
-     sits in it, and the second frame drops well below the first so the
-     two never read as a pair of equal tiles. */
+  /* Bottom-aligned. The column is deliberately almost entirely empty
+     above the line -- that space is the composition, not a gap to
+     fill, which is why the second stacked portrait came out of it. */
   .hero-aside {
     display: grid;
-    grid-template-rows: auto auto 1fr;
-    padding: clamp(40px, 7vw, 96px) var(--page-pad) 0 clamp(24px, 4vw, 64px);
+    align-content: end;
+    justify-items: start;
+    padding: 0 var(--page-pad) clamp(10px, 2.2vh, 26px) clamp(28px, 4.4vw, 72px);
   }
 
   .hero-line {
     margin: 0;
     font-family: var(--font);
-    font-size: clamp(28px, 3.4vw, 50px);
-    font-weight: 500;
-    line-height: 1.04;
-    letter-spacing: -0.02em;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
     color: var(--ink);
-    text-wrap: balance;
+    max-width: 22ch;
   }
 
   /* One action. Underlined text, not a button: the button on this page
      is Add to Cart, and nothing should compete with it. */
   .hero-cta {
     justify-self: start;
-    margin-top: 26px;
+    margin-top: 22px;
     font-family: var(--font);
     font-size: 13px;
     font-weight: 500;
@@ -332,18 +337,6 @@
 
   .hero-cta:hover { opacity: 0.55; }
   .hero-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
-
-  .hero-secondary {
-    display: block;
-    margin-top: clamp(48px, 9vh, 120px);
-    max-width: 330px;
-  }
-
-  .hero-secondary img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
 
   /* ---------- product rows [measured: section spacing 0] ---------- */
   .home-row { padding: 16px var(--page-pad) 0; }
@@ -382,58 +375,11 @@
   .home-row + .home-row { padding-top: 54px; }
   .home-row:last-of-type { padding-bottom: 54px; }
 
-  /* ---------- campaign frame [measured: 945px, full bleed] -------- */
-  .campaign-frame {
-    position: relative;
-    height: 945px;
-    overflow: hidden;
-    margin-top: 54px;
-    background: var(--surface);
-  }
-
-  .campaign-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 30%;
-    display: block;
-  }
-
-  /* [measured] 116x34, 1px white border, transparent, 12px 500,
-     letter-spacing 1px, padding 7px 20px, square. */
-  .btn-outline {
-    position: absolute;
-    left: 50%;
-    bottom: 96px;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 116px;
-    height: 34px;
-    padding: 7px 20px;
-    border: 1px solid #fff;
-    border-radius: var(--btn-radius);
-    background: transparent;
-    color: #fff;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
-  }
-
-  .btn-outline:hover { background: #fff; color: #000; }
-  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-
   /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
        30px side padding] ---------- */
   .tiles {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     padding: 54px 30px;
   }
@@ -486,24 +432,18 @@
      and would be three screens tall on a phone, so both are clamped to
      the viewport instead of scaled down proportionally. */
   @media (max-width: 900px) {
-    /* Mobile: the tall portrait leads, the line sits under it, and
-       the second frame is dropped -- two images stacked on a phone is
-       a scroll before anything is shoppable. */
-    .hero { grid-template-columns: 1fr; padding-bottom: 4vh; }
-    .hero-primary img { height: 68vh; min-height: 420px; }
-    .hero-aside { padding: 22px 15px 0; }
-    .hero-line { font-size: clamp(26px, 8vw, 34px); }
-    .hero-secondary { display: none; }
+    /* Mobile: the photograph leads and the line sits under it. */
+    .hero { grid-template-columns: 1fr; padding-bottom: 40px; }
+    .hero-primary img { height: 72vh; min-height: 440px; }
+    .hero-aside { padding: 24px 15px 0; }
+    .hero-line { font-size: 19px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }
     .home-row:last-of-type { padding-bottom: 34px; }
     .row-head { margin-bottom: 20px; }
 
-    .campaign-frame { height: 62vh; min-height: 400px; margin-top: 34px; }
-    .btn-outline { bottom: 48px; }
-
-    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 34px 15px; }
     .tile-label { bottom: 16px; font-size: 12px; }
   }
 
@@ -738,10 +678,6 @@
     <div class="hero-aside">
       <p class="hero-line">Small runs.<br>Run again rarely.</p>
       <a class="hero-cta" href="#new">Shop the drop</a>
-      <picture class="hero-secondary">
-        <source type="image/webp" srcset="images/look-09.webp">
-        <img src="images/look-09.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async">
-      </picture>
     </div>
   </section>
 
@@ -764,15 +700,6 @@
     </div>
   </section>
 
-  <!-- [measured] Full-bleed campaign frame, 945px, with one centred
-       outline button 116x34. -->
-  <section class="campaign-frame" aria-label="Fall collection, worn">
-    <picture>
-      <source type="image/webp" srcset="images/look-13.webp">
-      <img src="images/look-13.jpg" alt="Asior Fall collection, worn" width="1600" height="900" loading="lazy" decoding="async">
-    </picture>
-    <a class="btn-outline" href="#lineup">Shop now</a>
-  </section>
 
   <!-- [measured] The reference's second product row is BEST SELLERS.
        Ours is THE LINEUP, which the spec is explicit about: Asior has
