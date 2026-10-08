@@ -25,10 +25,7 @@
      browser has to download and parse the CSS before it even discovers
      the font request. Weight 200 was requested site-wide and used
      nowhere, so it is not requested here. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
@@ -75,77 +72,6 @@
     background: var(--ink);
   }
 
-  /* ---------- lookbook strip (bottom of page) ----------
-     Real photography (images/look-*.jpg, the same files community.html
-     uses) — proof of how a piece looks worn, after the catalog rather
-     than before it now: the grid is why someone's here, this is what
-     keeps a scroller going past it. Links out to the full lookbook
-     rather than duplicating it. */
-  .shop-lookbook {
-    padding: 0 40px 12vh;
-    max-width: 1180px;
-    margin: 0 auto;
-  }
-
-  /* Four frames, three widths. The row used to be four identical
-     portraits, which is a component; uneven columns read as a spread. */
-  .shop-lookbook-row {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr 1.45fr;
-    align-items: start;
-    gap: 10px;
-  }
-
-  .shop-look {
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 0;
-    background: #161614;
-  }
-
-  .shop-lookbook-row .shop-look:nth-child(2) { aspect-ratio: 4 / 5; margin-top: 26px; }
-  .shop-lookbook-row .shop-look:nth-child(3) { aspect-ratio: 1 / 1; margin-top: 54px; }
-  .shop-lookbook-row .shop-look:nth-child(4) { aspect-ratio: 2 / 3; }
-
-  .shop-look img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-    transition: transform 700ms var(--ease-img);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .shop-look:hover img { transform: scale(1.035); }
-  }
-
-  .shop-lookbook-link {
-    display: inline-block;
-    /* Standalone link, so it needs a real hit area rather than the
-       13px its text happened to occupy. Inline links inside a sentence
-       are exempt from this; a link on its own line is not. */
-    padding: 7px 0;
-    min-height: 24px;
-    margin-top: 12px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: underline;
-  }
-
-
-
-  /* Email/SMS capture for the browsing majority who don't buy today.
-     cart.html has had this exact offer for a while, but only a visitor
-     who already added something to cart ever sees it — everyone else,
-     which is most traffic, had zero way to leave contact info and be
-     brought back for the next drop. index.html
-     used to carry a version of this too, but it's now a pure 301 to
-     this page and its own signup form is unreachable dead code. Same
-     Klaviyo call, same real incentive, same consent copy —
-     just on the page where visitors actually land. */
   /* ---------- shop grid ----------
      20px/16px top padding is the only thing separating the grid from
      the fixed header (via .page-top-space, which just clears the
@@ -344,339 +270,214 @@
     .product-peek { opacity: 1; transform: none; pointer-events: auto; }
   }
 
-  /* ---------- toolbar ----------
-     Sits on the shop's own left edge so the count lines up with the
-     first tile below it, and the controls run out to the right margin.
-     No box, no fill: it is a row of type until you press something. */
-  .shop-tools {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 40px;
-  }
-
-  .shop-tools-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    padding: 10px 0 16px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .shop-count {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    /* Pushes every control to the right edge. */
-    margin-right: auto;
-  }
-
-  .shop-tools-group { display: flex; gap: 2px; }
-
-  /* The density pair reads as one control, so it keeps a hairline
-     between its two halves rather than sitting as two loose buttons. */
-  .shop-cols { margin-left: 10px; box-shadow: inset 0 0 0 1px var(--line); }
-  .shop-cols .btn { padding: 0 10px; }
-
-  .shop-empty .btn { margin-left: 6px; }
-
-  /* Rows line up. They used to be deliberately staggered -- each tile
-     at its own height, contact-sheet style -- and measured, that put
-     the names and prices of one row on three different baselines.
-     See the note on .product-img: the rhythm now comes from the
-     hero, the band and the lookbook, and the price list reads as a
-     price list. */
-  /* ---------- hero ----------
-     One photograph, the width of the window, and two lines of type on
-     it. No eyebrow, no display-size collection title, no button: brief
-     v14 took all three out, and what is left is the photograph doing
-     the work it was shot to do.
-
-     The height is clamped rather than driven by the image's own aspect
-     ratio, because the photograph is portrait and a full-width portrait
-     frame is three screens tall on a desktop. */
+  /* ---------- hero [measured: 905px, full bleed] ---------- */
   .hero {
     position: relative;
-    margin-bottom: 0;
+    height: 905px;
+    overflow: hidden;
+    background: var(--surface);
   }
 
   .hero img {
     width: 100%;
-    height: clamp(440px, 78vh, 820px);
+    height: 100%;
     object-fit: cover;
     object-position: center 22%;
     display: block;
   }
 
-  /* The local fallback only shows when the build wrote no live
-     photograph. Two <img> elements would otherwise both render and the
-     page would open on two heroes. :has() is how the fallback knows --
-     supported everywhere this site is used, and the @supports guard
-     below keeps the no-:has() case to the fallback rather than to
-     nothing. */
-  .hero:has(> img) .hero-fallback { display: none; }
-
-  @supports not selector(:has(*)) {
-    .hero > img { display: none; }
+  /* [theme var] Image overlay #000 at 0.2, which is what keeps the
+     white nav and the link legible over an arbitrary photograph. */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    pointer-events: none;
   }
 
-  /* A scrim only under the type, so the photograph itself is not
-     dimmed. */
-  .hero-plate {
+  /* The local fallback only renders when the build wrote no live
+     photograph; both would otherwise stack. */
+  .hero:has(> img) .hero-fallback { display: none; }
+  @supports not selector(:has(*)) { .hero > img { display: none; } }
+
+  /* [measured] One underlined text link near the bottom, centred:
+     12px, weight 500, letter-spacing 1px, white. Not a button. */
+  .hero-link {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 96px 32px 26px;
+    left: 50%;
+    bottom: 86px;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #fff;
+    padding-bottom: 3px;
+    white-space: nowrap;
+  }
+
+  .hero-link:hover { opacity: 0.75; }
+  .hero-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+  /* ---------- product rows [measured: section spacing 0] ---------- */
+  .home-row { padding: 16px var(--page-pad) 0; }
+
+  /* [measured] Label left 14px 400, "View all" right 12px 500 with
+     1px tracking; cards start 37px below the row. */
+  .row-head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 18px;
-    background: linear-gradient(to top, rgba(14, 14, 13, 0.74), rgba(14, 14, 13, 0));
+    margin-bottom: 37px;
   }
 
-  /* The one line on the page allowed to be set large. Archivo's width
-     axis, tracking pulled in rather than let out, so it reads as a
-     statement and not as a caption sitting in the corner of a photo. */
-  .hero-line {
-    font-family: var(--font-display);
-    font-variation-settings: var(--display-wide);
-    font-weight: 800;
-    font-size: clamp(26px, 4.1vw, 56px);
-    line-height: 0.94;
-    letter-spacing: -0.03em;
+  .row-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 400;
     text-transform: uppercase;
     color: var(--ink);
-    margin: 0;
-    max-width: 22ch;
   }
 
-  /* A link, not a button. It moves you 600px down the same page; a
-     filled control here competes with Add to Cart for the same
-     attention and wins nothing. */
-  .hero-link {
-    flex: none;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
+  .row-link {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
     color: var(--ink);
     text-decoration: none;
-    padding-bottom: 3px;
-    border-bottom: 1px solid var(--ink);
-    transition: color 180ms var(--ease-out), border-color 180ms var(--ease-out);
   }
 
-  .hero-link:hover { color: var(--muted); border-bottom-color: var(--muted); }
-  .hero-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .row-link:hover { opacity: 0.6; }
 
-  /* ---------- homepage signup ----------
-     One line and a field, under the grid. The footer carries the same
-     form on every page; this one exists because the homepage is where
-     a visitor who is not ready to buy decides whether to leave with
-     nothing. The lookbook strip sits between the two so they are never
-     on screen together. */
-  .home-sms {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 6vh 40px 2vh;
-    border-top: 1px solid var(--line);
-  }
+  .home-row + .home-row { padding-top: 54px; }
+  .home-row:last-of-type { padding-bottom: 54px; }
 
-  .home-sms-line {
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.62;
-    color: var(--muted);
-    margin: 0 0 20px;
-    max-width: 52ch;
-  }
-
-  .home-sms .sms-signup { max-width: 52ch; }
-
-  /* ---------- full-bleed band ---------- */
-  .band {
-    margin: 0 0 12vh;
+  /* ---------- campaign frame [measured: 945px, full bleed] -------- */
+  .campaign-frame {
     position: relative;
-  }
-
-  .band img {
-    width: 100%;
-    height: clamp(260px, 46vw, 560px);
-    object-fit: cover;
-    object-position: center 28%;
-    display: block;
-  }
-
-  .band-caption {
-    max-width: 1180px;
-    margin: 10px auto 0;
-    padding: 0 40px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    align-items: start;
-    gap: 34px 18px;
-  }
-
-  /* Density, set by the toolbar. Only honoured where there is room for
-     it -- the narrow breakpoints below pin their own column count, and
-     a four-across grid at 390px is not a view anyone wants. */
-  .shop-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); gap: 34px 24px; }
-  .shop-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); }
-
-  .product {
-    display: block;
-    opacity: 0;
-    transition: opacity 500ms var(--ease-out);
-  }
-
-  .product.in { opacity: 1; }
-
-  .product-img {
-    position: relative;
-    aspect-ratio: 2 / 3;
+    height: 945px;
     overflow: hidden;
-    /* Square corners. Rounded photographs are a UI convention, not a
-       photographic one, and nothing in a printed lookbook has them. */
-    border-radius: 0;
-    background: #161614;
+    margin-top: 54px;
+    background: var(--surface);
   }
 
-  /* One ratio for every tile, at every width.
-
-     This cycled 2:3 and 3:4 across a six-step pattern so the grid
-     would read as a lookbook rather than a table. Measured, it did
-     not: the tiles in a row ended at different heights, so the names
-     and prices in a single row sat on three different baselines
-     (43px apart at 1440px) and a shopper scanning across read it as
-     misalignment, not rhythm -- the same conclusion the phone
-     breakpoint had already reached on its own.
-
-     The variation now comes from the things that can carry it without
-     breaking a price list: the full-bleed campaign band between grid
-     sections, and the lookbook row's three real widths. 2:3 because
-     that is the actual ratio of five of the eleven live product
-     photographs and the closest common frame for the rest. */
-
-  /* Per-product crop overrides hang off this hook. Nothing uses it
-     today: the frame matches the source ratio closely enough across
-     the live catalogue that no product needed one. It exists so that
-     a single photograph that crops badly can be corrected on its own
-     without touching the grid, e.g.
-         .product[data-handle="jag-shorts"] .product-img img
-           { object-position: center 40%; } */
-
-  /* The hover frame, inserted by wireHoverSwap() on first pointer
-     entry. Stacked over the primary shot and cross-faded, so the tile
-     never flashes empty while the second photograph decodes. */
-  .product-img .alt-shot {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 320ms var(--ease-out);
-    z-index: 1;
-    /* Decorative, and it covers the whole frame. Without this it ate
-       the clicks meant for the quick view trigger sitting on top of
-       it, because .product-img is positioned but creates no stacking
-       context, so the hover frame's z-index:1 competed with the
-       trigger instead of staying inside the photograph. */
-    pointer-events: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .product:hover .product-img .alt-shot.ready { opacity: 1; }
-  }
-
-  .product-img img {
+  .campaign-frame img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* The top of the frame is what has to survive: these boxes are
-       taller than the source photographs, so a centred crop takes
-       equal slices off the head and the hem. This rule used to be set
-       and then immediately overwritten by a second object-position two
-       lines below it, which is why heads were still being cut off
-       after that was supposedly fixed. One declaration now. */
-    object-position: center top;
-    transition: transform 700ms var(--ease-img);
+    object-position: center 30%;
+    display: block;
   }
 
-  /* No brightness filter and no scale on the tile itself. The image
-     eases in its own frame; that is the whole interaction. */
-  @media (hover: hover) and (pointer: fine) {
-    .product:hover .product-img img { transform: scale(1.03); }
+  /* [measured] 116x34, 1px white border, transparent, 12px 500,
+     letter-spacing 1px, padding 7px 20px, square. */
+  .btn-outline {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 116px;
+    height: 34px;
+    padding: 7px 20px;
+    border: 1px solid #fff;
+    border-radius: var(--btn-radius);
+    background: transparent;
+    color: #fff;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
   }
 
-  /* Name left, price right, one line, hairline between them. This is
-     how a garment is captioned on a rail: what it is and what it
-     costs, at the same weight, neither shouting. */
-  .name-row {
-    margin-top: 11px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+  .btn-outline:hover { background: #fff; color: #000; }
+  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+  /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
+       30px side padding] ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    border-top: 1px solid var(--line);
-    padding-top: 9px;
+    padding: 54px 30px;
   }
 
-  /* Display, not mono. Eleven product names set in 10.5px tracked-out
-     monospace made the grid read as a table of SKUs; the same names in
-     the display face read as a collection. The price stays mono beside
-     it, which is the one thing on the tile that genuinely is data. */
-  .product .name {
-    font-family: var(--font-display);
-    font-variation-settings: var(--display-wide);
-    font-weight: 700;
-    font-size: 13px;
-    line-height: 1.12;
-    letter-spacing: -0.005em;
+  .tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 454 / 600;
+    overflow: hidden;
+    background: var(--surface);
+    text-decoration: none;
+  }
+
+  .tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--dur-image) var(--ease-out);
+  }
+
+  .tile:hover img { transform: scale(1.03); }
+
+  .tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .tile-label {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
-    color: var(--ink);
-    min-width: 0;
-    /* Two lines held open. Most names are one line; the long ones
-       ("Kova Eternal Lotus Graphic T-Shirt", "Helia Pendant & Chain,
-       Silver") wrap to two and used to push their own quick-add row a
-       line below their neighbours' in the same grid row. The price
-       stays on the first baseline either way -- it is a flex sibling
-       aligned to baseline, not to the box. */
-    min-height: 2.24em;
+    color: #fff;
+    white-space: nowrap;
   }
 
-  .product .price {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.02em;
-    color: var(--muted);
-    flex: none;
-  }
+  .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-  .product .price .compare {
-    text-decoration: line-through;
-    opacity: 0.55;
-    margin-right: 5px;
-  }
+  /* [spec section 11] Mobile: 2-up grids, ~10px gap, 15px side
+     padding. The hero and the campaign frame are measured at desktop
+     and would be three screens tall on a phone, so both are clamped to
+     the viewport instead of scaled down proportionally. */
+  @media (max-width: 900px) {
+    .hero { height: 78vh; min-height: 460px; }
+    .hero-link { bottom: 46px; }
 
-  /* Sold out and preorder are facts about the garment, so they are
-     stated in the caption. They were bordered pills, which is a badge,
-     and badges are what make a page look merchandised at you. */
-  .product-state {
-    margin-top: 5px;
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
+    .home-row { padding: 16px 15px 0; }
+    .home-row + .home-row { padding-top: 34px; }
+    .home-row:last-of-type { padding-bottom: 34px; }
+    .row-head { margin-bottom: 20px; }
+
+    .campaign-frame { height: 62vh; min-height: 400px; margin-top: 34px; }
+    .btn-outline { bottom: 48px; }
+
+    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
+    .tile-label { bottom: 16px; font-size: 12px; }
   }
 
   /* ---------- quick add ----------
@@ -685,7 +486,6 @@
      wraps only the image+name (so it can still navigate to the full
      product page) while this row sits beside it as its own set of
      buttons, since a button can't legally nest inside an <a>. */
-  .product-link { display: block; }
 
   .quick-add {
     margin-top: 9px;
@@ -796,38 +596,6 @@
 
   .shop-loading.hide { display: none; }
 
-  /* When build.js has pre-rendered real products into the grid, there is
-     nothing to wait for — hide the loading line without needing JS to
-     run, so a no-JS visitor doesn't read "Loading the shop…" sitting
-     above a fully rendered catalog. The .hide class above still covers
-     browsers too old for :has(); this just gets there first. */
-  .shop:has(#shopGrid .product) .shop-loading { display: none; }
-
-  @media (max-width: 1100px) {
-    /* Written to match .shop-grid[data-cols="N"]'s (0,2,0), which
-       would otherwise win here and hold four columns on a tablet. */
-    .shop-grid,
-    .shop-grid[data-cols="2"],
-    .shop-grid[data-cols="4"] { grid-template-columns: repeat(3, 1fr); }
-    /* Below this width the grid picks its own column count, so a
-       density control would be a button that does nothing. */
-    .shop-cols { display: none; }
-  }
-
-  @media (max-width: 760px) {
-    .hero img { height: 68vh; }
-    .hero-plate { padding: 86px 16px 18px; flex-direction: column; align-items: flex-start; gap: 16px; }
-    .hero-line { font-size: clamp(25px, 8.4vw, 36px); max-width: 16ch; }
-    .home-sms { padding: 5vh 16px 2vh; }
-    .band { margin-bottom: 8vh; }
-    .band-caption { padding: 0 16px; }
-    .shop-lookbook { padding: 0 16px 8vh; }
-    .shop-lookbook-row { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .shop-lookbook-row .shop-look:nth-child(2) { margin-top: 0; }
-    .shop-lookbook-row .shop-look:nth-child(3) { margin-top: 18px; }
-    .shop-lookbook-row .shop-look:nth-child(4) { margin-top: 18px; }
-  }
-
   @media (max-width: 640px) {
     header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
     header .mark { font-size: 13px; }
@@ -837,18 +605,9 @@
        overriding the shared rule, which is why the panel opened at
        the width of the old strip. */
     .shop { padding: 14px 16px 10vh; }
-    /* Two across on a phone, not one. A single column turns a twelve
-       piece collection into a very long scroll and reads like a feed;
-       two reads like a rail. */
-    .shop-grid,
-    .shop-grid[data-cols="2"],
-    .shop-grid[data-cols="4"] { grid-template-columns: repeat(2, 1fr); gap: 22px 10px; }
     .shop-tools { padding: 0 16px; }
     .shop-tools-row { padding: 8px 0 12px; gap: 4px; }
     .shop-count { width: 100%; margin: 0 0 8px; }
-    .product .name { font-size: 9.5px; letter-spacing: 0.06em; }
-    .product .price { font-size: 9.5px; }
-    .name-row { gap: 6px; padding-top: 7px; margin-top: 9px; }
     .qa-size { min-width: 24px; height: 24px; font-size: 9.5px; padding: 0 5px; }
   }
 
@@ -856,17 +615,8 @@
      and the size controls must still be tappable. */
   @media (max-width: 380px) {
     .shop { padding: 12px 12px 10vh; }
-    .shop-grid { gap: 18px 8px; }
-    .product .name { font-size: 9px; letter-spacing: 0.04em; }
-    .product .price { font-size: 9px; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .product {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  }
 
   /* Recently-viewed rail. Hidden until there is real history to show.
      Bottom hairline is the only thing telling a returning visitor
@@ -893,7 +643,7 @@
   <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
-<body>
+<body class="page--hero">
 
   <a class="skip-link" href="#main">Skip to content</a>
 
@@ -924,158 +674,96 @@
 
   <main id="main">
 
-  <!-- Visually hidden: no heading shows and it takes up no space, but
-       the page keeps exactly one real <h1> for screen readers and SEO
-       rather than having none at all. Remove this too if that's not
-       wanted — .sr-only is the shared utility class (assets/site.css),
-       not something added for this. -->
-  <h1 class="sr-only">Shop All</h1>
+  <h1 class="sr-only">Asior — small-run streetwear from Texas</h1>
 
-  <!-- Brief v14. The page opened on a campaign frame, then a lead
-       sentence, then a three-fact row, then a "Current drop" rule, and
-       only then the products: four blocks of preamble before anything
-       buyable. The feedback was that the site "still looks the exact
-       same", and the reason is that every pass added another band
-       above the grid instead of taking the preamble out.
+  <!-- Homepage, rebuilt to the measured reference (spec section 4):
+       hero, NEW ARRIVALS, a full-bleed campaign frame with one button,
+       THE LINEUP, category tiles, footer. Sections butt against each
+       other -- the reference's section spacing is 0 and all breathing
+       room comes from inside each block. -->
 
-       So: one photograph running the window, one line of type, one way
-       in, grid. The three facts are not deleted -- they moved to
-       /about.html, where someone who wants them can read them, rather
-       than standing between a stranger and the clothes.
-
-       The ASIOR mark top left is the sitewide header's, not a second
-       one printed on the photograph. One wordmark per screen. -->
+  <!-- [measured] Hero 905px, full bleed, photo behind the transparent
+       header, one underlined text link near the bottom. No heading and
+       no button box: the reference has neither. -->
   <section class="hero" aria-label="Asior">
     <!-- scripts/build.js writes the live product photograph between
-         these markers (syncHero). The markup below it is the served
-         fallback: a real local file, so the page is never heroless if
-         a build cannot reach Shopify. -->
+         these markers (syncHero). The <picture> below is the served
+         fallback, a real local file, so the page is never heroless. -->
     <!-- HERO:START -->
     <!-- HERO:END -->
     <picture class="hero-fallback">
       <source type="image/webp" srcset="images/look-02.webp">
       <img src="images/look-02.jpg" alt="Asior, worn" width="800" height="1200" decoding="async">
     </picture>
-
-    <div class="hero-plate" id="heroPlate">
-      <!-- The one line. It is the founder's framing of how the label
-           works and it is true of the catalog: small quantities,
-           restocked rarely. No countdown, no "only N left", nothing
-           that needs a number to land. -->
-      <p class="hero-line">Small runs. Run again rarely.</p>
-      <a class="hero-link" href="#shop">Shop all <span aria-hidden="true">&rarr;</span></a>
-    </div>
+    <a class="hero-link" id="heroLink" href="#new">Shop the latest</a>
   </section>
 
-  <!-- Personalization from real browsing history (assets/site.js's
-       getViewed()) — shown before the full catalog, not after, when
-       there's real history to act on. A returning visitor sees what's
-       relevant to them first; a first-time visitor never sees this
-       section at all (see renderRecentlyViewed's own guard). -->
+  <!-- Personalization from real browsing history. A first-time visitor
+       never sees this section at all (see renderRecentlyViewed). -->
   <section class="shop-recent" id="shopRecent"></section>
 
-  <!-- Every Active product in the real Shopify catalog, fetched live on
-       load. Add, remove, or change something in Shopify Admin and this
-       page reflects it automatically, nothing here is hardcoded. Order
-       is real merchandising (new Fall pieces first, then the
-       visitor's own size availability), not Shopify's default —
-       see sortForMerchandising below. -->
-  <section class="shop" id="shop">
-    <!-- Verified shipping offer, stated once above the grid. Filled by
-         JS from assets/promo-config.js and left empty when nothing is
-         confirmed, so an unverified claim can never render here. -->
-    <p class="shop-shipping" id="shopShipping" hidden></p>
-
-    <!-- Toolbar. Every control here acts on data the catalogue already
-         carries -- price, availability, title -- so nothing in it can
-         state something the shop does not know. It is written into the
-         page by JS rather than served as static markup, because none of
-         it does anything without JS and a dead row of buttons is worse
-         than no row. See buildToolbar(). -->
-    <div class="shop-tools" id="shopTools" hidden></div>
-
-    <div class="shop-loading" id="shopLoading">Loading the shop…</div>
-    <!-- scripts/build.js bakes the real catalog between these markers at
-         deploy time, so the served HTML contains actual products for
-         crawlers, link previews, and anyone whose JS hasn't run yet. The
-         live fetch below replaces them so price and stock stay current —
-         the static markup is the floor, not the ceiling. -->
-    <div class="shop-grid" id="shopGrid">
-      <!-- SHOPGRID:START -->
-      <!-- SHOPGRID:END -->
+  <!-- [measured] NEW ARRIVALS: label left, "View all" right, then a
+       4-column row. Genuinely the newest pieces -- the build sorts by
+       Shopify's createdAt, so this is a fact about the catalogue and
+       not a hand-picked row labelled "new". -->
+  <section class="home-row" id="new">
+    <div class="row-head">
+      <h2 class="row-title">New arrivals</h2>
+      <a class="row-link" href="/collections/tops.html">View all</a>
     </div>
-    <!-- Intentionally empty in the served HTML. This used to carry
-         "Nothing in the shop right now" as static text, which is hidden
-         by CSS but still sits in the markup — a scraper reading raw HTML
-         reports the store as empty when it isn't. The message is set
-         from JS, only when it's actually true. -->
-    <div class="shop-empty" id="shopEmpty"></div>
+    <div class="shop-grid" id="newGrid">
+      <!-- NEWGRID:START -->
+      <!-- NEWGRID:END -->
+    </div>
   </section>
 
-  <!-- One line and a field. Brief v14.
-
-       What stood here was a boxed email signup: a tracked-out label, a
-       sub-line, a field and a button, under its own heading -- and the
-       footer on this same page already carried a second signup. Two
-       signup blocks a screen apart is what a visitor reads as a site
-       that wants something from them.
-
-       This is the SMS line, written by scripts/build.js from the same
-       source as the footer's so the TCPA consent sentence cannot drift
-       between the two. The band and the lookbook strip sit between this
-       and the footer block, so the two are never on screen together.
-
-       Email is not lost with the old block: the cart and every
-       back-in-stock form still collect it. -->
-  <section class="home-sms" id="signup">
-    <p class="home-sms-line">Sizes sell out and we run them again rarely. One text when something you want is going.</p>
-    <!-- SMSBLOCK:START -->
-    <div class="sms-signup sms-signup--home" data-sms-location="home">
-      
-      <form class="sms-form" data-sms-signup novalidate>
-        <label class="sr-only" for="sms-home">Mobile number</label>
-        <input class="field" type="tel" id="sms-home" name="phone" placeholder="Mobile number"
-               autocomplete="tel" inputmode="tel" maxlength="20" required>
-        <button type="submit">Sign up</button>
-        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
-      </form>
-      <p class="consent">
-        By signing up you agree to receive recurring automated marketing texts from
-        ASIOR at the number provided. Consent is not a condition of purchase. Message
-        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
-        for help. See our <a href="/terms-of-service.html">Terms</a> and
-        <a href="/privacy-policy.html">Privacy Policy</a>.
-      </p>
-    </div>
-  <!-- SMSBLOCK:END -->
-  </section>
-
-  <!-- Real photography from the lookbook (images/look-*.jpg, same
-       files community.html uses) — proof of how a piece actually
-       looks worn. Sits after the catalog now: the grid is the reason
-       someone's on this page, the lookbook is the closer for anyone
-       still scrolling. -->
-  <!-- Full bleed, edge to edge, deliberately wider than the 1180px the
-       rest of the page is held to. It exists to break the column
-       rhythm once so the page does not read as one repeating
-       component from top to bottom. -->
-  <section class="band" aria-label="Fall collection, worn">
+  <!-- [measured] Full-bleed campaign frame, 945px, with one centred
+       outline button 116x34. -->
+  <section class="campaign-frame" aria-label="Fall collection, worn">
     <picture>
       <source type="image/webp" srcset="images/look-13.webp">
       <img src="images/look-13.jpg" alt="Asior Fall collection, worn" width="1600" height="900" loading="lazy" decoding="async">
     </picture>
-    <p class="band-caption">Fall — worn in</p>
+    <a class="btn-outline" href="#lineup">Shop now</a>
   </section>
 
-  <section class="shop-lookbook">
-    <h2 class="rail-label">Lookbook</h2>
-    <div class="shop-lookbook-row">
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+  <!-- [measured] The reference's second product row is BEST SELLERS.
+       Ours is THE LINEUP, which the spec is explicit about: Asior has
+       no per-product sales data on the site, and a row ordered by
+       invented sales figures is the same class of mistake as an
+       invented stock count. Retitle it the moment real numbers exist. -->
+  <section class="home-row" id="lineup">
+    <div class="row-head">
+      <h2 class="row-title">The lineup</h2>
+      <a class="row-link" href="/archive.html">View all</a>
     </div>
-    <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
+    <div class="shop-grid" id="shopGrid">
+      <!-- SHOPGRID:START -->
+      <!-- SHOPGRID:END -->
+    </div>
+    <div class="shop-empty" id="shopEmpty"></div>
+  </section>
+
+  <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
+       padding. The reference's fourth is BEST SELLERS; ours is
+       MANUFACTURING, per the spec. -->
+  <section class="tiles" aria-label="Categories">
+    <a class="tile" href="/collections/tops.html">
+      <picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Tops</span>
+    </a>
+    <a class="tile" href="/collections/bottoms.html">
+      <picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Bottoms</span>
+    </a>
+    <a class="tile" href="/collections/accessories.html">
+      <picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Accessories</span>
+    </a>
+    <a class="tile" href="/manufacturing.html">
+      <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Manufacturing</span>
+    </a>
   </section>
 
   </main>
@@ -1146,169 +834,38 @@
   // message belongs over them, and the live cards shouldn't fade in
   // over content the visitor is already reading.
   const WAS_PRERENDERED = document.getElementById('shopGrid').children.length > 0;
-  if (WAS_PRERENDERED) document.getElementById('shopLoading').classList.add('hide');
 
-  // Stated once, above the grid, and only when verified.
-  (function showShippingOffer() {
-    const badge = A.freeShippingBadge && A.freeShippingBadge();
-    if (!badge) return;
-    const el = document.getElementById('shopShipping');
-    el.textContent = badge;
-    el.hidden = false;
-  })();
 
-  // Real, live catalog. Whatever's Active in Shopify shows here; Draft
-  // products are absent from the response entirely, so they just don't
-  // appear rather than erroring.
-  // options/selectedOptions added for quick-add size chips — both are
-  // fields this codebase already fetches without incident elsewhere
-  // (product.html, assets/fall-grid.js). quantityAvailable is
-  // deliberately NOT added here: that field, mixed into a catalog
-  // query, is what broke live images/pricing across browsers in
-  // production earlier this launch (see assets/fall-grid.js's
-  // history) — quick-add only ever needs the boolean
-  // availableForSale, never an exact count.
+  /* Real, live catalog. Whatever's Active in Shopify shows here; Draft
+     products are absent from the response entirely, so they just don't
+     appear rather than erroring.
+
+     The field set and the normalizer both live in assets/site.js now
+     (PRODUCT_CARD_FIELDS / normalizeProduct), shared with every
+     collection page, so a page cannot ask for less than it renders.
+     Note what the field set still leaves out: quantityAvailable mixed
+     into a catalog query is what broke live images and pricing across
+     browsers earlier this launch, and a card only needs the boolean.
+
+     normalizeProduct returns null for a malformed record, so one bad
+     product out of fifty cannot blank the whole grid -- the guarantee
+     the inline try/catch used to give. */
   async function fetchCatalog() {
     const data = await A.shopifyFetch(`{
       products(first: 50) {
-        edges {
-          node {
-            title
-            handle
-            options { name values }
-            featuredImage { ${A.IMAGE_FIELDS} }
-            # Two, not one: the second is the hover frame. Every live
-            # product has three real photographs, and showing the same
-            # single shot on hover is what makes a grid feel like a
-            # catalogue export. Only the URL is fetched here -- the
-            # bytes are not requested until a pointer actually enters
-            # the tile (see wireHoverSwap).
-            images(first: 2) { edges { node { ${A.IMAGE_FIELDS} } } }
-            variants(first: 20) {
-              edges { node {
-                id availableForSale price { amount } compareAtPrice { amount }
-                selectedOptions { name value }
-              } }
-            }
-          }
-        }
+        edges { node { ${A.PRODUCT_CARD_FIELDS} } }
       }
     }`);
-    // One malformed product from a 50-item live catalog should never
-    // blank the whole shop grid. Map defensively, skip anything that
-    // doesn't fit the shape we expect, and say so in the console rather
-    // than silently dropping it or crashing the entire fetch.
-    return data.products.edges.reduce((acc, e) => {
-      try {
-        const node = e.node;
-        const variants = node.variants.edges.map(v => v.node);
-        const prices = variants.map(v => parseFloat(v.price.amount));
-        const compares = variants
-          .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
-          .filter(Boolean);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
-        const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
-        acc.push({
-          handle: node.handle,
-          name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-          /* A.leadImage, not featuredImage: Kova's featuredImage in
-             Shopify is an Adobe Firefly render, and reading it raw
-             here put that render on the grid tile a moment after the
-             build had demoted it. CLAUDE.md: a generated image is
-             never the grid tile. */
-          image: A.leadImage(node.featuredImage, ((node.images && node.images.edges) || []).map(x => x.node)),
-          /* The first REAL photograph that is not the one already on
-             the tile. Without the generated-image filter the hover
-             swap did the demotion in reverse -- the tile showed a
-             photograph and swapped to the render on pointer enter. */
-          altImage: (() => {
-            const all = ((node.images && node.images.edges) || []).map(x => x.node);
-            const lead = A.leadImage(node.featuredImage, all);
-            const first = lead && lead.url;
-            return A.orderImages(all).find(im => im.url !== first) || null;
-          })(),
-          isPreorder: /\[preorder\]/i.test(node.title),
-          soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-          priceLabel: minPrice === maxPrice
-            ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
-            : `From $${minPrice}`,
-          // Quick-add only makes sense when Size is the one and only
-          // choice to make — a product with a second option (color,
-          // material) needs the full product page, where that choice
-          // has room to be made correctly. A variant missing a "Size"
-          // selected option (bad data, not a code path we can fix here)
-          // falls back to null rather than throwing and taking every
-          // other product on the page down with it.
-          sizes: hasSizeOnly
-            ? variants.map(v => {
-                const sizeOpt = v.selectedOptions.find(o => o.name === 'Size');
-                return sizeOpt ? { size: sizeOpt.value, variantId: v.id, available: v.availableForSale } : null;
-              }).filter(Boolean)
-            : null,
-        });
-      } catch (err) {
-        console.warn('Skipping malformed product in shop grid:', e.node && e.node.handle, err);
-      }
-      return acc;
-    }, []);
+    return data.products.edges
+      .map(e => A.normalizeProduct(e.node))
+      .filter(Boolean);
   }
 
+  /* The card itself is assets/site.js's productCard, so the grid, the
+     collection pages and (via shopCard in scripts/build.js) the
+     pre-rendered markup all describe the same tile. */
   function card(p, eager) {
-    // Sold out is stated on the tile rather than discovered after a
-    // click. Honest, and it stops a dead-end journey.
-    const media = p.image
-      ? A.imgTag(p.image, {
-          alt: 'Asior ' + p.name,
-          eager: eager,
-          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
-        })
-      : '';
-    /* The hover frame rides along as data and is only turned into a
-       real <img> when a pointer enters the tile. A second lazy <img>
-       per tile would be fetched as soon as the tile scrolled into
-       view, doubling the grid's image requests for an effect most of
-       those visitors (every touch device) can never see. */
-    const alt = p.altImage
-      ? ` data-alt-src="${A.escapeAttr(p.altImage.w800 || p.altImage.url)}"`
-      : '';
-    const mine = A.preferredSize();
-    // .product is a plain wrapper now, not itself the link: a <button>
-    // can't legally nest inside an <a>, and quick-add needs both a
-    // navigable image/name and a set of buttons beside it.
-    const quickAdd = p.sizes
-      ? `<div class="quick-add" data-handle="${A.escapeAttr(p.handle)}" data-name="${A.escapeAttr(p.name)}">
-          ${p.sizes.map(s => `
-            <button type="button" class="qa-size${s.available ? '' : ' unavailable'}${s.size === mine ? ' mine' : ''}"
-                    data-variant-id="${A.escapeAttr(s.variantId)}" data-size="${A.escapeAttr(s.size)}"
-                    ${s.available ? '' : 'disabled'} aria-label="${s.available ? `Add size ${s.size} to cart` : `Size ${s.size}, sold out`}">
-              ${A.escapeHtml(s.size)}
-            </button>`).join('')}
-        </div>`
-      : '';
-    /* The photograph and the caption are two links to the same page
-       rather than one wrapping both, because the quick view trigger has
-       to sit on the photograph and a <button> cannot legally live
-       inside an <a>. The frame is what positions it. */
-    return `
-      <div class="product" data-handle="${A.escapeAttr(p.handle)}">
-        <div class="product-frame">
-          <a class="product-link" href="/products/${p.handle}.html" tabindex="-1" aria-hidden="true">
-            <div class="product-img"${alt}>${media}</div>
-          </a>
-          <button type="button" class="product-peek btn btn--sm" data-peek="${A.escapeAttr(p.handle)}">Quick view</button>
-        </div>
-        <a class="product-link" href="/products/${p.handle}.html">
-          <div class="name-row">
-            <span class="name">${A.escapeHtml(p.name)}</span>
-            <span class="price tnum">${p.priceLabel}</span>
-          </div>
-          ${p.isPreorder ? `<div class="product-state">Preorder</div>` : ''}
-          ${p.soldOut ? `<div class="product-state">Sold out</div>` : ''}
-        </a>
-        ${quickAdd}
-      </div>`;
+    return A.productCard(p, { eager: eager });
   }
 
   // Add straight from the grid — no navigation, so browsing never
@@ -1426,27 +983,10 @@
      Pointer-gated: a touch "hover" latches after a tap and would leave
      the second photograph stuck over the first, so this binds nothing
      on a phone. */
+  /* assets/site.js owns the hover swap now, shared with the collection
+     pages. */
   function wireHoverSwap(container) {
-    if (!container || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    /* pointerover, not pointerenter: pointerenter does not bubble, so
-       a single delegated listener on the grid never heard it. The
-       guard below (an .alt-shot already present) makes the extra
-       pointerover events a no-op. */
-    container.addEventListener('pointerover', function (e) {
-      const box = e.target.closest ? e.target.closest('.product-img') : null;
-      if (!box) return;
-      const src = box.getAttribute('data-alt-src');
-      if (!src || box.querySelector('.alt-shot')) return;
-      const img = document.createElement('img');
-      img.className = 'alt-shot';
-      img.alt = '';
-      img.decoding = 'async';
-      img.addEventListener('load', () => img.classList.add('ready'));
-      // A hover frame that 404s should leave the tile exactly as it was.
-      img.addEventListener('error', () => img.remove());
-      img.src = src;
-      box.appendChild(img);
-    });
+    return A.wireHoverSwap(container);
   }
 
   function revealOnScroll(container) {
@@ -1476,53 +1016,39 @@
     });
   }
 
-  /* Called once on load and again on every toolbar change, always with
-     the full catalogue -- the sort and filter are applied here, so the
-     source of truth stays the catalogue and the toolbar only ever
-     describes a view of it. */
+  /* The lineup row. The reference homepage carries no sort or filter
+     controls -- browsing by category is what the collection pages and
+     their FILTER drawer are for -- so this renders the catalogue in
+     merchandising order and nothing else. */
   function renderGrid(catalog) {
-    document.getElementById('shopLoading').classList.add('hide');
     const grid = document.getElementById('shopGrid');
     const empty = document.getElementById('shopEmpty');
+    if (!grid) return;
 
-    if (catalog.length === 0) {
+    if (!catalog.length) {
       grid.innerHTML = '';
-      empty.textContent = 'nothing in the shop right now. check back soon.';
-      empty.classList.add('show');
+      if (empty) {
+        empty.textContent = 'nothing in the shop right now. check back soon.';
+        empty.classList.add('show');
+      }
       return;
     }
-
-    const view = applyView(catalog);
-    renderCount(view.length, catalog.length);
-
-    // Filtering to nothing is a state the shopper caused and can undo,
-    // so it says which control to reach for rather than reading like
-    // the shop is empty.
-    if (view.length === 0) {
-      grid.innerHTML = '';
-      empty.innerHTML = 'Everything is sold out right now. '
-        + '<button type="button" class="btn btn--quiet btn--sm" id="clearFilters">Show all</button>';
-      empty.classList.add('show');
-      const clear = document.getElementById('clearFilters');
-      if (clear) clear.addEventListener('click', () => {
-        VIEW.stock = 'all'; writeView(); syncToolbar(); renderGrid(CATALOG);
-      });
-      return;
+    if (empty) {
+      empty.classList.remove('show');
+      empty.textContent = '';
     }
-    empty.classList.remove('show');
-    empty.textContent = '';
 
     // Whatever's already shown in "Pick Up Where You Left Off" is
     // excluded from the main grid below it — a product should never
     // appear twice on the same page. Computed here, before the main
     // grid renders, so the exclusion is real (not a guess at what the
     // rail will show).
-    const shownInRecent = renderRecentlyViewed(view);
-    const mainCatalog = view.filter(p => !shownInRecent.has(p.handle));
+    const shownInRecent = renderRecentlyViewed(catalog);
+    const mainCatalog = catalog.filter(p => !shownInRecent.has(p.handle));
 
     // The first row is the LCP candidate, so it loads eagerly; the rest
     // are lazy. Never lazy-load the largest above-the-fold image.
-    grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 3)).join('');
+    grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 4)).join('');
     bindQuickAdd(grid);
     // Outside the branch below: the reveal animation is skipped on a
     // pre-rendered page because the cards are already visible, but the
@@ -1593,53 +1119,8 @@
     return [...fall, ...rest];
   }
 
-  /* ---- drop state on the opening -------------------------------------
-
-     The headline is fixed now -- "Small runs. Run again rarely." is
-     true in every state, which is the point of it -- so this no longer
-     rewrites the plate. What it still does is swap the one link, so the
-     opening never offers a dead end:
-
-       pre-drop   there is nothing to buy yet, so "Shop all" would
-                  scroll a visitor to an empty grid. Offers the list
-                  and names the real configured instant in the
-                  visitor's own timezone.
-       sold-out   says so plainly and offers the list. No "hurry", no
-                  count, no restock promise -- we do not know one.
-       live /
-       evergreen  the served markup, untouched.
-
-     Called twice: once before the catalogue lands (config-only states,
-     so there is no flash), once after (so sold-out can be proven). */
-  function renderHero(catalog) {
-    const plate = document.getElementById('heroPlate');
-    if (!plate) return;
-    const link = plate.querySelector('.hero-link');
-    if (!link) return;
-
-    const { state, at } = A.dropState(catalog);
-    if (plate.dataset.state === state) return;
-    plate.dataset.state = state;
-
-    if (state === 'pre-drop') {
-      const when = A.launchDateLabel(at);
-      link.href = '/text';
-      link.textContent = when ? `Drops ${when} \u2014 get first access` : 'Get first access';
-      return;
-    }
-
-    if (state === 'sold-out') {
-      link.href = '/text';
-      link.textContent = "Sold out \u2014 tell me when it's back";
-      return;
-    }
-
-    link.href = '#shop';
-    link.innerHTML = 'Shop all <span aria-hidden="true">&rarr;</span>';
-  }
 
   // Config-only states are knowable now; sold-out waits for the fetch.
-  renderHero(null);
 
   /* ---- quick view ---------------------------------------------------
 
@@ -1935,24 +1416,7 @@
     ['az', 'A\u2013Z'],
   ];
 
-  function readView() {
-    const q = new URLSearchParams(location.search);
-    if (SORTS.some(([k]) => k === q.get('sort'))) VIEW.sort = q.get('sort');
-    if (q.get('stock') === 'in') VIEW.stock = 'in';
-    if (q.get('cols') === '2' || q.get('cols') === '4') VIEW.cols = +q.get('cols');
-  }
 
-  function writeView() {
-    const q = new URLSearchParams(location.search);
-    const set = (k, v, dflt) => v === dflt ? q.delete(k) : q.set(k, v);
-    set('sort', VIEW.sort, 'featured');
-    set('stock', VIEW.stock, 'all');
-    set('cols', String(VIEW.cols), '4');
-    const qs = q.toString();
-    // replaceState, not pushState: changing a sort should not fill the
-    // back button with steps a shopper has to press through to leave.
-    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
-  }
 
   // The lowest price a product can actually be bought at, which is what
   // the tile shows, so sorting by price agrees with what is on screen.
@@ -1961,100 +1425,21 @@
     return isFinite(n) ? n : Infinity;
   };
 
-  function applyView(catalog) {
-    let out = catalog.slice();
-    if (VIEW.stock === 'in') out = out.filter(p => !p.soldOut);
-    if (VIEW.sort === 'price-asc') out.sort((a, b) => lowestPrice(a) - lowestPrice(b));
-    else if (VIEW.sort === 'price-desc') out.sort((a, b) => lowestPrice(b) - lowestPrice(a));
-    else if (VIEW.sort === 'az') out.sort((a, b) => a.name.localeCompare(b.name));
-    return out;
-  }
 
-  function buildToolbar() {
-    const el = document.getElementById('shopTools');
-    const soldOutCount = CATALOG.filter(p => p.soldOut).length;
-    el.innerHTML = `
-      <div class="shop-tools-row">
-        <div class="shop-count" id="shopCount"></div>
-        <div class="shop-tools-group" role="group" aria-label="Sort">
-          ${SORTS.map(([k, label]) => `
-            <button type="button" class="btn btn--quiet btn--sm" data-sort="${k}"
-                    aria-pressed="${VIEW.sort === k}">${label}</button>`).join('')}
-        </div>
-        ${soldOutCount ? `
-          <button type="button" class="btn btn--quiet btn--sm" id="stockToggle"
-                  aria-pressed="${VIEW.stock === 'in'}">In stock only</button>` : ''}
-        <div class="shop-tools-group shop-cols" role="group" aria-label="Grid size">
-          <button type="button" class="btn btn--quiet btn--sm" data-cols="2"
-                  aria-pressed="${VIEW.cols === 2}" aria-label="Two across">
-            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="currentColor">
-              <rect x="0" y="2" width="7" height="12"/><rect x="9" y="2" width="7" height="12"/></svg>
-          </button>
-          <button type="button" class="btn btn--quiet btn--sm" data-cols="4"
-                  aria-pressed="${VIEW.cols === 4}" aria-label="Four across">
-            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="currentColor">
-              <rect x="0" y="2" width="3" height="12"/><rect x="4.3" y="2" width="3" height="12"/>
-              <rect x="8.6" y="2" width="3" height="12"/><rect x="13" y="2" width="3" height="12"/></svg>
-          </button>
-        </div>
-      </div>`;
-    el.hidden = false;
 
-    el.addEventListener('click', (e) => {
-      const b = e.target.closest('button');
-      if (!b) return;
-      if (b.dataset.sort) VIEW.sort = b.dataset.sort;
-      else if (b.dataset.cols) VIEW.cols = +b.dataset.cols;
-      else if (b.id === 'stockToggle') VIEW.stock = VIEW.stock === 'in' ? 'all' : 'in';
-      else return;
-      writeView();
-      syncToolbar();
-      renderGrid(CATALOG);
-    });
-  }
-
-  function syncToolbar() {
-    const el = document.getElementById('shopTools');
-    el.querySelectorAll('[data-sort]').forEach(b =>
-      b.setAttribute('aria-pressed', String(b.dataset.sort === VIEW.sort)));
-    el.querySelectorAll('[data-cols]').forEach(b =>
-      b.setAttribute('aria-pressed', String(+b.dataset.cols === VIEW.cols)));
-    const st = document.getElementById('stockToggle');
-    if (st) st.setAttribute('aria-pressed', String(VIEW.stock === 'in'));
-    document.getElementById('shopGrid').dataset.cols = VIEW.cols;
-  }
 
   // Plain count, no adjectives. "11 pieces" is a fact; "only 11 left"
   // would be a stock claim the catalogue cannot support.
-  function renderCount(shown, total) {
-    const el = document.getElementById('shopCount');
-    if (!el) return;
-    el.textContent = shown === total
-      ? `${total} ${total === 1 ? 'piece' : 'pieces'}`
-      : `${shown} of ${total}`;
-  }
-
-  readView();
 
   fetchCatalog()
     .then(sortForMerchandising)
-    .then((catalog) => {
-      CATALOG = catalog;
-      // Now the catalogue can prove or disprove a sold-out drop.
-      renderHero(catalog);
-      buildToolbar(); syncToolbar();
-      return catalog;
-    })
     .then(renderGrid)
     .catch((err) => {
-      // fail open and honest, no fake stock left standing. Logged
-      // (not shown) so a real failure is diagnosable from a device's
-      // console instead of just "the shop was blank" secondhand.
+      /* Fail open and honest: the pre-rendered cards the build wrote
+         stay on screen, so a fetch failure costs live pricing, not the
+         whole shop. Logged rather than shown, so a real failure is
+         diagnosable from a device console instead of secondhand. */
       console.error('Shop catalog failed to load:', err);
-      document.getElementById('shopLoading').classList.add('hide');
-      const empty = document.getElementById('shopEmpty');
-      empty.textContent = "Couldn't load the shop right now, try refreshing.";
-      empty.classList.add('show');
     });
 </script>
 

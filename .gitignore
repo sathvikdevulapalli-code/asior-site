@@ -2,6 +2,7 @@
 # The build exits non-zero if it fails, so Vercel keeps the last good
 # deployment live rather than shipping a site without them.
 /products/
+/collections/
 /sitemap.xml
 
 # Local tooling, not part of the site

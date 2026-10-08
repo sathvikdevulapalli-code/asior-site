@@ -34,6 +34,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -98,7 +99,7 @@ async function fetchProducts() {
   const data = await gql(`{
     products(first: 100) {
       edges { node {
-        handle title descriptionHtml updatedAt
+        handle title descriptionHtml updatedAt createdAt
         featuredImage {
           url altText width height
           w400: url(transform:{maxWidth:400, preferredContentType:WEBP})
@@ -127,6 +128,128 @@ async function fetchProducts() {
     }
   }`);
   return data.products.edges.map(e => e.node);
+}
+
+/* The collections that get their own page.
+
+   Driven off this list rather than "every collection in Shopify" on
+   purpose: the store carries two empty Shopify defaults (frontpage,
+   other-example-products) that exist in every new store and are not
+   collections anyone curated. Generating pages for them would publish
+   two permanently empty URLs into the sitemap.
+
+   The founder chose these four. Adding one here is all it takes --
+   plus the matching entry in vercel.json's redirect, which the build
+   checks for below rather than leaving to memory. */
+/* The categories that get their own page come from
+   assets/launch-config.js (CATEGORIES), read once at the top of this
+   file. They are not Shopify collections -- see the long note there. */
+
+/* A category's products, resolved from the live catalog by handle.
+
+   Resolving against the catalog rather than trusting the list means a
+   handle that is unpublished, renamed or deleted in Shopify simply
+   drops out instead of generating a card that links to a 404. The
+   build says so when that happens, because a silently shrinking
+   category is exactly the kind of thing nobody notices. */
+function categoryProducts(category, products) {
+  const byHandle = new Map(products.map(p => [p.handle, p]));
+  const found = category.handles.map(h => byHandle.get(h)).filter(Boolean);
+  const missing = category.handles.filter(h => !byHandle.has(h));
+  if (missing.length) {
+    console.log(`  ${category.slug}: ${missing.length} handle(s) not in the live catalog: ${missing.join(', ')}`);
+  }
+  return found;
+}
+
+/* Turn collection.html into a per-collection page, the same way
+   renderProductPage turns product.html into a per-product one. */
+function renderCollectionPage(template, c) {
+  const url = `${BASE}/collections/${c.slug}.html`;
+  const title = `${c.name} | Asior`;
+  /* The description is the collection's name and its real size. Every
+     one of these collections has an empty descriptionHtml in Shopify,
+     and writing an intro for them here would be inventing copy. */
+  const n = c.products.length;
+  const desc = `${c.name} from Asior — ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const lead = c.products.map(leadImage).find(Boolean);
+  const img = lead && lead.url ? lead.url : `${BASE}/assets/og-default.jpg`;
+
+  let html = template;
+
+  // Relative links, rewritten for the /collections/ subdirectory.
+  html = html
+    .replace(/(href|src)="assets\//g, '$1="/assets/')
+    .replace(/(href|src)="images\//g, '$1="/images/')
+    .replace(/href="([a-z0-9-]+\.html)"/g, 'href="/$1"')
+    .replace(/href="([a-z0-9-]+\.html)#/g, 'href="/$1#');
+
+  html = html
+    .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`)
+    .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
+    .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${esc(title)}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(desc)}">`)
+    .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`)
+    .replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${esc(img)}">`);
+
+  if (lead) {
+    html = html
+      .replace(/<meta property="og:image:width" content="[^"]*">\n?/, '')
+      .replace(/<meta property="og:image:height" content="[^"]*">\n?/, '');
+  }
+
+  // Which collection this is, for the client-side refresh.
+  html = html.replace('<script src="/assets/site.js"></script>',
+    `<script>window.__COLLECTION_SLUG = ${JSON.stringify(c.slug)};</script>\n`
+    + '<script src="/assets/site.js"></script>');
+
+  /* [measured] 532px banner behind the transparent header.
+
+     ASIOR has no per-category banner artwork, and the spec's fallback
+     is "a single wide lifestyle shot". These are the real shoot files
+     in images/, assigned per category and committed here rather than
+     picked at random, so a category's banner does not change on every
+     deploy. Replace a value the moment real category art exists. */
+  const BANNERS = { tops: 'look-03', bottoms: 'look-08', accessories: 'look-11' };
+  const banner = BANNERS[c.slug] || 'look-02';
+  const bannerHtml = `  <div class="coll-banner">
+    <picture>
+      <source type="image/webp" srcset="/images/${banner}.webp">
+      <img src="/images/${banner}.jpg" alt="" width="1600" height="900" fetchpriority="high" decoding="async">
+    </picture>
+  </div>
+`;
+  html = replaceBetween(html, '<!-- BANNER:START -->', '<!-- BANNER:END -->', bannerHtml);
+  if (html === null) throw new Error(`${c.slug}: BANNER markers missing`);
+
+  const grid = sortForMerchandising(c.products)
+    .map((p, i) => shopCard(p, i < 4))
+    .filter(Boolean)
+    .join('\n') + '\n';
+
+  html = replaceBetween(html, '<!-- COLLTITLE:START -->', '<!-- COLLTITLE:END -->', esc(c.name));
+  if (html === null) throw new Error(`${c.slug}: COLLTITLE markers missing`);
+  html = replaceBetween(html, '<!-- COLLCOUNT:START -->', '<!-- COLLCOUNT:END -->',
+    `${n} ${n === 1 ? 'piece' : 'pieces'}`);
+  if (html === null) throw new Error(`${c.slug}: COLLCOUNT markers missing`);
+  html = replaceBetween(html, '<!-- COLLGRID:START -->', '<!-- COLLGRID:END -->', grid);
+  if (html === null) throw new Error(`${c.slug}: COLLGRID markers missing`);
+
+  return html;
+}
+
+/* vercel.json routes /collections/<handle> to <handle>.html by an
+   explicit alternation, so a handle added to COLLECTION_HANDLES without
+   the matching route would serve a page nobody can reach by its pretty
+   URL. Checked here so the drift is caught at build time. */
+function checkCollectionRoutes(handles) {
+  const cfg = fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8');
+  const missing = handles.filter(h => !cfg.includes(h));
+  if (missing.length) {
+    console.warn(`  ! vercel.json has no /collections/ route for: ${missing.join(', ')}`);
+  }
+  return handles.length - missing.length;
 }
 
 /* Strip Shopify's HTML down to a plain sentence for meta/OG description.
@@ -395,6 +518,7 @@ function writeSitemap(products) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     ...STATIC_PAGES.map(p => ({ loc: BASE + p, lastmod: today })),
+    ...CATEGORIES.map(c => ({ loc: `${BASE}/collections/${c.slug}.html`, lastmod: today })),
     /* Products with a bespoke page are already listed via STATIC_PAGES
        under that page's own URL; listing the generated one too would put
        both halves of a duplicate in the sitemap. */
@@ -554,41 +678,104 @@ async function syncPolicy(slug, file) {
    full-screen panel behind one MENU button; see wireNav() in
    assets/site.js. The <nav> keeps the real links in the served HTML,
    so it still works and is still crawlable with JavaScript off. */
-const CART_LINK = '<a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>';
+/* [measured] A bag icon with a count bubble, 46x46 hit area, ~20px
+   line icon -- not the word "Cart". renderCartCount() in site.js writes
+   into every .cart-count, so the bubble updates wherever this appears.
+   The accessible name carries the count for screen readers, since the
+   icon alone says nothing. */
+const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
+  + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">'
+  + '<path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg>'
+  + '<span class="cart-count">0</span></a>';
 
-const HEADER_FULL = `  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
-  <header>
-    <a class="mark" href="shop.html">Asior</a>
-    <!-- Phone-only duplicate. The cart lives inside <nav> for the
-         desktop row, and <nav> becomes the hidden full-screen panel on
-         a phone -- which would leave the top bar with no cart at all.
-         renderCartCount() writes to every .cart-count and
-         wireCartLinks() binds every a.cart-link, so the copy needs no
-         special handling. -->
-    ${CART_LINK.replace('class="cart-link"', 'class="cart-link cart-link--bar"')}
-    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
-    <nav id="siteNav">
-      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
-      <a href="shop.html">Shop</a>
-      <a href="archive.html">Archive</a>
-      <a href="community.html">Lookbook</a>
-      <a href="about.html">About</a>
-      ${CART_LINK}
-    </nav>
-  </header>
+/* ---- announcement bar [measured: 40px, black, white, 14px 400] -----
 
-  <div class="page-top-space"></div>
+   The reference rotates three messages between page loads. Ours
+   rotates on a timer, and every line has to be true:
+
+     1. the one live discount (CLAUDE.md: ASIORTEN is the only code
+        the site may mention),
+     2. the verified dispatch time from the shipping config,
+     3. the brand line.
+
+   What is deliberately NOT here is the reference's own first message,
+   "FREE U.S SHIPPING ON ORDERS OVER $100". Asior has no free-shipping
+   threshold in Shopify, the spec says not to carry theirs across, and
+   check-slop.js fails the build on "free shipping" anyway. */
+const ANNOUNCEMENTS = [
+  '10% off your first order. Code ASIORTEN',
+  'Ships from Texas in 1-2 business days',
+  'Small runs. Run again rarely.',
+];
+
+const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+${ANNOUNCEMENTS.map((m, i) =>
+  `      <p class="announce-msg${i === 0 ? ' is-on' : ''}"${i === 0 ? '' : ' aria-hidden="true"'}>${esc(m)}</p>`).join('\n')}
+    </div>
+  </div>
 `;
 
-/* privacy-policy.html and terms-of-service.html carry no nav and no
-   teaser bar on purpose: they're linked from the SMS/email consent
-   copy and read on their own, with no need to pull a visitor into the
-   rest of the catalog from there. */
-const HEADER_MINIMAL = `  <header>
-    <a class="mark" href="shop.html">Asior</a>
-  </header>
+/* The wordmark.
 
-  <div class="page-top-space"></div>
+   ASSET DEPENDENCY: the reference's wordmark is a PNG (a script logo)
+   and the spec says to drop in "the ASIOR logo file at the same 95px
+   width". There is no logo file in this repo -- no SVG, no PNG,
+   nothing under images/ or assets/. So this stays as set text at the
+   same 95px optical width, and the moment a real mark lands it
+   replaces the span here and nowhere else. It is NOT generated: an
+   AI-made logo would be both off-brand and against CLAUDE.md. */
+const WORDMARK = '<span class="mark-text">ASIOR</span>';
+
+/* Category links come from one place, assets/launch-config.js, so the
+   nav, the footer and the generated collection pages cannot disagree
+   about what the categories are. build.js reads that file rather than
+   restating the list. */
+const CATEGORIES = (() => {
+  const src = fs.readFileSync(path.join(ROOT, 'assets/launch-config.js'), 'utf8');
+  const sandbox = { window: {} };
+  vm.createContext(sandbox);
+  vm.runInContext(src, sandbox);
+  return (sandbox.window.ASIOR_LAUNCH && sandbox.window.ASIOR_LAUNCH.CATEGORIES) || [];
+})();
+
+const NAV_LINKS = [
+  ['Shop all', '/shop.html'],
+  ...CATEGORIES.map(c => [c.name, `/collections/${c.slug}.html`]),
+  ['Manufacturing', '/manufacturing.html'],
+];
+
+/* Header [measured: 85px tall, 40px side padding, nav left, logo
+   centred, country selector + bag right].
+
+   Transparent over the image on the homepage and the collection pages,
+   white everywhere else -- the page adds .header-over to opt in, so a
+   page that forgets it gets the safe white version rather than white
+   text on white. */
+const HEADER_FULL = `${ANNOUNCE_BAR}  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
+
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).join('\n')}
+    </nav>
+
+    <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      ${CART_LINK}
+    </div>
+  </header>
+`;
+
+/* Policy pages carry the bar and a bare header: they are linked from
+   consent copy and read on their own. */
+const HEADER_MINIMAL = `${ANNOUNCE_BAR}  <header class="site-header site-header--minimal">
+    <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
+  </header>
 `;
 
 /* ---- native SMS signup, static placements --------------------------
@@ -625,7 +812,7 @@ function smsSignupBlock(variant) {
      sentence immediately above the form already says what the form is
      for, and repeating it is the kind of stacked-heading padding brief
      v14 is asking to strip out. */
-  const bare = variant === 'about' || variant === 'home';
+  const bare = variant === 'about' || variant === 'home' || variant === 'footer';
   const footer = variant === 'footer';
   const heading = bare
     ? ''
@@ -672,37 +859,64 @@ const SUPPORT_EMAIL = 'asiorclothing@gmail.com';
    the shipping config. */
 const ABOUT_WHY = '';
 
-const FOOTER_HTML = `  <footer id="order">
-    ${smsSignupBlock('footer')}
-    <div class="fmark">Asior</div>
-    <div class="fline">Small runs from Texas.</div>
-    <div class="fmeta"><a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></div>
-    <div class="social">
-      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
-      </a>
-      <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
-      </a>
+/* Footer [measured: 341px, white, 1px top rule, boxed 1450 container,
+   four columns].
+
+   Column 3 is the reference's Terms column. Theirs lists five policy
+   links; ours lists the ones that resolve. Refund Policy is omitted
+   because no refund policy exists in Shopify and /refund-policy.html
+   is a 404 -- the spec says to hide it until it is published, and
+   syncPolicy's link resolver already drops links to it for the same
+   reason. Shipping Policy is omitted on the same grounds: the rates
+   are known and stated at checkout and on the PDP, but there is no
+   hosted shipping policy page to point at. Both come back by adding
+   the page; nothing else here needs to change.
+
+   Column 4 is the reference's email capture, switched to SMS per the
+   spec, which means it carries the TCPA consent sentence -- generated
+   from smsSignupBlock so it cannot drift from the other placements. */
+const FOOTER_HTML = `  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark">${WORDMARK}</div>
+        <p class="fsupport">Support: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        ${smsSignupBlock('footer')}
+      </div>
     </div>
-    <div class="policy-links">
-      <a href="/text">Text List</a>
-      <a href="account.html">Account</a>
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
-    </div>
-    <!-- Manufacturing is a B2B service for other brands. It was sitting
-         in the main shopping nav between Contact and the cart, which put
-         a different buyer's destination in the middle of a clothing
-         customer's journey. Nothing is removed -- the page, its URL and
-         its form all still work -- it is just reached from here, where
-         someone looking for it will look, instead of from the nav a
-         shopper uses to find a tee. -->
-    <div class="business-links">
-      <a href="contact.html">Contact</a>
-      <span class="business-sep" aria-hidden="true">/</span>
-      <a href="manufacturing.html">For brands</a>
-    </div>
+
+    <div class="footer-base">&copy; ASIOR ${new Date().getFullYear()}</div>
   </footer>
 `;
 
@@ -757,6 +971,7 @@ const HEAD_PAGES = [
   'manufacturing.html', 'account.html', 'privacy-policy.html',
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
   'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
+  'collection.html',
 ];
 
 const SHARED_MARKUP_PAGES = [
@@ -773,6 +988,7 @@ const SHARED_MARKUP_PAGES = [
   ['text.html', HEADER_FULL],
   ['archive.html', HEADER_FULL],
   ['about.html', HEADER_FULL],
+  ['collection.html', HEADER_FULL],
   /* The 404 page gets the shared header and footer like any other page
      -- that is the whole point of it, somewhere to go -- but it is
      deliberately absent from STATIC_PAGES: a sitemap that lists an
@@ -882,14 +1098,12 @@ function shopCard(p, eager) {
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
+          ${soldOut ? '<span class="product-badge">Sold out</span>' : ''}
         </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
-          <div class="name-row">
-            <span class="name">${esc(name)}</span>
-            <span class="price tnum">${priceLabel}</span>
-          </div>
+          <div class="product-title">${esc(name)}</div>
+          <div class="product-price tnum">${priceLabel}</div>
           ${isPreorder ? '<div class="product-state">Preorder</div>' : ''}
-          ${soldOut ? '<div class="product-state">Sold out</div>' : ''}
         </a>
       </div>`;
 }
@@ -1005,6 +1219,26 @@ function syncHero(products) {
   return img ? 1 : 0;
 }
 
+/* [measured] The NEW ARRIVALS row.
+
+   Genuinely newest: sorted by Shopify's createdAt, descending. That
+   makes the label a fact about the catalogue rather than a hand-picked
+   row described as new. Four, to fill exactly one row of the 4-column
+   grid. */
+function syncNewArrivals(products) {
+  const target = path.join(ROOT, 'shop.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const newest = products
+    .slice()
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    .slice(0, 4);
+  const grid = newest.map((p, i) => shopCard(p, i < 4)).filter(Boolean).join('\n') + '\n';
+  const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
+  if (next === null) throw new Error('shop.html: NEWGRID markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return newest.length;
+}
+
 function syncShopGrid(products) {
   const target = path.join(ROOT, 'shop.html');
   const html = fs.readFileSync(target, 'utf8');
@@ -1067,7 +1301,6 @@ function syncBespokeJsonLd(products) {
 const SMS_BLOCK_PAGES = [
   ['text.html', 'page'],
   ['about.html', 'about'],
-  ['shop.html', 'home'],
 ];
 
 function syncSmsPages() {
@@ -1159,8 +1392,30 @@ function syncSharedMarkup() {
     console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ homepage hero: ${syncHero(products) ? 'live photograph' : 'none, served fallback stands'}`);
+    console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ shop.html grid pre-rendered with ${syncShopGrid(products)} products`);
     console.log(`✓ archive.html listed ${syncArchive(products)} products`);
+
+    /* Category pages. Written after the product pages so a card can
+       only ever link to a /products/<handle>.html that was just
+       generated. */
+    const collDir = path.join(ROOT, 'collections');
+    fs.mkdirSync(collDir, { recursive: true });
+    for (const f of fs.readdirSync(collDir)) {
+      if (f.endsWith('.html')) fs.unlinkSync(path.join(collDir, f));
+    }
+    const collTemplate = fs.readFileSync(path.join(ROOT, 'collection.html'), 'utf8');
+    let collCount = 0;
+    for (const cat of CATEGORIES) {
+      const inCat = categoryProducts(cat, products);
+      fs.writeFileSync(
+        path.join(collDir, `${cat.slug}.html`),
+        renderCollectionPage(collTemplate, { ...cat, products: inCat }));
+      collCount++;
+      console.log(`  /collections/${cat.slug}.html — ${inCat.length} product(s)`);
+    }
+    console.log(`✓ ${collCount} category pages -> /collections/`);
+    console.log(`✓ vercel.json routes ${checkCollectionRoutes(CATEGORIES.map(c => c.slug))}/${CATEGORIES.length} categories`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
     // which is far better than publishing a site whose shop links all

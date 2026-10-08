@@ -59,6 +59,42 @@ window.ASIOR_LAUNCH = {
   // again. jaguar-sweats (JAG Sweats) is a separate restock with its
   // own generated PDP at /products/jaguar-sweats.html — it is not part
   // of this array and should not be, so it stays off the shop grid.
+  /* ---- storefront categories -------------------------------------
+
+     The nav the reference spec calls for: TOPS / BOTTOMS /
+     ACCESSORIES, plus MANUFACTURING in the slot their BEST SELLERS
+     occupies. Each becomes /collections/<slug>.html at build time.
+
+     These are NOT Shopify collections. Shopify's own collections are
+     brand lines (JAG, Ja-Yu, Fall Collection) plus two empty defaults
+     from a new store -- there is no Tops or Bottoms there. The
+     membership below is the founder's own mapping, given with the
+     reference spec, so it is recorded data and not a taxonomy this
+     repo invented. A handle that stops being Active in Shopify simply
+     drops out of its category at build time.
+
+     BEST SELLERS is deliberately absent: the spec says to use it only
+     if the founder confirms which pieces actually sell best, and
+     nobody has, so the homepage row is titled THE LINEUP instead and
+     shows everything. Ordering a grid by invented sales data is the
+     same class of mistake as an invented stock count.
+
+     JAG Set sits in both Tops and Bottoms: it is a crewneck and sweats
+     sold together, so it is genuinely both, and the spec left the call
+     here ("it's both, your call"). */
+  CATEGORIES: [
+    { slug: 'tops', name: 'Tops', handles: [
+      'scripture-polo', 'holes-tee', 'ja-yu-blossom-tee',
+      'kova-eternal-lotus-graphic-t-shirt', 'jaguar-crewneck', 'jag-set-1',
+    ] },
+    { slug: 'bottoms', name: 'Bottoms', handles: [
+      'jag-shorts', 'asr-shorts', 'jaguar-sweats', 'jag-set-1',
+    ] },
+    { slug: 'accessories', name: 'Accessories', handles: [
+      'helia-pendant', 'jag-lanyard',
+    ] },
+  ],
+
   FALL_PRODUCTS: [
     { name: 'Asior Polo', handle: 'scripture-polo' },
     { name: 'JAG Shorts', handle: 'jag-shorts' },

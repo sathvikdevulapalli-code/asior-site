@@ -39,7 +39,12 @@
       "permanent": true
     },
     {
-      "source": "/collections/:path*",
+      "source": "/collections/:slug(tops|bottoms|accessories)",
+      "destination": "/collections/:slug.html",
+      "permanent": true
+    },
+    {
+      "source": "/collections/:path([^.]+)",
       "destination": "/shop.html",
       "permanent": true
     },

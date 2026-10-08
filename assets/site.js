@@ -278,7 +278,11 @@
   function renderCartCount(n) {
     var q = n > 0 ? n : 0;
     document.querySelectorAll('.cart-count').forEach(function (el) {
-      el.textContent = '(' + q + ')';
+      el.textContent = String(q);
+      // The icon alone says nothing, so the count rides on the link's
+      // accessible name as well as in the bubble.
+      var link = el.closest('.cart-link');
+      if (link) link.setAttribute('aria-label', q === 1 ? 'Cart, 1 item' : 'Cart, ' + q + ' items');
       if (q > 0) el.classList.add('show'); else el.classList.remove('show');
     });
   }
@@ -840,9 +844,26 @@
        it was followed: the cart link opens the drawer in place (see
        wireCartLinks) and pulling focus back to the MENU button would
        take it straight out of the dialog that just opened. */
+    /* The drawer slides in from the left [spec section 11]. A scrim is
+       created lazily rather than shipped in every page's markup: it
+       exists only once a menu has actually been opened, and clicking it
+       closes the drawer, which is the behaviour people expect of an
+       overlay and which keyboard users get from Escape. */
+    var scrim = null;
+    function ensureScrim() {
+      if (scrim) return scrim;
+      scrim = document.createElement('div');
+      scrim.className = 'nav-scrim';
+      scrim.addEventListener('click', function () { setOpen(false); });
+      document.body.appendChild(scrim);
+      return scrim;
+    }
+
     function setOpen(open, moveFocus) {
       moveFocus = moveFocus !== false;
       document.body.classList.toggle('nav-open', open);
+      nav.classList.toggle('is-open', open);
+      ensureScrim().classList.toggle('is-open', open);
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       // Scrolling the page behind an open full-screen panel is how you
       // end up somewhere else when you close it.
@@ -1284,6 +1305,179 @@
       .concat(all.filter(isGeneratedImage));
   }
 
+  /* ---- the shared product card ---------------------------------------
+
+     One normalizer and one renderer, used by the shop grid and by every
+     collection page.
+
+     This repo already carried two card implementations that had to be
+     kept in step by hand -- card() in shop.html and shopCard() in
+     scripts/build.js, which CLAUDE.md flags as a standing hazard. The
+     Kova bug proved the hazard was real: the build demoted the Firefly
+     render and the client put it straight back, because only one of the
+     two had the filter. Collection pages would have made a third copy.
+     This is the client-side one, defined once.
+
+     PRODUCT_CARD_FIELDS is the GraphQL selection a card needs, so a page
+     cannot ask for less than it renders. quantityAvailable is
+     deliberately absent: that field mixed into a catalog query is what
+     broke live images and pricing across browsers earlier this launch.
+     A card only ever needs the boolean availableForSale. */
+  var PRODUCT_CARD_FIELDS = `
+    title
+    handle
+    options { name values }
+    featuredImage { ${IMAGE_FIELDS} }
+    images(first: 2) { edges { node { ${IMAGE_FIELDS} } } }
+    variants(first: 20) {
+      edges { node {
+        id availableForSale price { amount } compareAtPrice { amount }
+        selectedOptions { name value }
+      } }
+    }`;
+
+  /* Storefront node -> the shape a card renders. Returns null for a
+     malformed product rather than throwing, so one bad record cannot
+     take down every other tile on the page. */
+  function normalizeProduct(node) {
+    try {
+      var variants = node.variants.edges.map(function (v) { return v.node; });
+      var prices = variants.map(function (v) { return parseFloat(v.price.amount); });
+      var compares = variants
+        .map(function (v) { return v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null; })
+        .filter(Boolean);
+      var minPrice = Math.min.apply(null, prices);
+      var maxPrice = Math.max.apply(null, prices);
+      var compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+      var opts = node.options || [];
+      var hasSizeOnly = opts.length === 1 && opts[0].name === 'Size';
+      var all = ((node.images && node.images.edges) || []).map(function (x) { return x.node; });
+      /* leadImage, not featuredImage: a generated render is never the
+         grid tile, and the alt frame has to clear the same bar or the
+         hover swap does the demotion in reverse. */
+      var lead = leadImage(node.featuredImage, all);
+      var firstUrl = lead && lead.url;
+
+      return {
+        handle: node.handle,
+        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+        image: lead,
+        altImage: orderImages(all).filter(function (im) { return im.url !== firstUrl; })[0] || null,
+        isPreorder: /\[preorder\]/i.test(node.title),
+        soldOut: variants.length > 0 && variants.every(function (v) { return !v.availableForSale; }),
+        priceLabel: minPrice === maxPrice
+          ? (compare ? '<span class="compare">$' + compare + '</span>' : '') + '$' + minPrice
+          : 'From $' + minPrice,
+        /* Quick-add only makes sense when Size is the one and only
+           choice. A product with a second option (color, material)
+           needs the full product page, where that choice has room to be
+           made correctly. */
+        sizes: hasSizeOnly
+          ? variants.map(function (v) {
+              var o = (v.selectedOptions || []).filter(function (x) { return x.name === 'Size'; })[0];
+              return o ? { size: o.value, variantId: v.id, available: v.availableForSale } : null;
+            }).filter(Boolean)
+          : null,
+      };
+    } catch (err) {
+      console.warn('Skipping malformed product:', node && node.handle, err);
+      return null;
+    }
+  }
+
+  /* opts.eager  -- first row only; everything below the fold stays lazy.
+     opts.peek   -- render the quick view trigger (default true). It is
+                    never pre-rendered server side: it does nothing
+                    without JS, and a dead button is worse than none. */
+  function productCard(p, opts) {
+    opts = opts || {};
+    var media = p.image
+      ? imgTag(p.image, {
+          alt: 'Asior ' + p.name,
+          eager: !!opts.eager,
+          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
+        })
+      : '';
+    /* The hover frame rides along as data and only becomes a real <img>
+       when a pointer enters the tile. A second lazy <img> per tile would
+       be fetched as soon as the tile scrolled into view, doubling the
+       grid's image requests for an effect most visitors (every touch
+       device) can never see. */
+    var alt = p.altImage
+      ? ' data-alt-src="' + escapeAttr(p.altImage.w800 || p.altImage.url) + '"'
+      : '';
+    var mine = preferredSize();
+
+    var quickAdd = p.sizes
+      ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '">'
+        + p.sizes.map(function (s) {
+            return '<button type="button" class="qa-size' + (s.available ? '' : ' unavailable')
+              + (s.size === mine ? ' mine' : '') + '"'
+              + ' data-variant-id="' + escapeAttr(s.variantId) + '" data-size="' + escapeAttr(s.size) + '"'
+              + (s.available ? '' : ' disabled')
+              + ' aria-label="' + (s.available ? 'Add size ' + escapeAttr(s.size) + ' to cart'
+                                               : 'Size ' + escapeAttr(s.size) + ', sold out') + '">'
+              + escapeHtml(s.size) + '</button>';
+          }).join('')
+        + '</div>'
+      : '';
+
+    /* The photograph and the caption are two links to the same page
+       rather than one wrapping both, because the quick view trigger has
+       to sit on the photograph and a <button> cannot legally live
+       inside an <a>. The frame is what positions it. */
+    var peek = opts.peek === false ? ''
+      : '<button type="button" class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '">Quick view</button>';
+
+    /* [measured] A small black badge top-left on the image. The
+       reference's reads "Notify Me" and opens a restock signup; ours
+       says "Sold out", because the spec is explicit that the Notify Me
+       wording may only be used if it opens a working restock signup,
+       and the grid card does not have one. The product page does. */
+    var badge = p.soldOut ? '<span class="product-badge">Sold out</span>' : '';
+
+    return '\n      <div class="product" data-handle="' + escapeAttr(p.handle) + '">'
+      + '<div class="product-frame">'
+      + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html" tabindex="-1" aria-hidden="true">'
+      + '<div class="product-img"' + alt + '>' + media + '</div></a>'
+      + badge + peek
+      + '</div>'
+      + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html">'
+      /* [measured] Title above the price, both left aligned, title
+         clamped to one line. The v14 card put name and price on one
+         row with the price pushed right, which reads as a price list;
+         the reference stacks them. */
+      + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
+      + '<div class="product-price tnum">' + p.priceLabel + '</div>'
+      + (p.isPreorder ? '<div class="product-state">Preorder</div>' : '')
+      + '</a>' + quickAdd + '</div>';
+  }
+
+  /* The hover frame, wired once per grid container. Shared by the shop
+     grid and the collection pages so the swap behaves identically on
+     both. No-op on touch, where there is no hover to respond to. */
+  function wireHoverSwap(container) {
+    if (!container || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    /* pointerover, not pointerenter: pointerenter does not bubble, so a
+       single delegated listener on the grid never hears it. The
+       already-present guard makes the extra events a no-op. */
+    container.addEventListener('pointerover', function (e) {
+      var box = e.target.closest ? e.target.closest('.product-img') : null;
+      if (!box) return;
+      var src = box.getAttribute('data-alt-src');
+      if (!src || box.querySelector('.alt-shot')) return;
+      var img = document.createElement('img');
+      img.className = 'alt-shot';
+      img.alt = '';
+      img.decoding = 'async';
+      img.addEventListener('load', function () { img.classList.add('ready'); });
+      // A hover frame that 404s should leave the tile exactly as it was.
+      img.addEventListener('error', function () { img.remove(); });
+      img.src = src;
+      box.appendChild(img);
+    });
+  }
+
   function shippingConfig() {
     return window.ASIOR_SHIPPING || {};
   }
@@ -1460,6 +1654,10 @@
     isGeneratedImage: isGeneratedImage,
     leadImage: leadImage,
     orderImages: orderImages,
+    PRODUCT_CARD_FIELDS: PRODUCT_CARD_FIELDS,
+    normalizeProduct: normalizeProduct,
+    productCard: productCard,
+    wireHoverSwap: wireHoverSwap,
     internationalLine: internationalLine,
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
@@ -1524,6 +1722,56 @@
     sync();
     window.addEventListener('scroll', sync, { passive: true });
   }
+
+  /* The announcement bar rotates [measured: the reference's bar changed
+     between page loads]. Three messages, cross-faded in place so the
+     bar never changes height.
+
+     Paused on hover and on focus-within, so a message cannot slide out
+     from under someone reading it or tabbing through it. Under
+     prefers-reduced-motion it does not rotate at all: it shows the
+     first message and stops, because a timed content swap is motion
+     whether or not it is animated. */
+  function wireAnnounce() {
+    var track = document.querySelector('[data-announce]');
+    if (!track) return;
+    var msgs = Array.prototype.slice.call(track.querySelectorAll('.announce-msg'));
+    if (msgs.length < 2) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var i = 0, paused = false, timer = null;
+
+    function show(n) {
+      msgs.forEach(function (m, k) {
+        var on = k === n;
+        m.classList.toggle('is-on', on);
+        // Only the visible message is exposed; the rest would otherwise
+        // all be read out in sequence by a screen reader.
+        if (on) m.removeAttribute('aria-hidden');
+        else m.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    function tick() {
+      if (!paused) { i = (i + 1) % msgs.length; show(i); }
+    }
+
+    var bar = track.closest('.announce') || track;
+    bar.addEventListener('mouseenter', function () { paused = true; });
+    bar.addEventListener('mouseleave', function () { paused = false; });
+    bar.addEventListener('focusin', function () { paused = true; });
+    bar.addEventListener('focusout', function () { paused = false; });
+
+    // Stop the timer entirely when the tab is hidden.
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { clearInterval(timer); timer = null; }
+      else if (!timer) timer = setInterval(tick, 4000);
+    });
+
+    timer = setInterval(tick, 4000);
+  }
+
+  wireAnnounce();
 
   wireHeaderScrollState();
 
