@@ -811,6 +811,9 @@ const HEADER_FULL = `${ANNOUNCE_BAR}  <header class="site-header">
     <nav class="nav-main" id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
 ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).join('\n')}
+      <!-- Phone drawer only (hidden at desktop widths by the stylesheet):
+           one patterned strip at the foot of the panel. -->
+      <div class="leo leo-band nav-leo" aria-hidden="true"></div>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
@@ -928,7 +931,11 @@ const ABOUT_WHY = '';
    Column 4 is the reference's email capture, switched to SMS per the
    spec, which means it carries the TCPA consent sentence -- generated
    from smsSignupBlock so it cannot drift from the other placements. */
-const FOOTER_HTML = `  <footer class="site-footer" id="order">
+const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping is finished
+       by the time anyone is here, so the pattern can be loud without
+       costing a sale. Decorative only: no text sits on it. -->
+  <div class="leo leo-band footer-leo" aria-hidden="true"></div>
+  <footer class="site-footer" id="order">
     <div class="footer-cols">
       <div class="fcol fcol--brand">
         <div class="fmark">${WORDMARK}</div>

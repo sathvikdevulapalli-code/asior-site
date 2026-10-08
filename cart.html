@@ -483,6 +483,8 @@
   .checkout-btn:hover { background: var(--accent-press); }
   .checkout-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 
+  .cart-leo { margin-top: 20px; }
+
   .cart-taxnote {
     margin: 10px 0 0;
     font-family: var(--font);
@@ -935,6 +937,7 @@
         <p class="cart-discount-msg${initialMsg ? ' is-error' : ''}" id="cartDiscountMsg"
            role="status" aria-live="polite">${initialMsg}</p>
       </div>
+      <div class="leo leo-rule cart-leo" aria-hidden="true"></div>
       <!-- [measured] Black, full width, 48px, uppercase 14px/700.
            Goes to the checkoutUrl Shopify's own cart returns -- the
            hand-off is unchanged by this redesign. -->

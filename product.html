@@ -269,6 +269,8 @@
   .pd-buynow[disabled] { opacity: 0.4; cursor: not-allowed; }
 
   /* ---- tabs [measured: 3 equal tabs, 42px tall, 7px gaps] ---- */
+  .pd-leo { margin-top: 22px; }
+
   .pd-tabs {
     display: grid;
     grid-auto-flow: column;
@@ -1746,6 +1748,9 @@
     ].filter(t => t[2]);
 
     const tabsHTML = TABS.length ? `
+      <!-- Signature hairline, below everything that buys the product
+           and above everything that explains it. Nothing sits on it. -->
+      <div class="leo leo-rule pd-leo" aria-hidden="true"></div>
       <div class="pd-tabs" role="tablist" aria-label="Product information">
         ${TABS.map(([id, label], i) => `
           <button type="button" class="pd-tab${i === 0 ? ' is-on' : ''}" role="tab"
