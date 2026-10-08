@@ -46,16 +46,66 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ---------- cart ---------- */
+  /* ---------- cart [measured: boxed container, centred title] ---- */
+
+  /* [measured] Title centred, ~30px, weight 400, sentence case -- not
+     the uppercase rail label the v14 page used. */
+  .cart-head {
+    margin: 0;
+    padding-top: 54px;
+    font-family: var(--font);
+    font-size: 30px;
+    font-weight: 400;
+    text-align: center;
+    color: var(--ink);
+  }
+
+  /* [measured] Small breadcrumb under the title. */
+  .cart-crumb {
+    margin-top: 10px;
+    font-family: var(--font);
+    font-size: 12px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .cart-crumb a { color: var(--muted); text-decoration: underline; }
+  .cart-crumb a:hover { color: var(--ink); }
+
+  /* [measured] A 1px divider below, with generous space (~60px). */
+  .cart-rule {
+    max-width: var(--container);
+    margin: 60px auto 0;
+    border-top: 1px solid var(--line);
+  }
+
+  /* [measured] Boxed to the 1450 container like the rest of the
+     non-fluid pages. */
   .cart-wrap {
-    max-width: 760px;
+    max-width: var(--container);
     margin: 0 auto;
-    padding: 0 40px 14vh;
-    animation: pageFadeIn 700ms var(--ease-out);
+    padding: 0 var(--page-pad) 14vh;
+  }
+
+  /* Line items left, summary right [spec section 7, designed]. */
+  .cart-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 48px;
+    align-items: start;
+    padding-top: 44px;
+  }
+
+  @media (max-width: 900px) {
+    .cart-head { font-size: 22px; padding-top: 34px; }
+    .cart-rule { margin-top: 34px; }
+    .cart-wrap { padding: 0 15px 10vh; }
+    .cart-layout { grid-template-columns: 1fr; gap: 28px; padding-top: 28px; }
   }
 
   .cart-empty {
-    padding: 6vh 0;
+    text-align: center;
+    padding: 9vh 0;
     color: var(--muted);
     font-size: 13px;
   }
@@ -411,20 +461,34 @@
      visual weight with the signup form underneath it. */
   /* Matches the product page's Add to Cart: the accent marks the step
      that takes money, everywhere it appears. */
+  /* [measured] Same control as ADD TO BAG: black, full width, 48px,
+     white 14px/700 with 1px tracking, square. */
   .checkout-btn {
-    margin-top: 24px;
+    display: block;
     width: 100%;
+    height: 48px;
+    margin-top: 18px;
+    border: 0;
+    border-radius: var(--btn-radius);
     background: var(--accent);
     color: var(--on-accent);
-    border: 0;
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.15em;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
-    padding: 16px;
     cursor: pointer;
-    transition: opacity 200ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+
+  .checkout-btn:hover { background: var(--accent-press); }
+  .checkout-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+  .cart-taxnote {
+    margin: 10px 0 0;
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -517,8 +581,24 @@
 
   <main id="main">
 
+  <!-- Cart, per the reference spec section 7.
+
+       The empty state is measured from the live reference. The FILLED
+       cart and the cart drawer are marked [not verified] there -- the
+       inspection never added an item -- so those are built to the
+       spec's written instruction (line items, right-hand summary,
+       black 48px CHECK OUT) rather than copied from a screen nobody
+       saw. Flagged as designed, not matched.
+
+       The checkout hand-off is untouched: it still goes to the
+       checkoutUrl Shopify's own cart returns. -->
   <section class="cart-wrap">
-    <h1 class="rail-label">Cart</h1>
+    <h1 class="cart-head">Shopping Cart</h1>
+    <nav class="cart-crumb" aria-label="Breadcrumb">
+      <a href="/shop.html">Home</a> <span aria-hidden="true">&gt;</span> Your Shopping Cart
+    </nav>
+    <div class="cart-rule"></div>
+
     <div class="cart-loading" id="cartLoading">Loading your cart…</div>
     <div id="cartRoot"></div>
   </section>
@@ -809,7 +889,11 @@
       ? `That code isn't valid for the items in your cart.` : '';
 
     root.innerHTML = `
+      <div class="cart-layout">
+      <div class="cart-lines">
       ${rows}
+      </div>
+      <aside class="cart-side">
       <div class="cart-summary">${summary}</div>
       ${appliedRow}
       <div class="cart-discount">
@@ -823,11 +907,17 @@
         <p class="cart-discount-msg${initialMsg ? ' is-error' : ''}" id="cartDiscountMsg"
            role="status" aria-live="polite">${initialMsg}</p>
       </div>
-      <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+      <!-- [measured] Black, full width, 48px, uppercase 14px/700.
+           Goes to the checkoutUrl Shopify's own cart returns -- the
+           hand-off is unchanged by this redesign. -->
+      <button class="checkout-btn" id="checkoutBtn">Check out</button>
+      <p class="cart-taxnote">Shipping and tax calculated at checkout.</p>
       <div class="cart-trust">
         <span>${A.escapeHtml(A.shippingLine())}</span>
         ${A.internationalLine() ? `<span>${A.escapeHtml(A.internationalLine())}</span>` : ''}
         <span>No account needed, check out as a guest.</span>
+      </div>
+      </aside>
       </div>
       <p class="cart-signup-prop">${signupPropHTML()}</p>
       <div class="cart-klaviyo" id="cartSignup">

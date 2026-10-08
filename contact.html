@@ -38,19 +38,118 @@
   }
 
   /* ---------- contact ---------- */
+  /* [measured] Two columns in the 1450 container: form ~860px left,
+     CONTACT heading and email right. */
   .contact {
-    max-width: 480px;
+    max-width: var(--container);
     margin: 0 auto;
-    padding: 0 40px 16vh;
-    animation: pageFadeIn 700ms var(--ease-out);
+    padding: 54px var(--page-pad) 12vh;
   }
 
-  .contact-form {
-    margin-top: 4vh;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
+  .contact-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 860px) minmax(0, 1fr);
+    gap: 60px;
+    align-items: start;
   }
+
+  /* [measured] ~18px, weight 500, uppercase. */
+  .contact-head {
+    margin: 0 0 12px;
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .contact-intro {
+    margin: 0 0 24px;
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+
+  /* [measured] Name | Email side by side, 422x42 each. */
+  .contact-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 422px));
+    gap: 16px;
+  }
+
+  .contact-field { margin-bottom: 16px; }
+
+  /* [measured] bg #f2f2f2, 1px #aeaeae, radius 5px, padding 6px 12px,
+     14px. */
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--field-line);
+    border-radius: var(--input-radius);
+    padding: 6px 12px;
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .contact-form input { height: 42px; }
+  .contact-form textarea { height: 182px; padding: 10px 12px; resize: vertical; }
+
+  .contact-form input:focus-visible,
+  .contact-form textarea:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+    border-color: var(--ink);
+  }
+
+  /* [measured] 147x46. The spec notes it renders black-filled in the
+     screenshot, so black fill with white text is the default. */
+  .contact-submit {
+    display: inline-block;
+    width: auto;
+    min-width: 147px;
+    height: 46px;
+    padding: 10px 30px;
+    border: 1px solid var(--ink);
+    border-radius: var(--btn-radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  }
+
+  .contact-submit:hover { background: transparent; color: var(--ink); }
+
+  .contact-aside-head {
+    margin: 0 0 10px;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink);
+  }
+
+  .contact-aside p { margin: 0; font-family: var(--font); font-size: 14px; }
+  .contact-aside a { color: var(--muted); text-decoration: underline; }
+  .contact-aside a:hover { color: var(--ink); }
+
+  @media (max-width: 900px) {
+    .contact { padding: 34px 15px 10vh; }
+    .contact-cols { grid-template-columns: 1fr; gap: 34px; }
+    .contact-row { grid-template-columns: 1fr; gap: 0; }
+  }
+
+  /* Block, not a stretching flex column: as a flex child the submit
+     button was stretched to the full column width instead of the
+     measured 147px. */
+  .contact-form { margin-top: 8px; }
 
   .contact-field label {
     display: block;
@@ -62,42 +161,7 @@
     color: var(--muted);
   }
 
-  .contact-field input,
-  .contact-field textarea {
-    width: 100%;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--field-line);
-    padding: 8px 2px;
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 300;
-    color: var(--ink);
-    resize: vertical;
-    transition: border-color 0.3s ease;
-  }
 
-  .contact-field textarea { min-height: 100px; }
-
-  .contact-field input:focus,
-  .contact-field textarea:focus { border-color: var(--ink); }
-
-  .contact-submit {
-    align-self: flex-start;
-    position: relative;
-    margin-top: 4px;
-    background: none;
-    border: none;
-    font-family: var(--font-body);
-    font-size: 12px;
-    font-weight: 300;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--ink);
-    cursor: pointer;
-    padding-bottom: 6px;
-    transition: transform 160ms var(--ease-out);
-  }
 
   .contact-submit::after {
     content: '';
@@ -188,34 +252,47 @@
 
   <main id="main">
 
+  <!-- Contact, per the reference spec section 8: two columns in the
+       1450 container, form left, CONTACT heading and email right.
+       The form itself is untouched -- it is the real Shopify contact
+       endpoint and the messages land in Shopify Admin. -->
   <section class="contact">
-    <h1 class="rail-label">Contact</h1>
+    <div class="contact-cols">
+      <div class="contact-main">
+        <h1 class="contact-head">Get in touch</h1>
+        <p class="contact-intro">Need help with an order or have a question? Send us a message
+          and include your order number if it&rsquo;s about an order.</p>
 
-    <!-- Real Shopify contact form: same form_type=contact / contact[name] /
-         contact[email] / contact[body] fields Shopify's own contact.liquid
-         snippet uses, posted to asiorclothing.com's native /contact endpoint
-         via a hidden iframe so the page doesn't navigate away. Messages land
-         in Shopify Admin -> Inbox / the store's contact notification email,
-         same as any other Shopify contact form. -->
-    <form class="contact-form" id="contactForm" method="post" action="https://asiorclothing.com/contact#contact_form" target="contact-target">
-      <input type="hidden" name="form_type" value="contact">
-      <input type="hidden" name="utf8" value="&#10003;">
-      <div class="contact-field">
-        <label for="contact-name">Name</label>
-        <input type="text" id="contact-name" autocomplete="name" name="contact[name]" required>
+        <form class="contact-form" id="contactForm" method="post" action="https://asiorclothing.com/contact#contact_form" target="contact-target">
+          <input type="hidden" name="form_type" value="contact">
+          <input type="hidden" name="utf8" value="&#10003;">
+          <!-- [measured] Name and Email side by side, Message full
+               width beneath. -->
+          <div class="contact-row">
+            <div class="contact-field">
+              <label class="sr-only" for="contact-name">Name</label>
+              <input type="text" id="contact-name" autocomplete="name" name="contact[name]" placeholder="Name" required>
+            </div>
+            <div class="contact-field">
+              <label class="sr-only" for="contact-email">Email</label>
+              <input type="email" id="contact-email" autocomplete="email" spellcheck="false" name="contact[email]" placeholder="Email" required>
+            </div>
+          </div>
+          <div class="contact-field">
+            <label class="sr-only" for="contact-message">Message</label>
+            <textarea id="contact-message" name="contact[body]" rows="6" placeholder="Message" required></textarea>
+          </div>
+          <button type="submit" class="contact-submit">Submit now</button>
+        </form>
+        <iframe name="contact-target" style="display:none" aria-hidden="true"></iframe>
+        <div class="contact-confirm" id="contactConfirm">Message sent. We&rsquo;ll get back to you soon.</div>
       </div>
-      <div class="contact-field">
-        <label for="contact-email">Email</label>
-        <input type="email" id="contact-email" autocomplete="email" spellcheck="false" name="contact[email]" required>
-      </div>
-      <div class="contact-field">
-        <label for="contact-message">Message</label>
-        <textarea id="contact-message" name="contact[body]" rows="6" required></textarea>
-      </div>
-      <button type="submit" class="contact-submit">Send</button>
-    </form>
-    <iframe name="contact-target" style="display:none" aria-hidden="true"></iframe>
-    <div class="contact-confirm" id="contactConfirm">Message sent. We'll get back to you soon.</div>
+
+      <aside class="contact-aside">
+        <h2 class="contact-aside-head">Contact</h2>
+        <p><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+      </aside>
+    </div>
   </section>
 
   </main>

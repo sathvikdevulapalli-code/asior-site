@@ -61,18 +61,22 @@
      size run and Add to Cart stay on screen however far down the
      photography a shopper goes. That is the whole answer to "where do
      I buy this". */
+  /* [measured] Gallery left, info column 642px right, ~20px apart.
+     The reference runs the gallery from x=25 and the panel from x=963
+     at 1920; proportionally that is the gallery taking what is left of
+     a 642px fixed column, which is what this does at any width. */
   .pd {
-    max-width: 1340px;
+    max-width: 1700px;
     margin: 0 auto;
-    padding: 0 32px 12vh;
+    padding: 24px var(--page-pad) 12vh;
     display: grid;
-    grid-template-columns: minmax(0, 1.75fr) minmax(330px, 0.85fr);
-    gap: 40px;
+    grid-template-columns: minmax(0, 1fr) 642px;
+    gap: 20px;
     align-items: start;
-    animation: pageFadeIn 400ms var(--ease-out);
   }
 
-  .pd-gallery { display: grid; gap: 6px; }
+  /* [measured] Images stacked, ~20px apart, no thumbnails. */
+  .pd-gallery { display: grid; gap: 20px; }
 
   .pd-shot {
     margin: 0;
@@ -105,7 +109,11 @@
     display: block;
   }
 
-  .pd-panel { position: sticky; top: 104px; }
+  .pd-panel {
+    position: sticky;
+    top: 30px;
+    align-self: start;
+  }
 
   /* The panel can outgrow the viewport once the accordions open, so it
      scrolls inside itself rather than sticking something off-screen. */
@@ -118,365 +126,218 @@
 
   /* Quantity sits beside the button, not on a row above it. It used to
      add a whole step between choosing a size and buying. */
-  .pd-qtyrow {
+  /* ---- buy panel, measured from the reference (spec section 6) ---- */
+
+  /* [measured] Title left, price right, same row, both 15px/500
+     uppercase with 0.6px tracking on the name. */
+  .pd-titlerow {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .pd-qty-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* Shipping and returns moved into .pd-spec, so this list now carries
-     only the preorder notice and the signup line -- and on a normal
-     product with no signup line yet, nothing at all. :has() drops the
-     rule and the padding in that case rather than leaving a hairline
-     under the button with nothing beneath it. The empty <li> the
-     signup line renders into does not count as content, which is what
-     the :not(:empty) is for. */
-  .pd-trustlines {
-    list-style: none;
-    margin: 18px 0 0;
-    padding: 16px 0 0;
-    border-top: 1px solid var(--line);
-    display: grid;
-    gap: 7px;
-  }
-
-  .pd-trustlines:not(:has(li:not(:empty))) {
-    margin: 0;
-    padding: 0;
-    border-top: 0;
-  }
-
-  .pd-trustlines li {
-    font-family: var(--font-body);
-    font-size: 12px;
-    line-height: 1.55;
-    color: var(--muted);
-  }
-
-  /* Detail lives here, below the buying controls, closed by default.
-     Nothing was deleted -- description, measurements, shipping and
-     returns are all still on the page, just no longer in front of the
-     button. */
-  .pd-acc { margin-top: 22px; border-top: 1px solid var(--line); }
-
-  .pd-row { border-bottom: 1px solid var(--line); }
-
-  .pd-row > summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 15px 0;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink);
-    display: flex;
+    align-items: baseline;
     justify-content: space-between;
-    align-items: center;
+    gap: 18px;
   }
 
-  .pd-row > summary::-webkit-details-marker { display: none; }
-  .pd-row > summary::after { content: '+'; color: var(--muted); font-size: 14px; }
-  .pd-row[open] > summary::after { content: '\2013'; }
-
-  .pd-row-body {
-    padding: 0 0 16px;
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    line-height: 1.65;
-    color: var(--muted);
-  }
-
-  .pd-row-body p + p { margin-top: 9px; }
-
-  /* Everything that is not part of buying. */
-  .pd-below {
-    max-width: 1340px;
-    margin: 0 auto;
-    padding: 0 32px 14vh;
-  }
-
-  .pd-gallery .ph {
-    aspect-ratio: 2 / 3;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
-  }
-
-  .pd-gallery .ph span {
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* Preorder is a materially different purchase (you're charged now,
-     it ships later), so it gets a solid fill rather than the muted
-     outline everything else uses. It should be the first thing read. */
-  .pd-preorder-badge {
-    display: inline-block;
-    margin-bottom: 12px;
-    padding: 5px 10px;
-    border-radius: 0;
-    background: var(--ink);
-    color: var(--bg);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  /* Restated next to the buy button, where the decision actually happens.
-     The FTC Mail Order Rule expects a stated shipping expectation on
-     advance-purchase items, so this line is compliance as well as UX. */
-
-  /* A garment name is a label, not a headline. Down from 2.2rem/700
-     with the tracking pulled in, so it reads as a caption on the
-     photograph rather than as a page title above a product. */
-  /* The garment's name is the first thing the panel has to answer, so
-     it is set like a name and not like a field label: Archivo pushed
-     out on its width axis, heavy, tight, and large enough that it is
-     read before the price under it. */
   .pd-name {
-    font-family: var(--font-display);
-    font-variation-settings: var(--display-wide);
-    font-size: clamp(1.6rem, 2.6vw, 2.3rem);
-    font-weight: 800;
-    line-height: 0.96;
-    letter-spacing: -0.025em;
+    margin: 0;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 500;
     text-transform: uppercase;
+    letter-spacing: 0.6px;
+    line-height: 1.35;
+    color: var(--ink);
   }
 
-
-  /* Bumped from 14px/var(--muted) — the price is a lead element in the
-     buy panel now, so it needs to read at a glance rather than at the
-     same weight as secondary metadata. */
   .pd-price {
-    font-family: var(--font-mono);
-    margin-top: 9px;
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    color: var(--ink-dim);
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
   }
 
   .pd-price .compare {
+    color: var(--muted);
     text-decoration: line-through;
-    opacity: 0.6;
-    margin-right: 10px;
+    margin-right: 8px;
   }
 
-  .pd-price .save {
-    display: block;
-    margin-top: 4px;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-
-  .pd-sizes { margin-top: 22px; }
-
-  .pd-size-group { margin-bottom: 18px; }
-
-  .pd-size-label {
-    font-family: var(--font-mono);
-    margin-bottom: 12px;
-    font-size: 11px;
-    letter-spacing: 0.1em;
+  /* [measured] 13px/500 uppercase, 0.52px tracking, ~20px under the
+     title. */
+  .pd-sizelabel {
+    margin-top: 20px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
     text-transform: uppercase;
-    color: var(--muted);
+    letter-spacing: 0.52px;
+    color: var(--ink);
   }
 
-  .pd-size-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+  .pd-sizes { margin-top: 10px; }
+  .pd-size-group + .pd-size-group { margin-top: 12px; }
 
-  /* Small squares with a hairline, the way a size run is printed on a
-     tag. 40px still clears the tap target minimum. */
+  /* [measured] 52x40, 8px gap, 1px #d1d5db, white, 13px/500 uppercase.
+     Selected inverts to black with 600 weight. */
+  .pd-size-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
   .pd-size {
-    position: relative;
-    min-width: 40px;
+    min-width: 52px;
     height: 40px;
     padding: 0 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--field-line);
+    border: 1px solid var(--size-border);
     border-radius: 0;
-    background: none;
+    background: var(--bg);
     color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
     cursor: pointer;
-    overflow: hidden;
-    transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), background 160ms var(--ease-out);
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .pd-size:hover { border-color: var(--ink); }
-  }
-
-  .pd-size:not(.unavailable):active { transform: scale(0.96); }
+  .pd-size:hover { border-color: var(--ink); }
 
   .pd-size.selected {
-    border-color: var(--ink);
     background: var(--ink);
-    color: var(--bg);
+    border-color: var(--ink);
+    color: var(--on-accent);
+    font-weight: 600;
   }
 
+  /* A sold-out size stays visible and stays pressable -- it opens the
+     restock signup. Struck and dimmed, never hidden: CLAUDE.md, and
+     the only honest proof that things sell. */
   .pd-size.unavailable {
-    color: var(--muted);
-    cursor: not-allowed;
+    opacity: 0.45;
+    text-decoration: line-through;
+    border-style: dashed;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .pd-size.unavailable:hover { border-color: var(--field-line); }
-  }
-
-  .pd-size.unavailable::after {
-    content: '';
-    position: absolute;
-    left: -6px;
-    right: -6px;
-    top: 50%;
-    height: 1px;
-    background: var(--muted);
-    transform: rotate(-16deg);
-  }
-
-  .pd-qty {
-    margin-top: 34px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .pd-qty button {
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--field-line);
-    background: none;
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color 200ms var(--ease-out), transform 140ms var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .pd-qty button:hover { border-color: var(--ink); }
-  }
-
-  .pd-qty button:active { transform: scale(0.92); }
-
-  .pd-qty span { font-size: 13px; min-width: 16px; text-align: center; }
+  .pd-size:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
   .pd-actions { margin-top: 28px; }
 
-  /* Filled, not outlined — this is the primary purchase action on the
-     page and it was reading as secondary chrome next to it. Matches
-     the filled-button convention already used for the equivalent
-     primary action on lanyard.html; this page and
-     cart.html's Checkout were the two places still using an outline
-     for what should be the loudest thing on screen. */
-  /* Buy Now sits under Add to Cart as the quieter of the two: same
-     size and hit area, outline instead of fill, so the default action
-     reads as the one that keeps you on the page. */
+  /* [measured] Full width, 48px, black, white 14px/700, 1px tracking,
+     uppercase, square. */
+  .pd-add {
+    display: block;
+    width: 100%;
+    height: 48px;
+    border: 0;
+    border-radius: var(--btn-radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background var(--dur) var(--ease-out);
+  }
+
+  .pd-add:hover { background: var(--accent-press); }
+  .pd-add[disabled] { opacity: 0.45; cursor: not-allowed; }
+  .pd-add:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* Secondary, outline, under the primary. */
   .pd-buynow {
     display: block;
     width: 100%;
-    margin-top: 8px;
+    height: 48px;
+    margin-top: 10px;
+    border: 1px solid var(--ink);
+    border-radius: var(--btn-radius);
     background: transparent;
     color: var(--ink);
-    border: 1px solid var(--field-line);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
-    padding: 16px 20px;
-    min-height: 48px;
     cursor: pointer;
-    transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
   }
 
-  .pd-buynow:hover:not([disabled]) { border-color: var(--ink); }
-  .pd-buynow[disabled] { opacity: 0.4; cursor: default; }
+  .pd-buynow:hover { background: var(--ink); color: var(--on-accent); }
+  .pd-buynow[disabled] { opacity: 0.4; cursor: not-allowed; }
 
-  /* The accent, not off-white. This was --ink on --bg: the same two
-     values as the body text, the footer links and the teaser bar, so
-     the one control that buys the garment was styled identically to
-     everything that does not. Colour is what makes it findable. */
-  .pd-add {
-    position: relative;
-    display: block;
-    width: 100%;
-    background: var(--accent);
-    color: var(--on-accent);
+  /* ---- tabs [measured: 3 equal tabs, 42px tall, 7px gaps] ---- */
+  .pd-tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 7px;
+    margin-top: 16px;
+  }
+
+  .pd-tab {
+    height: 42px;
     border: 0;
     border-radius: 0;
-    font-family: var(--font-mono);
+    background: var(--panel-bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 12px;
     font-weight: 500;
-    font-size: 11.5px;
-    letter-spacing: 0.14em;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
-    padding: 19px 20px;
-    min-height: 54px;
     cursor: pointer;
-    transition: opacity 160ms var(--ease-out);
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
   }
 
-  /* Disabled still reads as the buy button, just not yet usable. It
-     must not look like a different, dead control. */
-  .pd-add[disabled] {
-    opacity: 1;
-    background: #58524733;
+  .pd-tab.is-on { background: var(--ink); color: var(--on-accent); }
+  .pd-tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* [measured] Grey panel, ~18px padding, 14px / 22.4px. */
+  .pd-tabpanel {
+    background: var(--panel-bg);
+    padding: 18px;
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 22.4px;
+    color: var(--ink-dim);
+  }
+
+  .pd-tabpanel p { margin: 0 0 10px; }
+  .pd-tabpanel p:last-child { margin-bottom: 0; }
+  .pd-tabpanel table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pd-tabpanel th, .pd-tabpanel td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+
+  .pd-trustlines {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .pd-trustlines li {
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 1.5;
     color: var(--muted);
-    box-shadow: inset 0 0 0 1px #585247;
-    cursor: default;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .pd-add:hover { opacity: 0.85; }
+  .pd-trustlines:not(:has(li:not(:empty))) { margin: 0; }
+
+  /* [spec section 11] Mobile: gallery full width, info below it and
+     NOT sticky, tabs stay as tabs. */
+  @media (max-width: 1000px) {
+    .pd {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 16px 15px 12vh;
+    }
+    .pd-panel { position: static; top: auto; }
+    .pd-gallery { gap: 10px; }
+    .pd-name { font-size: 14px; }
+    .pd-price { font-size: 14px; }
+    .pd-tab { font-size: 11px; letter-spacing: 0.5px; }
   }
 
-  .pd-add:not([disabled]):active { transform: scale(0.97); }
-
-
-  /* Mobile sticky buy bar. A long PDP (gallery, then price, then
-     variants, then description) scrolls the real Add-to-Cart button
-     out of the thumb zone right when a shopper who scrolled down to
-     read more decides to buy — the moment of intent shouldn't cost a
-     scroll back to the top. Carries its own compact size chips, not
-     just a CTA that jumps back up: a shopper who hasn't picked a size
-     yet needs to be able to finish the purchase from here, not be
-     bounced back to the top of the page to do it. Desktop keeps the
-     real buy box in easy reach already, so this never shows there. */
-  /* Two rows, not one.
-
-     This was a single flex row -- name/price, size chips and the
-     button, with flex-shrink:0 on both the chips and the button. At
-     390px the three together measured wider than the viewport and the
-     button was pushed clean off the right edge (measured left 154,
-     right 512 on a 390px screen), so the sticky bar's whole reason for
-     existing was unreachable. The button now owns its own full-width
-     row, which is also what the primary action is supposed to look
-     like everywhere else on this page. */
   .pd-sticky {
     display: none;
     position: fixed;
@@ -1664,7 +1525,7 @@
       </table>`;
   }
 
-  function sizeGuideHTML(product) {
+  function sizeGuideInner(product) {
     if (!product.optionNames.includes('Size')) return '';
     const kind = details && details.garment ? details.garment : 'top';
 
@@ -1710,11 +1571,7 @@
       ? tables + model + careBlock + howToMeasure(kind)
       : model + careBlock;
 
-    return `
-      <details class="pd-row pd-ship pd-size-chart">
-        <summary>${tables ? 'Size Guide' : 'Fit &amp; Care'}</summary>
-        <div class="pd-ship-body">${body}</div>
-      </details>`;
+    return body;
   }
 
   // ---------------------------------------------------------------
@@ -1811,29 +1668,57 @@
       ? `<p>Returns and exchanges accepted within ${A.escapeHtml(String(A.shippingConfig().RETURNS_WINDOW_DAYS))} days of delivery, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>`
       : '';
 
-    const shipHTML = `
-      <details class="pd-row pd-ship">
-        <summary>${returnsPara ? 'Shipping &amp; Returns' : 'Shipping'}</summary>
-        <div class="pd-row-body pd-ship-body">
-          ${A.shippingDetailHTML()}
-          ${returnsPara}
-        </div>
-      </details>`;
+    /* ---- the three tabs [measured: DETAILS | SHIPPING | SIZING] ----
 
-    // Closed by default and in the same accordion rhythm as the rest.
-    // The copy is Shopify's own and is kept verbatim -- it is factual
-    // (cut, length, fabric), it is simply no longer in front of the
-    // button.
-    const descHTML = product.description
-      ? `<details class="pd-row">
-          <summary>Description</summary>
-          <div class="pd-row-body">
-          ${product.description.length && product.description[0].length < 60 && product.description.length > 2
-            ? `<ul>${product.description.map(l => `<li>${A.escapeHtml(l)}</li>`).join('')}</ul>`
-            : product.description.map(p => `<p>${A.escapeHtml(p)}</p>`).join('')}
-          </div>
-        </details>${shipHTML}`
-      : shipHTML;
+       These replace the v14 accordions. Content is unchanged in
+       substance -- every line still comes from Shopify, the shipping
+       config or a metafield -- it is just presented as the reference
+       presents it. A tab with nothing real to say is not rendered at
+       all rather than opening onto an empty grey box. */
+
+    const detailsBody = (() => {
+      const parts = [];
+      if (product.description && product.description.length) {
+        parts.push(product.description.map(x => `<p>${A.escapeHtml(x)}</p>`).join(''));
+      }
+      // The fit sentence is custom.fit_notes, verbatim.
+      if (product.fitNotes) parts.push(`<p>${A.escapeHtml(product.fitNotes)}</p>`);
+      // custom.model_info, only when actually set.
+      const model = details && details.model && details.model.height && details.model.wearing
+        ? `Model is ${A.escapeHtml(details.model.height)} and is wearing size ${A.escapeHtml(details.model.wearing)}.`
+        : (product.modelInfo ? A.escapeHtml(product.modelInfo) : '');
+      if (model) parts.push(`<p>${model}</p>`);
+      return parts.join('');
+    })();
+
+    const shippingBody = A.shippingDetailHTML() + returnsPara;
+
+    /* SIZING is the real size chart when one parses, and the fit note
+       alone when it does not. Never invented measurements. */
+    const sizingBody = (() => {
+      const guide = sizeGuideInner(product);
+      if (guide) return guide;
+      if (product.fitNotes) return `<p>${A.escapeHtml(product.fitNotes)}</p>`;
+      return '';
+    })();
+
+    const TABS = [
+      ['details', 'Details', detailsBody],
+      ['shipping', 'Shipping', shippingBody],
+      ['sizing', 'Sizing', sizingBody],
+    ].filter(t => t[2]);
+
+    const tabsHTML = TABS.length ? `
+      <div class="pd-tabs" role="tablist" aria-label="Product information">
+        ${TABS.map(([id, label], i) => `
+          <button type="button" class="pd-tab${i === 0 ? ' is-on' : ''}" role="tab"
+                  id="tab-${id}" aria-controls="panel-${id}"
+                  aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="${i === 0 ? '0' : '-1'}">${label}</button>`).join('')}
+      </div>
+      ${TABS.map(([id, , body], i) => `
+        <div class="pd-tabpanel" role="tabpanel" id="panel-${id}" aria-labelledby="tab-${id}"${i === 0 ? '' : ' hidden'}>
+          ${body}
+        </div>`).join('')}` : '';
 
     // Renders nothing until assets/reviews.js has a real entry for this
     // handle. Built now, on purpose, while there's nothing to show yet —
@@ -1925,29 +1810,38 @@
            it can be read by someone who is not mid-purchase. */
     root.innerHTML = `
       <div class="pd">
+        <!-- [measured] Images stacked vertically, ~20px apart, no
+             thumbnails and no carousel on desktop. The gallery scrolls
+             with the page while the panel stays put. -->
         <div class="pd-gallery">${galleryHTML}</div>
 
+        <!-- [measured] Info column 642px, position: sticky, top 30px. -->
         <aside class="pd-panel">
           <div class="pd-panel-in">
             ${product.isPreorder ? `<div class="pd-preorder-badge">Preorder</div>` : ''}
-            <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
-            <div class="pd-price tnum" id="pdPrice"></div>
-            ${factsHTML}
 
-            ${product.fitNotes ? `<p class="pd-fit">${A.escapeHtml(product.fitNotes)}</p>` : ''}
-            ${hasOptions ? `<div class="pd-sizes" id="pdSizes"></div>` : ''}
+            <!-- [measured] Title left, price right, same row, both
+                 15px/500. -->
+            <div class="pd-titlerow">
+              <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
+              <div class="pd-price tnum" id="pdPrice"></div>
+            </div>
+
+            ${hasOptions ? `
+              <div class="pd-sizelabel" id="pdSizeLabel">Size:</div>
+              <div class="pd-sizes" id="pdSizes"></div>` : ''}
             ${setSizingNote(product)}
 
             <div class="pd-actions">
-              <div class="pd-qtyrow">
-                <span class="pd-qty-label">Qty</span>
-                <div class="pd-qty">
-                  <button type="button" id="qtyDown" aria-label="Decrease quantity">-</button>
-                  <span id="qtyVal" aria-live="polite">1</span>
-                  <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
-                </div>
-              </div>
-              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
+              <!-- [measured] Full width, 48px, black, 14px/700,
+                   letter-spacing 1px, square. -->
+              <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to bag'}</button>
+              <!-- Kept, not added. The spec says not to ADD express
+                   buttons because the reference has none; this one
+                   predates the redesign and goes straight to the same
+                   Shopify checkout Add to bag does, so removing it
+                   would be a change to the purchase flow made on a
+                   styling pass. Secondary, under the primary. -->
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
@@ -1964,21 +1858,12 @@
               <p class="pd-bis-msg" id="pdBisMsg" role="status" aria-live="polite"></p>
             </div>
 
-            <!-- Shipping and returns moved up into the spec list, so
-                 this is now only the two things that are specific to
-                 how you are buying: a preorder's charge-now notice,
-                 and the signup line. Both render nothing when they have
-                 nothing to say -- the empty <li> that used to hold the
-                 signup line open is gone with :empty below. -->
             <ul class="pd-trustlines">
               ${product.isPreorder ? `<li id="pdNote">${A.escapeHtml(preorderNote)}</li>` : ''}
               <li class="pd-signup-prop" id="pdSignupProp"></li>
             </ul>
 
-            <div class="pd-acc">
-              ${descHTML}
-              ${sizeGuideHTML(product)}
-            </div>
+            ${tabsHTML}
           </div>
         </aside>
       </div>
@@ -1994,8 +1879,35 @@
           </div>
           ${hasOptions ? `<div class="pd-sticky-sizes" id="pdStickySizes"></div>` : ''}
         </div>
-        <button class="pd-add" id="addBtnSticky">${product.isPreorder ? 'Preorder' : 'Add to Cart'}</button>
+        <button class="pd-add" id="addBtnSticky">${product.isPreorder ? 'Preorder' : 'Add to bag'}</button>
       </div>`;
+
+    /* Tabs. One panel visible at a time; arrow keys move between tabs,
+       which is what the tablist role promises. */
+    (function wireTabs() {
+      const tabs = Array.from(root.querySelectorAll('.pd-tab'));
+      if (!tabs.length) return;
+      function select(tab) {
+        tabs.forEach(t => {
+          const on = t === tab;
+          t.classList.toggle('is-on', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.tabIndex = on ? 0 : -1;
+          const panel = document.getElementById(t.getAttribute('aria-controls'));
+          if (panel) panel.hidden = !on;
+        });
+      }
+      tabs.forEach((t, i) => {
+        t.addEventListener('click', () => select(t));
+        t.addEventListener('keydown', (e) => {
+          const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          if (!d) return;
+          e.preventDefault();
+          const next = tabs[(i + d + tabs.length) % tabs.length];
+          next.focus(); select(next);
+        });
+      });
+    })();
 
     const currentVariant = () => hasOptions ? findVariant(selection) : product.variants[0];
 
@@ -2035,8 +1947,23 @@
                     data-option="${A.escapeAttr(name)}" data-value="${A.escapeAttr(val)}"
                     aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
         }).join('');
-        return `<div class="pd-size-group"><div class="pd-size-label">${A.escapeHtml(name)}</div><div class="pd-size-row">${row}</div></div>`;
+        return `<div class="pd-size-group"><div class="pd-size-row">${row}</div></div>`;
       }).join('');
+
+      /* [measured] "SIZE: XS" above the buttons, naming the current
+         pick. It is the option's own name and the selected value, so a
+         product whose option is not called Size still reads correctly. */
+      /* [measured] "SIZE: XS" above the buttons. The reference arrives
+         with a size already chosen; this page does not choose one for
+         you (CLAUDE.md: a size is never preselected for a customer, so
+         nobody buys the wrong one by accident), so until you pick, the
+         label is just the option's name. */
+      const label = document.getElementById('pdSizeLabel');
+      if (label) {
+        label.textContent = product.optionNames
+          .map(n => selection[n] ? `${n}: ${selection[n]}` : n)
+          .join('   ');
+      }
 
       wrap.querySelectorAll('.pd-size').forEach(btn => {
         btn.addEventListener('click', () => selectOption(btn.dataset.option, btn.dataset.value, btn.classList.contains('unavailable')));
@@ -2089,7 +2016,7 @@
         // which made the one control that buys the product read as a
         // dead grey box and was the single clearest complaint about
         // this page.
-        btn.textContent = 'Add to Cart';
+        btn.textContent = 'Add to bag';
         btn.disabled = true;
         // Buy Now keeps its own label while disabled: two buttons both
         // reading "Select a Size" says the same thing twice and hides
@@ -2099,14 +2026,17 @@
         // does and is disabled until a size is chosen. It used to be
         // relabelled "Select a Size" here, which left the two Add to
         // Cart controls on the same page reading differently.
-        if (stickyBtn) { stickyBtn.textContent = 'Add to Cart'; stickyBtn.disabled = true; }
+        if (stickyBtn) { stickyBtn.textContent = 'Add to bag'; stickyBtn.disabled = true; }
         return;
       }
       const sold = !v || !v.available;
-      const price = v ? ' \u2014 $' + v.price : '';
+      /* [measured] The reference's button is "ADD TO BAG" with no price
+         on it -- the price has its own place in the title row, and
+         repeating it on the button is what made the v14 control
+         re-render its own width on every size change. */
       const label = sold
-        ? 'Sold Out'
-        : (product.isPreorder ? 'Preorder' + price : 'Add to Cart' + price);
+        ? 'Sold out'
+        : (product.isPreorder ? 'Preorder' : 'Add to bag');
       btn.textContent = label;
       btn.disabled = sold;
       if (buyBtn) buyBtn.disabled = sold;
@@ -2206,11 +2136,12 @@
       propEl.textContent = 'Use code ASIORTEN for 10% off your first order.';
     }
 
-    // ---- quantity ----
-    let qty = 1;
-    const qtyVal = document.getElementById('qtyVal');
-    document.getElementById('qtyDown').addEventListener('click', () => { qty = Math.max(1, qty - 1); qtyVal.textContent = qty; });
-    document.getElementById('qtyUp').addEventListener('click', () => { qty += 1; qtyVal.textContent = qty; });
+    /* ---- quantity ----
+       The reference's buy panel has no quantity control [measured] and
+       the spec does not list one, so the stepper is gone from the page
+       and every add is one unit. Quantity is still adjustable, on the
+       cart page, which is where the reference adjusts it too. */
+    const qty = 1;
 
     // Straight to Shopify's own checkout on click — same pattern as
     // lanyard.html. Used to add the item and just show "Added, view

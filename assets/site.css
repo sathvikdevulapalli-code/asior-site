@@ -1225,3 +1225,26 @@ html.cart-drawer-locked { overflow: hidden; }
 @media (max-width: 560px) {
   .footer-cols { grid-template-columns: 1fr; gap: 26px; }
 }
+
+/* ---- quick add on the grid card ----
+   The reference's card is image, title, price and nothing else, so the
+   size row does not sit on the card at rest. It is not deleted either:
+   adding from the grid is working commerce and the brief says to
+   preserve working business logic. So it is revealed on hover, where a
+   pointer exists, and shown permanently on touch, where there is no
+   hover to reveal it and hiding it would make it unreachable. */
+@media (hover: hover) and (pointer: fine) {
+  .product .quick-add {
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease-out);
+  }
+  .product:hover .quick-add,
+  .product:focus-within .quick-add { opacity: 1; }
+}
+
+/* The quick view trigger follows the same rule. */
+@media (hover: hover) and (pointer: fine) {
+  .product .product-peek { opacity: 0; transition: opacity var(--dur) var(--ease-out); }
+  .product:hover .product-peek,
+  .product:focus-within .product-peek { opacity: 1; }
+}
