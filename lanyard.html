@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior Lanyard — Out Now</title>
 <meta name="description" content="The Asior lanyard. Out now.">
-<meta name="theme-color" content="var(--bg)">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/lanyard.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -79,7 +79,7 @@
      (very tall or very wide) dominating the layout. */
   .lp-media {
     border-radius: 2px;
-    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -261,33 +261,26 @@
 
 <a class="skip-link" href="#main">Skip to content</a>
 
-<!-- Deliberately no <nav> here — no Shop, Community, Contact or
-     Manufacturing links, no cart icon. Every other page on the site pulls
-     header/nav in from site.css because they're all meant to lead further
-     into the store. This one link goes out from the passphrase gate before
-     the drop is public, and a full nav on the far end of it would let
-     anyone follow Shop straight into the rest of the catalog — the one
-     thing the gate is there to hold back. So this page shows the lanyard
-     and nothing else to click into. -->
-<header class="lp-header"><a href="index.html">Asior</a></header>
+<!-- This page used to ship a deliberately nav-less header: it was
+     reachable from the passphrase gate before the drop was public, and
+     a full nav would have let anyone follow Shop straight past the
+     gate. That reasoning is stale. /lanyard.html is in STATIC_PAGES so
+     it is in the sitemap and publicly indexed, the lanyard is in the
+     shop grid like every other product, and the old header already led
+     into the store anyway via index.html, which 301s to the shop. What
+     the exclusion actually produced was a product page with no cart
+     icon and no way back into the catalogue. It now carries the shared
+     chrome like every other page. -->
+<!-- HEADER:START -->
+<!-- HEADER:END -->
 
 <main id="main">
   <div class="lp-loading" id="lpLoading">Loading…</div>
   <div id="lp-root"></div>
 </main>
 
-<footer id="order">
-  <div class="fmark">Asior</div>
-  <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
-  <!-- No second SMS block down here. This page already carries the full
-       one under its buy button, and two identical forms on one short
-       page is noise, not a second chance. The link is enough. -->
-  <div class="policy-links">
-    <a href="/text">Text List</a>
-    <a href="privacy-policy.html">Privacy Policy</a>
-    <a href="terms-of-service.html">Terms of Service</a>
-  </div>
-</footer>
+<!-- FOOTER:START -->
+<!-- FOOTER:END -->
 
 <script src="assets/promo-config.js"></script>
 <script src="assets/site.js"></script>

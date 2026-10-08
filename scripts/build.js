@@ -54,7 +54,7 @@ const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 // live and ad traffic lands on /shop.html directly). A sitemap should
 // list the canonical destination, not a redirect.
 const STATIC_PAGES = [
-  '/shop.html', '/community.html', '/contact.html',
+  '/', '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
 ];
@@ -145,6 +145,28 @@ async function fetchProducts() {
    assets/launch-config.js (CATEGORIES), read once at the top of this
    file. They are not Shopify collections -- see the long note there. */
 
+/* Membership for the Shopify-side collections, by handle.
+
+   One request for all of them. A collection Shopify does not return
+   (unpublished to the storefront, renamed, deleted) simply yields no
+   page rather than an empty one, and the build says which. */
+async function fetchShopifyCollections() {
+  if (!SHOPIFY_COLLECTIONS.length) return new Map();
+  const data = await gql(`{
+    collections(first: 50) {
+      edges { node {
+        handle
+        products(first: 50) { edges { node { handle } } }
+      } }
+    }
+  }`);
+  const out = new Map();
+  for (const e of data.collections.edges) {
+    out.set(e.node.handle, e.node.products.edges.map(x => x.node.handle));
+  }
+  return out;
+}
+
 /* A category's products, resolved from the live catalog by handle.
 
    Resolving against the catalog rather than trusting the list means a
@@ -152,12 +174,27 @@ async function fetchProducts() {
    drops out instead of generating a card that links to a 404. The
    build says so when that happens, because a silently shrinking
    category is exactly the kind of thing nobody notices. */
-function categoryProducts(category, products) {
+function collectionProducts(collection, products, shopifyMembership) {
   const byHandle = new Map(products.map(p => [p.handle, p]));
-  const found = category.handles.map(h => byHandle.get(h)).filter(Boolean);
-  const missing = category.handles.filter(h => !byHandle.has(h));
+
+  /* A Shopify collection's membership is Shopify's to state. An
+     editorial category's is the founder's handle list in the config.
+     Either way it is resolved against the live catalogue, so a product
+     that is no longer Active drops out instead of generating a card
+     that links to a 404. */
+  const handles = collection.source === 'shopify'
+    ? (shopifyMembership.get(collection.slug) || null)
+    : collection.handles;
+
+  if (handles === null) {
+    console.log(`  ${collection.slug}: not returned by Shopify — no page generated`);
+    return null;
+  }
+
+  const found = handles.map(h => byHandle.get(h)).filter(Boolean);
+  const missing = handles.filter(h => !byHandle.has(h));
   if (missing.length) {
-    console.log(`  ${category.slug}: ${missing.length} handle(s) not in the live catalog: ${missing.join(', ')}`);
+    console.log(`  ${collection.slug}: ${missing.length} handle(s) not Active in the catalog: ${missing.join(', ')}`);
   }
   return found;
 }
@@ -230,9 +267,6 @@ function renderCollectionPage(template, c) {
 
   html = replaceBetween(html, '<!-- COLLTITLE:START -->', '<!-- COLLTITLE:END -->', esc(c.name));
   if (html === null) throw new Error(`${c.slug}: COLLTITLE markers missing`);
-  html = replaceBetween(html, '<!-- COLLCOUNT:START -->', '<!-- COLLCOUNT:END -->',
-    `${n} ${n === 1 ? 'piece' : 'pieces'}`);
-  if (html === null) throw new Error(`${c.slug}: COLLCOUNT markers missing`);
   html = replaceBetween(html, '<!-- COLLGRID:START -->', '<!-- COLLGRID:END -->', grid);
   if (html === null) throw new Error(`${c.slug}: COLLGRID markers missing`);
 
@@ -518,7 +552,7 @@ function writeSitemap(products) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     ...STATIC_PAGES.map(p => ({ loc: BASE + p, lastmod: today })),
-    ...CATEGORIES.map(c => ({ loc: `${BASE}/collections/${c.slug}.html`, lastmod: today })),
+    ...GENERATED_COLLECTIONS.map(slug => ({ loc: `${BASE}/collections/${slug}.html`, lastmod: today })),
     /* Products with a bespoke page are already listed via STATIC_PAGES
        under that page's own URL; listing the generated one too would put
        both halves of a duplicate in the sitemap. */
@@ -731,13 +765,32 @@ const WORDMARK = '<span class="mark-text">ASIOR</span>';
    nav, the footer and the generated collection pages cannot disagree
    about what the categories are. build.js reads that file rather than
    restating the list. */
-const CATEGORIES = (() => {
+const LAUNCH = (() => {
   const src = fs.readFileSync(path.join(ROOT, 'assets/launch-config.js'), 'utf8');
   const sandbox = { window: {} };
   vm.createContext(sandbox);
   vm.runInContext(src, sandbox);
-  return (sandbox.window.ASIOR_LAUNCH && sandbox.window.ASIOR_LAUNCH.CATEGORIES) || [];
+  return sandbox.window.ASIOR_LAUNCH || {};
 })();
+
+/* Editorial categories -- the nav's TOPS / BOTTOMS / ACCESSORIES.
+   Membership is a handle list in the config, resolved against the live
+   catalogue at build time. */
+const CATEGORIES = LAUNCH.CATEGORIES || [];
+
+/* Shopify's own collections, at their real handles. Membership comes
+   from Shopify, not from a list here. */
+const SHOPIFY_COLLECTIONS = LAUNCH.SHOPIFY_COLLECTIONS || [];
+
+/* Every collection that gets a page, from both sources, through one
+   generator. `source` decides where the membership comes from. */
+/* Filled by the collection pass, read by the sitemap. */
+let GENERATED_COLLECTIONS = [];
+
+const ALL_COLLECTIONS = [
+  ...CATEGORIES.map(c => ({ ...c, source: 'config' })),
+  ...SHOPIFY_COLLECTIONS.map(c => ({ ...c, source: 'shopify' })),
+];
 
 const NAV_LINKS = [
   ['Shop all', '/shop.html'],
@@ -880,12 +933,22 @@ const FOOTER_HTML = `  <footer class="site-footer" id="order">
       <div class="fcol fcol--brand">
         <div class="fmark">${WORDMARK}</div>
         <p class="fsupport">Support: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
         <div class="social">
           <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
           </a>
           <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
           </a>
         </div>
       </div>
@@ -894,8 +957,10 @@ const FOOTER_HTML = `  <footer class="site-footer" id="order">
         <h2 class="fhead">Customer service</h2>
         <ul class="flinks">
           <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
           <li><a href="/manufacturing.html">Manufacturing</a></li>
-          <li><a href="/archive.html">Archive</a></li>
         </ul>
       </div>
 
@@ -989,6 +1054,8 @@ const SHARED_MARKUP_PAGES = [
   ['archive.html', HEADER_FULL],
   ['about.html', HEADER_FULL],
   ['collection.html', HEADER_FULL],
+  ['lanyard.html', HEADER_FULL],
+  ['index.html', HEADER_FULL],
   /* The 404 page gets the shared header and footer like any other page
      -- that is the whole point of it, somewhere to go -- but it is
      deliberately absent from STATIC_PAGES: a sitemap that lists an
@@ -1132,16 +1199,34 @@ function archiveRow(p, i) {
   if (!variants.length) return '';
   const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
   const soldOut = variants.every(v => !v.availableForSale);
-  const n = String(i + 1).padStart(2, '0');
-
+  /* No 01 / 02 / 03 markers. An archive is a set, not a sequence: the
+     position of a piece in the list tells the reader nothing, so the
+     numbers were decoration wearing the costume of structure. */
   return `
       <li class="arch-row${soldOut ? ' is-out' : ''}" data-handle="${esc(p.handle)}">
         <a class="arch-link" href="/products/${esc(p.handle)}.html">
-          <span class="arch-n tnum">${n}</span>
           <span class="arch-name">${esc(name)}</span>
           <span class="arch-state" data-arch-state>${soldOut ? 'Sold out' : 'Available'}</span>
         </a>
       </li>`;
+}
+
+/* The collections index on /archive.html.
+
+   Driven by what the build actually generated, so it can never link to
+   a collection page that does not exist. */
+function syncCollectionIndex(entries) {
+  const target = path.join(ROOT, 'archive.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const rows = entries.map(e =>
+    `        <li><a href="/collections/${esc(e.slug)}.html">`
+    + `<span>${esc(e.name)}</span>`
+    + `<span class="n">${e.count} ${e.count === 1 ? 'piece' : 'pieces'}</span></a></li>`
+  ).join('\n') + '\n';
+  const next = replaceBetween(html, '<!-- COLLINDEX:START -->', '<!-- COLLINDEX:END -->', rows);
+  if (next === null) throw new Error('archive.html: COLLINDEX markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return entries.length;
 }
 
 function syncArchive(products) {
@@ -1190,7 +1275,7 @@ function heroImage(products) {
 }
 
 function syncHero(products) {
-  const target = path.join(ROOT, 'shop.html');
+  const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
   const img = heroImage(products);
   let block = '';
@@ -1214,7 +1299,7 @@ function syncHero(products) {
   }
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
     block || '\n');
-  if (next === null) throw new Error('shop.html: HERO markers missing');
+  if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return img ? 1 : 0;
 }
@@ -1226,7 +1311,7 @@ function syncHero(products) {
    row described as new. Four, to fill exactly one row of the 4-column
    grid. */
 function syncNewArrivals(products) {
-  const target = path.join(ROOT, 'shop.html');
+  const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
   const newest = products
     .slice()
@@ -1234,9 +1319,22 @@ function syncNewArrivals(products) {
     .slice(0, 4);
   const grid = newest.map((p, i) => shopCard(p, i < 4)).filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
-  if (next === null) throw new Error('shop.html: NEWGRID markers missing');
+  if (next === null) throw new Error('index.html: NEWGRID markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return newest.length;
+}
+
+/* The homepage's lineup teaser: eight pieces, in merchandising order.
+   Not the catalogue -- /shop.html is the catalogue. */
+function syncLineup(products) {
+  const target = path.join(ROOT, 'index.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const rows = sortForMerchandising(products).slice(0, 8)
+    .map((p, i) => shopCard(p, false)).filter(Boolean).join('\n') + '\n';
+  const next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
+  if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return Math.min(8, products.length);
 }
 
 function syncShopGrid(products) {
@@ -1389,11 +1487,11 @@ function syncSharedMarkup() {
       fs.writeFileSync(path.join(outDir, `${p.handle}.html`), renderProductPage(template, p));
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
-    console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ homepage hero: ${syncHero(products) ? 'live photograph' : 'none, served fallback stands'}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
-    console.log(`✓ shop.html grid pre-rendered with ${syncShopGrid(products)} products`);
+    console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
+    console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
     console.log(`✓ archive.html listed ${syncArchive(products)} products`);
 
     /* Category pages. Written after the product pages so a card can
@@ -1405,17 +1503,26 @@ function syncSharedMarkup() {
       if (f.endsWith('.html')) fs.unlinkSync(path.join(collDir, f));
     }
     const collTemplate = fs.readFileSync(path.join(ROOT, 'collection.html'), 'utf8');
-    let collCount = 0;
-    for (const cat of CATEGORIES) {
-      const inCat = categoryProducts(cat, products);
+    const shopifyMembership = await fetchShopifyCollections();
+    const built = [];
+    for (const coll of ALL_COLLECTIONS) {
+      const inColl = collectionProducts(coll, products, shopifyMembership);
+      if (inColl === null) continue;   // Shopify did not return it
       fs.writeFileSync(
-        path.join(collDir, `${cat.slug}.html`),
-        renderCollectionPage(collTemplate, { ...cat, products: inCat }));
-      collCount++;
-      console.log(`  /collections/${cat.slug}.html — ${inCat.length} product(s)`);
+        path.join(collDir, `${coll.slug}.html`),
+        renderCollectionPage(collTemplate, { ...coll, products: inColl }));
+      built.push({ slug: coll.slug, name: coll.name, count: inColl.length });
+      console.log(`  /collections/${coll.slug}.html — ${inColl.length} product(s) [${coll.source}]`);
     }
-    console.log(`✓ ${collCount} category pages -> /collections/`);
-    console.log(`✓ vercel.json routes ${checkCollectionRoutes(CATEGORIES.map(c => c.slug))}/${CATEGORIES.length} categories`);
+    console.log(`✓ ${built.length} collection pages -> /collections/`);
+    console.log(`✓ vercel.json routes ${checkCollectionRoutes(built.map(b => b.slug))}/${built.length} collections`);
+    console.log(`✓ archive.html collections index: ${syncCollectionIndex(built)} entries`);
+    GENERATED_COLLECTIONS = built.map(b => b.slug);
+
+    /* Sitemap last: it lists the collection pages, so it has to run
+       after they are generated or it would publish a sitemap that
+       omits every one of them. */
+    console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
     // which is far better than publishing a site whose shop links all

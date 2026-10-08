@@ -14,13 +14,8 @@
   ],
   "redirects": [
     {
-      "source": "/",
-      "destination": "/shop.html",
-      "permanent": true
-    },
-    {
       "source": "/index.html",
-      "destination": "/shop.html",
+      "destination": "/",
       "permanent": true
     },
     {
@@ -39,7 +34,7 @@
       "permanent": true
     },
     {
-      "source": "/collections/:slug(tops|bottoms|accessories)",
+      "source": "/collections/:slug(tops|bottoms|accessories|jag|fall-collection|all-of-our-products|ja-yu-collection)",
       "destination": "/collections/:slug.html",
       "permanent": true
     },

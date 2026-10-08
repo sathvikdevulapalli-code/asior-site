@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Collection | Asior</title>
 <meta name="description" content="An Asior collection.">
-<meta name="theme-color" content="var(--bg)">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/collections/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -81,6 +81,8 @@
   .coll-title {
     margin: 0;
     font-family: var(--font);
+    /* [measured] 20px on the reference's collection pages -- the
+       measured value wins over the generic h1 step. */
     font-size: 20px;
     font-weight: 500;
     text-transform: uppercase;
@@ -303,7 +305,6 @@
         </svg>
       </button>
     </div>
-    <p class="coll-count" id="collCount"><!-- COLLCOUNT:START --><!-- COLLCOUNT:END --></p>
 
     <div class="shop-grid coll-grid" id="collGrid">
       <!-- COLLGRID:START -->
@@ -486,8 +487,6 @@
         ? (inStock && inStock.checked ? 'nothing in stock here right now.' : 'nothing in here yet.')
         : '';
     }
-    var count = document.getElementById('collCount');
-    if (count) count.textContent = view.length + (view.length === 1 ? ' piece' : ' pieces');
   }
 
   if (inStock) inStock.addEventListener('change', apply);

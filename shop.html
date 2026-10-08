@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop All Drops | Asior</title>
+<title>Shop all | Asior</title>
 <meta name="description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
-<meta name="theme-color" content="var(--bg)">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/shop.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Shop All Drops | Asior">
+<meta property="og:title" content="Shop all | Asior">
 <meta property="og:description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
 <meta property="og:url" content="https://asiorclothing.com/shop.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
@@ -643,7 +643,7 @@
   <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
-<body class="page--hero">
+<body>
 
   <a class="skip-link" href="#main">Skip to content</a>
 
@@ -674,97 +674,51 @@
 
   <main id="main">
 
-  <h1 class="sr-only">Asior — small-run streetwear from Texas</h1>
-
-  <!-- Homepage, rebuilt to the measured reference (spec section 4):
-       hero, NEW ARRIVALS, a full-bleed campaign frame with one button,
-       THE LINEUP, category tiles, footer. Sections butt against each
-       other -- the reference's section spacing is 0 and all breathing
-       room comes from inside each block. -->
-
-  <!-- [measured] Hero 905px, full bleed, photo behind the transparent
-       header, one underlined text link near the bottom. No heading and
-       no button box: the reference has neither. -->
-  <section class="hero" aria-label="Asior">
-    <!-- scripts/build.js writes the live product photograph between
-         these markers (syncHero). The <picture> below is the served
-         fallback, a real local file, so the page is never heroless. -->
-    <!-- HERO:START -->
-    <!-- HERO:END -->
-    <picture class="hero-fallback">
-      <source type="image/webp" srcset="images/look-02.webp">
-      <img src="images/look-02.jpg" alt="Asior, worn" width="800" height="1200" decoding="async">
-    </picture>
-    <a class="hero-link" id="heroLink" href="#new">Shop the latest</a>
-  </section>
-
-  <!-- Personalization from real browsing history. A first-time visitor
-       never sees this section at all (see renderRecentlyViewed). -->
-  <section class="shop-recent" id="shopRecent"></section>
-
-  <!-- [measured] NEW ARRIVALS: label left, "View all" right, then a
-       4-column row. Genuinely the newest pieces -- the build sorts by
-       Shopify's createdAt, so this is a fact about the catalogue and
-       not a hand-picked row labelled "new". -->
-  <section class="home-row" id="new">
-    <div class="row-head">
-      <h2 class="row-title">New arrivals</h2>
-      <a class="row-link" href="/collections/tops.html">View all</a>
+  <!-- /shop.html is the catalogue. The campaign homepage is now at /,
+       which is what the reference does: an editorial front page, and
+       catalogue pages behind the nav. This page used to be both, which
+       is why the site opened on a grid instead of a campaign. -->
+  <section class="shop coll">
+    <div class="coll-head">
+      <h1 class="coll-title">Shop all</h1>
+      <button type="button" class="coll-filter" id="filterOpen" aria-expanded="false" aria-controls="filterDrawer">
+        Filter
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M3 6h18M6 12h12M10 18h4"/>
+        </svg>
+      </button>
     </div>
-    <div class="shop-grid" id="newGrid">
-      <!-- NEWGRID:START -->
-      <!-- NEWGRID:END -->
-    </div>
-  </section>
 
-  <!-- [measured] Full-bleed campaign frame, 945px, with one centred
-       outline button 116x34. -->
-  <section class="campaign-frame" aria-label="Fall collection, worn">
-    <picture>
-      <source type="image/webp" srcset="images/look-13.webp">
-      <img src="images/look-13.jpg" alt="Asior Fall collection, worn" width="1600" height="900" loading="lazy" decoding="async">
-    </picture>
-    <a class="btn-outline" href="#lineup">Shop now</a>
-  </section>
-
-  <!-- [measured] The reference's second product row is BEST SELLERS.
-       Ours is THE LINEUP, which the spec is explicit about: Asior has
-       no per-product sales data on the site, and a row ordered by
-       invented sales figures is the same class of mistake as an
-       invented stock count. Retitle it the moment real numbers exist. -->
-  <section class="home-row" id="lineup">
-    <div class="row-head">
-      <h2 class="row-title">The lineup</h2>
-      <a class="row-link" href="/archive.html">View all</a>
-    </div>
-    <div class="shop-grid" id="shopGrid">
+    <div class="shop-grid coll-grid" id="shopGrid">
       <!-- SHOPGRID:START -->
       <!-- SHOPGRID:END -->
     </div>
-    <div class="shop-empty" id="shopEmpty"></div>
+    <p class="coll-empty" id="shopEmpty" hidden></p>
   </section>
 
-  <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
-       padding. The reference's fourth is BEST SELLERS; ours is
-       MANUFACTURING, per the spec. -->
-  <section class="tiles" aria-label="Categories">
-    <a class="tile" href="/collections/tops.html">
-      <picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Tops</span>
-    </a>
-    <a class="tile" href="/collections/bottoms.html">
-      <picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Bottoms</span>
-    </a>
-    <a class="tile" href="/collections/accessories.html">
-      <picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Accessories</span>
-    </a>
-    <a class="tile" href="/manufacturing.html">
-      <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Manufacturing</span>
-    </a>
-  </section>
+  <section class="shop-recent" id="shopRecent"></section>
+
+  <div class="filter-scrim" id="filterScrim"></div>
+  <aside class="filter-drawer" id="filterDrawer" role="dialog" aria-modal="true"
+         aria-label="Filter and sort" inert>
+    <div class="filter-head">
+      <h2 class="filter-title">Filter</h2>
+      <button type="button" class="filter-close" id="filterClose">Close</button>
+    </div>
+    <fieldset class="filter-group">
+      <legend class="filter-legend">Availability</legend>
+      <label class="filter-opt"><input type="checkbox" id="fltInStock"> In stock only</label>
+    </fieldset>
+    <fieldset class="filter-group">
+      <legend class="filter-legend">Price</legend>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="featured" checked> Featured</label>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="asc"> Low to high</label>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="desc"> High to low</label>
+    </fieldset>
+    <div class="filter-actions">
+      <button type="button" class="btn btn--quiet btn--sm" id="filterReset">Reset</button>
+    </div>
+  </aside>
 
   </main>
 
@@ -1431,8 +1385,110 @@
   // Plain count, no adjectives. "11 pieces" is a fact; "only 11 left"
   // would be a stock claim the catalogue cannot support.
 
+  /* The catalogue's own filter drawer, the same control the category
+     pages carry. Availability and price only -- both act on data the
+     catalogue already holds. */
+  var CATALOG_VIEW = [];
+  (function wireCatalogueFilter() {
+    var A2 = window.Asior;
+    var grid = document.getElementById('shopGrid');
+    if (!A2 || !grid) return;
+    var catalog = [];
+  /* ---- filter drawer ---------------------------------------------- */
+  var drawer = document.getElementById('filterDrawer');
+  var scrim = document.getElementById('filterScrim');
+  var openBtn = document.getElementById('filterOpen');
+  var closeBtn = document.getElementById('filterClose');
+  var inStock = document.getElementById('fltInStock');
+  var resetBtn = document.getElementById('filterReset');
+  var lastFocus = null;
+
+  function setDrawer(open) {
+    if (!drawer) return;
+    drawer.classList.toggle('is-open', open);
+    if (scrim) scrim.classList.toggle('is-open', open);
+    if (openBtn) openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // inert keeps the closed drawer out of the tab order entirely.
+    if (open) drawer.removeAttribute('inert'); else drawer.setAttribute('inert', '');
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+    if (open) {
+      lastFocus = document.activeElement;
+      var first = drawer.querySelector('input, button');
+      if (first) first.focus();
+    } else if (lastFocus) {
+      // Focus returns to the control that opened it.
+      lastFocus.focus();
+      lastFocus = null;
+    }
+  }
+
+  if (openBtn) openBtn.addEventListener('click', function () { setDrawer(true); });
+  if (closeBtn) closeBtn.addEventListener('click', function () { setDrawer(false); });
+  if (scrim) scrim.addEventListener('click', function () { setDrawer(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && drawer && drawer.classList.contains('is-open')) setDrawer(false);
+  });
+
+  function sortMode() {
+    var picked = drawer && drawer.querySelector('input[name="fltSort"]:checked');
+    return picked ? picked.value : 'featured';
+  }
+
+  /* Price for sorting is the card's own minimum, parsed back off the
+     label rather than recomputed, so the number sorted by is exactly
+     the number shown. */
+  function minPrice(p) {
+    var m = String(p.priceLabel).replace(/<[^>]*>/g, '').match(/([\d.]+)/);
+    return m ? parseFloat(m[1]) : Infinity;
+  }
+
+  function apply() {
+    if (!catalog.length) return;
+    var view = catalog.slice();
+    if (inStock && inStock.checked) view = view.filter(function (p) { return !p.soldOut; });
+    var mode = sortMode();
+    if (mode === 'asc') view.sort(function (a, b) { return minPrice(a) - minPrice(b); });
+    if (mode === 'desc') view.sort(function (a, b) { return minPrice(b) - minPrice(a); });
+
+    grid.innerHTML = view.map(function (p, i) {
+      return A2.productCard(p, { eager: i < 4, peek: false });
+    }).join('');
+
+    var empty = document.getElementById('shopEmpty');
+    if (empty) {
+      var none = view.length === 0;
+      empty.hidden = !none;
+      empty.textContent = none
+        ? (inStock && inStock.checked ? 'nothing in stock here right now.' : 'nothing in here yet.')
+        : '';
+    }
+    var count = null;
+    if (count) count.textContent = view.length + (view.length === 1 ? ' piece' : ' pieces');
+  }
+
+  if (inStock) inStock.addEventListener('change', apply);
+  if (drawer) {
+    drawer.querySelectorAll('input[name="fltSort"]').forEach(function (r) {
+      r.addEventListener('change', apply);
+    });
+  }
+  if (resetBtn) resetBtn.addEventListener('click', function () {
+    if (inStock) inStock.checked = false;
+    var feat = drawer && drawer.querySelector('input[name="fltSort"][value="featured"]');
+    if (feat) feat.checked = true;
+    apply();
+  });
+
+
+    window.__setCatalogue = function (list) { catalog = list; apply(); };
+  })();
+
   fetchCatalog()
     .then(sortForMerchandising)
+    .then(function (c) {
+      if (window.__setCatalogue) window.__setCatalogue(c);
+      return c;
+    })
     .then(renderGrid)
     .catch((err) => {
       /* Fail open and honest: the pre-rendered cards the build wrote

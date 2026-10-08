@@ -1248,3 +1248,72 @@ html.cart-drawer-locked { overflow: hidden; }
   .product:hover .product-peek,
   .product:focus-within .product-peek { opacity: 1; }
 }
+
+/* The brand column's secondary links sit under the support line. */
+.flinks--brand { margin-top: 14px; }
+
+/* ===================================================================
+   TYPE SCALE
+   [theme var, from the reference spec section 1]
+     h1 36/25/21   h2 30/24/21   h3 26/20/18   h4 20/16/16
+     base 14, line-height 1.5
+
+   This was the part of the measured spec that never got implemented:
+   almost every role was rendering at 14px, so the page had one voice
+   and no hierarchy. One family carries the whole site -- that is what
+   the reference does -- which means weight, size and tracking are the
+   ONLY things separating a heading from a price from a nav link. They
+   have to do real work.
+
+   Weights, measured: 400 body, 500 nav / buttons / section headings,
+   600 footer headings and the selected size, 700 ADD TO BAG.
+   =================================================================== */
+:root {
+  --t-h1: 36px;
+  --t-h2: 30px;
+  --t-h3: 26px;
+  --t-h4: 20px;
+  --t-base: 14px;
+  --lh: 1.5;
+}
+
+@media (max-width: 1024px) {
+  :root { --t-h1: 25px; --t-h2: 24px; --t-h3: 20px; --t-h4: 16px; }
+}
+
+@media (max-width: 640px) {
+  :root { --t-h1: 21px; --t-h2: 21px; --t-h3: 18px; --t-h4: 16px; }
+}
+
+body {
+  font-family: var(--font);
+  font-size: var(--t-base);
+  line-height: var(--lh);
+}
+
+/* Page titles. Set tighter than body: at 36px the default 1.5 leading
+   opens a gap you read as two separate lines rather than one heading. */
+.t-h1, .coll-title, .cart-head, .nf-line {
+  font-size: var(--t-h1);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.t-h2 { font-size: var(--t-h2); font-weight: 500; line-height: 1.18; }
+.t-h3 { font-size: var(--t-h3); font-weight: 500; line-height: 1.25; }
+
+/* Section headings: the row labels and the page sub-heads. */
+.t-h4, .row-title, .arch-subhead, .contact-head, .pd-rel-head {
+  font-size: var(--t-h4);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Long-form reading copy. Under 80 characters a line, per the design
+   skill, and a touch more leading than the interface default. */
+.prose { max-width: 68ch; }
+.prose p { font-size: 15px; line-height: 1.65; margin: 0 0 16px; }
+.prose p:last-child { margin-bottom: 0; }

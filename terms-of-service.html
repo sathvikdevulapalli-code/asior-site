@@ -114,23 +114,27 @@
      wordmark and headings, plain Helvetica for the body. Same tokens as
      index.html — if the store reopens on this theme they move up into
      assets/site.css and these three blocks come out. */
-  :root {
-    --bg: #000000;
-    --ink: var(--ink);
-    --muted: #8f8f8a;
-    --line: #1e1e1c;
-    --field-line: #6f6f6a;
+  /* These three were dark-theme values left behind by the token
+     inversion: a local :root here outranks assets/site.css, so this
+     page kept near-black hairlines and a dark muted grey on a white
+     background. Realigned to the light system. They stay local only
+     because the policy pages tune their own reading contrast. */
+  /* This page used to carry a whole second theme in its own :root:
+     a black --bg from the dark design, a self-referential
+     `--ink: var(--ink)` (which is invalid and resolves to nothing),
+     and Yellowtail / Archivo Narrow font overrides. With the Google
+     Fonts link removed sitewide those font names fall back to
+     `cursive` and `Arial Narrow`, so this page was rendering a script
+     face on a black background while every other page was Helvetica
+     on white.
 
-    --font-brand: 'Yellowtail', 'Snell Roundhand', cursive;
-    --font-display: 'Archivo Narrow', 'Arial Narrow', Helvetica, Arial, sans-serif;
-    --font-body: Helvetica, Arial, sans-serif;
-    --font-mono: var(--font-display);
-  }
+     It now inherits assets/site.css like everything else. Nothing is
+     overridden here, because nothing needs to be. */
 
   /* Same script wordmark as the landing page, so the two pages you can
      actually reach sign their name the same way. */
   header .mark {
-    font-family: var(--font-brand);
+    font-family: var(--font);
     font-weight: 400;
     font-size: 24px;
     letter-spacing: 0;

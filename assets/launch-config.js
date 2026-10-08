@@ -95,6 +95,31 @@ window.ASIOR_LAUNCH = {
     ] },
   ],
 
+  /* ---- Shopify's own collections -------------------------------
+
+     These are the collections that exist in Shopify Admin, kept
+     reachable at their REAL handles so any link already pointing at
+     /collections/jag or /collections/fall-collection keeps working.
+     They are brand lines, not garment categories, which is why the
+     nav above is a separate editorial set rather than a rename of
+     these -- renaming or dropping a live collection handle breaks
+     inbound links and is not this repo's call to make.
+
+     Membership is resolved from Shopify at build time, not listed
+     here: these are real collections and Shopify is the source of
+     truth for what is in them.
+
+     Excluded on purpose: `frontpage` and `other-example-products`,
+     the two empty defaults every new Shopify store ships with.
+     Generating pages for them would publish two permanently empty
+     URLs into the sitemap. */
+  SHOPIFY_COLLECTIONS: [
+    { slug: 'jag', name: 'JAG' },
+    { slug: 'fall-collection', name: 'Fall Collection' },
+    { slug: 'all-of-our-products', name: 'New Arrivals' },
+    { slug: 'ja-yu-collection', name: 'Ja-Yu Collection' },
+  ],
+
   FALL_PRODUCTS: [
     { name: 'Asior Polo', handle: 'scripture-polo' },
     { name: 'JAG Shorts', handle: 'jag-shorts' },

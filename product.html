@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior</title>
 <meta name="description" content="Asior makes limited-run streetwear in small batches.">
-<meta name="theme-color" content="var(--bg)">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/product.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -97,7 +97,11 @@
        takes it off the bottom of the frame and nothing is letterboxed. */
     width: 100%;
     overflow: hidden;
-    background: #161614;
+    /* The old dark-theme surface. On a white page it framed every
+       product photograph in a near-black box, which was most visible
+       on mobile where the gallery is a snapping carousel and the frame
+       shows around a 3:4 crop. Same grey the cards use. */
+    background: var(--surface);
     cursor: zoom-in;
   }
 
@@ -652,7 +656,7 @@
   .rel-item .ph {
     width: 100%;
     height: 100%;
-    background: linear-gradient(155deg, #1b1b19 0%, #121211 100%);
+    background: var(--surface);
   }
 
   .rel-item:hover img { transform: scale(1.04); }

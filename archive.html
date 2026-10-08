@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Archive | Asior</title>
 <meta name="description" content="Everything Asior has made. Sold out stays listed.">
-<meta name="theme-color" content="var(--bg)">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/archive.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -56,18 +56,12 @@
 
   .arch-link {
     display: grid;
-    grid-template-columns: 3.5ch 1fr auto;
+    grid-template-columns: 1fr auto;
     align-items: baseline;
     gap: 18px;
     padding: 20px 2px;
     text-decoration: none;
     color: var(--ink);
-  }
-
-  .arch-n {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    color: var(--muted);
   }
 
   .arch-name {
@@ -96,6 +90,49 @@
   .arch-link:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: -2px;
+  }
+
+  .arch-colls { margin: 54px 0 0; padding-top: 30px; border-top: 1px solid var(--line); }
+
+  .arch-subhead {
+    margin: 0 0 18px;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink);
+  }
+
+  .arch-colllist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px 24px;
+  }
+
+  .arch-colllist a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .arch-colllist a:hover { opacity: 0.6; }
+
+  .arch-colllist .n {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
   }
 
   .arch-foot { margin: 34px 0 0; }
@@ -173,6 +210,20 @@
       <!-- ARCHIVE:START -->
       <!-- ARCHIVE:END -->
     </ol>
+
+    <!-- Every collection that has a page, from both sources: the
+         editorial categories the nav uses, and Shopify's own
+         collections at their real handles. Written by the build so a
+         collection added in Shopify shows up here without this list
+         being edited, and so a handle that stops being returned simply
+         drops out instead of linking to a 404. -->
+    <section class="arch-colls">
+      <h2 class="arch-subhead">Collections</h2>
+      <ul class="arch-colllist">
+        <!-- COLLINDEX:START -->
+        <!-- COLLINDEX:END -->
+      </ul>
+    </section>
 
     <p class="arch-foot"><a class="link-arrow" href="/shop.html">Shop what&rsquo;s available</a></p>
   </section>
@@ -282,11 +333,8 @@
     }
 
     function row(p, i) {
-      var n = String(i + 1);
-      if (n.length < 2) n = '0' + n;
       return '<li class="arch-row' + (p.soldOut ? ' is-out' : '') + '" data-handle="' + esc(p.handle) + '">'
         + '<a class="arch-link" href="/products/' + esc(p.handle) + '.html">'
-        + '<span class="arch-n tnum">' + n + '</span>'
         + '<span class="arch-name">' + esc(p.name) + '</span>'
         + '<span class="arch-state" data-arch-state>' + (p.soldOut ? 'Sold out' : 'Available') + '</span>'
         + '</a></li>';
