@@ -2,10 +2,14 @@
 # The build exits non-zero if it fails, so Vercel keeps the last good
 # deployment live rather than shipping a site without them.
 /products/
+/collections/
 /sitemap.xml
 
-# Local tooling, not part of the site
-.claude/
+# Local tooling, not part of the site. .claude/skills IS committed:
+# cloud sessions do not load a developer's personal ~/.claude/skills,
+# so project skills have to live in the repo to be available at all.
+.claude/*
+!.claude/skills/
 .agents/
 skills-lock.json
 .vercel

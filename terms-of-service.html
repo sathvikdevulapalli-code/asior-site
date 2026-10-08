@@ -18,16 +18,13 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
      browser has to download and parse the CSS before it even discovers
      the font request. Weight 200 was requested site-wide and used
      nowhere, so it is not requested here. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Archivo+Narrow:wght@700&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <style>
@@ -67,8 +64,11 @@
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .legal { padding: 0 20px 12vh; }
   }
 
@@ -114,23 +114,27 @@
      wordmark and headings, plain Helvetica for the body. Same tokens as
      index.html — if the store reopens on this theme they move up into
      assets/site.css and these three blocks come out. */
-  :root {
-    --bg: #000000;
-    --ink: #f2f2f0;
-    --muted: #8f8f8a;
-    --line: #1e1e1c;
-    --field-line: #6f6f6a;
+  /* These three were dark-theme values left behind by the token
+     inversion: a local :root here outranks assets/site.css, so this
+     page kept near-black hairlines and a dark muted grey on a white
+     background. Realigned to the light system. They stay local only
+     because the policy pages tune their own reading contrast. */
+  /* This page used to carry a whole second theme in its own :root:
+     a black --bg from the dark design, a self-referential
+     `--ink: var(--ink)` (which is invalid and resolves to nothing),
+     and Yellowtail / Archivo Narrow font overrides. With the Google
+     Fonts link removed sitewide those font names fall back to
+     `cursive` and `Arial Narrow`, so this page was rendering a script
+     face on a black background while every other page was Helvetica
+     on white.
 
-    --font-brand: 'Yellowtail', 'Snell Roundhand', cursive;
-    --font-display: 'Archivo Narrow', 'Arial Narrow', Helvetica, Arial, sans-serif;
-    --font-body: Helvetica, Arial, sans-serif;
-    --font-mono: var(--font-display);
-  }
+     It now inherits assets/site.css like everything else. Nothing is
+     overridden here, because nothing needs to be. */
 
   /* Same script wordmark as the landing page, so the two pages you can
      actually reach sign their name the same way. */
   header .mark {
-    font-family: var(--font-brand);
+    font-family: var(--font);
     font-weight: 400;
     font-size: 24px;
     letter-spacing: 0;
@@ -157,6 +161,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -167,11 +179,16 @@
        locked landing page, and the point of that page is that there is
        nowhere else to go. The wordmark leads back to it and that's all. -->
   <!-- HEADER:START -->
-  <header>
-    <a class="mark" href="shop.html">Asior</a>
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+    </div>
+  </div>
+  <header class="site-header site-header--minimal">
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
   </header>
-
-  <div class="page-top-space"></div>
   <!-- HEADER:END -->
 
   <main id="main">
@@ -184,20 +201,28 @@
     <p>Asior Clothing is a DBA (doing business as) of Harness Mind.</p>
     <!-- POLICY:START -->
       <!-- Synced from Shopify at build time by scripts/build.js.
-           Edit the policy in Shopify Admin, not here. -->
+           Edit the policy in Shopify Admin, not here.
+
+           Seeded 2026-10-06 from the founder-supplied clean copy.
+           The live Shopify text still carries three unresolved link
+           placeholders and a drafting note addressed to the merchant,
+           both of which were rendering on the public page. A
+           successful resync will overwrite this block, so
+           syncPolicy() also resolves placeholders and strips
+           merchant notes -- otherwise the next build would put
+           them straight back. -->
       <div class="policy-body">
-<div>
-        <p>Welcome to Asior Clothing! The terms “we”, “us” and “our” refer to Asior Clothing. Asior Clothing operates this store and website, including all related information, content, features, tools, products and services in order to provide you, the customer, with a curated shopping experience (the “Services”). Asior Clothing is powered by Shopify, which enables us to provide the Services to you.<br>The below terms and conditions, together with any policies referenced herein (these “Terms of Service” or “Terms”) describe your rights and responsibilities when you use the Services.<br>Please read these Terms of Service carefully, as they include important information about your legal rights and cover areas such as warranty disclaimers and limitations of liability.<br>By visiting, interacting with or using our Services, you agree to be bound by these Terms of Service and our Privacy Policy [LINK]. If you do not agree to these Terms of Service or Privacy Policy, you should not use or access our Services.</p>
+<p>Welcome to Asior Clothing! The terms “we”, “us” and “our” refer to Asior Clothing. Asior Clothing operates this store and website, including all related information, content, features, tools, products and services in order to provide you, the customer, with a curated shopping experience (the “Services”). Asior Clothing is powered by Shopify, which enables us to provide the Services to you.<br>The below terms and conditions, together with any policies referenced herein (these “Terms of Service” or “Terms”) describe your rights and responsibilities when you use the Services.<br>Please read these Terms of Service carefully, as they include important information about your legal rights and cover areas such as warranty disclaimers and limitations of liability.<br>By visiting, interacting with or using our Services, you agree to be bound by these Terms of Service and our <a href="/privacy-policy.html">Privacy Policy</a>. If you do not agree to these Terms of Service or Privacy Policy, you should not use or access our Services.</p>
 <p>SECTION 1 - ACCESS AND ACCOUNT<br>By agreeing to these Terms of Service, you represent that you are at least the age of majority in your state or province of residence, and you have given us your consent to allow any of your minor dependents to use the Services on devices you own, purchase or manage.<br>To use the Services, including accessing or browsing our online stores or purchasing any of the products or services we offer, you may be asked to provide certain information, such as your email address, billing, payment, and shipping information. You represent and warrant that all the information you provide in our stores is correct, current and complete and that you have all rights necessary to provide this information.<br>You are solely responsible for maintaining the security of your account credentials and for all of your account activity. You may not transfer, sell, assign, or license your account to any other person.</p>
 <p>SECTION 2 - OUR PRODUCTS<br>We have made every effort to provide an accurate representation of our products and services in our online stores. However, please note that colors or product appearance may differ from how they may appear on your screen due to the type of device you use to access the store and your device settings and configuration.<br>We do not warrant that the appearance or quality of any products or services purchased by you will meet your expectations or be the same as depicted or rendered in our online stores.<br>All descriptions of products are subject to change at any time without notice at our sole discretion. We reserve the right to discontinue any product at any time and may limit the quantities of any products that we offer to any person, geographic region or jurisdiction, on a case-by-case basis.</p>
-<p>SECTION 3 - ORDERS<br>When you place an order, you are making an offer to purchase. Asior Clothing reserves the right to accept or decline your order for any reason at its discretion. Your order is not accepted until Asior Clothing confirms acceptance. We must receive and process your payment before your order is accepted. Please review your order carefully before submitting, as Asior Clothing may be unable to accommodate cancellation requests after an order is accepted. In the event that we do not accept, make a change to, or cancel an order, we will attempt to notify you by contacting the e-mail, billing address, and/or phone number provided at the time the order was made.<br>Your purchases are subject to return or exchange solely in accordance with our Refund Policy [LINK].<br>You represent and warrant that your purchases are for your own personal or household use and not for commercial resale or export.</p>
+<p>SECTION 3 - ORDERS<br>When you place an order, you are making an offer to purchase. Asior Clothing reserves the right to accept or decline your order for any reason at its discretion. Your order is not accepted until Asior Clothing confirms acceptance. We must receive and process your payment before your order is accepted. Please review your order carefully before submitting, as Asior Clothing may be unable to accommodate cancellation requests after an order is accepted. In the event that we do not accept, make a change to, or cancel an order, we will attempt to notify you by contacting the e-mail, billing address, and/or phone number provided at the time the order was made.<br>Your purchases are subject to return or exchange solely in accordance with our Refund Policy.<br>You represent and warrant that your purchases are for your own personal or household use and not for commercial resale or export.</p>
 <p>SECTION 4 - PRICES AND BILLING<br>Prices, discounts and promotions are subject to change without notice. The price charged for a product or service will be the price in effect at the time the order is placed and will be set out in your order confirmation email. Unless otherwise expressly stated, posted prices do not include taxes, shipping, handling, customs or import charges.<br>Prices posted in our online stores may be different from prices offered in physical stores or in online or other stores operated by third parties. We may offer, from time to time, promotions on the Services that may affect pricing and that are governed by terms and conditions separate from these Terms. If there is a conflict between the terms for a promotion and these Terms, the promotion terms will govern.<br>You agree to provide current, complete and accurate purchase, payment and account information for all purchases made at our stores. You agree to promptly update your account and other information, including your email address, credit card numbers and expiration dates, so that we can complete your transactions and contact you as needed.<br>You represent and warrant that (i) the credit card information you provide is true, correct, and complete, (ii) you are duly authorized to use such credit card for the purchase, (iii) charges incurred by you will be honored by your credit card company, and (iv) you will pay charges incurred by you at the posted prices, including shipping and handling charges and all applicable taxes, if any.</p>
 <p>SECTION 5 - SHIPPING AND DELIVERY<br>We are not liable for shipping and delivery delays. All delivery times are estimates only and are not guaranteed. We are not responsible for delays caused by shipping carriers, customs processing, or events outside our control. Once we transfer products to the carrier, title and risk of loss passes to you.</p>
 <p>SECTION 6 - INTELLECTUAL PROPERTY<br>Our Services, including but not limited to all trademarks, brands, text, displays, images, graphics, product reviews, video, and audio, and the design, selection, and arrangement thereof, are owned by Asior Clothing, its affiliates or licensors and are protected by U.S. and foreign patent, copyright and other intellectual property laws.<br>These Terms permit you to use the Services for your personal, non-commercial use only. You must not reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, republish, download, store, or transmit any of the material on the Services without our prior written consent. Except as expressly provided herein, nothing in these Terms grants or shall be construed as granting a license or other rights to you under any patent, trademark, copyright, or other intellectual property of Asior Clothing, Shopify or any third party. Unauthorized use of the Services may be a violation of federal and state intellectual property laws. All rights not expressly granted herein are reserved by Asior Clothing.<br>Asior Clothing’s names, logos, product and service names, designs, and slogans are trademarks of Asior Clothing or its affiliates or licensors. You must not use such trademarks without the prior written permission of Asior Clothing. Shopify’s name, logo, product and service names, designs and slogans are trademarks of Shopify. All other names, logos, product and service names, designs, and slogans on the Services are the trademarks of their respective owners.</p>
 <p>SECTION 7 - OPTIONAL TOOLS<br>You may be provided with access to customer tools offered by third parties as part of the Services, which we neither monitor nor have any control nor input.<br>You acknowledge and agree that we provide access to such tools “as is” and “as available” without any warranties, representations or conditions of any kind and without any endorsement. We shall have no liability whatsoever arising from or relating to your use of optional third-party tools.<br>Any use by you of the optional tools offered through the site is entirely at your own risk and discretion and you should ensure that you are familiar with and approve of the terms on which tools are provided by the relevant third-party provider(s).<br>We may also, in the future, offer new features through the Services (including the release of new tools and resources). Such new features shall also be deemed part of the Services and are subject to these Terms of Service.</p>
 <p>SECTION 8 - THIRD-PARTY LINKS<br>The Services may contain materials and hyperlinks to websites provided or operated by third parties (including any embedded third party functionality). We are not responsible for examining or evaluating the content or accuracy of any third-party materials or websites you choose to access. If you decide to leave the Services to access these materials or third party sites, you do so at your own risk.<br>We are not liable for any harm or damages related to your access of any third-party websites, or your purchase or use of any products, services, resources, or content on any third-party websites. Please review carefully the third-party's policies and practices and make sure you understand them before you engage in any transaction. Complaints, claims, concerns, or questions regarding third-party products and services should be directed to the third-party.</p>
-<p>SECTION 9 - RELATIONSHIP WITH SHOPIFY<br>[NOTE TO MERCHANT: This section accurately characterizes Shopify’s relationship with your store and should not be removed or modified.]<br>Asior Clothing is powered by Shopify, which enables us to provide the Services to you. However, any sales and purchases you make in our Store are made directly with Asior Clothing. By using the Services, you acknowledge and agree that Shopify is not responsible for any aspect of any sales between you and Asior Clothing, including any injury, damage, or loss resulting from purchased products and services. You hereby expressly release Shopify and its affiliates from all claims, damages, and liabilities arising from or related to your purchases and transactions with Asior Clothing.</p>
-<p>SECTION 10 - PRIVACY POLICY<br>All personal information we collect through the Services is subject to our Privacy Policy, which can be viewed here [LINK], and certain personal information may be subject to Shopify’s Privacy Policy, which can be viewed here. By using the Services, you acknowledge that you have read these privacy policies.<br>Because the Services are hosted by Shopify, Shopify collects and processes personal information about your access to and use of the Services in order to provide and improve the Services for you. Information you submit to the Services will be transmitted to and shared with Shopify as well as third parties that may be located in other countries than where you reside, in order to provide services to you. Review our privacy policy [LINK] for more details on how we, Shopify, and our partners use your personal information.</p>
+<p>SECTION 9 - RELATIONSHIP WITH SHOPIFY<br>Asior Clothing is powered by Shopify, which enables us to provide the Services to you. However, any sales and purchases you make in our Store are made directly with Asior Clothing. By using the Services, you acknowledge and agree that Shopify is not responsible for any aspect of any sales between you and Asior Clothing, including any injury, damage, or loss resulting from purchased products and services. You hereby expressly release Shopify and its affiliates from all claims, damages, and liabilities arising from or related to your purchases and transactions with Asior Clothing.</p>
+<p>SECTION 10 - PRIVACY POLICY<br>All personal information we collect through the Services is subject to our Privacy Policy, which can be viewed <a href="/privacy-policy.html">here</a>, and certain personal information may be subject to Shopify’s Privacy Policy, which can be viewed <a href="https://www.shopify.com/legal/privacy">here</a>. By using the Services, you acknowledge that you have read these privacy policies.<br>Because the Services are hosted by Shopify, Shopify collects and processes personal information about your access to and use of the Services in order to provide and improve the Services for you. Information you submit to the Services will be transmitted to and shared with Shopify as well as third parties that may be located in other countries than where you reside, in order to provide services to you. Review our <a href="/privacy-policy.html">privacy policy</a> for more details on how we, Shopify, and our partners use your personal information.</p>
 <p>SECTION 11 - FEEDBACK<br>If you submit, upload, post, email, or otherwise transmit any ideas, suggestions, feedback, reviews, proposals, plans, or other content (collectively, “Feedback”), you grant us a perpetual, worldwide, sublicensable, royalty-free license to use, reproduce, modify, publish, distribute and display such Feedback in any medium for any purpose, including for commercial use.<br>You also represent and warrant that: (i) you own or have all necessary rights to all Feedback; (ii) you have disclosed any compensation or incentives received in connection with your submission of Feedback; and (iii) your Feedback will comply with these Terms.</p>
 <p>SECTION 12 - ERRORS, INACCURACIES AND OMISSIONS<br>Occasionally there may be information on or in the Services that contain typographical errors, inaccuracies or omissions. We reserve the right to correct any errors, inaccuracies or omissions, and to change or update information or cancel orders at any time without prior notice.</p>
 <p>SECTION 13 - PROHIBITED USES<br>You may access and use the Services for lawful purposes only. Any misuse, abuse, or violation of these Terms may result in immediate termination of access.</p>
@@ -211,7 +236,7 @@
 <p>SECTION 21 - GOVERNING LAW<br>These Terms shall be governed by the laws of the jurisdiction in which Asior Clothing is headquartered.</p>
 <p>SECTION 22 - HEADINGS<br>Headings are for convenience only and do not affect interpretation.</p>
 <p>SECTION 23 - CHANGES TO TERMS OF SERVICE<br>We reserve the right to update or modify these Terms at any time. Continued use of the Services constitutes acceptance of changes.</p>
-<p>SECTION 24 - CONTACT INFORMATION<br>Questions about the Terms of Service should be sent to us at <strong><a rel="noopener">asiorclothing@gmail.com<span></span></a></strong>.<br>Our contact information is posted below:<br>Asior Clothing<br><a rel="noopener">asiorclothing@gmail.com<span></span></a><br>619 Acadia Bend<br>512-718-0155</p>
+<p>SECTION 24 - CONTACT INFORMATION<br>Questions about the Terms of Service should be sent to us at <strong><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></strong>.<br>Our contact information is posted below:<br>Asior Clothing<br><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a><br>619 Acadia Bend<br>512-718-0155</p>
       </div>
       <!-- POLICY:END -->
   </section>
@@ -219,22 +244,76 @@
   </main>
 
   <!-- FOOTER:START -->
-  <footer id="order">
-    <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
-    <div class="social">
-      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
-      </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
-      </a>
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
     </div>
-    <div class="policy-links">
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+      </div>
     </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
   </footer>
   <!-- FOOTER:END -->
 

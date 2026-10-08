@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fall Collection | Asior</title>
-<meta name="description" content="The Asior Fall Collection — limited run, dropping soon.">
+<title>Not here | Asior</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="That page isn't here.">
 <meta name="theme-color" content="#ffffff">
-<link rel="canonical" href="https://asiorclothing.com/fall-collection.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Fall Collection | Asior">
-<meta property="og:description" content="The Asior Fall Collection — limited run, dropping soon.">
-<meta property="og:url" content="https://asiorclothing.com/fall-collection.html">
+<meta property="og:title" content="Not here | Asior">
+<meta property="og:description" content="That page isn't here.">
+<meta property="og:url" content="https://asiorclothing.com/404.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -25,170 +25,46 @@
      browser has to download and parse the CSS before it even discovers
      the font request. Weight 200 was requested site-wide and used
      nowhere, so it is not requested here. -->
-<link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- Single source of truth for FALL_COLLECTION_HANDLES and
-     FALL_COMMERCE_READY — see assets/launch-config.js. Activating this
-     page for real is a change to that one file, not this one. -->
-<script src="assets/launch-config.js"></script>
-<script src="assets/promo-config.js"></script>
-<!-- Early Access gate: redirects to index.html before this page renders
-     unless the visitor has entered ASIOR8 or the public drop has
-     passed. See assets/early-access-gate.js. -->
-<script src="assets/early-access-gate.js"></script>
 <style>
-  @media (hover: hover) and (pointer: fine) {
-    header nav a:hover::after { width: 100%; }
-  }
-
-  /* Same grid as shop.html on purpose — this page's whole job is
-     commerce once it's live, not a different visual system. The only
-     difference from Shop All is that it's a filtered, curated set. */
-  .fall {
-    padding: 0 40px 14vh;
+  .nf {
+    padding: 14vh 40px 18vh;
     max-width: 1180px;
     margin: 0 auto;
   }
 
-  .fall-head { margin-bottom: 8px; }
-  .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: 13px; }
-
-  .fall-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-  }
-
-  .product {
-    display: block;
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
-  }
-
-  .product.in { opacity: 1; transform: translateY(0); }
-
-  .product-img {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 2px;
-    background: var(--surface);
-    transition: transform 160ms var(--ease-out);
-  }
-
-  .price-badge {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    z-index: 2;
-    background: rgba(11, 10, 8, 0.72);
+  .nf-line {
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 800;
+    font-size: clamp(26px, 4vw, 48px);
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
     color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    padding: 5px 8px;
-    border-radius: 2px;
+    margin: 0 0 24px;
   }
 
-  .price-badge .compare { text-decoration: line-through; opacity: 0.6; margin-right: 5px; }
-  .price-badge .save { opacity: 0.85; margin-left: 5px; }
+  .nf-links { display: flex; gap: 22px; flex-wrap: wrap; }
 
-  /* ---------- placeholder cards ----------
-     Same grid shape as a real card, so the layout never jumps when
-     real Shopify data replaces these — just the honest opposite of a
-     real card's content: no image, no price, no link. */
-  .product.placeholder { cursor: default; }
-  .placeholder-img {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface);
-  }
-  .placeholder-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-  .price-placeholder {
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-
-  .product-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .product:hover .product-img img { transform: scale(1.035); filter: brightness(1.03); }
-  }
-
-  .product:active .product-img { transform: scale(0.985); }
-
-  .name-row { margin-top: 14px; display: flex; align-items: center; gap: 8px; }
-
-  .product .name {
+  .nf-links a {
     font-family: var(--font-mono);
     font-size: 11px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--ink);
+    text-decoration: none;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--ink);
   }
 
-  .preorder-tag {
-    flex: none;
-    border: 1px solid var(--muted);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 3px 7px;
-    border-radius: 2px;
-  }
-
-  /* Real-inventory urgency only — see A.stockLabel in assets/site.js.
-     Never rendered unless Shopify actually reports a low quantity. */
-  .stock-note {
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    text-transform: lowercase;
-    color: var(--muted);
-  }
-
-  .fall-empty { padding: 6vh 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
-
-  @media (max-width: 900px) {
-    .fall-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+  .nf-links a:hover { color: var(--muted); border-bottom-color: var(--muted); }
 
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    /* The phone nav is a full-screen panel now, defined once in
-       assets/site.css. The horizontally scrolling link strip this
-       page used to redeclare for itself is gone -- it was also
-       overriding the shared rule, which is why the panel opened at
-       the width of the old strip. */
-    .fall { padding: 0 20px 10vh; }
-    .fall-grid { grid-template-columns: 1fr; gap: 14px; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .product { opacity: 1 !important; transform: none !important; }
+    .nf { padding: 11vh 20px 14vh; }
   }
 </style>
 
@@ -244,14 +120,19 @@
 
   <main id="main">
 
-  <!-- Filtered to FALL_COLLECTION_HANDLES below, once that list is real.
-       Until then this renders the honest empty state — never a guessed
-       product grid. -->
-  <section class="fall" id="fallSection">
-    <h1 class="rail-label fall-head">Fall Collection</h1>
-    <p class="fall-sub" id="fallSub"></p>
-    <div class="fall-grid" id="fallGrid"></div>
-    <div class="fall-empty" id="fallEmpty"></div>
+  <!-- There was no 404 page at all: an unmatched path got Vercel's own
+       default, which is a white page with "404: NOT_FOUND" on it and no
+       way back to the shop. Any dead link in an ad, a post or an old
+       index landed there.
+
+       Brief v14's copy, exactly: short, lowercase, and a way out. -->
+  <section class="nf">
+    <h1 class="nf-line">That page isn&rsquo;t here.</h1>
+    <div class="nf-links">
+      <a href="/shop.html">Shop</a>
+      <a href="/archive.html">Archive</a>
+      <a href="/about.html">About</a>
+    </div>
   </section>
 
   </main>
@@ -331,27 +212,8 @@
   <!-- FOOTER:END -->
 
 <script src="assets/site.js"></script>
-<!-- Shared with index.html's post-Early-Access state — see
-     assets/fall-grid.js for the placeholder-vs-real rendering logic
-     and assets/launch-config.js for FALL_PRODUCTS/FALL_COMMERCE_READY,
-     the two facts that decide what actually renders. -->
-<script src="assets/fall-grid.js"></script>
-<script>
-  // This page is in scripts/build.js's sitemap and, as of the sitewide
-  // banner replacing the old email-signup teaser bar, linked from every
-  // page's header too — noindexed only for as long as
-  // FALL_COMMERCE_READY is false (not fully wired up yet).
-  if (!window.ASIOR_LAUNCH.FALL_COMMERCE_READY) {
-    document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
-  }
-
-
-  window.Asior.renderFallGrid({
-    gridEl: document.getElementById('fallGrid'),
-    emptyEl: document.getElementById('fallEmpty'),
-    subEl: document.getElementById('fallSub'),
-  });
-</script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
 
 </body>
 </html>

@@ -3,32 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop All Drops | Asior</title>
+<title>Shop all | Asior</title>
 <meta name="description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/shop.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Shop All Drops | Asior">
+<meta property="og:title" content="Shop all | Asior">
 <meta property="og:description" content="Every Asior piece currently in stock — graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
 <meta property="og:url" content="https://asiorclothing.com/shop.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
      browser has to download and parse the CSS before it even discovers
      the font request. Weight 200 was requested site-wide and used
      nowhere, so it is not requested here. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
@@ -51,8 +48,18 @@
   /* Scoped to this page only (this <style> block doesn't reach any
      other page) — the shared header markup (scripts/build.js's
      HEADER_FULL) is untouched, just restyled here for the page ad
-     traffic actually lands on now. */
-  header { backdrop-filter: blur(10px); background: rgba(11, 10, 8, 0.82); }
+     traffic actually lands on now.
+
+     This page used to also re-declare the header as
+     `backdrop-filter: blur(10px); background: rgba(11,10,8,0.82)`,
+     which did two unwanted things. It reintroduced a translucent
+     header on the one page that explicitly made it solid so nothing
+     shows through the nav mid-scroll. And backdrop-filter makes an
+     element the containing block for fixed-position descendants, so
+     the mobile menu panel's `inset: 0` filled the 390x60 header box
+     instead of the viewport -- the panel opened as a sliver over the
+     bar with its links above the top edge. Removed; the shared
+     opaque header is the intended one. */
   header nav a[href="shop.html"] {
     color: var(--ink);
     position: relative;
@@ -63,158 +70,6 @@
     left: 0; right: 0; bottom: -4px;
     height: 1px;
     background: var(--ink);
-  }
-
-  /* ---------- lookbook strip (bottom of page) ----------
-     Real photography (images/look-*.jpg, the same files community.html
-     uses) — proof of how a piece looks worn, after the catalog rather
-     than before it now: the grid is why someone's here, this is what
-     keeps a scroller going past it. Links out to the full lookbook
-     rather than duplicating it. */
-  .shop-lookbook {
-    padding: 0 40px 12vh;
-    max-width: 1180px;
-    margin: 0 auto;
-  }
-
-  .shop-lookbook-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-
-  .shop-look {
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 2px;
-  }
-
-  .shop-look img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.8s var(--ease-img);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .shop-look:hover img { transform: scale(1.035); }
-  }
-
-  .shop-lookbook-link {
-    display: inline-block;
-    margin-top: 14px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: underline;
-  }
-
-  @media (max-width: 640px) {
-    .shop-lookbook { padding: 0 20px 8vh; }
-    .shop-lookbook-row { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  /* Email/SMS capture for the browsing majority who don't buy today.
-     cart.html has had this exact offer for a while, but only a visitor
-     who already added something to cart ever sees it — everyone else,
-     which is most traffic, had zero way to leave contact info and be
-     brought back for the next drop. index.html
-     used to carry a version of this too, but it's now a pure 301 to
-     this page and its own signup form is unreachable dead code. Same
-     Klaviyo call, same real 5%-off incentive, same consent copy —
-     just on the page where visitors actually land. */
-  .shop-klaviyo {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 6vh 40px 8vh;
-    border-top: 1px solid var(--line);
-    text-align: center;
-  }
-
-  .shop-klaviyo-label {
-    font-family: var(--font-mono);
-    margin-bottom: 16px;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .shop-signup-form {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 18px;
-    flex-wrap: wrap;
-  }
-
-  .shop-signup-form input {
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--field-line);
-    padding: 8px 2px;
-    font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 300;
-    color: var(--ink);
-    min-width: 150px;
-    transition: border-color 0.3s ease;
-  }
-
-  .shop-signup-form input::placeholder { color: var(--muted); }
-  .shop-signup-form input:focus { border-color: var(--ink); }
-
-  .shop-signup-form button {
-    position: relative;
-    background: none;
-    border: none;
-    font-family: var(--font-body);
-    font-size: 11px;
-    font-weight: 300;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink);
-    cursor: pointer;
-    padding-bottom: 6px;
-    transition: transform 160ms var(--ease-out);
-  }
-
-  .shop-signup-form button::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: var(--ink);
-    transition: width 300ms var(--ease-out);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .shop-signup-form button:hover::after { width: 100%; }
-  }
-
-  .shop-signup-form button:not([disabled]):active { transform: scale(0.96); }
-  .shop-signup-form button[disabled] { opacity: 0.5; cursor: not-allowed; }
-
-  .shop-signup-confirm {
-    display: none;
-    margin-top: 10px;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-
-  .shop-signup-confirm.show { display: block; }
-
-  .shop-klaviyo .consent { margin-left: auto; margin-right: auto; }
-
-  @media (max-width: 640px) {
-    .shop-klaviyo { padding: 5vh 20px 6vh; }
-    .shop-signup-form { flex-direction: column; align-items: stretch; gap: 14px; }
-    .shop-signup-form input { text-align: center; }
   }
 
   /* ---------- shop grid ----------
@@ -230,93 +85,399 @@
     margin: 0 auto;
   }
 
-  .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 28px 24px;
-  }
-
-  .product {
-    display: block;
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
-  }
-
-  .product.in { opacity: 1; transform: translateY(0); }
-
-  .product-img {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 4px;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
-    transition: transform 160ms var(--ease-out);
-  }
-
-  .price-badge {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    z-index: 2;
-    background: rgba(11, 10, 8, 0.72);
-    backdrop-filter: blur(4px);
+  /* ---------- quick view ----------
+     A real <dialog>, so the backdrop, the top layer, Escape and the
+     focus trap are the browser's job rather than ours. */
+  .peek {
+    border: 0;
+    padding: 0;
+    /* margin:auto explicitly. A modal <dialog> is centred by the UA's
+       own `margin: auto`, and the site's reset zeroes margins on
+       everything -- which left this pinned to the left edge. */
+    margin: auto;
+    width: min(880px, 92vw);
+    /* A definite height, not a max: the media column scrolls inside the
+       dialog, and a scroll container needs a bounded parent or it just
+       makes the dialog taller. */
+    height: min(680px, 88vh);
+    background: var(--surface);
     color: var(--ink);
+    overflow: hidden;
+  }
+
+  .peek::backdrop { background: rgba(6, 5, 9, 0.82); }
+
+  .peek-in {
+    display: grid;
+    grid-template-columns: 1fr minmax(290px, 350px);
+    height: 100%;
+    position: relative;
+  }
+
+  /* The photographs scroll on their own, so a long gallery never
+     pushes Add to Cart off the bottom of the dialog. */
+  /* Flex column, not grid. As a grid with a definite height, the rows
+     were being compressed to share the 680px between them, so each
+     photograph showed as a ~225px band of its own middle. Flex items
+     that cannot shrink keep their aspect ratio and the column
+     scrolls, which is what a gallery is. */
+  .peek-media {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #0a0910;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: thin;
+  }
+
+  .peek-media > * { flex: 0 0 auto; scroll-snap-align: start; }
+
+  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; }
+  .peek-shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+  .peek-ph { aspect-ratio: 2 / 3; background: #141219; }
+
+  .peek-buy {
+    padding: 26px 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .peek-name {
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 800;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .peek-price { font-family: var(--font-mono); font-size: 15px; color: var(--ink-dim); }
+
+  .peek-label {
     font-family: var(--font-mono);
     font-size: 10px;
-    letter-spacing: 0.05em;
-    padding: 5px 8px;
-    border-radius: 3px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
   }
 
-  .price-badge .compare {
-    text-decoration: line-through;
-    opacity: 0.6;
-    margin-right: 5px;
+  .peek-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* In the quick view a sold-out size does something -- it asks for
+     that size back -- so it does not wear the not-allowed cursor the
+     grid's quick-add chips do, where the only job is to add. */
+  .peek-sizes .qa-size.unavailable { cursor: pointer; }
+  .peek-sizes .qa-size[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+  .peek-msg {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+    min-height: 1em;
   }
 
-  .product-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transition: transform 0.8s var(--ease-img), filter 0.6s ease;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .product:hover .product-img img {
-      transform: scale(1.035);
-      filter: brightness(1.03);
-    }
-  }
-
-  .product:active .product-img { transform: scale(0.985); }
-
-  .name-row {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
+  .peek-bis {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    display: grid;
     gap: 8px;
   }
 
-  .product .name {
+  /* An author `display` beats the UA's `[hidden] { display: none }`, so
+     without this the capture was visible on every piece including the
+     ones you can buy. */
+  .peek-bis[hidden] { display: none; }
+
+  .peek-bis-row { display: flex; gap: 8px; align-items: flex-end; }
+  .peek-bis-row .field { flex: 1 1 auto; min-width: 0; }
+
+  .peek-trust {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 6px;
+  }
+
+  .peek-trust li {
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .peek-full { margin-top: 4px; }
+
+  .peek-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
+
+  .peek-wait {
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: var(--muted);
+    padding: 60px 30px;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- quick view trigger ----------
+     Hidden until the tile is hovered on a pointer device; always
+     present on touch, where there is no hover to reveal it and the
+     control would otherwise be unreachable. */
+  .product-frame { position: relative; }
+
+  .product-peek {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    /* Above the hover frame, which is z-index 1 in this same context. */
+    z-index: 2;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--field-line);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .product-frame:hover .product-peek,
+    /* focus-within as well as hover, so tabbing to the trigger reveals
+       it rather than leaving a keyboard user pressing something they
+       cannot see. */
+    .product-frame:focus-within .product-peek,
+    .product-peek:focus-visible {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+  }
+
+  /* No hover on a touch screen, so the control is simply always there
+     -- a button that only appears on hover is a button a phone can
+     never reach. */
+  @media (hover: none), (pointer: coarse) {
+    .product-peek { opacity: 1; transform: none; pointer-events: auto; }
+  }
+
+  /* ---------- hero [measured: 905px, full bleed] ---------- */
+  .hero {
+    position: relative;
+    height: 905px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+    display: block;
+  }
+
+  /* [theme var] Image overlay #000 at 0.2, which is what keeps the
+     white nav and the link legible over an arbitrary photograph. */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
+
+  /* The local fallback only renders when the build wrote no live
+     photograph; both would otherwise stack. */
+  .hero:has(> img) .hero-fallback { display: none; }
+  @supports not selector(:has(*)) { .hero > img { display: none; } }
+
+  /* [measured] One underlined text link near the bottom, centred:
+     12px, weight 500, letter-spacing 1px, white. Not a button. */
+  .hero-link {
+    position: absolute;
+    left: 50%;
+    bottom: 86px;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #fff;
+    padding-bottom: 3px;
+    white-space: nowrap;
+  }
+
+  .hero-link:hover { opacity: 0.75; }
+  .hero-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+  /* ---------- product rows [measured: section spacing 0] ---------- */
+  .home-row { padding: 16px var(--page-pad) 0; }
+
+  /* [measured] Label left 14px 400, "View all" right 12px 500 with
+     1px tracking; cards start 37px below the row. */
+  .row-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 37px;
+  }
+
+  .row-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: uppercase;
     color: var(--ink);
   }
 
-  .preorder-tag {
-    flex: none;
-    border: 1px solid var(--muted);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.08em;
+  .row-link {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
-    padding: 3px 7px;
-    border-radius: 2px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .row-link:hover { opacity: 0.6; }
+
+  .home-row + .home-row { padding-top: 54px; }
+  .home-row:last-of-type { padding-bottom: 54px; }
+
+  /* ---------- campaign frame [measured: 945px, full bleed] -------- */
+  .campaign-frame {
+    position: relative;
+    height: 945px;
+    overflow: hidden;
+    margin-top: 54px;
+    background: var(--surface);
+  }
+
+  .campaign-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+  }
+
+  /* [measured] 116x34, 1px white border, transparent, 12px 500,
+     letter-spacing 1px, padding 7px 20px, square. */
+  .btn-outline {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 116px;
+    height: 34px;
+    padding: 7px 20px;
+    border: 1px solid #fff;
+    border-radius: var(--btn-radius);
+    background: transparent;
+    color: #fff;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  }
+
+  .btn-outline:hover { background: #fff; color: #000; }
+  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+  /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
+       30px side padding] ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 54px 30px;
+  }
+
+  .tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 454 / 600;
+    overflow: hidden;
+    background: var(--surface);
+    text-decoration: none;
+  }
+
+  .tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--dur-image) var(--ease-out);
+  }
+
+  .tile:hover img { transform: scale(1.03); }
+
+  .tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .tile-label {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  /* [spec section 11] Mobile: 2-up grids, ~10px gap, 15px side
+     padding. The hero and the campaign frame are measured at desktop
+     and would be three screens tall on a phone, so both are clamped to
+     the viewport instead of scaled down proportionally. */
+  @media (max-width: 900px) {
+    .hero { height: 78vh; min-height: 460px; }
+    .hero-link { bottom: 46px; }
+
+    .home-row { padding: 16px 15px 0; }
+    .home-row + .home-row { padding-top: 34px; }
+    .home-row:last-of-type { padding-bottom: 34px; }
+    .row-head { margin-bottom: 20px; }
+
+    .campaign-frame { height: 62vh; min-height: 400px; margin-top: 34px; }
+    .btn-outline { bottom: 48px; }
+
+    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
+    .tile-label { bottom: 16px; font-size: 12px; }
   }
 
   /* ---------- quick add ----------
@@ -325,20 +486,19 @@
      wraps only the image+name (so it can still navigate to the full
      product page) while this row sits beside it as its own set of
      buttons, since a button can't legally nest inside an <a>. */
-  .product-link { display: block; }
 
   .quick-add {
-    margin-top: 10px;
+    margin-top: 9px;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
     min-height: 26px;
   }
 
   .qa-size {
-    min-width: 32px;
-    height: 28px;
-    padding: 0 9px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -349,7 +509,7 @@
     font-size: 10px;
     letter-spacing: 0.03em;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 0;
     position: relative;
     overflow: hidden;
     transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out);
@@ -436,32 +596,27 @@
 
   .shop-loading.hide { display: none; }
 
-  /* When build.js has pre-rendered real products into the grid, there is
-     nothing to wait for — hide the loading line without needing JS to
-     run, so a no-JS visitor doesn't read "Loading the shop…" sitting
-     above a fully rendered catalog. The .hide class above still covers
-     browsers too old for :has(); this just gets there first. */
-  .shop:has(#shopGrid .product) .shop-loading { display: none; }
-
-  @media (max-width: 900px) {
-    .shop-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
-    header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
-    .shop { padding: 16px 20px 10vh; }
-    .shop-grid { grid-template-columns: 1fr; gap: 14px; }
+    header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
+    header .mark { font-size: 13px; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
+    .shop { padding: 14px 16px 10vh; }
+    .shop-tools { padding: 0 16px; }
+    .shop-tools-row { padding: 8px 0 12px; gap: 4px; }
+    .shop-count { width: 100%; margin: 0 0 8px; }
+    .qa-size { min-width: 24px; height: 24px; font-size: 9.5px; padding: 0 5px; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .product {
-      opacity: 1 !important;
-      transform: none !important;
-    }
+  /* 360 and below: the name and the price must still sit on one line
+     and the size controls must still be tappable. */
+  @media (max-width: 380px) {
+    .shop { padding: 12px 12px 10vh; }
   }
+
 
   /* Recently-viewed rail. Hidden until there is real history to show.
      Bottom hairline is the only thing telling a returning visitor
@@ -478,6 +633,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -485,123 +648,157 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
-  <header>
-    <a class="mark" href="shop.html">Asior</a>
-    <nav>
-      <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
-    </nav>
-  </header>
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+    </div>
+  </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
 
-  <div class="page-top-space"></div>
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/collections/accessories.html">Accessories</a>
+      <a href="/manufacturing.html">Manufacturing</a>
+    </nav>
+
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
+    </div>
+  </header>
   <!-- HEADER:END -->
 
   <main id="main">
 
-  <!-- Visually hidden: no heading shows and it takes up no space, but
-       the page keeps exactly one real <h1> for screen readers and SEO
-       rather than having none at all. Remove this too if that's not
-       wanted — .sr-only is the shared utility class (assets/site.css),
-       not something added for this. -->
-  <h1 class="sr-only">Shop All</h1>
+  <!-- /shop.html is the catalogue. The campaign homepage is now at /,
+       which is what the reference does: an editorial front page, and
+       catalogue pages behind the nav. This page used to be both, which
+       is why the site opened on a grid instead of a campaign. -->
+  <section class="shop coll">
+    <div class="coll-head">
+      <h1 class="coll-title">Shop all</h1>
+      <button type="button" class="coll-filter" id="filterOpen" aria-expanded="false" aria-controls="filterDrawer">
+        Filter
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M3 6h18M6 12h12M10 18h4"/>
+        </svg>
+      </button>
+    </div>
 
-  <!-- Personalization from real browsing history (assets/site.js's
-       getViewed()) — shown before the full catalog, not after, when
-       there's real history to act on. A returning visitor sees what's
-       relevant to them first; a first-time visitor never sees this
-       section at all (see renderRecentlyViewed's own guard). -->
-  <section class="shop-recent" id="shopRecent"></section>
-
-  <!-- Every Active product in the real Shopify catalog, fetched live on
-       load. Add, remove, or change something in Shopify Admin and this
-       page reflects it automatically, nothing here is hardcoded. Order
-       is real merchandising (new Fall pieces first, then the
-       visitor's own size availability), not Shopify's default —
-       see sortForMerchandising below. -->
-  <section class="shop" id="shop">
-    <!-- Verified shipping offer, stated once above the grid. Filled by
-         JS from assets/promo-config.js and left empty when nothing is
-         confirmed, so an unverified claim can never render here. -->
-    <p class="shop-shipping" id="shopShipping" hidden></p>
-    <div class="shop-loading" id="shopLoading">Loading the shop…</div>
-    <!-- scripts/build.js bakes the real catalog between these markers at
-         deploy time, so the served HTML contains actual products for
-         crawlers, link previews, and anyone whose JS hasn't run yet. The
-         live fetch below replaces them so price and stock stay current —
-         the static markup is the floor, not the ceiling. -->
-    <div class="shop-grid" id="shopGrid">
+    <div class="shop-grid coll-grid" id="shopGrid">
       <!-- SHOPGRID:START -->
       <!-- SHOPGRID:END -->
     </div>
-    <!-- Intentionally empty in the served HTML. This used to carry
-         "Nothing in the shop right now" as static text, which is hidden
-         by CSS but still sits in the markup — a scraper reading raw HTML
-         reports the store as empty when it isn't. The message is set
-         from JS, only when it's actually true. -->
-    <div class="shop-empty" id="shopEmpty"></div>
+    <p class="coll-empty" id="shopEmpty" hidden></p>
   </section>
 
-  <!-- Real photography from the lookbook (images/look-*.jpg, same
-       files community.html uses) — proof of how a piece actually
-       looks worn. Sits after the catalog now: the grid is the reason
-       someone's on this page, the lookbook is the closer for anyone
-       still scrolling. -->
-  <section class="shop-lookbook">
-    <h2 class="rail-label">Lookbook</h2>
-    <div class="shop-lookbook-row">
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="shop-look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Asior, worn" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+  <section class="shop-recent" id="shopRecent"></section>
+
+  <div class="filter-scrim" id="filterScrim"></div>
+  <aside class="filter-drawer" id="filterDrawer" role="dialog" aria-modal="true"
+         aria-label="Filter and sort" inert>
+    <div class="filter-head">
+      <h2 class="filter-title">Filter</h2>
+      <button type="button" class="filter-close" id="filterClose">Close</button>
     </div>
-    <a class="shop-lookbook-link" href="community.html#look">See the full lookbook</a>
-  </section>
-
-  <section class="shop-klaviyo" id="signup">
-    <div class="shop-klaviyo-label">Get 5% Off Your First Order</div>
-    <form class="shop-signup-form" id="shopSignupForm">
-      <label class="sr-only" for="shopSignupEmail">Email address</label>
-      <input type="email" id="shopSignupEmail" name="email" placeholder="Email"
-             autocomplete="email" spellcheck="false" required>
-      <label class="sr-only" for="shopSignupPhone">Phone number (optional)</label>
-      <input type="tel" id="shopSignupPhone" name="phone" placeholder="Phone (optional)"
-             autocomplete="tel" inputmode="tel">
-      <button type="submit" id="shopSignupBtn">Sign Up</button>
-    </form>
-    <p class="consent">
-      Email only? Leave the phone field blank. By giving your number you agree to
-      receive recurring automated marketing texts from Asior at that number.
-      Consent is not a condition of any purchase. Message frequency varies and
-      message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
-      <a href="privacy-policy.html">Privacy Policy</a> and
-      <a href="terms-of-service.html">Terms of Service</a>.
-    </p>
-    <div class="shop-signup-confirm" id="shopSignupConfirm" role="status" aria-live="polite">You're in. Check your inbox for your code.</div>
-  </section>
+    <fieldset class="filter-group">
+      <legend class="filter-legend">Availability</legend>
+      <label class="filter-opt"><input type="checkbox" id="fltInStock"> In stock only</label>
+    </fieldset>
+    <fieldset class="filter-group">
+      <legend class="filter-legend">Price</legend>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="featured" checked> Featured</label>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="asc"> Low to high</label>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="desc"> High to low</label>
+    </fieldset>
+    <div class="filter-actions">
+      <button type="button" class="btn btn--quiet btn--sm" id="filterReset">Reset</button>
+    </div>
+  </aside>
 
   </main>
 
   <!-- FOOTER:START -->
-  <footer id="order">
-    <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
-    <div class="social">
-      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
-      </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
-      </a>
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
     </div>
-    <div class="policy-links">
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+      </div>
     </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
   </footer>
   <!-- FOOTER:END -->
 
@@ -619,164 +816,38 @@
   // message belongs over them, and the live cards shouldn't fade in
   // over content the visitor is already reading.
   const WAS_PRERENDERED = document.getElementById('shopGrid').children.length > 0;
-  if (WAS_PRERENDERED) document.getElementById('shopLoading').classList.add('hide');
 
-  // Stated once, above the grid, and only when verified.
-  (function showShippingOffer() {
-    const badge = A.freeShippingBadge && A.freeShippingBadge();
-    if (!badge) return;
-    const el = document.getElementById('shopShipping');
-    el.textContent = badge;
-    el.hidden = false;
-  })();
 
-  // Same signup cart.html has had — real Klaviyo list, real 5%-off
-  // incentive, same consent copy — just reachable from the page every
-  // visitor actually lands on, not only the ones who already added
-  // something to cart.
-  (function bindShopSignupForm() {
-    const form = document.getElementById('shopSignupForm');
-    if (!form) return;
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('shopSignupBtn');
-      const confirmEl = document.getElementById('shopSignupConfirm');
-      const email = document.getElementById('shopSignupEmail').value;
-      const phone = document.getElementById('shopSignupPhone').value;
+  /* Real, live catalog. Whatever's Active in Shopify shows here; Draft
+     products are absent from the response entirely, so they just don't
+     appear rather than erroring.
 
-      btn.disabled = true;
-      try {
-        await A.klaviyoSubscribe(email, phone);
-        A.klaviyoTrack('Early Access Signup',
-          Object.assign({ source: 'website', signup_location: 'shop', campaign: 'fall_2026', interest: 'fall_collection' },
-            A.getUTMParams()),
-          { email: email });
-        form.style.display = 'none';
-        confirmEl.textContent = "You're in. Check your inbox for your code.";
-        confirmEl.classList.add('show');
-      } catch (err) {
-        confirmEl.textContent = 'Something went wrong, try again in a moment.';
-        confirmEl.classList.add('show');
-        btn.disabled = false;
-      }
-    });
-  })();
+     The field set and the normalizer both live in assets/site.js now
+     (PRODUCT_CARD_FIELDS / normalizeProduct), shared with every
+     collection page, so a page cannot ask for less than it renders.
+     Note what the field set still leaves out: quantityAvailable mixed
+     into a catalog query is what broke live images and pricing across
+     browsers earlier this launch, and a card only needs the boolean.
 
-  // Real, live catalog. Whatever's Active in Shopify shows here; Draft
-  // products are absent from the response entirely, so they just don't
-  // appear rather than erroring.
-  // options/selectedOptions added for quick-add size chips — both are
-  // fields this codebase already fetches without incident elsewhere
-  // (product.html, assets/fall-grid.js). quantityAvailable is
-  // deliberately NOT added here: that field, mixed into a catalog
-  // query, is what broke live images/pricing across browsers in
-  // production earlier this launch (see assets/fall-grid.js's
-  // history) — quick-add only ever needs the boolean
-  // availableForSale, never an exact count.
+     normalizeProduct returns null for a malformed record, so one bad
+     product out of fifty cannot blank the whole grid -- the guarantee
+     the inline try/catch used to give. */
   async function fetchCatalog() {
     const data = await A.shopifyFetch(`{
       products(first: 50) {
-        edges {
-          node {
-            title
-            handle
-            options { name values }
-            featuredImage { ${A.IMAGE_FIELDS} }
-            variants(first: 20) {
-              edges { node {
-                id availableForSale price { amount } compareAtPrice { amount }
-                selectedOptions { name value }
-              } }
-            }
-          }
-        }
+        edges { node { ${A.PRODUCT_CARD_FIELDS} } }
       }
     }`);
-    // One malformed product from a 50-item live catalog should never
-    // blank the whole shop grid. Map defensively, skip anything that
-    // doesn't fit the shape we expect, and say so in the console rather
-    // than silently dropping it or crashing the entire fetch.
-    return data.products.edges.reduce((acc, e) => {
-      try {
-        const node = e.node;
-        const variants = node.variants.edges.map(v => v.node);
-        const prices = variants.map(v => parseFloat(v.price.amount));
-        const compares = variants
-          .map(v => v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null)
-          .filter(Boolean);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        const compare = compares.length && compares[0] > minPrice ? compares[0] : null;
-        const hasSizeOnly = node.options.length === 1 && node.options[0].name === 'Size';
-        acc.push({
-          handle: node.handle,
-          name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-          image: node.featuredImage,
-          isPreorder: /\[preorder\]/i.test(node.title),
-          soldOut: variants.length > 0 && variants.every(v => !v.availableForSale),
-          priceLabel: minPrice === maxPrice
-            ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${minPrice}`
-            : `From $${minPrice}`,
-          // Quick-add only makes sense when Size is the one and only
-          // choice to make — a product with a second option (color,
-          // material) needs the full product page, where that choice
-          // has room to be made correctly. A variant missing a "Size"
-          // selected option (bad data, not a code path we can fix here)
-          // falls back to null rather than throwing and taking every
-          // other product on the page down with it.
-          sizes: hasSizeOnly
-            ? variants.map(v => {
-                const sizeOpt = v.selectedOptions.find(o => o.name === 'Size');
-                return sizeOpt ? { size: sizeOpt.value, variantId: v.id, available: v.availableForSale } : null;
-              }).filter(Boolean)
-            : null,
-        });
-      } catch (err) {
-        console.warn('Skipping malformed product in shop grid:', e.node && e.node.handle, err);
-      }
-      return acc;
-    }, []);
+    return data.products.edges
+      .map(e => A.normalizeProduct(e.node))
+      .filter(Boolean);
   }
 
+  /* The card itself is assets/site.js's productCard, so the grid, the
+     collection pages and (via shopCard in scripts/build.js) the
+     pre-rendered markup all describe the same tile. */
   function card(p, eager) {
-    // Sold out is stated on the tile rather than discovered after a
-    // click. Honest, and it stops a dead-end journey.
-    const media = p.image
-      ? A.imgTag(p.image, {
-          alt: 'Asior ' + p.name,
-          eager: eager,
-          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
-        })
-      : '';
-    const mine = A.preferredSize();
-    // .product is a plain wrapper now, not itself the link: a <button>
-    // can't legally nest inside an <a>, and quick-add needs both a
-    // navigable image/name and a set of buttons beside it.
-    const quickAdd = p.sizes
-      ? `<div class="quick-add" data-handle="${A.escapeAttr(p.handle)}" data-name="${A.escapeAttr(p.name)}">
-          ${p.sizes.map(s => `
-            <button type="button" class="qa-size${s.available ? '' : ' unavailable'}${s.size === mine ? ' mine' : ''}"
-                    data-variant-id="${A.escapeAttr(s.variantId)}" data-size="${A.escapeAttr(s.size)}"
-                    ${s.available ? '' : 'disabled'} aria-label="${s.available ? `Add size ${s.size} to cart` : `Size ${s.size}, sold out`}">
-              ${A.escapeHtml(s.size)}
-            </button>`).join('')}
-        </div>`
-      : '';
-    return `
-      <div class="product">
-        <a class="product-link" href="/products/${p.handle}.html">
-          <div class="product-img">
-            ${media}
-            <div class="price-badge tnum">${p.priceLabel}</div>
-          </div>
-          <div class="name-row">
-            <div class="name">${A.escapeHtml(p.name)}</div>
-            ${p.isPreorder ? `<span class="preorder-tag">Preorder</span>` : ''}
-            ${p.soldOut ? `<span class="preorder-tag">Sold Out</span>` : ''}
-          </div>
-        </a>
-        ${quickAdd}
-      </div>`;
+    return A.productCard(p, { eager: eager });
   }
 
   // Add straight from the grid — no navigation, so browsing never
@@ -816,7 +887,7 @@
       try {
         await A.addToShopifyCart(variantId, 1);
         A.recordSizeChoice(size);
-        A.klaviyoTrack('Added To Cart', { handle, size, source: 'shop-grid' });
+        A.trackCart('Added To Cart', { handle, size, source: 'shop-grid' });
         // Onsite twin, for Klaviyo's Abandoned Cart flow. No price:
         // the card shows a label that can be a range or a markdown
         // pair, and a guessed number is worse than none — the helper
@@ -827,19 +898,30 @@
           url: location.origin + '/products/' + handle + '.html',
           size,
           quantity: 1,
+          source: 'shop-grid',
         });
         // No price here either, for the same reason: the grid's label
         // can be a range or a markdown pair, and a midpoint or a low
         // end would be a number nobody is actually charged.
+        // No price: the grid's label can be a range or a markdown
+        // pair, and a guessed value is worse than none.
+        if (window.AsiorAds) {
+          window.AsiorAds.addToCart({ handle, name: wrap.dataset.name || handle, quantity: 1 });
+        }
         if (window.AsiorAnalytics) {
           window.AsiorAnalytics.addToCart({
             handle, name: wrap.dataset.name || handle,
             variantId, quantity: 1,
           });
         }
-        wrap.innerHTML = `<span class="qa-msg">Added ${A.escapeHtml(size)} — <a href="/cart.html">view cart</a></span>`;
+        wrap.innerHTML = `<span class="qa-msg">added ${A.escapeHtml(size)}. <a href="/cart.html">View cart</a></span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } catch (err) {
+        // A failed add is the one funnel step with no other trace: the
+        // shopper sees an error and leaves, and nothing downstream ever
+        // records that they tried. No existing metric covers it, so this
+        // is a new one rather than a duplicate.
+        A.trackCart('Quick Add Failed', { handle, size, source: 'shop-grid' });
         wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } finally {
@@ -856,29 +938,86 @@
   // "Pick Up Where You Left Off" started at opacity:0 (see .product in
   // the stylesheet above) and, with nothing ever adding .in, stayed
   // invisible permanently. Real bug, not a design choice.
-  function revealOnScroll(container) {
-    const items = container.querySelectorAll('.product');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('in'), (i % 4) * 60);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.2 });
-    items.forEach(p => observer.observe(p));
+  /* .product starts at opacity 0 and needs .in to be seen.
+     Two ways that used to leave a card black with nothing a visitor
+     could do about it except scroll, both fixed here:
+
+       - threshold 0.2 asked for a fifth of the card to be on screen.
+         A card taller than the viewport can never satisfy that, so it
+         stayed invisible no matter how far you scrolled.
+       - a browser without IntersectionObserver observed nothing, so
+         every card stayed at opacity 0 forever.
+
+     Now: anything at or near the first screen is revealed immediately,
+     without waiting to be observed, so a visitor who loads the page
+     and touches nothing sees products. The rest still fade in on
+     approach, with rootMargin so they arrive already visible rather
+     than fading in under the reader's eye. */
+  /* Second-image-on-hover.
+
+     Delegated to the grid container and bound once, because the cards
+     are re-rendered wholesale on every fetch. The <img> is created on
+     the first pointer entry and then kept, so a tile fetches its hover
+     frame at most once and a tile nobody hovers never fetches one at
+     all. .ready is added on decode so the cross-fade starts from a
+     painted image rather than from a blank box.
+
+     Pointer-gated: a touch "hover" latches after a tap and would leave
+     the second photograph stuck over the first, so this binds nothing
+     on a phone. */
+  /* assets/site.js owns the hover swap now, shared with the collection
+     pages. */
+  function wireHoverSwap(container) {
+    return A.wireHoverSwap(container);
   }
 
+  function revealOnScroll(container) {
+    const items = Array.from(container.querySelectorAll('.product'));
+    if (!items.length) return;
+
+    const reveal = (el, i) => setTimeout(() => el.classList.add('in'), (i % 4) * 60);
+
+    if (!('IntersectionObserver' in window)) {
+      items.forEach(reveal);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (!entry.isIntersecting) return;
+        reveal(entry.target, i);
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0, rootMargin: '300px 0px' });
+
+    const fold = window.innerHeight + 300;
+    items.forEach((p, i) => {
+      // Already on, or just below, the first screen: show it now.
+      if (p.getBoundingClientRect().top < fold) { reveal(p, i); return; }
+      observer.observe(p);
+    });
+  }
+
+  /* The lineup row. The reference homepage carries no sort or filter
+     controls -- browsing by category is what the collection pages and
+     their FILTER drawer are for -- so this renders the catalogue in
+     merchandising order and nothing else. */
   function renderGrid(catalog) {
-    document.getElementById('shopLoading').classList.add('hide');
     const grid = document.getElementById('shopGrid');
     const empty = document.getElementById('shopEmpty');
+    if (!grid) return;
 
-    if (catalog.length === 0) {
+    if (!catalog.length) {
       grid.innerHTML = '';
-      empty.textContent = 'Nothing in the shop right now, check back soon.';
-      empty.classList.add('show');
+      if (empty) {
+        empty.textContent = 'nothing in the shop right now. check back soon.';
+        empty.classList.add('show');
+      }
       return;
+    }
+    if (empty) {
+      empty.classList.remove('show');
+      empty.textContent = '';
     }
 
     // Whatever's already shown in "Pick Up Where You Left Off" is
@@ -891,8 +1030,12 @@
 
     // The first row is the LCP candidate, so it loads eagerly; the rest
     // are lazy. Never lazy-load the largest above-the-fold image.
-    grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 3)).join('');
+    grid.innerHTML = mainCatalog.map((p, i) => card(p, i < 4)).join('');
     bindQuickAdd(grid);
+    // Outside the branch below: the reveal animation is skipped on a
+    // pre-rendered page because the cards are already visible, but the
+    // hover swap has to be bound either way.
+    wireHoverSwap(grid);
     if (WAS_PRERENDERED) {
       // Swapping pre-rendered cards for live ones should be invisible.
       grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
@@ -928,6 +1071,7 @@
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
     revealOnScroll(recentGrid);
+    wireHoverSwap(recentGrid);
     section.classList.add('show');
     return new Set(seen.map(p => p.handle));
   }
@@ -957,18 +1101,429 @@
     return [...fall, ...rest];
   }
 
+
+  // Config-only states are knowable now; sold-out waits for the fetch.
+
+  /* ---- quick view ---------------------------------------------------
+
+     A shopper on the grid who wants a second look at a piece had two
+     options: add a size blind from the chips, or leave the grid for the
+     product page and come back. This is the third -- the photographs,
+     the price, the size run and Add to Cart, over the grid, with the
+     scroll position still underneath it.
+
+     <dialog> rather than a hand-built modal: focus trapping, Escape,
+     inertness of the page behind it and the top layer all come from the
+     element. It fetches the one product it needs on open, from the same
+     query the product page uses, so nothing here is a second copy of
+     the catalogue that can drift.
+
+     It is not a replacement for the product page. Measurements, the
+     description and shipping live there, and "Full details" is always
+     the first thing after the buy controls. */
+  let peekEl = null;
+  let peekBusy = false;
+  const peekCache = new Map();
+
+  function ensurePeek() {
+    if (peekEl) return peekEl;
+    peekEl = document.createElement('dialog');
+    peekEl.className = 'peek';
+    peekEl.innerHTML = '<div class="peek-in" id="peekIn"></div>';
+    document.body.appendChild(peekEl);
+    // Clicking the backdrop closes. The dialog's own box stops the
+    // click, so this only fires on the area outside it.
+    peekEl.addEventListener('click', (e) => { if (e.target === peekEl) peekEl.close(); });
+    peekEl.addEventListener('close', () => { document.documentElement.style.overflow = ''; });
+    return peekEl;
+  }
+
+  async function fetchOne(handle) {
+    if (peekCache.has(handle)) return peekCache.get(handle);
+    const data = await A.shopifyFetch(`
+      query($handle: String!) {
+        product(handle: $handle) {
+          title handle
+          images(first: 6) { edges { node { ${A.IMAGE_FIELDS} } } }
+          options { name values }
+          variants(first: 40) { edges { node {
+            id title availableForSale price { amount } selectedOptions { name value }
+          } } }
+        }
+      }`, { handle });
+    peekCache.set(handle, data.product);
+    return data.product;
+  }
+
+  async function openPeek(handle) {
+    if (peekBusy) return;
+    peekBusy = true;
+    const dlg = ensurePeek();
+    const box = document.getElementById('peekIn');
+    box.innerHTML = '<p class="peek-wait">Loading\u2026</p>';
+    document.documentElement.style.overflow = 'hidden';
+    dlg.showModal();
+    try {
+      renderPeek(await fetchOne(handle), handle);
+    } catch (err) {
+      console.error('Quick view failed:', err);
+      box.innerHTML = '<p class="peek-wait">Couldn\'t load this piece. '
+        + `<a href="/products/${encodeURIComponent(handle)}.html">Open the full page</a>.</p>`;
+    } finally {
+      peekBusy = false;
+    }
+  }
+
+  function renderPeek(product, handle) {
+    const box = document.getElementById('peekIn');
+    if (!product) {
+      box.innerHTML = '<p class="peek-wait">That piece isn\'t in the catalog.</p>';
+      return;
+    }
+    // Same ordering rule as the PDP gallery: a photograph is the
+    // first frame in the quick view, never a generated render.
+    const images = A.orderImages(product.images.edges.map(e => e.node));
+    const variants = product.variants.edges.map(e => e.node);
+    const sizeOnly = product.options.length === 1 && product.options[0].name === 'Size';
+    const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => isFinite(n));
+    const lo = Math.min(...prices), hi = Math.max(...prices);
+    const priceLabel = lo === hi ? `$${lo.toFixed(2)}` : `From $${lo.toFixed(2)}`;
+    const allOut = variants.length > 0 && variants.every(v => !v.availableForSale);
+
+    box.innerHTML = `
+      <button type="button" class="peek-close btn btn--quiet btn--sm" id="peekClose" aria-label="Close quick view">Close</button>
+      <div class="peek-media">
+        ${images.length
+          ? images.slice(0, 4).map((im, i) => `<figure class="peek-shot">${A.imgTag(im, {
+              alt: im.altText || product.title, eager: i === 0, sizes: '(max-width: 760px) 86vw, 420px',
+            })}</figure>`).join('')
+          : '<div class="peek-ph"></div>'}
+      </div>
+      <div class="peek-buy">
+        <h2 class="peek-name">${A.escapeHtml(product.title)}</h2>
+        <div class="peek-price tnum">${priceLabel}</div>
+        ${sizeOnly ? `
+          <div class="peek-label">Size</div>
+          <div class="peek-sizes" id="peekSizes">
+            ${variants.map(v => {
+              const size = (v.selectedOptions.find(o => o.name === 'Size') || {}).value || v.title;
+              /* A sold-out size here is not disabled, in either sense.
+                 `disabled` fires no click at all, so "press the size
+                 that is gone to ask for it back" could never have
+                 worked; `aria-disabled` is worse -- it tells a screen
+                 reader the control is dead while it quietly still
+                 acts. It is an ordinary enabled button whose label
+                 says what pressing it does. The strike-through is the
+                 same information for a sighted shopper. */
+              return `<button type="button" class="qa-size${v.availableForSale ? '' : ' unavailable'}"
+                        data-variant-id="${A.escapeAttr(v.id)}" data-size="${A.escapeAttr(size)}"
+                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out \u2014 ask to be emailed when it is back`}"
+                        aria-pressed="false">${A.escapeHtml(size)}</button>`;
+            }).join('')}
+          </div>` : ''}
+        <button type="button" class="btn btn--primary btn--lg btn--block" id="peekAdd"
+                ${allOut ? 'disabled' : ''}>${allOut ? 'Sold Out' : 'Add to Cart'}</button>
+        <p class="peek-msg" id="peekMsg" role="status" aria-live="polite"></p>
+
+        <!-- A sold-out piece was a dead end: the chips were disabled and
+             that was the end of the journey. The same back-in-stock
+             capture the product page offers now lives here, so a
+             stockout becomes a demand signal instead. It says nothing
+             about when -- we do not know, and a restock promise we
+             cannot keep is worse than none. -->
+        <div class="peek-bis" id="peekBis" ${allOut ? '' : 'hidden'}>
+          <div class="peek-label" id="peekBisLabel">Email me when it's back</div>
+          <div class="peek-bis-row">
+            <label class="sr-only" for="peekBisEmail">Email address</label>
+            <input class="field" type="email" id="peekBisEmail" name="email" placeholder="Email"
+                   autocomplete="email" spellcheck="false" required>
+            <button type="button" class="btn btn--ghost btn--sm" id="peekBisBtn">Notify me</button>
+          </div>
+          <p class="peek-msg" id="peekBisMsg" role="status" aria-live="polite"></p>
+        </div>
+        <!-- The same lines the product page states, read from the same
+             helpers so neither sentence can say one thing here and
+             another there. The returns line is gated on a published
+             policy (A.returnsLine) and renders nothing while there
+             isn't one. Measurements and the description are not
+             duplicated -- those are what "Full details" is for. -->
+        <ul class="peek-trust">
+          <li>${A.escapeHtml(A.shippingLine())}</li>
+          ${A.returnsLine() ? `<li>${A.escapeHtml(A.returnsLine())}</li>` : ''}
+        </ul>
+        <a class="peek-full btn btn--ghost btn--block" href="/products/${encodeURIComponent(handle)}.html">Full details</a>
+      </div>`;
+
+    document.getElementById('peekClose').addEventListener('click', () => peekEl.close());
+
+    // One selected size at a time, and the button only becomes live
+    // once there is a variant to add. Same rule as the product page.
+    let picked = sizeOnly ? null : (variants.find(v => v.availableForSale) || null);
+    const addBtn = document.getElementById('peekAdd');
+    const msg = document.getElementById('peekMsg');
+    const sizes = document.getElementById('peekSizes');
+    if (sizes) {
+      addBtn.disabled = true;
+      sizes.addEventListener('click', (e) => {
+        const b = e.target.closest('button.qa-size');
+        if (!b) return;
+        const v = variants.find(x => x.id === b.dataset.variantId) || null;
+        sizes.querySelectorAll('.qa-size').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+
+        // A sold-out size is still a choice worth hearing: pressing it
+        // asks for that size back rather than doing nothing.
+        if (!v || !v.availableForSale) {
+          picked = null;
+          addBtn.disabled = true;
+          msg.textContent = '';
+          openPeekBis(b.dataset.size, v);
+          return;
+        }
+
+        picked = v;
+        addBtn.disabled = !picked;
+        msg.textContent = '';
+        if (!allOut) document.getElementById('peekBis').hidden = true;
+        A.recordSizeChoice(b.dataset.size);
+      });
+    }
+
+    /* Back in stock. The variant matters -- Klaviyo subscribes against a
+       specific variant, so asking for a sold-out M has to send the M. */
+    let bisVariant = allOut ? (variants[0] || null) : null;
+    const bisBox = document.getElementById('peekBis');
+
+    function openPeekBis(sizeLabel, variant) {
+      if (variant) bisVariant = variant;
+      document.getElementById('peekBisLabel').textContent =
+        sizeLabel ? `Sold out in ${sizeLabel}. Email me when it's back.` : "Email me when it's back";
+      document.getElementById('peekBisMsg').textContent = '';
+      bisBox.hidden = false;
+    }
+
+    document.getElementById('peekBisBtn').addEventListener('click', async () => {
+      const input = document.getElementById('peekBisEmail');
+      const bmsg = document.getElementById('peekBisMsg');
+      const btn = document.getElementById('peekBisBtn');
+      if (!input.checkValidity()) { input.reportValidity(); return; }
+      btn.disabled = true;
+      try {
+        await A.klaviyoBackInStock(input.value, bisVariant && bisVariant.id, {
+          product: product.title, handle: handle,
+          size: bisVariant ? (bisVariant.selectedOptions.find(o => o.name === 'Size') || {}).value || null : null,
+          source: 'quick_view',
+        });
+        bmsg.textContent = "You're on the list. We'll email you the moment it's back.";
+        input.style.display = 'none';
+        btn.style.display = 'none';
+      } catch (err) {
+        console.error('Quick view back-in-stock failed:', err);
+        bmsg.textContent = "That didn't go through. Try again in a moment.";
+        btn.disabled = false;
+      }
+    });
+
+    // Sitewide "sold out" state opens the capture with no size named,
+    // because no single size is the one that went.
+    if (allOut) openPeekBis(null, variants[0] || null);
+
+    addBtn.addEventListener('click', async () => {
+      if (!picked || addBtn.disabled) return;
+      addBtn.disabled = true;
+      const was = addBtn.textContent;
+      addBtn.textContent = 'Adding\u2026';
+      try {
+        await A.addToShopifyCart(picked.id, 1);
+        const pickedSize = (picked.selectedOptions.find(o => o.name === 'Size') || {}).value || null;
+        A.trackCart('Added To Cart', { handle, size: pickedSize, source: 'quick_view' });
+        A.klaviyoAddedToCart({
+          handle,
+          name: product.title,
+          url: location.origin + '/products/' + handle + '.html',
+          size: pickedSize,
+          price: parseFloat(picked.price.amount),
+          quantity: 1,
+          source: 'quick_view',
+        });
+        if (pickedSize) A.recordSizeChoice(pickedSize);
+        addBtn.textContent = 'added.';
+        msg.textContent = 'In your cart.';
+        // Close and hand over to the drawer, which is where the rest of
+        // the cart already lives -- two cart surfaces at once is one too
+        // many.
+        setTimeout(() => { peekEl.close(); A.openCartDrawer('quick_view'); }, 450);
+      } catch (err) {
+        console.error('Quick view add failed:', err);
+        A.trackCart('Quick Add Failed', { handle, source: 'quick_view' });
+        addBtn.textContent = was;
+        addBtn.disabled = false;
+        msg.textContent = "That didn't go through. Try again in a moment.";
+      }
+    });
+  }
+
+  // Delegated on the document, so it covers both grids and survives
+  // every re-render the toolbar causes.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-peek]');
+    if (!b) return;
+    e.preventDefault();
+    openPeek(b.dataset.peek);
+  });
+
+  /* ---- toolbar ------------------------------------------------------
+
+     Three controls, all acting on what the catalogue already knows:
+
+       Sort        the order of the grid. "Featured" is the real
+                   merchandising order (sortForMerchandising) and stays
+                   the default -- the Fall pieces first -- so the shop
+                   still opens the way the founder arranged it.
+       In stock    hides pieces where every variant is sold out. Not a
+                   stock count and not a claim about quantity: a
+                   product is in the list or it is not.
+       Density     two across or four. A phone is always two, so the
+                   control only exists where it changes something.
+
+     State lives in the URL (?sort=&stock=&cols=) so a filtered grid
+     can be sent to someone and arrive filtered, and so the back button
+     works. Nothing is persisted beyond that. */
+  let CATALOG = [];
+  const VIEW = { sort: 'featured', stock: 'all', cols: 4 };
+
+  const SORTS = [
+    ['featured', 'Featured'],
+    ['price-asc', 'Price \u2191'],
+    ['price-desc', 'Price \u2193'],
+    ['az', 'A\u2013Z'],
+  ];
+
+
+
+  // The lowest price a product can actually be bought at, which is what
+  // the tile shows, so sorting by price agrees with what is on screen.
+  const lowestPrice = p => {
+    const n = parseFloat(String(p.priceLabel).replace(/[^0-9.]/g, ''));
+    return isFinite(n) ? n : Infinity;
+  };
+
+
+
+
+  // Plain count, no adjectives. "11 pieces" is a fact; "only 11 left"
+  // would be a stock claim the catalogue cannot support.
+
+  /* The catalogue's own filter drawer, the same control the category
+     pages carry. Availability and price only -- both act on data the
+     catalogue already holds. */
+  var CATALOG_VIEW = [];
+  (function wireCatalogueFilter() {
+    var A2 = window.Asior;
+    var grid = document.getElementById('shopGrid');
+    if (!A2 || !grid) return;
+    var catalog = [];
+  /* ---- filter drawer ---------------------------------------------- */
+  var drawer = document.getElementById('filterDrawer');
+  var scrim = document.getElementById('filterScrim');
+  var openBtn = document.getElementById('filterOpen');
+  var closeBtn = document.getElementById('filterClose');
+  var inStock = document.getElementById('fltInStock');
+  var resetBtn = document.getElementById('filterReset');
+  var lastFocus = null;
+
+  function setDrawer(open) {
+    if (!drawer) return;
+    drawer.classList.toggle('is-open', open);
+    if (scrim) scrim.classList.toggle('is-open', open);
+    if (openBtn) openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // inert keeps the closed drawer out of the tab order entirely.
+    if (open) drawer.removeAttribute('inert'); else drawer.setAttribute('inert', '');
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+    if (open) {
+      lastFocus = document.activeElement;
+      var first = drawer.querySelector('input, button');
+      if (first) first.focus();
+    } else if (lastFocus) {
+      // Focus returns to the control that opened it.
+      lastFocus.focus();
+      lastFocus = null;
+    }
+  }
+
+  if (openBtn) openBtn.addEventListener('click', function () { setDrawer(true); });
+  if (closeBtn) closeBtn.addEventListener('click', function () { setDrawer(false); });
+  if (scrim) scrim.addEventListener('click', function () { setDrawer(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && drawer && drawer.classList.contains('is-open')) setDrawer(false);
+  });
+
+  function sortMode() {
+    var picked = drawer && drawer.querySelector('input[name="fltSort"]:checked');
+    return picked ? picked.value : 'featured';
+  }
+
+  /* Price for sorting is the card's own minimum, parsed back off the
+     label rather than recomputed, so the number sorted by is exactly
+     the number shown. */
+  function minPrice(p) {
+    var m = String(p.priceLabel).replace(/<[^>]*>/g, '').match(/([\d.]+)/);
+    return m ? parseFloat(m[1]) : Infinity;
+  }
+
+  function apply() {
+    if (!catalog.length) return;
+    var view = catalog.slice();
+    if (inStock && inStock.checked) view = view.filter(function (p) { return !p.soldOut; });
+    var mode = sortMode();
+    if (mode === 'asc') view.sort(function (a, b) { return minPrice(a) - minPrice(b); });
+    if (mode === 'desc') view.sort(function (a, b) { return minPrice(b) - minPrice(a); });
+
+    grid.innerHTML = view.map(function (p, i) {
+      return A2.productCard(p, { eager: i < 4, peek: false });
+    }).join('');
+
+    var empty = document.getElementById('shopEmpty');
+    if (empty) {
+      var none = view.length === 0;
+      empty.hidden = !none;
+      empty.textContent = none
+        ? (inStock && inStock.checked ? 'nothing in stock here right now.' : 'nothing in here yet.')
+        : '';
+    }
+    var count = null;
+    if (count) count.textContent = view.length + (view.length === 1 ? ' piece' : ' pieces');
+  }
+
+  if (inStock) inStock.addEventListener('change', apply);
+  if (drawer) {
+    drawer.querySelectorAll('input[name="fltSort"]').forEach(function (r) {
+      r.addEventListener('change', apply);
+    });
+  }
+  if (resetBtn) resetBtn.addEventListener('click', function () {
+    if (inStock) inStock.checked = false;
+    var feat = drawer && drawer.querySelector('input[name="fltSort"][value="featured"]');
+    if (feat) feat.checked = true;
+    apply();
+  });
+
+
+    window.__setCatalogue = function (list) { catalog = list; apply(); };
+  })();
+
   fetchCatalog()
     .then(sortForMerchandising)
+    .then(function (c) {
+      if (window.__setCatalogue) window.__setCatalogue(c);
+      return c;
+    })
     .then(renderGrid)
     .catch((err) => {
-      // fail open and honest, no fake stock left standing. Logged
-      // (not shown) so a real failure is diagnosable from a device's
-      // console instead of just "the shop was blank" secondhand.
+      /* Fail open and honest: the pre-rendered cards the build wrote
+         stay on screen, so a fetch failure costs live pricing, not the
+         whole shop. Logged rather than shown, so a real failure is
+         diagnosable from a device console instead of secondhand. */
       console.error('Shop catalog failed to load:', err);
-      document.getElementById('shopLoading').classList.add('hide');
-      const empty = document.getElementById('shopEmpty');
-      empty.textContent = "Couldn't load the shop right now, try refreshing.";
-      empty.classList.add('show');
     });
 </script>
 

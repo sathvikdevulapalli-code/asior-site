@@ -2,27 +2,95 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "echo 'no dependencies'",
-  "buildCommand": "node scripts/build.js",
+  "buildCommand": "node scripts/build.js && node scripts/check-slop.js",
   "outputDirectory": ".",
   "cleanUrls": false,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/text",
+      "destination": "/text.html"
+    }
+  ],
   "redirects": [
-    { "source": "/", "destination": "/shop.html", "permanent": true },
-    { "source": "/index.html", "destination": "/shop.html", "permanent": true },
-    { "source": "/fall-collection.html", "destination": "/shop.html", "permanent": true }
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/fall-collection.html",
+      "destination": "/shop.html",
+      "permanent": true
+    },
+    {
+      "source": "/jag-sweats.html",
+      "destination": "/products/jaguar-sweats.html",
+      "permanent": true
+    },
+    {
+      "source": "/products/:handle([^.]+)",
+      "destination": "/products/:handle.html",
+      "permanent": true
+    },
+    {
+      "source": "/collections/:slug(tops|bottoms|accessories|jag|fall-collection|all-of-our-products|ja-yu-collection)",
+      "destination": "/collections/:slug.html",
+      "permanent": true
+    },
+    {
+      "source": "/collections/:path([^.]+)",
+      "destination": "/shop.html",
+      "permanent": true
+    },
+    {
+      "source": "/cart",
+      "destination": "/cart.html",
+      "permanent": true
+    },
+    {
+      "source": "/pages/contact",
+      "destination": "/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/policies/privacy-policy",
+      "destination": "/privacy-policy.html",
+      "permanent": true
+    },
+    {
+      "source": "/policies/terms-of-service",
+      "destination": "/terms-of-service.html",
+      "permanent": true
+    }
   ],
   "headers": [
     {
       "source": "/assets/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/images/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/video/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, must-revalidate"
+        }
+      ]
     }
   ]
 }

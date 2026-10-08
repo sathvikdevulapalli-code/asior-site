@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collection | Asior</title>
+<meta name="description" content="An Asior collection.">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://asiorclothing.com/collections/">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Collection | Asior">
+<meta property="og:description" content="An Asior collection.">
+<meta property="og:url" content="https://asiorclothing.com/collections/">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Fonts via <link>, not @import inside a style block: an @import means the
+     browser has to download and parse the CSS before it even discovers
+     the font request. Weight 200 was requested site-wide and used
+     nowhere, so it is not requested here. -->
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
+<style>
+  /* Category page. Measured from the reference's /collections/top
+     (spec section 5). The grid, card and chrome come from
+     assets/site.css; only what is specific to this page is here. */
+
+  /* [measured] 532px banner, full bleed, behind the transparent
+     header. ASIOR has no per-category banner art, so this is one wide
+     lifestyle frame from the real shoot, chosen per category by the
+     build. */
+  .coll-banner {
+    position: relative;
+    height: 532px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .coll-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+  }
+
+  /* The header sits on the banner in white. A photo with a bright top
+     edge would swallow it, so the same 0.2 overlay the reference uses
+     on its hero backs the nav here too. */
+  .coll-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
+
+  .coll {
+    max-width: none;
+    margin: 0;
+    padding: 0 var(--page-pad) 10vh;
+  }
+
+  /* [measured] Title row 60px under the banner. */
+  .coll-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 60px 0 0;
+  }
+
+  /* [measured] 20px, 500, uppercase, letter-spacing 0.5px. */
+  .coll-title {
+    margin: 0;
+    font-family: var(--font);
+    /* [measured] 20px on the reference's collection pages -- the
+       measured value wins over the generic h1 step. */
+    font-size: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+  }
+
+  /* [measured] FILTER + icon, 12px, letter-spacing 1.2px, uppercase. */
+  .coll-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 0;
+    padding: 6px 0;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .coll-filter svg { width: 14px; height: 14px; display: block; }
+  .coll-filter:hover { opacity: 0.6; }
+
+  /* [measured] Grid starts ~48px under the title row; column gap 24px
+     on the category pages (the homepage rows use 6px). */
+  .coll-grid { margin-top: 48px; gap: 34px 24px; }
+
+  .coll-count {
+    margin: 10px 0 0;
+    font-family: var(--font);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .coll-empty {
+    margin: 40px 0;
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  /* ---- filter drawer ----
+     [not verified] on the reference: the spec says the FILTER control
+     opens a drawer but the inspection could not confirm its contents,
+     and recommends a right-side drawer with Availability and Price.
+     That is what this is -- designed to the spec's instruction, not
+     copied from a screen nobody saw. Both controls act on data the
+     catalogue already carries, so neither can state something the
+     shop does not know. */
+  .filter-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(88vw, 380px);
+    background: var(--bg);
+    border-left: 1px solid var(--line);
+    z-index: 80;
+    transform: translateX(100%);
+    transition: transform var(--dur) var(--ease-out);
+    display: flex;
+    flex-direction: column;
+    padding: 22px;
+  }
+
+  .filter-drawer[open],
+  .filter-drawer.is-open { transform: translateX(0); }
+
+  .filter-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .filter-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-close {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    padding: 6px;
+  }
+
+  .filter-group { margin-bottom: 26px; }
+
+  .filter-legend {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding: 0;
+  }
+
+  .filter-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-family: var(--font);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .filter-opt input { width: 16px; height: 16px; accent-color: var(--ink); }
+
+  .filter-actions { margin-top: auto; display: flex; gap: 10px; }
+
+  .filter-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 75;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease-out);
+  }
+
+  .filter-scrim.is-open { opacity: 1; pointer-events: auto; }
+
+  @media (max-width: 900px) {
+    .coll-banner { height: 300px; }
+    .coll { padding: 0 15px 8vh; }
+    .coll-head { padding-top: 34px; }
+    .coll-title { font-size: 17px; }
+    .coll-grid { margin-top: 26px; gap: 22px 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .filter-drawer, .filter-scrim { transition: none; }
+  }
+</style>
+
+<!-- HEAD:START -->
+  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
+  <!-- HEAD:END -->
+</head>
+<body class="page--hero">
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- HEADER:START -->
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+    </div>
+  </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
+
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/collections/accessories.html">Accessories</a>
+      <a href="/manufacturing.html">Manufacturing</a>
+    </nav>
+
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
+    </div>
+  </header>
+  <!-- HEADER:END -->
+
+  <main id="main">
+
+  <!-- One template, generated per category into
+       /collections/<slug>.html by scripts/build.js, the same way
+       product.html becomes /products/<handle>.html.
+
+       The grid is pre-rendered at build time so the page works with no
+       JS and a crawler sees real products, then refreshed from the live
+       Storefront API for current price and availability. Both halves
+       render assets/site.js's productCard, which the homepage rows also
+       use -- one card implementation, not a third copy. -->
+
+  <!-- BANNER:START -->
+  <!-- BANNER:END -->
+
+  <section class="shop coll">
+    <div class="coll-head">
+      <h1 class="coll-title"><!-- COLLTITLE:START --><!-- COLLTITLE:END --></h1>
+      <button type="button" class="coll-filter" id="filterOpen" aria-expanded="false" aria-controls="filterDrawer">
+        Filter
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M3 6h18M6 12h12M10 18h4"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="shop-grid coll-grid" id="collGrid">
+      <!-- COLLGRID:START -->
+      <!-- COLLGRID:END -->
+    </div>
+
+    <!-- Written from JS only when the live category really is empty, so
+         the served HTML never tells a scraper the category is bare. -->
+    <p class="coll-empty" id="collEmpty" hidden></p>
+  </section>
+
+  <div class="filter-scrim" id="filterScrim"></div>
+  <aside class="filter-drawer" id="filterDrawer" role="dialog" aria-modal="true"
+         aria-label="Filter and sort" inert>
+    <div class="filter-head">
+      <h2 class="filter-title">Filter</h2>
+      <button type="button" class="filter-close" id="filterClose">Close</button>
+    </div>
+
+    <fieldset class="filter-group">
+      <legend class="filter-legend">Availability</legend>
+      <label class="filter-opt">
+        <input type="checkbox" id="fltInStock">
+        In stock only
+      </label>
+    </fieldset>
+
+    <fieldset class="filter-group">
+      <legend class="filter-legend">Price</legend>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="featured" checked> Featured</label>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="asc"> Low to high</label>
+      <label class="filter-opt"><input type="radio" name="fltSort" value="desc"> High to low</label>
+    </fieldset>
+
+    <div class="filter-actions">
+      <button type="button" class="btn btn--quiet btn--sm" id="filterReset">Reset</button>
+    </div>
+  </aside>
+
+  </main>
+
+  <!-- FOOTER:START -->
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
+      </div>
+    </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
+  </footer>
+  <!-- FOOTER:END -->
+
+<script src="assets/site.js"></script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
+<script>
+/* Category page behaviour.
+
+   Two jobs:
+     1. Refresh the pre-rendered grid from the live Storefront API, so
+        price and availability are current even on a stale build. The
+        served cards stand if the fetch fails.
+     2. The FILTER drawer. Availability and Price only -- both act on
+        data the catalogue already carries, so neither can assert
+        something the shop does not know. */
+(function () {
+  var A = window.Asior;
+  var grid = document.getElementById('collGrid');
+  var slug = window.__COLLECTION_SLUG;
+  if (!A || !grid) return;
+
+  var catalog = [];   // normalized products for this category, build order
+
+  /* ---- filter drawer ---------------------------------------------- */
+  var drawer = document.getElementById('filterDrawer');
+  var scrim = document.getElementById('filterScrim');
+  var openBtn = document.getElementById('filterOpen');
+  var closeBtn = document.getElementById('filterClose');
+  var inStock = document.getElementById('fltInStock');
+  var resetBtn = document.getElementById('filterReset');
+  var lastFocus = null;
+
+  function setDrawer(open) {
+    if (!drawer) return;
+    drawer.classList.toggle('is-open', open);
+    if (scrim) scrim.classList.toggle('is-open', open);
+    if (openBtn) openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // inert keeps the closed drawer out of the tab order entirely.
+    if (open) drawer.removeAttribute('inert'); else drawer.setAttribute('inert', '');
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+    if (open) {
+      lastFocus = document.activeElement;
+      var first = drawer.querySelector('input, button');
+      if (first) first.focus();
+    } else if (lastFocus) {
+      // Focus returns to the control that opened it.
+      lastFocus.focus();
+      lastFocus = null;
+    }
+  }
+
+  if (openBtn) openBtn.addEventListener('click', function () { setDrawer(true); });
+  if (closeBtn) closeBtn.addEventListener('click', function () { setDrawer(false); });
+  if (scrim) scrim.addEventListener('click', function () { setDrawer(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && drawer && drawer.classList.contains('is-open')) setDrawer(false);
+  });
+
+  function sortMode() {
+    var picked = drawer && drawer.querySelector('input[name="fltSort"]:checked');
+    return picked ? picked.value : 'featured';
+  }
+
+  /* Price for sorting is the card's own minimum, parsed back off the
+     label rather than recomputed, so the number sorted by is exactly
+     the number shown. */
+  function minPrice(p) {
+    var m = String(p.priceLabel).replace(/<[^>]*>/g, '').match(/([\d.]+)/);
+    return m ? parseFloat(m[1]) : Infinity;
+  }
+
+  function apply() {
+    if (!catalog.length) return;
+    var view = catalog.slice();
+    if (inStock && inStock.checked) view = view.filter(function (p) { return !p.soldOut; });
+    var mode = sortMode();
+    if (mode === 'asc') view.sort(function (a, b) { return minPrice(a) - minPrice(b); });
+    if (mode === 'desc') view.sort(function (a, b) { return minPrice(b) - minPrice(a); });
+
+    grid.innerHTML = view.map(function (p, i) {
+      return A.productCard(p, { eager: i < 4, peek: false });
+    }).join('');
+
+    var empty = document.getElementById('collEmpty');
+    if (empty) {
+      var none = view.length === 0;
+      empty.hidden = !none;
+      empty.textContent = none
+        ? (inStock && inStock.checked ? 'nothing in stock here right now.' : 'nothing in here yet.')
+        : '';
+    }
+  }
+
+  if (inStock) inStock.addEventListener('change', apply);
+  if (drawer) {
+    drawer.querySelectorAll('input[name="fltSort"]').forEach(function (r) {
+      r.addEventListener('change', apply);
+    });
+  }
+  if (resetBtn) resetBtn.addEventListener('click', function () {
+    if (inStock) inStock.checked = false;
+    var feat = drawer && drawer.querySelector('input[name="fltSort"][value="featured"]');
+    if (feat) feat.checked = true;
+    apply();
+  });
+
+  /* ---- live refresh ------------------------------------------------ */
+  var handles = (window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.CATEGORIES || [])
+    .filter(function (c) { return c.slug === slug; })
+    .map(function (c) { return c.handles; })[0] || [];
+
+  if (!handles.length || !A.shopifyFetch) { A.wireHoverSwap(grid); return; }
+
+  A.shopifyFetch('{ products(first: 50) { edges { node { ' + A.PRODUCT_CARD_FIELDS + ' } } } }')
+    .then(function (data) {
+      var byHandle = {};
+      (((data || {}).products || {}).edges || []).forEach(function (e) {
+        var p = A.normalizeProduct(e.node);
+        if (p) byHandle[p.handle] = p;
+      });
+      // Config order, so the live grid matches the built one.
+      catalog = handles.map(function (h) { return byHandle[h]; }).filter(Boolean);
+      if (catalog.length) apply();
+    })
+    .catch(function () { /* served cards stand */ })
+    .then(function () { A.wireHoverSwap(grid); });
+})();
+</script>
+
+</body>
+</html>

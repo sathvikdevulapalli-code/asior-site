@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cart | Asior</title>
 <meta name="description" content="Your Asior cart.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/cart.html">
 <!-- No search value, and the cart renders a different page per session. -->
 <meta name="robots" content="noindex, follow">
@@ -20,20 +20,20 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
      browser has to download and parse the CSS before it even discovers
      the font request. Weight 200 was requested site-wide and used
      nowhere, so it is not requested here. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-     shop.html's equivalent comment for why. -->
+<!-- launch-config.js is loaded here for the same reason shop.html loads
+     it: it carries FALL_PRODUCTS and the commerce flag, and anything
+     that decides what a visitor sees has to be able to read it
+     synchronously before paint. -->
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
 <style>
@@ -46,16 +46,66 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ---------- cart ---------- */
+  /* ---------- cart [measured: boxed container, centred title] ---- */
+
+  /* [measured] Title centred, ~30px, weight 400, sentence case -- not
+     the uppercase rail label the v14 page used. */
+  .cart-head {
+    margin: 0;
+    padding-top: 54px;
+    font-family: var(--font);
+    font-size: 30px;
+    font-weight: 400;
+    text-align: center;
+    color: var(--ink);
+  }
+
+  /* [measured] Small breadcrumb under the title. */
+  .cart-crumb {
+    margin-top: 10px;
+    font-family: var(--font);
+    font-size: 12px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .cart-crumb a { color: var(--muted); text-decoration: underline; }
+  .cart-crumb a:hover { color: var(--ink); }
+
+  /* [measured] A 1px divider below, with generous space (~60px). */
+  .cart-rule {
+    max-width: var(--container);
+    margin: 60px auto 0;
+    border-top: 1px solid var(--line);
+  }
+
+  /* [measured] Boxed to the 1450 container like the rest of the
+     non-fluid pages. */
   .cart-wrap {
-    max-width: 760px;
+    max-width: var(--container);
     margin: 0 auto;
-    padding: 0 40px 14vh;
-    animation: pageFadeIn 700ms var(--ease-out);
+    padding: 0 var(--page-pad) 14vh;
+  }
+
+  /* Line items left, summary right [spec section 7, designed]. */
+  .cart-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 48px;
+    align-items: start;
+    padding-top: 44px;
+  }
+
+  @media (max-width: 900px) {
+    .cart-head { font-size: 22px; padding-top: 34px; }
+    .cart-rule { margin-top: 34px; }
+    .cart-wrap { padding: 0 15px 10vh; }
+    .cart-layout { grid-template-columns: 1fr; gap: 28px; padding-top: 28px; }
   }
 
   .cart-empty {
-    padding: 6vh 0;
+    text-align: center;
+    padding: 9vh 0;
     color: var(--muted);
     font-size: 13px;
   }
@@ -89,7 +139,7 @@
   .cart-item .thumb {
     width: 76px;
     height: 96px;
-    border-radius: 2px;
+    border-radius: 0;
     overflow: hidden;
   }
 
@@ -102,7 +152,7 @@
   .cart-item .thumb .ph {
     width: 100%;
     height: 100%;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    background: var(--surface);
   }
 
   .cart-item .name {
@@ -117,10 +167,50 @@
     color: var(--muted);
   }
 
+  /* A real stepper, not a printed number. The cart could only remove a
+     line before this; changing your mind about quantity meant going
+     back to the product page. */
   .cart-item .qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--field-line);
+    height: 36px;
+  }
+
+  .cart-item .qty.is-busy { opacity: 0.5; pointer-events: none; }
+
+  .cart-item .qty button {
+    width: 32px;
+    height: 34px;
+    background: none;
+    border: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .cart-item .qty button:hover { background: var(--line); }
+
+  .cart-item .qty-val {
+    min-width: 26px;
+    text-align: center;
+    font-family: var(--font-mono);
     font-size: 12px;
+  }
+
+  .cart-item-meta .variant {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--muted);
-    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  .cart-item-meta .remove {
+    margin-top: 8px;
+    display: inline-block;
   }
 
   .cart-item .remove {
@@ -165,7 +255,7 @@
     min-width: 0;
     background: transparent;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     padding: 10px 12px;
     color: var(--ink);
     font: inherit;
@@ -181,7 +271,7 @@
     border: 1px solid var(--line);
     background: transparent;
     color: var(--ink);
-    border-radius: 8px;
+    border-radius: 0;
     padding: 10px 16px;
     font: inherit;
     font-size: 12px;
@@ -246,7 +336,9 @@
   }
 
   /* Sign-up value prop. States the real welcome
-     discount (5%, the Shopify SIGNUP pool) — no other number. */
+     discount and no other number. ASIORTEN (10%, once per customer,
+     no expiry) is the only code that exists; the earlier welcome-pool
+     percentage this comment used to describe is gone. */
   .cart-signup-prop {
     margin-top: 12px;
     font-size: 11px;
@@ -274,6 +366,18 @@
     padding-top: 24px;
     border-top: 1px solid var(--line);
     text-align: center;
+  }
+
+  /* One line under the heading, saying what the number is for.
+     Replaces the old 'Email only? Leave the phone field blank.'
+     which sat in the consent copy and talked people out of the
+     field it was next to. */
+  .cart-klaviyo-sub {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0 0 18px;
   }
 
   .cart-klaviyo-label {
@@ -355,20 +459,36 @@
   /* Filled, not outlined — same reasoning as product.html's .pd-add:
      checkout is the dominant action on this page and shouldn't share
      visual weight with the signup form underneath it. */
+  /* Matches the product page's Add to Cart: the accent marks the step
+     that takes money, everywhere it appears. */
+  /* [measured] Same control as ADD TO BAG: black, full width, 48px,
+     white 14px/700 with 1px tracking, square. */
   .checkout-btn {
-    margin-top: 24px;
+    display: block;
     width: 100%;
-    background: var(--ink);
-    color: var(--bg);
+    height: 48px;
+    margin-top: 18px;
     border: 0;
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.15em;
+    border-radius: var(--btn-radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: var(--btn-ls);
     text-transform: uppercase;
-    padding: 16px;
     cursor: pointer;
-    transition: opacity 200ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+
+  .checkout-btn:hover { background: var(--accent-press); }
+  .checkout-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+  .cart-taxnote {
+    margin: 10px 0 0;
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -380,11 +500,31 @@
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
-    header nav { gap: 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; max-width: calc(100vw - 130px); }
-    header nav::-webkit-scrollbar { display: none; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
     .cart-wrap { padding: 0 20px 10vh; }
+
+    /* The signup is two fields and a button. As a centred wrapping flex
+       row at 390px it broke into a ragged stack -- phone on one line,
+       email and SIGN UP sharing the next on different baselines. One
+       column, full width, button last: the same shape as every other
+       form on the site at this width. */
+    .cart-signup-form {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+    }
+
+    .cart-signup-form input { min-width: 0; width: 100%; }
+    .cart-signup-form button { width: 100%; min-height: 44px; }
     .cart-item { grid-template-columns: 60px 1fr auto; }
-    .cart-item .qty { grid-column: 2 / 3; }
+    /* justify-self, because a grid item stretches to fill its track by
+       default: the stepper was spanning the whole 1fr column with "-",
+       "2" and "+" strung 90px apart. */
+    .cart-item .qty { grid-column: 2 / 3; justify-self: start; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -400,6 +540,14 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -407,25 +555,56 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
-  <header>
-    <a class="mark" href="shop.html">Asior</a>
-    <nav>
-      <a href="shop.html">Shop</a>
-      <a href="community.html">Community</a>
-      <a href="contact.html">Contact</a>
-      <a href="manufacturing.html">Manufacturing</a>
-      <a href="cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="15" height="15"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="cart-count" aria-hidden="true"></span></a>
-    </nav>
-  </header>
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+    </div>
+  </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
 
-  <div class="page-top-space"></div>
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/collections/accessories.html">Accessories</a>
+      <a href="/manufacturing.html">Manufacturing</a>
+    </nav>
+
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
+    </div>
+  </header>
   <!-- HEADER:END -->
 
   <main id="main">
 
+  <!-- Cart, per the reference spec section 7.
+
+       The empty state is measured from the live reference. The FILLED
+       cart and the cart drawer are marked [not verified] there -- the
+       inspection never added an item -- so those are built to the
+       spec's written instruction (line items, right-hand summary,
+       black 48px CHECK OUT) rather than copied from a screen nobody
+       saw. Flagged as designed, not matched.
+
+       The checkout hand-off is untouched: it still goes to the
+       checkoutUrl Shopify's own cart returns. -->
   <section class="cart-wrap">
-    <h1 class="rail-label">Cart</h1>
+    <h1 class="cart-head">Shopping Cart</h1>
+    <nav class="cart-crumb" aria-label="Breadcrumb">
+      <a href="/shop.html">Home</a> <span aria-hidden="true">&gt;</span> Your Shopping Cart
+    </nav>
+    <div class="cart-rule"></div>
+
     <div class="cart-loading" id="cartLoading">Loading your cart…</div>
     <div id="cartRoot"></div>
   </section>
@@ -433,22 +612,76 @@
   </main>
 
   <!-- FOOTER:START -->
-  <footer id="order">
-    <div class="fmark">Asior</div>
-    <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
-    <div class="social">
-      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
-      </a>
-      <a href="https://www.tiktok.com/@asiorclothing" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
-      </a>
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
     </div>
-    <div class="policy-links">
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
-      <a href="account.html">Account</a>
+      </div>
     </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
   </footer>
   <!-- FOOTER:END -->
 
@@ -609,12 +842,14 @@
     return sign + n.toFixed(2);
   }
 
-  /* Sign-up value prop. 5% is the real welcome code (Shopify SIGNUP
-     pool) and no other number goes in this sentence. It used to open
-     with the drop's close date; the collection has no end date now, so
-     naming one would be a deadline we made up. */
-  function signupPropHTML(href) {
-    return '<a href="' + href + '">Sign up and get 5% off your first order.</a>';
+  /* The offer, stated rather than dangled. ASIORTEN is the only
+     redeemable code in the store: 10% off, all products, no expiry,
+     once per customer. No other number goes in this sentence, and no
+     close date does either — neither the collection nor the code has
+     one. It is a standing public code, so it is not framed as a reward
+     for signing up. */
+  function signupPropHTML() {
+    return 'Use code ASIORTEN for 10% off your first order.';
   }
 
   async function renderLive() {
@@ -623,22 +858,31 @@
     document.getElementById('cartLoading').classList.add('hide');
 
     if (!cart || cart.lines.edges.length === 0) {
-      root.innerHTML = `<div class="cart-empty">Your cart is empty. <a href="shop.html">Shop all</a></div>`;
+      root.innerHTML = `<div class="cart-empty">nothing in here yet. <a href="shop.html">Shop all</a></div>`;
       return;
     }
 
     const rows = cart.lines.edges.map(({ node }) => {
       const v = node.merchandise;
       const media = v.image ? `<img src="${v.image.url}" alt="${v.product.title}" width="${v.image.width || 300}" height="${v.image.height || 400}" loading="lazy" decoding="async">` : `<div class="ph"></div>`;
+      // "Default Title" is Shopify's placeholder for a product with no
+      // options; printing it would read as a size nobody chose.
+      const variant = v.title && v.title !== 'Default Title' ? v.title : '';
+      const lineTotal = (parseFloat(v.price.amount) * node.quantity).toFixed(2);
       return `
         <div class="cart-item">
           <div class="thumb">${media}</div>
-          <div>
+          <div class="cart-item-meta">
             <div class="name">${v.product.title}</div>
-            <div class="price">$${v.price.amount}</div>
+            ${variant ? `<div class="variant">${variant}</div>` : ''}
+            <button class="remove" data-line="${node.id}">Remove</button>
           </div>
-          <div class="qty">Qty ${node.quantity}</div>
-          <button class="remove" data-line="${node.id}">Remove</button>
+          <div class="qty" data-line="${node.id}">
+            <button type="button" class="qty-down" data-line="${node.id}" aria-label="Decrease quantity">-</button>
+            <span class="qty-val" aria-live="polite">${node.quantity}</span>
+            <button type="button" class="qty-up" data-line="${node.id}" aria-label="Increase quantity">+</button>
+          </div>
+          <div class="price tnum">$${lineTotal}</div>
         </div>`;
     }).join('');
 
@@ -673,7 +917,11 @@
       ? `That code isn't valid for the items in your cart.` : '';
 
     root.innerHTML = `
+      <div class="cart-layout">
+      <div class="cart-lines">
       ${rows}
+      </div>
+      <aside class="cart-side">
       <div class="cart-summary">${summary}</div>
       ${appliedRow}
       <div class="cart-discount">
@@ -687,35 +935,66 @@
         <p class="cart-discount-msg${initialMsg ? ' is-error' : ''}" id="cartDiscountMsg"
            role="status" aria-live="polite">${initialMsg}</p>
       </div>
-      <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+      <!-- [measured] Black, full width, 48px, uppercase 14px/700.
+           Goes to the checkoutUrl Shopify's own cart returns -- the
+           hand-off is unchanged by this redesign. -->
+      <button class="checkout-btn" id="checkoutBtn">Check out</button>
+      <p class="cart-taxnote">Shipping and tax calculated at checkout.</p>
       <div class="cart-trust">
         <span>${A.escapeHtml(A.shippingLine())}</span>
         ${A.internationalLine() ? `<span>${A.escapeHtml(A.internationalLine())}</span>` : ''}
         <span>No account needed, check out as a guest.</span>
       </div>
-      <p class="cart-signup-prop">${signupPropHTML('#cartSignup')}</p>
+      </aside>
+      </div>
+      <p class="cart-signup-prop">${signupPropHTML()}</p>
       <div class="cart-klaviyo" id="cartSignup">
-        <div class="cart-klaviyo-label">Get 5% Off Your First Order</div>
+        <div class="cart-klaviyo-label">Get 10% Off With Code ASIORTEN</div>
+        <!-- Phone first, and not called optional. See the same block in
+             shop.html for why that line is gone. The field is still not
+             required; the copy just stopped arguing against it. The TCPA
+             sentence is unchanged. -->
+        <p class="cart-klaviyo-sub">Texts go first when sizes run low.</p>
         <form class="cart-signup-form" id="cartSignupForm">
+          <label class="sr-only" for="cartSignupPhone">Mobile number</label>
+          <input type="tel" id="cartSignupPhone" name="phone" placeholder="Mobile number"
+                 autocomplete="tel" inputmode="tel">
           <label class="sr-only" for="cartSignupEmail">Email address</label>
           <input type="email" id="cartSignupEmail" name="email" placeholder="Email"
                  autocomplete="email" spellcheck="false" required>
-          <label class="sr-only" for="cartSignupPhone">Phone number (optional)</label>
-          <input type="tel" id="cartSignupPhone" name="phone" placeholder="Phone (optional)"
-                 autocomplete="tel" inputmode="tel">
           <button type="submit" id="cartSignupBtn">Sign Up</button>
         </form>
         <p class="consent">
-          Email only? Leave the phone field blank. By giving your number you agree to
+          By giving your number you agree to
           receive recurring automated marketing texts from Asior at that number.
           Consent is not a condition of any purchase. Message frequency varies and
           message &amp; data rates may apply. Reply STOP to cancel, HELP for help. See our
           <a href="privacy-policy.html">Privacy Policy</a> and
           <a href="terms-of-service.html">Terms of Service</a>.
         </p>
-        <div class="cart-signup-confirm" id="cartSignupConfirm" role="status" aria-live="polite">You're in. Check your inbox for your code.</div>
+        <div class="cart-signup-confirm" id="cartSignupConfirm" role="status" aria-live="polite">You're in. Code ASIORTEN takes 10% off your first order.</div>
       </div>
     `;
+
+    // One request per press, and the row locks while it is in flight
+    // so a double tap cannot send two.
+    let qtyBusy = false;
+    document.querySelectorAll('.qty-up, .qty-down').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (qtyBusy) return;
+        const row = btn.closest('.qty');
+        const current = parseInt(row.querySelector('.qty-val').textContent, 10) || 1;
+        const next = btn.classList.contains('qty-up') ? current + 1 : current - 1;
+        // Stepping below one is a removal, and removal has its own
+        // mutation; it is not a quantity of zero.
+        if (next < 1) { await A.removeCartLine(btn.dataset.line); renderLive(); return; }
+        qtyBusy = true;
+        row.classList.add('is-busy');
+        try { await A.updateCartLine(btn.dataset.line, next); await renderLive(); }
+        catch (err) { row.classList.remove('is-busy'); }
+        finally { qtyBusy = false; }
+      });
+    });
 
     document.querySelectorAll('.remove').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -725,6 +1004,22 @@
     });
 
     document.getElementById('checkoutBtn').addEventListener('click', () => {
+      /* Fire-and-forget, before the redirect. A.trackCart never awaits
+         and swallows its own failures, so this cannot delay or block
+         checkout -- and the redirect itself is unchanged: still
+         cart.checkoutUrl, still the domain Shopify gives us. */
+      if (window.AsiorAds) {
+        window.AsiorAds.beginCheckout({
+          value: cart.cost && cart.cost.totalAmount ? parseFloat(cart.cost.totalAmount.amount) : undefined,
+          currency: cart.cost && cart.cost.totalAmount ? cart.cost.totalAmount.currencyCode : 'USD',
+          quantity: cart.totalQuantity,
+        });
+      }
+      A.trackCart('Begin Checkout', {
+        source: 'cart_page',
+        cart_quantity: cart.totalQuantity,
+        value: cart.cost && cart.cost.totalAmount ? parseFloat(cart.cost.totalAmount.amount) : undefined,
+      });
       location.href = cart.checkoutUrl;
     });
     bindDiscountForm(cart.id);
@@ -737,7 +1032,7 @@
     console.error('Cart failed to load:', err);
     document.getElementById('cartLoading').classList.add('hide');
     document.getElementById('cartRoot').innerHTML = `
-      <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a> with what you wanted and we'll sort it out.</div>
+      <div class="cart-empty">Couldn't load your cart right now. Try refreshing, or email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> with what you wanted and we'll sort it out.</div>
     `;
   });
 </script>

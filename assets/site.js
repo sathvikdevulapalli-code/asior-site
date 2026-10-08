@@ -162,6 +162,43 @@
     return updated;
   }
 
+  /* Change the quantity of a line already in the saved cart.
+
+     This did not exist. The cart page rendered quantity as read-only
+     text and the only edit available was removing the line, so a
+     shopper who wanted two had to go back to the product page. Setting
+     a quantity of 0 is how Shopify removes a line, so the caller is
+     responsible for not sending one by accident -- the steppers clamp
+     at 1 and removal goes through cartLinesRemove. */
+  async function updateCartLine(lineId, quantity) {
+    var cart = await getOrCreateCart();
+    var data = await shopifyFetch(
+      'mutation($cartId: ID!, $lines: [CartLineUpdateInput!]!) {' +
+      '  cartLinesUpdate(cartId: $cartId, lines: $lines) { cart { id checkoutUrl totalQuantity } }' +
+      '}',
+      { cartId: cart.id, lines: [{ id: lineId, quantity: quantity }] }
+    );
+    var updated = data.cartLinesUpdate.cart;
+    renderCartCount(updated.totalQuantity);
+    trackCart('Cart Quantity Changed', { quantity: quantity, cart_quantity: updated.totalQuantity });
+    return updated;
+  }
+
+  /* Remove a line outright. */
+  async function removeCartLine(lineId) {
+    var cart = await getOrCreateCart();
+    var data = await shopifyFetch(
+      'mutation($cartId: ID!, $lineIds: [ID!]!) {' +
+      '  cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { id checkoutUrl totalQuantity } }' +
+      '}',
+      { cartId: cart.id, lineIds: [lineId] }
+    );
+    var updated = data.cartLinesRemove.cart;
+    renderCartCount(updated.totalQuantity);
+    trackCart('Cart Item Removed', { cart_quantity: updated.totalQuantity });
+    return updated;
+  }
+
   /* Buy Now: a throwaway cart holding exactly this one line.
 
      Deliberately does NOT touch the persisted cart. Buy Now used to add
@@ -234,12 +271,19 @@
     }, 0);
   }
 
-  /* Cart count in the header. Only rendered once the real number is
-     known, and hidden at zero — an empty cart shouldn't wear a badge. */
+  /* The header reads "Cart (0)" in words now, so the count is always
+     rendered -- an empty cart says it is empty instead of showing
+     nothing and leaving the visitor to guess. .show only changes its
+     colour; it no longer controls whether the number exists. */
   function renderCartCount(n) {
+    var q = n > 0 ? n : 0;
     document.querySelectorAll('.cart-count').forEach(function (el) {
-      if (n > 0) { el.textContent = n; el.classList.add('show'); }
-      else { el.textContent = ''; el.classList.remove('show'); }
+      el.textContent = String(q);
+      // The icon alone says nothing, so the count rides on the link's
+      // accessible name as well as in the bubble.
+      var link = el.closest('.cart-link');
+      if (link) link.setAttribute('aria-label', q === 1 ? 'Cart, 1 item' : 'Cart, ' + q + ' items');
+      if (q > 0) el.classList.add('show'); else el.classList.remove('show');
     });
   }
 
@@ -297,6 +341,580 @@
         await klaviyoSubscribeToList(KLAVIYO_SMS_LIST_ID, { email: email, phone_number: phone });
       } catch (err) { /* swallow, email subscribe already succeeded */ }
     }
+  }
+
+  /* ---- Native SMS signup -------------------------------------------
+
+     Phone only, straight to the SMS list. Deliberately NOT
+     klaviyoSubscribe(): that one requires an email and treats the
+     number as an optional extra, which is the exact barrier this is
+     meant to remove. Requiring an email to join an SMS list defeats
+     the point of the SMS list.
+
+     UiFFMg is double opt-in (confirmed against the live account: its
+     opt_in_process is "double_opt_in"). A 202 means Klaviyo accepted
+     the number and will text a confirmation. It does NOT mean
+     subscribed, nothing is on the list until they reply, and no flow
+     fires until then. Every caller's success copy has to say so.
+  */
+
+  /* US/CA mobile -> E.164, or null.
+
+     Beyond the ten-digit rule this also enforces NANP's own: area code
+     and exchange both start 2-9. That rejects 000/111 style junk that
+     would otherwise be accepted here and bounce inside Klaviyo, and it
+     cannot reject a real US or Canadian number, because no real one
+     starts either group with 0 or 1. */
+  function toE164(raw) {
+    var digits = String(raw == null ? '' : raw).replace(/\D/g, '');
+    if (digits.length === 11 && digits.charAt(0) === '1') digits = digits.slice(1);
+    if (digits.length !== 10) return null;
+    if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) return null;
+    return '+1' + digits;
+  }
+
+  function smsSubscribeBody(phone, withConsentBlock, location) {
+    var profile = { phone_number: phone };
+
+    /* First-touch attribution on the profile.
+
+       The subscription carried the number and nothing else, so every
+       SMS signup landed in Klaviyo indistinguishable from every other
+       one: a launch seeded through five creators produced one
+       undifferentiated list, and the question the founder actually has
+       -- which seeding grew the list -- was unanswerable. getUTMParams()
+       returns the FIRST touch, so a creator keeps the credit even if
+       the signup happens on a later visit through a branded search.
+
+       Profile properties, not event properties, and the phone number
+       goes nowhere near a URL or an analytics event -- that constraint
+       is unchanged. These are plain custom properties; nothing here
+       asks Klaviyo for a field that has to exist first. */
+    var utm = getUTMParams();
+    var props = {};
+    Object.keys(utm).forEach(function (k) { props[k] = utm[k]; });
+    if (location) props.signup_location = location;
+    if (Object.keys(props).length) profile.properties = props;
+
+    if (withConsentBlock) {
+      profile.subscriptions = { sms: { marketing: { consent: 'SUBSCRIBED' } } };
+    }
+    return {
+      data: {
+        type: 'subscription',
+        attributes: { profile: { data: { type: 'profile', attributes: profile } } },
+        relationships: { list: { data: { type: 'list', id: KLAVIYO_SMS_LIST_ID } } },
+      },
+    };
+  }
+
+  function postSmsSubscription(phone, withConsentBlock, location) {
+    return fetch('https://a.klaviyo.com/client/subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'revision': KLAVIYO_REVISION },
+      body: JSON.stringify(smsSubscribeBody(phone, withConsentBlock, location)),
+    });
+  }
+
+  /* Two payload shapes, because the record disagrees with itself.
+
+     The brief for this build specifies an explicit subscriptions block
+     and says it was verified on the live account. The comment on
+     klaviyoSubscribe() above records the opposite from an earlier live
+     test: that this endpoint has no subscriptions field and 400s if you
+     send one. Both cannot be true, and neither can be checked from the
+     build sandbox, which has no outbound network at all.
+
+     So: send the specified shape. If Klaviyo rejects it as malformed,
+     send the shape this repo has already watched work. One of the two
+     is right, the visitor is subscribed either way, and the console
+     line says which — delete the loser once someone has seen a real
+     202 in production.
+
+     This is the only path that makes a second request, it only runs on
+     an explicit 400, and it never runs on success, on a network error,
+     or from a second click. */
+  async function klaviyoSubscribeSms(phone, location) {
+    var res = await postSmsSubscription(phone, true, location);
+    if (res.ok) return res.status;
+    if (res.status === 400) {
+      var fallback = await postSmsSubscription(phone, false, location);
+      if (fallback.ok) {
+        if (window.console && console.info) {
+          console.info('[asior] SMS subscribe: consent-block payload 400d, bare payload accepted.');
+        }
+        return fallback.status;
+      }
+    }
+    throw new Error('Klaviyo SMS subscribe failed: ' + res.status);
+  }
+
+  /* Wires every <form data-sms-signup> on the page: the PDP block, the
+     footer block and /text all share this, so the validation, the
+     in-flight lock and the wording of success stay in one place.
+
+     Nothing here submits on blur or on load, and no consent box is
+     ever pre-checked — pressing the button IS the consent, which is
+     why the consent sentence sits next to it rather than behind a
+     link. */
+  function wireSmsSignup(scope) {
+    var forms = (scope || document).querySelectorAll('form[data-sms-signup]');
+    Array.prototype.forEach.call(forms, function (form) {
+      if (form.getAttribute('data-sms-wired')) return;   // idempotent
+      form.setAttribute('data-sms-wired', '1');
+
+      var input = form.querySelector('input[type="tel"]');
+      var button = form.querySelector('button');
+      var msg = form.querySelector('[data-sms-msg]');
+      var inFlight = false;
+
+      function say(text, isError) {
+        if (!msg) return;
+        msg.textContent = text;
+        msg.classList.toggle('is-error', !!isError);
+        msg.classList.add('show');
+      }
+
+      input.addEventListener('input', function () {
+        input.removeAttribute('aria-invalid');
+        if (msg) { msg.classList.remove('show', 'is-error'); msg.textContent = ''; }
+      });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        // Set before any await, so a second click during the same tick
+        // is already locked out rather than racing the first request.
+        if (inFlight) return;
+
+        var phone = toE164(input.value);
+        if (!phone) {
+          // Rejected here means no request at all, not a request that
+          // fails later.
+          input.setAttribute('aria-invalid', 'true');
+          say('Enter a 10-digit US or Canadian mobile number.', true);
+          input.focus();
+          return;
+        }
+
+        inFlight = true;
+        button.disabled = true;
+        input.disabled = true;
+        var label = button.textContent;
+        button.textContent = 'Sending';
+
+        try {
+          /* Which block on which page produced the signup. The PDP's
+             copy, the footer's and /text's are the same offer in three
+             very different contexts, and without this they are one
+             number. */
+          var where = form.closest('[data-sms-location]');
+          await klaviyoSubscribeSms(phone, where ? where.getAttribute('data-sms-location') : null);
+          // Double opt-in: accepted, not subscribed. Saying "you're in"
+          // here would be a lie until they reply.
+          form.classList.add('is-done');
+          say('Almost done — check your texts and reply YES to confirm.', false);
+          input.value = '';
+          /* An event as well as the subscription, so the signup shows
+             up in Klaviyo's stream against the same first touch and can
+             be segmented on. Deliberately carries NO phone number: the
+             standing rule is that the number never reaches a URL, a
+             query string or an analytics event, and this is an
+             analytics event. It rides on the anonymous id instead. */
+          var ev = {};
+          var u = getUTMParams();
+          Object.keys(u).forEach(function (k) { ev[k] = u[k]; });
+          if (where) ev.signup_location = where.getAttribute('data-sms-location');
+          klaviyoTrack('SMS Signup', ev);
+        } catch (err) {
+          say("That didn't go through. Try again in a moment.", true);
+          inFlight = false;
+          button.disabled = false;
+          input.disabled = false;
+          button.textContent = label;
+        }
+      });
+    });
+  }
+
+  /* Markup for the SMS block that product.html renders inside its buy
+     box. The footer's and /text's copies are generated by
+     smsSignupBlock() in scripts/build.js; this is the third, and it
+     lives here because the PDP builds its whole body client-side. The
+     consent sentence must stay identical to that one.
+
+     No discount is mentioned, because there is no signup code. */
+  function smsSignupHTML() {
+    return '<div class="sms-signup sms-signup--pdp" data-sms-location="pdp">'
+      + '<p class="sms-signup-title">Know before it\'s gone.</p>'
+      + '<p class="sms-signup-body">Sizes sell out and we restock rarely. One text when '
+      + 'something you want is running low. No spam, no daily blasts.</p>'
+      + '<form class="sms-form" data-sms-signup novalidate>'
+      + '<label class="sr-only" for="sms-pdp">Mobile number</label>'
+      + '<input class="field" type="tel" id="sms-pdp" name="phone" placeholder="Mobile number" '
+      + 'autocomplete="tel" inputmode="tel" maxlength="20" required>'
+      + '<button type="submit">Sign up</button>'
+      + '<p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>'
+      + '</form>'
+      + '<p class="consent">By signing up you agree to receive recurring automated marketing '
+      + 'texts from ASIOR at the number provided. Consent is not a condition of purchase. '
+      + 'Message frequency varies. Message and data rates may apply. Reply STOP to cancel, '
+      + 'HELP for help. See our <a href="/terms-of-service.html">Terms</a> and '
+      + '<a href="/privacy-policy.html">Privacy Policy</a>.</p>'
+      + '</div>';
+  }
+
+  /* ---- cart drawer -------------------------------------------------
+
+     Until now the product page had no add-to-cart at all: its one
+     button created a single-line cart and went straight to Shopify's
+     checkout, so there was no way to buy two pieces in one order. The
+     header has carried a cart icon and a count the whole time.
+
+     This is the missing half. It reads the saved cart (the same one
+     cart.html reads and the same one addToShopifyCart writes), shows
+     it, and offers the two exits: the full cart page, or checkout.
+
+     Checkout here is the cart's own checkoutUrl, exactly as cart.html
+     and the Buy Now path already use it. Nothing about where checkout
+     lives is decided or rewritten in this file. */
+  var drawerEl = null;
+  var drawerBusy = false;
+
+  async function fetchCartForDrawer() {
+    var id = localStorage.getItem('shopify_cart_id');
+    if (!id) return null;
+    var data = await shopifyFetch(
+      'query($id: ID!) {' +
+      '  cart(id: $id) {' +
+      '    id checkoutUrl totalQuantity' +
+      '    cost { subtotalAmount { amount currencyCode } }' +
+      '    lines(first: 50) { edges { node { id quantity merchandise {' +
+      '      ... on ProductVariant { title price { amount currencyCode }' +
+      '        image { url } product { title handle } } } } } }' +
+      '  }' +
+      '}', { id: id });
+    return data.cart || null;
+  }
+
+  function money(n, currency) {
+    var v = parseFloat(n);
+    if (!isFinite(v)) return '';
+    return (currency === 'USD' || !currency ? '$' : '') + v.toFixed(2);
+  }
+
+  function ensureDrawer() {
+    if (drawerEl) return drawerEl;
+    drawerEl = document.createElement('div');
+    drawerEl.className = 'cart-drawer';
+    drawerEl.setAttribute('hidden', '');
+    drawerEl.innerHTML =
+      '<div class="cart-drawer-scrim" data-cart-close></div>' +
+      '<aside class="cart-drawer-panel" role="dialog" aria-modal="true" aria-label="Cart">' +
+      '  <div class="cart-drawer-head">' +
+      '    <span class="cart-drawer-title">Cart</span>' +
+      '    <button type="button" class="cart-drawer-close" data-cart-close aria-label="Close cart">&times;</button>' +
+      '  </div>' +
+      '  <div class="cart-drawer-body" data-cart-body></div>' +
+      '  <div class="cart-drawer-foot" data-cart-foot></div>' +
+      '</aside>';
+    document.body.appendChild(drawerEl);
+
+    /* One delegated handler, because the body is re-rendered on every
+       change and per-button listeners would be rebound each time.
+       drawerBusy is a lock: two taps on + before the first mutation
+       lands would both read quantity 1 and both write 2. */
+    drawerEl.addEventListener('click', async function (e) {
+      if (e.target.closest('[data-cart-close]')) { closeCartDrawer(); return; }
+
+      // The drawer's Checkout is an <a> and stays one -- it navigates on
+      // its own, with or without this listener. Nothing is intercepted
+      // and no href is rewritten.
+      if (e.target.closest('.cart-drawer-checkout')) {
+        trackCart('Begin Checkout', { source: 'cart_drawer' });
+        return;
+      }
+
+      var step = e.target.closest('.cart-drawer-qty-up, .cart-drawer-qty-down');
+      if (!step || drawerBusy) return;
+      var lineId = step.getAttribute('data-line');
+      var row = step.closest('.cart-drawer-line-qty');
+      var current = parseInt(row.querySelector('.cart-drawer-qty-val').textContent, 10);
+      if (!lineId || !isFinite(current)) return;
+      var next = step.classList.contains('cart-drawer-qty-up') ? current + 1 : current - 1;
+
+      drawerBusy = true;
+      row.classList.add('busy');
+      try {
+        // Below one is a removal, not a quantity of zero.
+        if (next < 1) await removeCartLine(lineId);
+        else await updateCartLine(lineId, next);
+        renderDrawer(await fetchCartForDrawer());
+      } catch (err) {
+        row.classList.remove('busy');
+      } finally {
+        drawerBusy = false;
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !drawerEl.hasAttribute('hidden')) closeCartDrawer();
+    });
+    return drawerEl;
+  }
+
+  function renderDrawer(cart) {
+    var body = drawerEl.querySelector('[data-cart-body]');
+    var foot = drawerEl.querySelector('[data-cart-foot]');
+    var lines = (cart && cart.lines && cart.lines.edges) || [];
+
+    if (!lines.length) {
+      body.innerHTML = '<p class="cart-drawer-empty">nothing in here yet.</p>';
+      foot.innerHTML = '<a class="cart-drawer-secondary" href="/shop.html">Back to Shop All</a>';
+      return;
+    }
+
+    body.innerHTML = lines.map(function (e) {
+      var l = e.node, m = l.merchandise || {};
+      var name = (m.product && m.product.title) || '';
+      // "Default Title" is Shopify's placeholder for a product with no
+      // options; showing it would read as a size nobody chose.
+      var variant = m.title && m.title !== 'Default Title' ? m.title : '';
+      var unit = parseFloat((m.price && m.price.amount) || 0) || 0;
+      return '<div class="cart-drawer-line">'
+        + (m.image && m.image.url
+            ? '<img src="' + escapeAttr(m.image.url) + '" alt="" width="60" height="80" loading="lazy" decoding="async">'
+            : '<div class="cart-drawer-ph"></div>')
+        + '<div class="cart-drawer-line-meta">'
+        + '  <div class="cart-drawer-line-name">' + escapeHtml(name) + '</div>'
+        + (variant ? '<div class="cart-drawer-line-variant">' + escapeHtml(variant) + '</div>' : '')
+        + '  <div class="cart-drawer-line-qty" data-line="' + escapeAttr(l.id) + '">'
+        + '    <button type="button" class="cart-drawer-qty-down" data-line="' + escapeAttr(l.id) + '" aria-label="Decrease quantity">&minus;</button>'
+        + '    <span class="cart-drawer-qty-val">' + l.quantity + '</span>'
+        + '    <button type="button" class="cart-drawer-qty-up" data-line="' + escapeAttr(l.id) + '" aria-label="Increase quantity">+</button>'
+        + '  </div>'
+        + '</div>'
+        // Line total, not unit price. With a stepper beside it, a unit
+        // price next to "2" reads as the cost of the line and is wrong.
+        + '<div class="cart-drawer-line-price tnum">'
+        + money(unit * l.quantity, m.price && m.price.currencyCode) + '</div>'
+        + '</div>';
+    }).join('');
+
+    var sub = cart.cost && cart.cost.subtotalAmount;
+    foot.innerHTML =
+      '<div class="cart-drawer-sub"><span>Subtotal</span>'
+      + '<span class="tnum">' + money(sub && sub.amount, sub && sub.currencyCode) + '</span></div>'
+      // Subtotal only. Shipping and any discount are Shopify's to
+      // calculate at checkout, and a number we invent here would be one
+      // we cannot charge.
+      + '<p class="cart-drawer-note">Shipping and discounts are calculated at checkout.</p>'
+      + '<a class="cart-drawer-checkout" href="' + escapeAttr(cart.checkoutUrl || '/cart.html') + '">Checkout</a>'
+      + '<a class="cart-drawer-secondary" href="/cart.html">View cart</a>';
+  }
+
+  async function openCartDrawer(source) {
+    trackCart('Cart Drawer Opened', { source: source || 'header' });
+    ensureDrawer();
+    drawerEl.removeAttribute('hidden');
+    // Next frame, so the transition has a start state to animate from.
+    requestAnimationFrame(function () { drawerEl.classList.add('open'); });
+    document.documentElement.classList.add('cart-drawer-locked');
+    drawerEl.querySelector('[data-cart-body]').innerHTML = '<p class="cart-drawer-empty">Loading…</p>';
+    var btn = drawerEl.querySelector('.cart-drawer-close');
+    if (btn) btn.focus();
+    try {
+      renderDrawer(await fetchCartForDrawer());
+    } catch (err) {
+      drawerEl.querySelector('[data-cart-body]').innerHTML =
+        '<p class="cart-drawer-empty">Couldn\'t load your cart. <a href="/cart.html">Open the cart page</a>.</p>';
+    }
+  }
+
+  function closeCartDrawer() {
+    if (!drawerEl) return;
+    drawerEl.classList.remove('open');
+    document.documentElement.classList.remove('cart-drawer-locked');
+    // Match the panel transition before hiding, so it slides out.
+    setTimeout(function () { if (!drawerEl.classList.contains('open')) drawerEl.setAttribute('hidden', ''); }, 260);
+  }
+
+  /* ---- cart funnel events -------------------------------------------
+
+     The journey was instrumented at its ends -- Viewed Product and
+     Added to Cart -- and nowhere in between, so the questions the
+     launch actually raises could not be answered: how many adds reach
+     the drawer, how many carts get edited rather than abandoned, how
+     many reach checkout. These are the missing steps.
+
+     No PII anywhere in them. Line ids and handles only, on the
+     anonymous id, which is what klaviyoTrack falls back to. Nothing
+     here blocks the action it describes -- klaviyoTrack already
+     swallows its own failures. */
+  function trackCart(metric, props) {
+    try {
+      var out = props || {};
+      var utm = getUTMParams();
+      // First touch travels with every funnel step, so revenue can be
+      // attributed to the creator who actually started the journey.
+      Object.keys(utm).forEach(function (k) { if (!(k in out)) out[k] = utm[k]; });
+      klaviyoTrack(metric, out);
+    } catch (err) { /* instrumentation is never load-bearing */ }
+  }
+
+  /* ---- drop state ----------------------------------------------------
+
+     A drop is an event, and the storefront is supposed to know which
+     part of it we are in. Four states, every one of them derived --
+     never configured as a mood:
+
+       pre-drop   PUBLIC_LAUNCH_TIME is set and still in the future.
+       live       that instant has passed and something is buyable.
+       sold-out   it has passed and every Fall piece is sold out, as
+                  the live Shopify catalogue reports it.
+       evergreen  no launch instant is configured at all.
+
+     The first, second and fourth are answerable from
+     assets/launch-config.js alone and are therefore known before the
+     catalogue request finishes, so the opening does not flash. Only
+     sold-out needs the catalogue, and it is an upgrade applied once
+     the real data lands.
+
+     Nothing here can invent scarcity. "Sold out" requires every piece
+     in FALL_PRODUCTS to come back from Shopify unavailable; a launch
+     date is only shown when one is really configured and really still
+     ahead. There is no low-stock state on purpose -- Shopify's
+     quantities are not reliable enough across this catalogue to make a
+     claim like that, and a wrong one costs more than a missing one. */
+  function dropState(catalog) {
+    var cfg = window.ASIOR_LAUNCH || {};
+    var at = cfg.PUBLIC_LAUNCH_TIME ? Date.parse(cfg.PUBLIC_LAUNCH_TIME) : NaN;
+
+    if (isFinite(at) && Date.now() < at) return { state: 'pre-drop', at: at };
+    if (!isFinite(at)) return { state: 'evergreen', at: null };
+
+    // Needs the catalogue. Until it arrives, a launched drop is live.
+    if (!catalog || !catalog.length) return { state: 'live', at: at };
+
+    var handles = (cfg.FALL_PRODUCTS || []).map(function (p) { return p.handle; });
+    var fall = catalog.filter(function (p) { return handles.indexOf(p.handle) !== -1; });
+    // No Fall pieces in the catalogue at all is not the same as all of
+    // them being sold out, and must not be reported as one.
+    if (!fall.length) return { state: 'live', at: at };
+    var allGone = fall.every(function (p) { return p.soldOut; });
+    return { state: allGone ? 'sold-out' : 'live', at: at };
+  }
+
+  /* The launch instant in the visitor's own timezone, which is the only
+     one they can act on. Returns null rather than a guess when the
+     configured value will not parse. */
+  function launchDateLabel(at) {
+    if (!isFinite(at)) return null;
+    try {
+      var d = new Date(at);
+      var opts = {
+        weekday: 'long', month: 'long', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      };
+      // The year only when it is not this one. "Friday, March 5" is how
+      // a person says a date a few weeks out; "Friday, March 5, 2027" is
+      // how they say one that is further away, and leaving the year off
+      // that one is ambiguous rather than clean.
+      if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+      return d.toLocaleString(undefined, opts);
+    } catch (err) { return null; }
+  }
+
+  /* ---- mobile menu panel -------------------------------------------
+     The phone header used to hold all four nav links in a strip
+     clipped to calc(100vw - 130px) with the overflow scrollable and
+     the scrollbar hidden, so MANUFACTURING was off-screen with nothing
+     to say it was there. The links now open as a full-screen panel
+     behind one MENU button.
+
+     The <nav> keeps the real anchors in the served HTML, so with
+     JavaScript off the panel is simply not openable rather than the
+     navigation being gone. Nothing here runs at desktop widths, where
+     .nav-toggle is display:none and the links sit inline. */
+  function wireNav() {
+    var toggle = document.getElementById('navToggle');
+    var nav = document.getElementById('siteNav');
+    if (!toggle || !nav) return;
+
+    /* moveFocus is false when the panel is closing because a link in
+       it was followed: the cart link opens the drawer in place (see
+       wireCartLinks) and pulling focus back to the MENU button would
+       take it straight out of the dialog that just opened. */
+    /* The drawer slides in from the left [spec section 11]. A scrim is
+       created lazily rather than shipped in every page's markup: it
+       exists only once a menu has actually been opened, and clicking it
+       closes the drawer, which is the behaviour people expect of an
+       overlay and which keyboard users get from Escape. */
+    var scrim = null;
+    function ensureScrim() {
+      if (scrim) return scrim;
+      scrim = document.createElement('div');
+      scrim.className = 'nav-scrim';
+      scrim.addEventListener('click', function () { setOpen(false); });
+      document.body.appendChild(scrim);
+      return scrim;
+    }
+
+    function setOpen(open, moveFocus) {
+      moveFocus = moveFocus !== false;
+      document.body.classList.toggle('nav-open', open);
+      nav.classList.toggle('is-open', open);
+      ensureScrim().classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      // Scrolling the page behind an open full-screen panel is how you
+      // end up somewhere else when you close it.
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      if (!moveFocus) return;
+      if (open) {
+        var first = nav.querySelector('a');
+        if (first) first.focus();
+      } else {
+        toggle.focus();
+      }
+    }
+
+    toggle.addEventListener('click', function () {
+      setOpen(!document.body.classList.contains('nav-open'));
+    });
+
+    var close = document.getElementById('navClose');
+    if (close) close.addEventListener('click', function () { setOpen(false); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('nav-open')) setOpen(false);
+    });
+
+    /* Same-page links (the cart link, or Shop while already on Shop)
+       leave the panel open over the page they land on, because no
+       navigation happens. Close on any link tap -- through setOpen, so
+       the scroll lock comes off with it. Dropping the class alone left
+       <html> at overflow:hidden and the page unscrollable. */
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setOpen(false, false);
+    });
+
+    /* Resizing past the breakpoint with the panel open leaves the
+       desktop header behind a full-screen overlay. */
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 640 && document.body.classList.contains('nav-open')) setOpen(false);
+    });
+  }
+
+  /* The header cart link opens the drawer instead of navigating, when
+     there is JS to open it with. Without JS the same link is still a
+     plain link to /cart.html, which is why this is wired here rather
+     than being a button in the markup. */
+  function wireCartLinks() {
+    document.querySelectorAll('a.cart-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        openCartDrawer();
+      });
+    });
   }
 
   /* ---- Klaviyo onsite (klaviyo.js) ----------------------------------
@@ -361,6 +979,11 @@
         payload.$value = item.price * (item.quantity || 1);
       }
       if (item.size) payload.Size = item.size;
+      /* Where the add happened. One metric, not four -- duplicating
+         "Added to Cart" per surface would double-count every purchase
+         funnel. A property instead makes the PLP quick-add rate and the
+         PDP add rate separable without inventing a second event. */
+      if (item.source) payload.Source = item.source;
       klaviyoOnsite().push(['track', 'Added to Cart', payload]);
     } catch (err) { /* never block the add */ }
   }
@@ -463,13 +1086,32 @@
     var utm = {};
     try {
       var params = new URLSearchParams(location.search);
-      ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
+      /* utm_content and utm_term as well as the first three.
+         utm_content is the slot a creator link actually carries -- it
+         is what separates one seeded post from another inside the same
+         campaign -- so capturing source/medium/campaign alone made
+         per-creator attribution impossible: every creator on a launch
+         arrives as tiktok/creator/fall26 and is indistinguishable.
+
+         Also the common click-id params, which are what the ad
+         platforms themselves attribute by and which a UTM set does not
+         replace. */
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+       'ttclid', 'fbclid', 'gclid'].forEach(function (k) {
         var v = params.get(k);
-        if (v) utm[k] = v;
+        // Bounded: these end up in a Klaviyo profile and on events, and
+        // a pasted link can carry a very long value.
+        if (v) utm[k] = String(v).slice(0, 200);
       });
       if (Object.keys(utm).length) {
-        localStorage.setItem('asior_utm', JSON.stringify(utm));
-        return utm;
+        /* First touch wins. A visitor who lands from a creator link and
+           then comes back through a branded search should still be
+           credited to the creator -- overwriting here would quietly
+           reassign every conversion to the last channel, which is the
+           one that needed the least work. */
+        var prior = localStorage.getItem('asior_utm');
+        if (!prior) localStorage.setItem('asior_utm', JSON.stringify(utm));
+        return prior ? JSON.parse(prior) : utm;
       }
       var stored = localStorage.getItem('asior_utm');
       return stored ? JSON.parse(stored) : {};
@@ -616,6 +1258,226 @@
      1-2 business days" is how long before it leaves; transit is how
      long it then takes to arrive. Stating one number invites the
      reader to hear the other. */
+  /* AI-generated imagery, client side.
+
+     scripts/build.js has had isGeneratedImage()/leadImage() for the
+     pre-rendered markup, but the grid, the quick view and the PDP all
+     re-render from a live fetch a moment after load -- and they read
+     featuredImage straight off the response. So Kova's tile was
+     demoted to a real photograph at build time and then swapped BACK
+     to the Firefly render by the client, which is the one thing
+     CLAUDE.md says must never be the grid tile.
+
+     Same detector as the build's, deliberately: one list of generator
+     filenames, two runtimes. Keep them in step.
+
+     Note what this does NOT do: it never hides a product and never
+     deletes an image. The render stays reachable in the PDP gallery as
+     a later frame -- removing it from Shopify is the founder's call,
+     not this file's. All this decides is what goes FIRST. */
+  var GENERATED_IMAGE_RE = /Firefly_|Midjourney|DALL-?E|StableDiffusion|GeminiFlash|nano-banana|AIGenerated/i;
+
+  function isGeneratedImage(img) {
+    var url = (img && (img.url || img)) || '';
+    return GENERATED_IMAGE_RE.test(url);
+  }
+
+  /* The image a product should lead with: its first real photograph.
+     Falls back to the generated one only when there is nothing else --
+     a product with no image at all is worse than one with a flawed
+     image, and the point is to stop a render being FIRST, not to hide
+     the product. */
+  function leadImage(featured, images) {
+    var all = (images || []).filter(function (im) { return im && im.url; });
+    if (featured && !isGeneratedImage(featured)) return featured;
+    var real = all.filter(function (im) { return !isGeneratedImage(im); })[0];
+    if (real) return real;
+    return featured || all[0] || null;
+  }
+
+  /* A product's images, real photographs first, generated renders last
+     and never dropped. Used wherever a list of frames is rendered in
+     order (the PDP gallery, the quick view) so the first frame is a
+     photograph without any image disappearing. */
+  function orderImages(images) {
+    var all = (images || []).filter(function (im) { return im && im.url; });
+    return all.filter(function (im) { return !isGeneratedImage(im); })
+      .concat(all.filter(isGeneratedImage));
+  }
+
+  /* ---- the shared product card ---------------------------------------
+
+     One normalizer and one renderer, used by the shop grid and by every
+     collection page.
+
+     This repo already carried two card implementations that had to be
+     kept in step by hand -- card() in shop.html and shopCard() in
+     scripts/build.js, which CLAUDE.md flags as a standing hazard. The
+     Kova bug proved the hazard was real: the build demoted the Firefly
+     render and the client put it straight back, because only one of the
+     two had the filter. Collection pages would have made a third copy.
+     This is the client-side one, defined once.
+
+     PRODUCT_CARD_FIELDS is the GraphQL selection a card needs, so a page
+     cannot ask for less than it renders. quantityAvailable is
+     deliberately absent: that field mixed into a catalog query is what
+     broke live images and pricing across browsers earlier this launch.
+     A card only ever needs the boolean availableForSale. */
+  var PRODUCT_CARD_FIELDS = `
+    title
+    handle
+    options { name values }
+    featuredImage { ${IMAGE_FIELDS} }
+    images(first: 2) { edges { node { ${IMAGE_FIELDS} } } }
+    variants(first: 20) {
+      edges { node {
+        id availableForSale price { amount } compareAtPrice { amount }
+        selectedOptions { name value }
+      } }
+    }`;
+
+  /* Storefront node -> the shape a card renders. Returns null for a
+     malformed product rather than throwing, so one bad record cannot
+     take down every other tile on the page. */
+  function normalizeProduct(node) {
+    try {
+      var variants = node.variants.edges.map(function (v) { return v.node; });
+      var prices = variants.map(function (v) { return parseFloat(v.price.amount); });
+      var compares = variants
+        .map(function (v) { return v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null; })
+        .filter(Boolean);
+      var minPrice = Math.min.apply(null, prices);
+      var maxPrice = Math.max.apply(null, prices);
+      var compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+      var opts = node.options || [];
+      var hasSizeOnly = opts.length === 1 && opts[0].name === 'Size';
+      var all = ((node.images && node.images.edges) || []).map(function (x) { return x.node; });
+      /* leadImage, not featuredImage: a generated render is never the
+         grid tile, and the alt frame has to clear the same bar or the
+         hover swap does the demotion in reverse. */
+      var lead = leadImage(node.featuredImage, all);
+      var firstUrl = lead && lead.url;
+
+      return {
+        handle: node.handle,
+        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+        image: lead,
+        altImage: orderImages(all).filter(function (im) { return im.url !== firstUrl; })[0] || null,
+        isPreorder: /\[preorder\]/i.test(node.title),
+        soldOut: variants.length > 0 && variants.every(function (v) { return !v.availableForSale; }),
+        priceLabel: minPrice === maxPrice
+          ? (compare ? '<span class="compare">$' + compare + '</span>' : '') + '$' + minPrice
+          : 'From $' + minPrice,
+        /* Quick-add only makes sense when Size is the one and only
+           choice. A product with a second option (color, material)
+           needs the full product page, where that choice has room to be
+           made correctly. */
+        sizes: hasSizeOnly
+          ? variants.map(function (v) {
+              var o = (v.selectedOptions || []).filter(function (x) { return x.name === 'Size'; })[0];
+              return o ? { size: o.value, variantId: v.id, available: v.availableForSale } : null;
+            }).filter(Boolean)
+          : null,
+      };
+    } catch (err) {
+      console.warn('Skipping malformed product:', node && node.handle, err);
+      return null;
+    }
+  }
+
+  /* opts.eager  -- first row only; everything below the fold stays lazy.
+     opts.peek   -- render the quick view trigger (default true). It is
+                    never pre-rendered server side: it does nothing
+                    without JS, and a dead button is worse than none. */
+  function productCard(p, opts) {
+    opts = opts || {};
+    var media = p.image
+      ? imgTag(p.image, {
+          alt: 'Asior ' + p.name,
+          eager: !!opts.eager,
+          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
+        })
+      : '';
+    /* The hover frame rides along as data and only becomes a real <img>
+       when a pointer enters the tile. A second lazy <img> per tile would
+       be fetched as soon as the tile scrolled into view, doubling the
+       grid's image requests for an effect most visitors (every touch
+       device) can never see. */
+    var alt = p.altImage
+      ? ' data-alt-src="' + escapeAttr(p.altImage.w800 || p.altImage.url) + '"'
+      : '';
+    var mine = preferredSize();
+
+    var quickAdd = p.sizes
+      ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '">'
+        + p.sizes.map(function (s) {
+            return '<button type="button" class="qa-size' + (s.available ? '' : ' unavailable')
+              + (s.size === mine ? ' mine' : '') + '"'
+              + ' data-variant-id="' + escapeAttr(s.variantId) + '" data-size="' + escapeAttr(s.size) + '"'
+              + (s.available ? '' : ' disabled')
+              + ' aria-label="' + (s.available ? 'Add size ' + escapeAttr(s.size) + ' to cart'
+                                               : 'Size ' + escapeAttr(s.size) + ', sold out') + '">'
+              + escapeHtml(s.size) + '</button>';
+          }).join('')
+        + '</div>'
+      : '';
+
+    /* The photograph and the caption are two links to the same page
+       rather than one wrapping both, because the quick view trigger has
+       to sit on the photograph and a <button> cannot legally live
+       inside an <a>. The frame is what positions it. */
+    var peek = opts.peek === false ? ''
+      : '<button type="button" class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '">Quick view</button>';
+
+    /* [measured] A small black badge top-left on the image. The
+       reference's reads "Notify Me" and opens a restock signup; ours
+       says "Sold out", because the spec is explicit that the Notify Me
+       wording may only be used if it opens a working restock signup,
+       and the grid card does not have one. The product page does. */
+    var badge = p.soldOut ? '<span class="product-badge">Sold out</span>' : '';
+
+    return '\n      <div class="product" data-handle="' + escapeAttr(p.handle) + '">'
+      + '<div class="product-frame">'
+      + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html" tabindex="-1" aria-hidden="true">'
+      + '<div class="product-img"' + alt + '>' + media + '</div></a>'
+      + badge + peek
+      + '</div>'
+      + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html">'
+      /* [measured] Title above the price, both left aligned, title
+         clamped to one line. The v14 card put name and price on one
+         row with the price pushed right, which reads as a price list;
+         the reference stacks them. */
+      + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
+      + '<div class="product-price tnum">' + p.priceLabel + '</div>'
+      + (p.isPreorder ? '<div class="product-state">Preorder</div>' : '')
+      + '</a>' + quickAdd + '</div>';
+  }
+
+  /* The hover frame, wired once per grid container. Shared by the shop
+     grid and the collection pages so the swap behaves identically on
+     both. No-op on touch, where there is no hover to respond to. */
+  function wireHoverSwap(container) {
+    if (!container || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    /* pointerover, not pointerenter: pointerenter does not bubble, so a
+       single delegated listener on the grid never hears it. The
+       already-present guard makes the extra events a no-op. */
+    container.addEventListener('pointerover', function (e) {
+      var box = e.target.closest ? e.target.closest('.product-img') : null;
+      if (!box) return;
+      var src = box.getAttribute('data-alt-src');
+      if (!src || box.querySelector('.alt-shot')) return;
+      var img = document.createElement('img');
+      img.className = 'alt-shot';
+      img.alt = '';
+      img.decoding = 'async';
+      img.addEventListener('load', function () { img.classList.add('ready'); });
+      // A hover frame that 404s should leave the tile exactly as it was.
+      img.addEventListener('error', function () { img.remove(); });
+      img.src = src;
+      box.appendChild(img);
+    });
+  }
+
   function shippingConfig() {
     return window.ASIOR_SHIPPING || {};
   }
@@ -646,7 +1508,7 @@
      filled in renders nothing rather than a vague claim. */
   function internationalLine() {
     var s = shippingConfig();
-    if (!s.INTERNATIONAL) return null;
+    if (!s.INTERNATIONAL || !s.INTERNATIONAL_STANCE_CONFIRMED) return null;
     var n = s.INTERNATIONAL_COUNTRIES;
     if (typeof n !== 'number' || !(n > 0)) return null;
     var line = 'Ships worldwide to ' + n + ' countries.';
@@ -664,7 +1526,7 @@
      phone number and Chinese customs requires the ID. */
   function internationalCheckoutNote() {
     var s = shippingConfig();
-    if (!s.INTERNATIONAL) return null;
+    if (!s.INTERNATIONAL || !s.INTERNATIONAL_STANCE_CONFIRMED) return null;
     var parts = [];
     if (s.INTERNATIONAL_PHONE_REQUIRED) {
       parts.push('International orders ask for a phone number because the carrier requires one');
@@ -676,22 +1538,85 @@
     return parts.join(', and ') + '.';
   }
 
+  /* "Dispatched in", not "Ships in".
+
+     FULFILMENT is handling time -- the config says so in its own
+     comment -- but the sentence rendered it as "Ships in 1-2 business
+     days", which a customer reads as arrival. The real cheapest US
+     rate is 5-8 business days in transit on top of that, so the page
+     was setting an expectation the carrier cannot meet, at the exact
+     moment the shopper decides to trust it. Transit is named here as
+     a separate thing and left to checkout, which is the only place it
+     is actually known for a given address. */
   function shippingLine() {
     var s = shippingConfig();
     var fulfil = s.FULFILMENT || '1-2 business days';
     var region = s.REGION ? ', ' + s.REGION : '';
     if (freeShippingActive() && s.FREE_THRESHOLD === 0) {
-      return 'Free shipping on every order, no minimum. Ships in ' + fulfil + region + '.';
+      return 'Free shipping on every order, no minimum. Dispatched in ' + fulfil + region + '.';
     }
     if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
-      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Ships in ' + fulfil + region + '.';
+      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Dispatched in ' + fulfil + region + '.';
     }
     if (typeof s.FROM_PRICE === 'number') {
-      return 'Ships in ' + fulfil + '. Shipping from $' + s.FROM_PRICE.toFixed(2)
-        + ' in the US, calculated at checkout.';
+      return 'Dispatched in ' + fulfil + '. Delivery is on top of that \u2014 US shipping from $'
+        + s.FROM_PRICE.toFixed(2) + ', calculated at checkout.';
     }
-    return 'Ships in ' + fulfil + '. Shipping calculated at checkout'
-      + (s.REGION ? ' — ' + s.REGION : '') + '.';
+    return 'Dispatched in ' + fulfil + '. Delivery and shipping calculated at checkout'
+      + (s.REGION ? ' \u2014 ' + s.REGION : '') + '.';
+  }
+
+  /* The full shipping picture, built from the verified rate card rather
+     than written as prose.
+
+     The product page used to carry a hardcoded sentence that disagreed
+     with the configuration in three ways at once: it promised delivery
+     in "2-5 business days" when the real rates are 5-8 (Economy) and
+     3-4 (Standard), and it said "shipping within the US only for now"
+     when international has been live through Managed Markets to 28
+     countries. Prose drifts from the rate card; this cannot, because
+     it is the rate card. Every number here comes from
+     assets/promo-config.js and nothing is written twice. */
+  /* The returns sentence, or nothing.
+
+     Gated on ASIOR_SHIPPING.RETURNS_POLICY_PUBLISHED, which is false:
+     no refund or return policy exists in Shopify and
+     /refund-policy.html is a 404, so a stated return window is a
+     promise with nothing behind it. Returns '' in that case and every
+     caller renders nothing rather than a hedge. See the long note on
+     the flag in assets/promo-config.js. */
+  function returnsLine() {
+    var s = shippingConfig();
+    if (!s.RETURNS_POLICY_PUBLISHED) return '';
+    var days = Number(s.RETURNS_WINDOW_DAYS);
+    if (!isFinite(days) || days <= 0) return '';
+    return days + '-day returns on unworn, unwashed items with tags.';
+  }
+
+  function shippingDetailHTML() {
+    var s = shippingConfig();
+    var out = '<p>' + escapeHtml(shippingLine()) + '</p>';
+
+    var rates = Array.isArray(s.RATES) ? s.RATES : [];
+    if (rates.length) {
+      out += '<table class="ship-rates"><caption class="sr-only">US shipping rates</caption>'
+        + '<thead><tr><th scope="col">US option</th><th scope="col">Cost</th>'
+        + '<th scope="col">In transit</th></tr></thead><tbody>'
+        + rates.map(function (r) {
+            return '<tr><th scope="row">' + escapeHtml(r.label) + '</th>'
+              + '<td class="tnum">$' + Number(r.price).toFixed(2) + '</td>'
+              + '<td>' + escapeHtml(r.transit) + '</td></tr>';
+          }).join('')
+        + '</tbody></table>'
+        // Transit is business days after dispatch, not from the order.
+        + '<p class="ship-note">Transit time starts when the parcel leaves us, not when you order.</p>';
+    }
+
+    var intl = internationalLine();
+    if (intl) out += '<p>' + escapeHtml(intl) + '</p>';
+    var note = internationalCheckoutNote();
+    if (note) out += '<p>' + escapeHtml(note) + '</p>';
+    return out;
   }
 
   /* Short badge for the announcement bar and shop grid. Null when
@@ -723,6 +1648,16 @@
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
     shippingLine: shippingLine,
+    shippingDetailHTML: shippingDetailHTML,
+    returnsLine: returnsLine,
+    shippingConfig: shippingConfig,
+    isGeneratedImage: isGeneratedImage,
+    leadImage: leadImage,
+    orderImages: orderImages,
+    PRODUCT_CARD_FIELDS: PRODUCT_CARD_FIELDS,
+    normalizeProduct: normalizeProduct,
+    productCard: productCard,
+    wireHoverSwap: wireHoverSwap,
     internationalLine: internationalLine,
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
@@ -733,6 +1668,8 @@
     escapeHtml: escapeHtml,
     getOrCreateCart: getOrCreateCart,
     addToShopifyCart: addToShopifyCart,
+    updateCartLine: updateCartLine,
+    removeCartLine: removeCartLine,
     createBuyNowCart: createBuyNowCart,
     applyDiscountCodes: applyDiscountCodes,
     cartDiscountTotal: cartDiscountTotal,
@@ -744,7 +1681,10 @@
     klaviyoIdentify: klaviyoIdentify,
     klaviyoSubscribeToList: klaviyoSubscribeToList,
     klaviyoTrack: klaviyoTrack,
+    trackCart: trackCart,
     klaviyoBackInStock: klaviyoBackInStock,
+    dropState: dropState,
+    launchDateLabel: launchDateLabel,
     getAnonId: getAnonId,
     getUTMParams: getUTMParams,
     getVariant: getVariant,
@@ -756,6 +1696,13 @@
     isReturningVisitor: isReturningVisitor,
     stockLabel: stockLabel,
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
+    KLAVIYO_SMS_LIST_ID: KLAVIYO_SMS_LIST_ID,
+    toE164: toE164,
+    klaviyoSubscribeSms: klaviyoSubscribeSms,
+    wireSmsSignup: wireSmsSignup,
+    openCartDrawer: openCartDrawer,
+    closeCartDrawer: closeCartDrawer,
+    smsSignupHTML: smsSignupHTML,
   };
 
   /* Give the fixed header something solid behind it the moment the page
@@ -776,7 +1723,94 @@
     window.addEventListener('scroll', sync, { passive: true });
   }
 
+  /* The announcement bar rotates [measured: the reference's bar changed
+     between page loads]. Three messages, cross-faded in place so the
+     bar never changes height.
+
+     Paused on hover and on focus-within, so a message cannot slide out
+     from under someone reading it or tabbing through it. Under
+     prefers-reduced-motion it does not rotate at all: it shows the
+     first message and stops, because a timed content swap is motion
+     whether or not it is animated. */
+  function wireAnnounce() {
+    var track = document.querySelector('[data-announce]');
+    if (!track) return;
+    var msgs = Array.prototype.slice.call(track.querySelectorAll('.announce-msg'));
+    if (msgs.length < 2) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var i = 0, paused = false, timer = null;
+
+    function show(n) {
+      msgs.forEach(function (m, k) {
+        var on = k === n;
+        m.classList.toggle('is-on', on);
+        // Only the visible message is exposed; the rest would otherwise
+        // all be read out in sequence by a screen reader.
+        if (on) m.removeAttribute('aria-hidden');
+        else m.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    function tick() {
+      if (!paused) { i = (i + 1) % msgs.length; show(i); }
+    }
+
+    var bar = track.closest('.announce') || track;
+    bar.addEventListener('mouseenter', function () { paused = true; });
+    bar.addEventListener('mouseleave', function () { paused = false; });
+    bar.addEventListener('focusin', function () { paused = true; });
+    bar.addEventListener('focusout', function () { paused = false; });
+
+    // Stop the timer entirely when the tab is hidden.
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { clearInterval(timer); timer = null; }
+      else if (!timer) timer = setInterval(tick, 4000);
+    });
+
+    timer = setInterval(tick, 4000);
+  }
+
+  wireAnnounce();
+
   wireHeaderScrollState();
+
+  /* Publish the fixed header's real height as --header-h, which
+     .page-top-space uses to clear it.
+
+     The spacer was two hardcoded numbers (92px / 118px) against a
+     header that is actually 87px / 95px tall, because its height
+     depends on the loaded font and on whether the nav wraps. The slack
+     was invisible on a dark page and became a black band between the
+     nav and the homepage's full-bleed photograph.
+
+     Measured on load, on resize, and again once the webfont has
+     swapped in -- Archivo is loaded with display=swap, so the first
+     measurement is taken against the fallback face and can be a couple
+     of pixels out. The CSS keeps the old numbers as its fallback, so a
+     visitor with no JS gets exactly what they got before. */
+  function syncHeaderHeight() {
+    var header = document.querySelector('header');
+    if (!header) return;
+    var h = Math.round(header.getBoundingClientRect().bottom);
+    if (h > 0) document.documentElement.style.setProperty('--header-h', h + 'px');
+  }
+
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight, { passive: true });
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(syncHeaderHeight).catch(function () {});
+  }
+
+  // Footer block on every page, and the whole of /text. The PDP
+  // block renders after its catalog fetch, so product.html calls
+  // wireSmsSignup() again once it has built the buy box.
+  wireSmsSignup(document);
+  wireNav();
+  wireCartLinks();
+  // Renders "(0)" immediately so the header never shows a bare "Cart"
+  // while the real count is still in flight.
+  renderCartCount(0);
   refreshCartCount();
   // Capture on every page load, not just at submit time — a visitor
   // can land on one page carrying UTM params and convert on a

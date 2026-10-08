@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior Lanyard — Out Now</title>
 <meta name="description" content="The Asior lanyard. Out now.">
-<meta name="theme-color" content="#0b0a08">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/lanyard.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -18,13 +18,19 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — limited drops, made in small batches">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Product structured data, written at build time from the live
+     Shopify catalog (scripts/build.js, syncBespokeJsonLd). This page
+     is the canonical URL for jag-lanyard, so the markup belongs here
+     rather than on the generated /products/jag-lanyard.html that
+     defers to it. Empty in the repo by design — prices and
+     availability are never hand-written. -->
+<!-- JSONLD:START -->
+<!-- JSONLD:END -->
+
 <link rel="preconnect" href="https://cdn.shopify.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
 <style>
@@ -73,7 +79,7 @@
      (very tall or very wide) dominating the layout. */
   .lp-media {
     border-radius: 2px;
-    background: linear-gradient(155deg, #1c1a16 0%, #100f0d 100%);
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -192,7 +198,28 @@
   .lp-buy:hover { opacity: 0.85; }
   .lp-buy[disabled] { opacity: 0.5; cursor: not-allowed; }
 
+  /* The quieter of the pair: same width and hit area as .lp-buy,
+     outline instead of fill, so Add to Cart stays the default. */
+  .lp-buynow {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--field-line);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 30px;
+    cursor: pointer;
+    transition: border-color 200ms var(--ease-out);
+  }
+  .lp-buynow:hover:not([disabled]) { border-color: var(--ink); }
+  .lp-buynow[disabled] { opacity: 0.4; cursor: not-allowed; }
+
   .lp-msg { margin-top: 14px; font-size: 12px; color: var(--muted); }
+  .lp-msg a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
 
   @media (max-width: 720px) {
     .lp-wrap { grid-template-columns: 1fr; gap: 28px; padding: 2vh 20px 10vh; }
@@ -220,35 +247,139 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
-<!-- Deliberately no <nav> here — no Shop, Community, Contact or
-     Manufacturing links, no cart icon. Every other page on the site pulls
-     header/nav in from site.css because they're all meant to lead further
-     into the store. This one link goes out from the passphrase gate before
-     the drop is public, and a full nav on the far end of it would let
-     anyone follow Shop straight into the rest of the catalog — the one
-     thing the gate is there to hold back. So this page shows the lanyard
-     and nothing else to click into. -->
-<header class="lp-header"><a href="index.html">Asior</a></header>
+<!-- This page used to ship a deliberately nav-less header: it was
+     reachable from the passphrase gate before the drop was public, and
+     a full nav would have let anyone follow Shop straight past the
+     gate. That reasoning is stale. /lanyard.html is in STATIC_PAGES so
+     it is in the sitemap and publicly indexed, the lanyard is in the
+     shop grid like every other product, and the old header already led
+     into the store anyway via index.html, which 301s to the shop. What
+     the exclusion actually produced was a product page with no cart
+     icon and no way back into the catalogue. It now carries the shared
+     chrome like every other page. -->
+<!-- HEADER:START -->
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+    </div>
+  </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
+
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/collections/accessories.html">Accessories</a>
+      <a href="/manufacturing.html">Manufacturing</a>
+    </nav>
+
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
+    </div>
+  </header>
+  <!-- HEADER:END -->
 
 <main id="main">
   <div class="lp-loading" id="lpLoading">Loading…</div>
   <div id="lp-root"></div>
 </main>
 
-<footer id="order">
-  <div class="fmark">Asior</div>
-  <div class="fmeta"><a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a></div>
-  <div class="policy-links">
-    <a href="privacy-policy.html">Privacy Policy</a>
-    <a href="terms-of-service.html">Terms of Service</a>
-  </div>
-</footer>
+<!-- FOOTER:START -->
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
+      </div>
+    </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
+  </footer>
+  <!-- FOOTER:END -->
 
 <script src="assets/promo-config.js"></script>
 <script src="assets/site.js"></script>
@@ -423,8 +554,17 @@
             <span id="qtyVal" aria-live="polite">1</span>
             <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
           </div>
-          <button class="lp-buy" id="buyBtn">Buy Now</button>
+          <!-- Two actions, matching the product page. This had one
+               button labelled Buy Now that added to the SAVED cart and
+               then redirected, which is the line-stacking bug the
+               product page already fixed: buy, press back, buy again and
+               checkout showed two lanyards for what was meant as one
+               purchase. Add to Cart now owns the saved cart; Buy Now
+               gets its own one-line cart and leaves that one alone. -->
+          <button class="lp-buy" id="lpAddBtn">Add to Cart</button>
+          <button class="lp-buynow" id="buyBtn">Buy Now</button>
           <p class="lp-msg" id="lpMsg" role="status" aria-live="polite"></p>
+          ${A.smsSignupHTML()}
         </div>
       </div>`;
 
@@ -463,13 +603,21 @@
 
     function renderBuyButton() {
       const v = currentVariant();
+      const addBtn = document.getElementById('lpAddBtn');
       const btn = document.getElementById('buyBtn');
       const sold = !v || !v.available;
-      btn.textContent = sold ? 'Sold Out' : 'Buy Now';
+      addBtn.textContent = sold ? 'Sold Out' : 'Add to Cart';
+      addBtn.disabled = sold;
+      // Buy Now keeps its own label while disabled: two buttons both
+      // reading "Sold Out" says the same thing twice.
       btn.disabled = sold;
     }
 
     renderPrice(); renderOpts(); renderBuyButton();
+
+    // The SMS block renders with this buy box, so it is wired here
+    // rather than on page load like the footer's.
+    A.wireSmsSignup(document);
 
     document.querySelectorAll('.lp-thumb').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -491,6 +639,52 @@
     document.getElementById('qtyDown').addEventListener('click', () => { qty = Math.max(1, qty - 1); qtyVal.textContent = qty; });
     document.getElementById('qtyUp').addEventListener('click', () => { qty += 1; qtyVal.textContent = qty; });
 
+    // Everything both buttons report, in one place: they differ only in
+    // which cart they write to and where they leave you.
+    function trackPurchaseIntent(v) {
+      A.trackCart('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price, source: 'lanyard' });
+      A.klaviyoAddedToCart({
+        handle: HANDLE, name: product.name,
+        url: location.origin + '/lanyard.html',
+        price: v.price, quantity: qty,
+      });
+      if (window.AsiorAnalytics) {
+        window.AsiorAnalytics.addToCart({
+          handle: HANDLE, name: product.name,
+          variantId: v.variantId, price: v.price, quantity: qty,
+        });
+      }
+    }
+
+    // Add to Cart: writes to the saved cart, updates the header count,
+    // opens the drawer, and leaves the shopper here so the lanyard can
+    // go in alongside whatever else they are buying.
+    document.getElementById('lpAddBtn').addEventListener('click', async () => {
+      const v = currentVariant();
+      if (!v || !v.available) return;
+      const btn = document.getElementById('lpAddBtn');
+      const msg = document.getElementById('lpMsg');
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+      try {
+        await A.addToShopifyCart(v.variantId, qty);
+        trackPurchaseIntent(v);
+        // This page has no nav and no cart icon on purpose, so once the
+        // drawer is closed there would otherwise be no way back to the
+        // cart from here. The confirmation stays put and carries the
+        // link rather than putting a nav on a page built without one.
+        msg.innerHTML = 'In your cart \u2014 <a href="/cart.html">view cart</a>';
+        btn.disabled = false;
+        btn.textContent = label;
+        A.openCartDrawer();
+      } catch (err) {
+        msg.textContent = "That didn't go through. Try again in a moment.";
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    });
+
     document.getElementById('buyBtn').addEventListener('click', async () => {
       const v = currentVariant();
       if (!v || !v.available) return;
@@ -499,22 +693,14 @@
       btn.disabled = true;
       btn.textContent = 'Redirecting…';
       try {
-        const updated = await A.addToShopifyCart(v.variantId, qty);
-        A.klaviyoTrack('Added To Cart', { product: product.name, handle: HANDLE, quantity: qty, price: v.price });
-        A.klaviyoAddedToCart({
-          handle: HANDLE, name: product.name,
-          url: location.origin + '/lanyard.html',
-          price: v.price, quantity: qty,
-        });
-        if (window.AsiorAnalytics) {
-          window.AsiorAnalytics.addToCart({
-            handle: HANDLE, name: product.name,
-            variantId: v.variantId, price: v.price, quantity: qty,
-          });
-        }
+        // Its own single-line cart, so pressing back and buying again
+        // cannot stack a second line, and anything already added above
+        // survives untouched.
+        const updated = await A.createBuyNowCart(v.variantId, qty);
+        trackPurchaseIntent(v);
         location.href = updated.checkoutUrl;
       } catch (err) {
-        msg.textContent = "That didn't go through. Try again in a moment.";
+        msg.textContent = "Couldn't start checkout. Try again in a moment.";
         btn.disabled = false;
         btn.textContent = 'Buy Now';
       }

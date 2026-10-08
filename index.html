@@ -3,1422 +3,656 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asior — The Fall Collection, September 10</title>
-<meta name="description" content="The Asior Fall Collection lands September 10. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
-<meta name="theme-color" content="#0A0A0A">
+<title>Asior — small-run streetwear from Texas</title>
+<meta name="description" content="Small runs from Texas. Ships in 1-2 business days.">
+<meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://asiorclothing.com/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Asior — The Fall Collection, September 10">
-<meta property="og:description" content="The Asior Fall Collection lands September 10. Sign up for first access plus 10% off your first order — limited run, gone once it sells out.">
+<meta property="og:title" content="Asior — small-run streetwear from Texas">
+<meta property="og:description" content="Small runs from Texas. Ships in 1-2 business days.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — the Fall Collection, September 10">
+<meta property="og:image:alt" content="Asior — small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- Two faces, both requested as real webfonts rather than left to the
-     system.
-
-     Helvetica is the reference for this page, and asking for it by name is
-     the one way to guarantee not getting it: it ships on macOS and almost
-     nowhere else, so Windows and Android fall through to Arial and Linux to
-     whatever grotesque is installed. The wordmark then looks like a
-     different logo on every third visitor's screen. Helvetica also has no
-     semi-bold — only Regular and Bold — so a weight of 600 has nothing to
-     land on and gets synthesised.
-
-     Inter Tight is a neo-grotesque cut for display sizes: same neutral
-     Helvetica skeleton, tighter default fit, and a real variable weight
-     axis, so 600 is an actual drawn semi-bold and the wordmark renders
-     identically everywhere. Courier Prime is Courier redrawn at a usable
-     weight — the typewriter character the system messages want, without
-     the hairline strokes that make real Courier New look broken at 10px.
-
-     Both are self-hosted rather than pulled from fonts.googleapis.com.
-     While the drop is closed this page IS the site, so its first paint is
-     the whole first impression, and a Google Fonts link puts a DNS
-     lookup, a TLS handshake and a stylesheet to a third party in front of
-     it — then a second host for the files themselves. Served from here
-     they are two requests on a connection the browser has already opened,
-     they cannot be broken by an outage nobody here controls, and no
-     visitor is announced to Google for loading the homepage. Latin subset
-     only, which is the whole of this site's copy.
-
-     Preloaded because the @font-face rules live in the stylesheet below,
-     and the browser would otherwise not learn the files exist until it
-     has parsed that far. crossorigin is required even same-origin: font
-     fetches are always CORS-mode, and a preload without it is made in the
-     wrong mode, ignored, and quietly fetched a second time. -->
-<link rel="preload" href="fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/courier-prime-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<!-- Fonts via <link>, not @import inside a style block: an @import means the
+     browser has to download and parse the CSS before it even discovers
+     the font request. Weight 200 was requested site-wide and used
+     nowhere, so it is not requested here. -->
+<link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-
-<!-- Launch/campaign facts (drop time, commerce-ready flag, Fall handles,
-     the Early Access code hash) in one small blocking script, read by the
-     inline script just below before it decides data-campaign/data-access
-     — see assets/launch-config.js for why this has to load synchronously
-     and can't wait for assets/site.js at the bottom of the page. -->
+<!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
+     overrides) and the commerce flag. It no longer carries a drop-close
+     date: the collection has no end date. -->
 <script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
-
-<!-- The film is deliberately NOT preloaded. rel=preload has no idea that
-     <video> picks between two <source>s, so it would fetch whichever one
-     is named here and the element would then fetch the other — about a
-     megabyte thrown away on every Chrome visit. The <video> sits at the
-     top of <body> with preload="auto" and starts loading a few
-     milliseconds later anyway. -->
-
-<!-- Runs before first paint, and does two things that both have to happen
-     that early:
-
-     1. A/B bucketing. If this ran after the stylesheet, the visitor would
-        watch the control copy snap to the variant — the one piece of
-        motion on the page nobody asked for. It writes the same
-        localStorage key that assets/site.js reads back through
-        A.getVariant, so the bucket is decided once here and stays sticky
-        across visits instead of being re-rolled further down the page.
-
-     2. Marks the document as scripted. The overlays below fall back to
-        :target when JS is off, and that fallback must be switched off the
-        instant we know JS is running, or the CSS and the overlay
-        controller end up fighting over what is open.
-
-     try/catch because blocked storage (private mode, "block all cookies")
-     makes a plain localStorage read throw — that must fall through to the
-     control, not throw before anything has rendered. -->
-<script>
-  (function () {
-    document.documentElement.classList.add('js');
-    var variant = 'A';
-    try {
-      var key = 'asior_ab_signup_copy';
-      var stored = localStorage.getItem(key);
-      if (stored === 'A' || stored === 'B') {
-        variant = stored;
-      } else {
-        variant = Math.random() < 0.5 ? 'A' : 'B';
-        localStorage.setItem(key, variant);
-      }
-    } catch (err) { /* storage blocked: control copy, and never counted */ }
-    document.documentElement.setAttribute('data-ab', variant);
-
-    // Campaign state, decided the same way and in the same breath as the
-    // A/B bucket above: before paint, so the page never flashes the
-    // pre-launch gate and then swaps to the live drop a frame later.
-    // window.ASIOR_DROP_AT is the one place this instant is written down —
-    // the countdown script further down reads it back rather than
-    // restating the date, so the two can't drift apart. The literal date
-    // lives in assets/launch-config.js, loaded just above.
-    window.ASIOR_DROP_AT = new Date(window.ASIOR_LAUNCH.PUBLIC_LAUNCH_TIME).getTime();
-    document.documentElement.setAttribute('data-campaign', Date.now() >= window.ASIOR_DROP_AT ? 'live' : 'pre');
-
-    // Early Access grant, read back the same way the A/B bucket is: a
-    // returning visitor who already entered the code should see the
-    // "you're in" state on first paint, not a flash of "join early
-    // access" that then swaps a moment later. Entering the code itself
-    // happens later, in the body script, after crypto.subtle is
-    // available — this only ever reads a flag already written by that
-    // flow on an earlier visit.
-    var access = 'none';
-    try {
-      if (localStorage.getItem('asior_early_access') === '1') access = 'granted';
-    } catch (err) { /* storage blocked: treat as not yet entered */ }
-    document.documentElement.setAttribute('data-access', access);
-
-    // Whether Fall is actually purchasable — set only by a verified
-    // Shopify/Klaviyo handoff in launch-config.js, never guessed here.
-    document.documentElement.setAttribute('data-commerce', window.ASIOR_LAUNCH.FALL_COMMERCE_READY ? 'ready' : 'not-ready');
-  })();
-</script>
+<!-- Early Access gate retired along with index.html (the gate UI it
+     redirected to): PUBLIC_LAUNCH_TIME is Sep 10, permanently in the
+     past, so assets/early-access-gate.js could never fire again for
+     this drop even if it were still loaded — and its redirect target,
+     index.html, now 301s straight to this page (see vercel.json),
+     so re-arming it for a future drop needs a real gate destination
+     rebuilt first, not just a new date in launch-config.js. -->
 <style>
-  /* Anton carries the wordmark and nothing else. A display face earns its
-     place on exactly one element: it is drawn for size, has a single
-     weight, and its tight condensed fit is what lets the mark sit large
-     without crowding the frame — the same qualities that make it wrong
-     for a 10px label. Text and UI stay on Inter Tight below. */
-  @font-face {
-    font-family: 'Anton';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url('fonts/anton-latin.woff2') format('woff2');
+  @media (hover: hover) and (pointer: fine) {
+    header nav a:hover::after { width: 100%; }
   }
 
-  /* Inter Tight ships as a single variable file covering the whole 400-700
-     axis, so every weight this page uses costs one request. No
-     unicode-range: with one subset self-hosted there is nothing to switch
-     between, and anything outside it falls back per glyph anyway.
-     font-display: swap so the wordmark arrives late rather than never. */
-  @font-face {
-    font-family: 'Inter Tight';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('fonts/inter-tight-var-latin.woff2') format('woff2');
+  /* Scoped to this page only (this <style> block doesn't reach any
+     other page) — the shared header markup (scripts/build.js's
+     HEADER_FULL) is untouched, just restyled here for the page ad
+     traffic actually lands on now.
+
+     This page used to also re-declare the header as
+     `backdrop-filter: blur(10px); background: rgba(11,10,8,0.82)`,
+     which did two unwanted things. It reintroduced a translucent
+     header on the one page that explicitly made it solid so nothing
+     shows through the nav mid-scroll. And backdrop-filter makes an
+     element the containing block for fixed-position descendants, so
+     the mobile menu panel's `inset: 0` filled the 390x60 header box
+     instead of the viewport -- the panel opened as a sliver over the
+     bar with its links above the top edge. Removed; the shared
+     opaque header is the intended one. */
+  header nav a[href="shop.html"] {
+    color: var(--ink);
+    position: relative;
+  }
+  header nav a[href="shop.html"]::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -4px;
+    height: 1px;
+    background: var(--ink);
   }
 
-  /* Only the regular weight: every <b> on this page is inside a monospace
-     run and is set back to 400 in the rules below, because those brackets
-     and figures are emphasised with colour rather than weight. */
-  @font-face {
-    font-family: 'Courier Prime';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url('fonts/courier-prime-400-latin.woff2') format('woff2');
+  /* ---------- shop grid ----------
+     20px/16px top padding is the only thing separating the grid from
+     the fixed header (via .page-top-space, which just clears the
+     header's own height) — there's no heading or banner above this
+     section anymore. Keep this a real value here, not zero-plus-
+     something-above, so the gap can't silently reappear if another
+     section ever gets added above .shop again. */
+  .shop {
+    padding: 20px 40px 14vh;
+    max-width: 1180px;
+    margin: 0 auto;
   }
 
-  /* ===================================================================
-     Drop gate — deliberately locked.
-
-     While the drop is closed this page IS the site. No nav, no header,
-     no teaser bar, no links into the store: the only things a visitor
-     can do here are join the early-access list and look at the
-     collection. The store pages still exist on disk and still respond
-     at their own URLs, but nothing here routes to them.
-
-     The palette and type scale are overridden here rather than in
-     assets/site.css so the unlinked store pages keep the look they were
-     built for. If the store ever reopens on this theme, these tokens
-     are what moves up into site.css.
-     =================================================================== */
-
-  :root {
-    /* Five steps, and the gap between the ends is the whole point: the
-       page has to hold a true black shadow and a near-white highlight in
-       the same frame rather than sitting in one narrow mid band.
-
-       The channel triplets are the source of truth, because most of this
-       page needs these colours at partial opacity — scrims, muted labels,
-       field borders — and rgba() cannot take a hex. The solid forms below
-       are derived from the same numbers rather than restated as hex, so
-       there is exactly one place each colour is decided and the tints
-       can't drift away from the swatches they came from.
-
-         10,10,10    #0A0A0A  ground, and the floor of the moving backdrop
-         28,28,30    #1C1C1E  button fills, modal chrome, ink on light surfaces
-         35,35,37    #232325  hairlines and field borders on light surfaces
-         245,245,242 #F5F5F2  primary text on dark; the surface overlays cut to
-         237,234,227 #EDEAE3  secondary text, muted labels, dividers            */
-    --black-rgb: 10, 10, 10;
-    --grey-900-rgb: 28, 28, 30;
-    --grey-800-rgb: 35, 35, 37;
-    --white-rgb: 245, 245, 242;
-    --off-white-rgb: 237, 234, 227;
-
-    --black: rgb(var(--black-rgb));
-    --grey-900: rgb(var(--grey-900-rgb));
-    --grey-800: rgb(var(--grey-800-rgb));
-    --white: rgb(var(--white-rgb));
-    --off-white: rgb(var(--off-white-rgb));
-
-    /* Two families, no more. Helvetica carries the wordmark, the
-       countdown, every link and every button. Courier carries anything
-       the interface is saying about itself — placeholders, consent, the
-       drop date, confirmations — which is what makes those read as
-       system messages rather than as brand voice.
-
-       Both are loaded in <head>; the fallbacks are the nearest system
-       equivalents so a failed font request degrades to the previous look
-       rather than to Times. */
-    --display: 'Anton', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
-    --sans: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    --mono: 'Courier Prime', 'Courier New', Courier, monospace;
-
-    /* Overlays cut rather than dissolve, so they need an easing with a
-       hard front edge, not the site's general-purpose one. */
-    --ease-cut: cubic-bezier(0.16, 1, 0.3, 1);
-
-    /* site.css paints the shared bits (.consent, .sr-only, footer) from
-       these. Repointed at the gate palette so nothing inherits the warm
-       near-black used elsewhere on the site. */
-    --bg: var(--black);
-    --ink: var(--white);
-    --muted: rgba(var(--off-white-rgb), 0.58);
-    --line: #1A1A1B;
-    --font-body: var(--sans);
-    --font-display: var(--sans);
-    --font-mono: var(--mono);
+  /* ---------- quick view ----------
+     A real <dialog>, so the backdrop, the top layer, Escape and the
+     focus trap are the browser's job rather than ours. */
+  .peek {
+    border: 0;
+    padding: 0;
+    /* margin:auto explicitly. A modal <dialog> is centred by the UA's
+       own `margin: auto`, and the site's reset zeroes margins on
+       everything -- which left this pinned to the left edge. */
+    margin: auto;
+    width: min(880px, 92vw);
+    /* A definite height, not a max: the media column scrolls inside the
+       dialog, and a scroll container needs a bounded parent or it just
+       makes the dialog taller. */
+    height: min(680px, 88vh);
+    background: var(--surface);
+    color: var(--ink);
+    overflow: hidden;
   }
 
-  html { scroll-behavior: auto; }
+  .peek::backdrop { background: rgba(6, 5, 9, 0.82); }
 
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: var(--sans);
-    min-height: 100vh;
-    overflow-x: hidden;
+  .peek-in {
+    display: grid;
+    grid-template-columns: 1fr minmax(290px, 350px);
+    height: 100%;
+    position: relative;
   }
 
-  /* Scroll lock while an overlay owns the screen. Fixing the body would
-     lose the scroll position; the gate itself doesn't scroll, so simply
-     clipping is enough and doesn't move anything. */
-  body.locked { overflow: hidden; }
+  /* The photographs scroll on their own, so a long gallery never
+     pushes Add to Cart off the bottom of the dialog. */
+  /* Flex column, not grid. As a grid with a definite height, the rows
+     were being compressed to share the 680px between them, so each
+     photograph showed as a ~225px band of its own middle. Flex items
+     that cannot shrink keep their aspect ratio and the column
+     scrolls, which is what a gallery is. */
+  .peek-media {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #0a0910;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: thin;
+  }
 
-  /* ---------- the backdrop, in three fixed layers ----------
-     0  video    Asior's own panther film, graded and looping
-     1  grade    vignette to the edges, scrim under the centre column
-     2  content  type sitting directly on the footage, no panel behind it
+  .peek-media > * { flex: 0 0 auto; scroll-snap-align: start; }
 
-     Layer 1 is what makes layer 2 legible. There is no card behind the
-     type by design, and the footage cuts hard between near-black jungle
-     and blown-out light; a soft, edgeless gradient is the colourist's
-     answer rather than the layout one, so contrast is held without a
-     visible box. The film is graded down in the file as well — see the
-     note on the <video> element itself.
+  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; }
+  .peek-shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+  .peek-ph { aspect-ratio: 2 / 3; background: #141219; }
 
-     The grain, the animal print and the drifting light this page used to
-     draw on a canvas are all in the footage now, so that whole layer is
-     gone rather than doubled up. */
-  .atmos, .atmos-still, .atmos-grade {
-    position: fixed;
-    inset: 0;
+  .peek-buy {
+    padding: 26px 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .peek-name {
+    font-family: var(--font-display);
+    font-variation-settings: var(--display-wide);
+    font-weight: 800;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .peek-price { font-family: var(--font-mono); font-size: 15px; color: var(--ink-dim); }
+
+  .peek-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .peek-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* In the quick view a sold-out size does something -- it asks for
+     that size back -- so it does not wear the not-allowed cursor the
+     grid's quick-add chips do, where the only job is to add. */
+  .peek-sizes .qa-size.unavailable { cursor: pointer; }
+  .peek-sizes .qa-size[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+  .peek-msg {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+    min-height: 1em;
+  }
+
+  .peek-bis {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    display: grid;
+    gap: 8px;
+  }
+
+  /* An author `display` beats the UA's `[hidden] { display: none }`, so
+     without this the capture was visible on every piece including the
+     ones you can buy. */
+  .peek-bis[hidden] { display: none; }
+
+  .peek-bis-row { display: flex; gap: 8px; align-items: flex-end; }
+  .peek-bis-row .field { flex: 1 1 auto; min-width: 0; }
+
+  .peek-trust {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 6px;
+  }
+
+  .peek-trust li {
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .peek-full { margin-top: 4px; }
+
+  .peek-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
+
+  .peek-wait {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 60px 30px;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- quick view trigger ----------
+     Hidden until the tile is hovered on a pointer device; always
+     present on touch, where there is no hover to reveal it and the
+     control would otherwise be unreachable. */
+  .product-frame { position: relative; }
+
+  .product-peek {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    /* Above the hover frame, which is z-index 1 in this same context. */
+    z-index: 2;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--field-line);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
     pointer-events: none;
   }
 
-  /* object-fit: cover on a 4:3 source crops hard at both ends of the
-     aspect range — height on a wide desktop, width on a phone — which is
-     why the film was graded and framed as ambient texture rather than as
-     shots that have to hold their composition. */
-  .atmos {
-    z-index: 0;
+  @media (hover: hover) and (pointer: fine) {
+    .product-frame:hover .product-peek,
+    /* focus-within as well as hover, so tabbing to the trigger reveals
+       it rather than leaving a keyboard user pressing something they
+       cannot see. */
+    .product-frame:focus-within .product-peek,
+    .product-peek:focus-visible {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+  }
+
+  /* No hover on a touch screen, so the control is simply always there
+     -- a button that only appears on hover is a button a phone can
+     never reach. */
+  @media (hover: none), (pointer: coarse) {
+    .product-peek { opacity: 1; transform: none; pointer-events: auto; }
+  }
+
+  /* ---------- hero ----------
+     Asymmetric two-portrait composition. The garment stays whole. */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 0;
+    align-items: start;
+    padding: 0 0 7vh;
+    background: var(--bg);
+  }
+
+  .hero-primary { position: relative; overflow: hidden; }
+
+  .hero-primary img {
+    width: 100%;
+    height: min(86vh, 860px);
+    object-fit: cover;
+    object-position: center 28%;
+    display: block;
+  }
+
+  .hero:has(.hero-primary > img) .hero-fallback { display: none; }
+  @supports not selector(:has(*)) { .hero-primary > img { display: none; } }
+
+  /* The right column is mostly negative space on purpose: the line
+     sits in it, and the second frame drops well below the first so the
+     two never read as a pair of equal tiles. */
+  .hero-aside {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    padding: clamp(40px, 7vw, 96px) var(--page-pad) 0 clamp(24px, 4vw, 64px);
+  }
+
+  .hero-line {
+    margin: 0;
+    font-family: var(--font);
+    font-size: clamp(28px, 3.4vw, 50px);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* One action. Underlined text, not a button: the button on this page
+     is Add to Cart, and nothing should compete with it. */
+  .hero-cta {
+    justify-self: start;
+    margin-top: 26px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 4px;
+  }
+
+  .hero-cta:hover { opacity: 0.55; }
+  .hero-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+  .hero-secondary {
+    display: block;
+    margin-top: clamp(48px, 9vh, 120px);
+    max-width: 330px;
+  }
+
+  .hero-secondary img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* ---------- product rows [measured: section spacing 0] ---------- */
+  .home-row { padding: 16px var(--page-pad) 0; }
+
+  /* [measured] Label left 14px 400, "View all" right 12px 500 with
+     1px tracking; cards start 37px below the row. */
+  .row-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 37px;
+  }
+
+  .row-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .row-link {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .row-link:hover { opacity: 0.6; }
+
+  .home-row + .home-row { padding-top: 54px; }
+  .home-row:last-of-type { padding-bottom: 54px; }
+
+  /* ---------- campaign frame [measured: 945px, full bleed] -------- */
+  .campaign-frame {
+    position: relative;
+    height: 945px;
+    overflow: hidden;
+    margin-top: 54px;
+    background: var(--surface);
+  }
+
+  .campaign-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+  }
+
+  /* [measured] 116x34, 1px white border, transparent, 12px 500,
+     letter-spacing 1px, padding 7px 20px, square. */
+  .btn-outline {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 116px;
+    height: 34px;
+    padding: 7px 20px;
+    border: 1px solid #fff;
+    border-radius: var(--btn-radius);
+    background: transparent;
+    color: #fff;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  }
+
+  .btn-outline:hover { background: #fff; color: #000; }
+  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+  /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
+       30px side padding] ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 54px 30px;
+  }
+
+  .tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 454 / 600;
+    overflow: hidden;
+    background: var(--surface);
+    text-decoration: none;
+  }
+
+  .tile img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    /* Hidden until the film is genuinely running. The poster used to be a
-       poster="" attribute, which is what let iOS draw its own play button
-       over the top whenever autoplay was refused — the "click to play"
-       control that should never have been on this page. With no poster
-       and no controls there is nothing for the browser to decorate: the
-       element is invisible until the 'playing' event fires, and the still
-       layer below stands in until then. If autoplay is refused outright
-       (Low Power Mode, Safari's per-site Never Auto-Play), the page is a
-       still photograph rather than a video with a button on it. */
-    opacity: 0;
-    transition: opacity 500ms var(--ease-cut);
+    transition: transform var(--dur-image) var(--ease-out);
   }
 
-  .atmos.is-playing { opacity: 1; }
+  .tile:hover img { transform: scale(1.03); }
 
-  /* [hidden] is a UA rule and .atmos is an author rule, so without this
-     the canvas would lay itself over the film even while hidden. */
-  .atmos[hidden] { display: none; }
-
-  /* The first frame of the same graded film, as a plain background image.
-     Covers the moment before the film decodes and, if it never plays, is
-     what the page simply stays as. */
-  .atmos-still {
-    z-index: 0;
-    background-image: url('video/gate-poster.jpg');
-    background-size: cover;
-    background-position: center;
-    background-color: var(--black);
-  }
-
-  /* Two gradients doing two different jobs. The first is a soft scrim
-     only as wide as the centre column, so the type never has to sit on a
-     highlight. The second takes the corners to true black. Between them
-     is an untouched band at roughly half to three-quarter radius, which
-     is where the bright end of the footage is allowed to live — dimming
-     that too is what flattens a page like this into one mid tone. */
-  .atmos-grade {
-    z-index: 2;
-    background:
-      /* The bottom strip carries the smallest type on the page and no
-         highlight ever needs to live at the very edge of the frame, so it
-         is taken down hard and flat rather than by the ellipse below,
-         which reaches the bottom edge too weakly to protect it. */
-      linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
-      radial-gradient(ellipse 46% 52% at 50% 46%, rgba(var(--black-rgb), 0.88), rgba(var(--black-rgb), 0) 92%),
-      radial-gradient(ellipse 76% 72% at 50% 50%, rgba(var(--black-rgb), 0) 44%, rgba(var(--black-rgb), 0.96) 100%);
-  }
-
-  /* The countdown row runs nearly edge to edge on a phone, so the scrim
-     has to be wider and flatter than the one shaped for a landscape frame
-     — otherwise the last cell falls outside it. Wider and flatter, not
-     deeper: cover-cropping a 4:3 film into a portrait frame already
-     throws most of the picture away, and dimming what survives would
-     leave a phone with a black rectangle instead of a backdrop. */
-  @media (max-width: 700px) {
-    .atmos-grade {
-      background:
-        linear-gradient(to top, rgba(var(--black-rgb), 0.88) 0%, rgba(var(--black-rgb), 0) 15%),
-        radial-gradient(ellipse 82% 50% at 50% 46%, rgba(var(--black-rgb), 0.88), rgba(var(--black-rgb), 0) 92%),
-        radial-gradient(ellipse 96% 62% at 50% 50%, rgba(var(--black-rgb), 0) 42%, rgba(var(--black-rgb), 0.96) 100%);
-    }
-  }
-
-  /* ---------- gate ----------
-     One screen, one focal element, nothing that scrolls. svh rather than
-     vh so the bottom row doesn't sit under mobile browser chrome and then
-     jump when the chrome retracts. */
-  .gate {
-    position: relative;
-    z-index: 3;
-    min-height: 100vh;
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    padding: clamp(24px, 4vh, 40px) 24px clamp(20px, 3vh, 32px);
-  }
-
-  .gate-core {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: clamp(26px, 4.5vh, 46px);
-  }
-
-  /* Entrance. Staged rather than simultaneous, so the screen assembles in
-     the order it should be read: date, clock, name, action. Pure CSS, so
-     it still resolves with JS off — and site.css collapses every duration
-     to ~0 under prefers-reduced-motion, where fill-mode: both leaves each
-     element at its final state instead of invisible. */
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(9px); }
-    to   { opacity: 1; transform: none; }
-  }
-
-  .rise {
-    animation: rise 900ms var(--ease-cut) both;
-    animation-delay: var(--in, 0ms);
-  }
-
-  /* ---------- date line ----------
-     Kept as real text in the served HTML rather than printed by the
-     countdown script, so it survives JS being off and so crawlers and
-     link previews can read the date. Keep it in step with DROP_AT at the
-     foot of this file — that constant is what drives the numbers. */
-  .eyebrow {
-    font-family: var(--mono);
-    font-size: 10px;
-    line-height: 1;
-    letter-spacing: 0.22em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.82);
-  }
-
-  /* ---------- countdown ----------
-     Big numeral over a small lowercase label, in the same family at two
-     different weights. Tabular figures and a floor width per cell, so the
-     row holds still when the seconds roll from 9 to 10 — the only thing
-     that should move here is the digits themselves. */
-  .countdown {
-    display: flex;
-    justify-content: center;
-    gap: clamp(20px, 6vw, 54px);
-  }
-
-  .cd-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 54px;
-  }
-
-  .cd-num {
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: clamp(2.4rem, 8vw, 3.9rem);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    color: var(--white);
-  }
-
-  .cd-label {
-    margin-top: 12px;
-    font-family: var(--sans);
-    font-weight: 400;
-    font-size: 9.5px;
-    line-height: 1;
-    letter-spacing: 0.2em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.82);
-  }
-
-  /* Past the date there is nothing left to count to, and a row of zeros
-     reads worse than no row at all. The date line above still holds. */
-  .countdown.done { display: none; }
-
-  /* ---------- wordmark ----------
-     Anton: a condensed display face with real weight to it, which is what
-     makes the mark read as a graphic rather than as a heading in the same
-     font as everything else. Condensed also buys height — the same width
-     of frame carries a much bigger mark — so the name can dominate the
-     screen without pushing at the edges.
-
-     Tracking is positive here, not negative. Anton's default fit is
-     already tight enough to close up at size, and letting a little air
-     between five heavy caps is what stops ASIOR reading as one solid
-     block instead of a name.
-
-     It is a <button>: clicking it opens the members' entrance. That is
-     meant to be unmarked, so it carries no visual affordance at all —
-     but it is a real button rather than a click handler on a heading, so
-     it can still be reached and used from a keyboard. */
-  .wordmark {
-    display: inline-block;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-    font-family: var(--display);
-    font-weight: 400;
-    font-size: clamp(4rem, 18vw, 9.5rem);
-    line-height: 0.86;
-    letter-spacing: 0.015em;
-    text-transform: uppercase;
-    color: var(--white);
-    /* A very slow breath, well under the threshold where it reads as an
-       animation — it just stops the mark sitting dead against footage
-       that is always moving. */
-    animation: breathe 9s ease-in-out 1.6s infinite;
-  }
-
-  @keyframes breathe {
-    0%, 100% { opacity: 0.9; }
-    50%      { opacity: 1; }
-  }
-
-  /* ---------- the two actions ----------
-     The signup was a bare line of text before, indistinguishable from the
-     wordmark and the date above it, and nobody could tell it was the one
-     thing on the page you are meant to press. It is now a filled block:
-     the only solid shape on the whole gate, so it reads as the action
-     without needing a label that says so. Everything else here stays
-     text, which is what lets one button carry that weight. */
-  .actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-  }
-
-  .cta-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 11px;
-  }
-
-  .cta {
-    display: inline-block;
-    background: var(--white);
-    color: var(--black);
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: clamp(12px, 3.2vw, 13.5px);
-    line-height: 1;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    padding: 17px clamp(22px, 6vw, 34px);
-    border: 0;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: transform 140ms var(--ease-cut), box-shadow 240ms var(--ease-cut);
-  }
-
-  .cta:hover { box-shadow: 0 0 0 4px rgba(var(--off-white-rgb), 0.18); }
-  .cta:active { transform: scale(0.978); }
-
-  /* What you are actually handing over and what you get back, in the
-     system voice. It sits under the button rather than inside it because
-     a button label should be the action, not the terms. */
-  .cta-sub {
-    font-family: var(--mono);
-    font-size: 10px;
-    line-height: 1.5;
-    letter-spacing: 0.14em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.82);
-  }
-
-  /* The live-state cta-sub is a real link (secondary signup), not just a
-     caption, so it needs the same underline treatment .consent gives its
-     inline links in site.css. */
-  .cta-sub a { text-decoration: underline; text-underline-offset: 2px; }
-  .cta-sub a:hover, .cta-sub a:focus-visible { color: var(--off-white); }
-
-  .action {
-    position: relative;
-    display: inline-block;
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: 13px;
-    line-height: 1.2;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--white);
-    padding-bottom: 5px;
-    cursor: pointer;
-    background: none;
-    border: 0;
-  }
-
-  .action-2 {
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    color: rgba(var(--off-white-rgb), 0.85);
-    transition: color 260ms var(--ease-cut);
-  }
-
-  .action-2:hover { color: var(--white); }
-
-  /* ---------- lanyard pill ----------
-     Not filled at rest, so .cta above stays the one solid shape read
-     first — but a real border, a live-pulse dot and an invert-on-hover
-     give it clear affordance well past a text link. Its own row, so it
-     can't be mistaken for secondary chrome next to Follow. */
-  .lanyard-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    background: none;
-    border: 1px solid var(--white);
-    color: var(--white);
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: clamp(11px, 2.8vw, 12px);
-    line-height: 1;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    padding: 12px clamp(16px, 4vw, 22px);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 200ms var(--ease-cut), color 200ms var(--ease-cut), box-shadow 240ms var(--ease-cut);
-  }
-
-  .lanyard-cta:hover,
-  .lanyard-cta:focus-visible {
-    background: var(--white);
-    color: var(--black);
-  }
-
-  .lanyard-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    flex: none;
-    animation: lanyardPulse 1.6s ease-in-out infinite;
-  }
-
-  @keyframes lanyardPulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.28; }
-  }
-
-  /* Rule wipes in from the left on hover rather than blinking on, which
-     is the only motion these get — nothing flashy. */
-  .action::after {
+  .tile::after {
     content: '';
     position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 1px;
-    background: currentColor;
-    transition: width 340ms var(--ease-cut);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.18);
   }
 
-  .action:hover::after,
-  .action:focus-visible::after { width: 100%; }
-
-  .action:active { opacity: 0.72; }
-
-  /* ---------- bracketed nav ----------
-     The brackets are dimmer than the word they hold, so the row reads as
-     one label rather than three characters. Brackets mean navigation
-     everywhere on this page: this opens the lookbook, and the same
-     treatment closes both overlays. */
-  .gate-foot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: clamp(18px, 3vh, 30px);
+  .tile-label {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: var(--btn-ls);
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
   }
 
-  .bracket-row {
+  .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  /* [spec section 11] Mobile: 2-up grids, ~10px gap, 15px side
+     padding. The hero and the campaign frame are measured at desktop
+     and would be three screens tall on a phone, so both are clamped to
+     the viewport instead of scaled down proportionally. */
+  @media (max-width: 900px) {
+    /* Mobile: the tall portrait leads, the line sits under it, and
+       the second frame is dropped -- two images stacked on a phone is
+       a scroll before anything is shoppable. */
+    .hero { grid-template-columns: 1fr; padding-bottom: 4vh; }
+    .hero-primary img { height: 68vh; min-height: 420px; }
+    .hero-aside { padding: 22px 15px 0; }
+    .hero-line { font-size: clamp(26px, 8vw, 34px); }
+    .hero-secondary { display: none; }
+
+    .home-row { padding: 16px 15px 0; }
+    .home-row + .home-row { padding-top: 34px; }
+    .home-row:last-of-type { padding-bottom: 34px; }
+    .row-head { margin-bottom: 20px; }
+
+    .campaign-frame { height: 62vh; min-height: 400px; margin-top: 34px; }
+    .btn-outline { bottom: 48px; }
+
+    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
+    .tile-label { bottom: 16px; font-size: 12px; }
+  }
+
+  /* ---------- quick add ----------
+     Buy without leaving the grid: tap a size, it's in the cart, keep
+     browsing. .product is no longer itself the link — .product-link
+     wraps only the image+name (so it can still navigate to the full
+     product page) while this row sits beside it as its own set of
+     buttons, since a button can't legally nest inside an <a>. */
+
+  .quick-add {
+    margin-top: 9px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 4px 22px;
+    gap: 5px;
+    min-height: 26px;
   }
 
-  .bracket {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    letter-spacing: 0.14em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.72);
-    background: none;
-    border: 0;
-    padding: 6px 4px;
-    cursor: pointer;
-    transition: color 240ms var(--ease-cut);
-  }
-
-  .bracket b {
-    font-weight: 400;
-    color: rgba(var(--off-white-rgb), 0.5);
-    transition: color 240ms var(--ease-cut);
-  }
-
-  .bracket:hover,
-  .bracket:focus-visible { color: var(--white); }
-  .bracket:hover b { color: rgba(var(--off-white-rgb), 0.7); }
-
-  /* ---------- the quiet row ----------
-     Contact and the two policies, at the smallest size that still passes.
-     They are here because a visitor should be able to reach them from the
-     gate; the consent block inside the signup carries its own copies,
-     which is what satisfies the point-of-collection requirement. */
-  footer {
-    border-top: 0;
-    padding: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px 20px;
-    font-family: var(--mono);
-    font-size: 9.5px;
-    letter-spacing: 0.13em;
-    text-transform: lowercase;
-  }
-
-  footer a {
-    color: rgba(var(--off-white-rgb), 0.62);
-    transition: color 240ms var(--ease-cut);
-  }
-
-  footer a:hover,
-  footer a:focus-visible { color: var(--white); }
-
-  .meta-right { display: flex; gap: 16px; }
-
-  @media (max-width: 560px) {
-    footer { flex-direction: column; gap: 10px; }
-    .meta-right { gap: 14px; }
-  }
-
-  /* ===================================================================
-     Overlays
-
-     Both cut from the black gate to a near-white surface rather than
-     fading in on top of it: the change of ground is the transition. The
-     signup arrives as a panel over a dimmed backdrop, the lookbook takes
-     the whole screen — same surface, different scope, so the two never
-     feel like the same thing opening twice.
-     =================================================================== */
-
-  .overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 60;
+  .qa-size {
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  /* [hidden] is a user-agent rule, and any author declaration beats a UA
-     one whatever the specificity — so `display: flex` above would keep
-     these laid out over the whole page while "hidden", eating every click
-     on the gate underneath and eagerly pulling in the lookbook photos.
-     The attribute has to be restated at author level to actually hide. */
-  .overlay[hidden] { display: none; }
-
-  /* Still on screen for the length of the wipe out, but no longer in the
-     way — the gate underneath is interactive again the moment the close
-     starts, not 340ms later. */
-  .overlay:not(.is-open) { pointer-events: none; }
-
-  /* With JS the controller owns [hidden]; without it, :target does. The
-     .js class is set in <head> before paint so only one of the two is
-     ever in play, and this outweighs the rule above for the no-JS case. */
-  html:not(.js) .overlay:target { display: flex; }
-
-  .overlay-scrim {
-    position: absolute;
-    inset: 0;
-    background: rgba(var(--black-rgb), 0.78);
-    backdrop-filter: blur(3px);
-    opacity: 0;
-    transition: opacity 300ms var(--ease-cut);
-  }
-
-  .overlay.is-open .overlay-scrim { opacity: 1; }
-
-  /* The cut. The near-white surface wipes down over the black instead of
-     dissolving into it, so the two grounds never blend into a mid grey on
-     the way through. Nothing strobes: one directional wipe, no flash
-     frame. */
-  .sheet {
-    position: relative;
-    background: var(--white);
-    color: var(--black);
-    clip-path: inset(0 0 100% 0);
-    transition: clip-path 320ms var(--ease-cut);
-  }
-
-  .overlay.is-open .sheet { clip-path: inset(0 0 0 0); }
-
-  /* Contents arrive just behind the leading edge of the wipe, so the
-     surface reads as a surface first and a form second. */
-  .sheet-in {
-    opacity: 0;
-    transition: opacity 240ms linear 140ms;
-  }
-
-  .overlay.is-open .sheet-in { opacity: 1; }
-
-  /* Near-white ground: the site-wide near-white focus ring would be
-     invisible here, so everything inside an overlay rings dark instead. */
-  .sheet a:focus-visible,
-  .sheet button:focus-visible,
-  .sheet input:focus-visible,
-  .sheet [tabindex]:focus-visible {
-    outline: 1px solid var(--black);
-    outline-offset: 3px;
-  }
-
-  .close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    z-index: 2;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: lowercase;
-    color: rgba(var(--grey-900-rgb), 0.85);
+    border: 1px solid var(--field-line);
     background: none;
-    border: 0;
-    padding: 8px 10px;
-    cursor: pointer;
-    transition: color 240ms var(--ease-cut);
-  }
-
-  /* The brackets stay a step back from the word they hold, but only a
-     step: at the tone this detail wants to be they fall under 4.5:1 on
-     the near-white surface, and they are type, not a rule. */
-  .close b { font-weight: 400; color: rgba(var(--grey-900-rgb), 0.65); }
-  .close:hover, .close:focus-visible { color: var(--black); }
-  .close:hover b, .close:focus-visible b { color: rgba(var(--grey-900-rgb), 0.85); }
-
-  /* The shared close control and focus ring are drawn for a near-white
-     sheet, so on the black one they would be dark ink on black — the ring
-     invisible, the control nearly so. */
-  .sheet-look .close { color: rgba(var(--off-white-rgb), 0.85); }
-  .sheet-look .close b { color: rgba(var(--off-white-rgb), 0.6); }
-  .sheet-look .close:hover, .sheet-look .close:focus-visible { color: var(--white); }
-  .sheet-look .close:hover b, .sheet-look .close:focus-visible b { color: rgba(var(--off-white-rgb), 0.85); }
-
-  .sheet-look a:focus-visible,
-  .sheet-look button:focus-visible,
-  .sheet-look [tabindex]:focus-visible { outline-color: var(--white); }
-
-  /* ---------- signup ---------- */
-  .sheet-notify {
-    width: min(430px, calc(100vw - 32px));
-    max-height: calc(100vh - 32px);
-    overflow-y: auto;
-    /* Top padding is fixed rather than fluid: the close control is pinned
-       14px from the top and is about 29px tall, so anything less than this
-       lets the label underneath it slide up onto the same line on a narrow
-       screen, where the panel is wide enough for the two to sit side by
-       side and read as one row. */
-    padding: 52px clamp(24px, 5vw, 40px) clamp(26px, 4vw, 34px);
-    text-align: center;
-  }
-
-  .sheet-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: lowercase;
-    color: rgba(var(--grey-900-rgb), 0.7);
-  }
-
-  /* The offer, and the only sentence in the flow. It is the headline
-     because it is the one thing that answers "what do I get for this". */
-  .sheet-lede {
-    margin: 14px auto 24px;
-    max-width: 24ch;
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: clamp(17px, 4.4vw, 20px);
-    line-height: 1.32;
-    letter-spacing: -0.01em;
-    color: var(--black);
-  }
-
-  /* ---------- A/B test: signup copy ----------
-     Both variants ship in the served HTML and the cascade picks one,
-     rather than JS rewriting textContent after load. Control is the
-     default: with JS off there is no data-ab attribute at all, and a
-     visitor still gets one complete correct page instead of both variants
-     stacked on top of each other.
-
-     The strings themselves are unchanged from the version this test has
-     been running on. Rewording them mid-flight would silently split the
-     sample across two different tests. */
-  .ab-b { display: none; }
-  [data-ab="B"] .ab-a { display: none; }
-  [data-ab="B"] .ab-b { display: inline; }
-
-  /* ---------- campaign state: three mutually exclusive hero states ----------
-     Same shape as the A/B rule above and decided by the same inline script
-     in <head>, before paint: every variant ships in the served HTML and
-     the cascade shows exactly one, so there is no flash of one state
-     before JS swaps it for another, and a visitor with JS off still gets
-     one complete, correct page — the base .pre-only gate, the only state
-     a static page can be honestly stuck in without a clock or a
-     verified commerce-ready flag.
-
-     The three facts in play, each decided independently (see <head>):
-       data-campaign  "pre"  before the public drop instant, "live" after
-       data-access    "granted" once the visitor has entered ASIOR8,
-                      "none" otherwise — meaningless once campaign is live
-       data-commerce  "ready" only once Shopify/Klaviyo verifies real Fall
-                      product handles, "not-ready" otherwise (the default)
-
-     which produce three states for the hero's CTA area:
-       pre  + none                .pre-only         (inline code entry + signup)
-       pre  + granted (either)    .pre-access-only  (eyebrow + "View The Drop")
-       live (either)              .live-only        (eyebrow + "View The Drop")
-     "granted" stops mattering the moment campaign flips to live — the
-     Early Access gate isn't meant to block normal public shopping once
-     the drop is public, so the live state doesn't consult data-access.
-
-     Once access is granted or the drop is live, .actions has one job
-     left: a way back INTO the Fall drop for anyone who scrolls back up
-     to the hero, opens a fresh tab, or returns on a later visit — the
-     auto-scroll on a correct code entry (see grantEarlyAccess in the
-     body script) only fires once, at that moment. The actual Fall drop
-     (hero, product grid, Shop All) is .fall-drop below, outside
-     .gate-core entirely, because a product grid needs real width and a
-     scrolling page, not this single-viewport centered column.
-     data-commerce doesn't branch the grid or this button — only the
-     eyebrow still needs the ready/not-ready split, because "the fall
-     collection is live" is a factual claim only the live+ready case
-     gets to make; "View The Drop" is true regardless of whether the
-     full 4-piece set is ready yet, same as .fall-drop itself. */
-  .pre-access-only, .live-only { display: none; }
-  [data-campaign="live"] .pre-only,
-  [data-campaign="pre"][data-access="granted"] .pre-only { display: none; }
-
-  [data-campaign="pre"][data-access="granted"] .eyebrow.pre-access-only { display: block; }
-  [data-campaign="pre"][data-access="granted"] .cta-group.pre-access-only { display: flex; }
-  [data-campaign="live"][data-commerce="ready"] .eyebrow.live-only.commerce-ready { display: block; }
-  [data-campaign="live"][data-commerce="not-ready"] .eyebrow.live-only.commerce-notready { display: block; }
-  [data-campaign="live"] .cta-group.live-only { display: flex; }
-
-  /* ---------- Early Access code entry: inline, not behind a click ----------
-     This IS the first-screen focus before access is granted — the field
-     and button are real hero elements, not a small link that opens
-     something. Wrong/right feedback reuses .pass-msg's tone via
-     #eaInlineMsg (see the body script). */
-  .ea-inline-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    width: min(360px, 92vw);
-  }
-  .ea-inline-input {
-    width: 100%;
-    background: rgba(var(--white-rgb), 0.06);
-    border: 1px solid rgba(var(--off-white-rgb), 0.3);
-    color: var(--white);
-    font-family: var(--mono);
-    font-size: 15px;
-    letter-spacing: 0.14em;
-    text-align: center;
-    text-transform: uppercase;
-    padding: 15px 16px;
-    border-radius: 2px;
-  }
-  .ea-inline-input::placeholder { color: rgba(var(--off-white-rgb), 0.45); text-transform: lowercase; letter-spacing: 0.1em; }
-  .ea-inline-input:focus-visible { outline: 1px solid var(--white); outline-offset: 2px; border-color: rgba(var(--off-white-rgb), 0.6); }
-  .ea-inline-msg {
-    min-height: 14px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.75);
-  }
-
-  /* ---------- Fall drop ----------
-     Lives below the hero viewport, not inside .gate-core's centered
-     single-viewport column — a product grid needs real width and needs
-     the page to actually scroll, neither of which .gate-core was built
-     for. Solid background because .atmos/.atmos-grade are
-     position:fixed behind everything on this page; without one, the
-     pinned video would show through once this is scrolled into view. */
-  .fall-drop { display: none; position: relative; z-index: 4; background: var(--black); padding: 9vh 24px 12vh; }
-  [data-campaign="live"] .fall-drop,
-  [data-campaign="pre"][data-access="granted"] .fall-drop { display: block; }
-
-  .fall-drop-inner { max-width: 1180px; margin: 0 auto; }
-
-  .fall-drop-heading {
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: clamp(30px, 6vw, 46px);
-    letter-spacing: -0.01em;
-    color: var(--white);
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-
-  /* Subtitle under the Fall heading. It used to restate the drop's
-     close date; the collection has no end date now. */
-  .fall-drop-sub {
-    text-align: center;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: rgba(var(--off-white-rgb), 0.65);
-    max-width: 52ch;
-    margin: 0 auto 44px;
-    min-height: 1em;
-  }
-
-  .fall-drop .fall-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-
-  .fall-drop .product { display: block; opacity: 0; transform: translateY(24px); transition: opacity 600ms var(--ease-cut), transform 600ms var(--ease-cut); }
-  .fall-drop .product.in, .fall-drop .product.placeholder { opacity: 1; transform: translateY(0); }
-  .fall-drop .product-img {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 2px;
-    background: linear-gradient(155deg, rgba(var(--white-rgb), 0.07), rgba(var(--white-rgb), 0.02));
-  }
-  .fall-drop .product-img img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
-  .fall-drop .placeholder-img { display: flex; align-items: center; justify-content: center; }
-  .fall-drop .placeholder-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: rgba(var(--off-white-rgb), 0.4); }
-  .fall-drop .price-badge {
-    position: absolute; right: 10px; bottom: 10px;
-    background: rgba(var(--black-rgb), 0.72);
-    color: var(--white);
-    font-family: var(--mono);
+    color: var(--ink);
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.03em;
-    padding: 5px 8px;
-    border-radius: 2px;
+    cursor: pointer;
+    border-radius: 0;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), color 150ms var(--ease-out), transform 120ms var(--ease-out);
   }
-  .fall-drop .price-badge .compare { text-decoration: line-through; opacity: 0.6; margin-right: 5px; }
-  .fall-drop .price-badge .save { opacity: 0.85; margin-left: 5px; }
-  .fall-drop .price-placeholder { margin-top: 4px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; color: rgba(var(--off-white-rgb), 0.4); text-align: center; }
-  .fall-drop .name-row { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .fall-drop .name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--off-white); text-align: center; }
-  .fall-drop .preorder-tag {
-    border: 1px solid rgba(var(--off-white-rgb), 0.4);
-    color: rgba(var(--off-white-rgb), 0.8);
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 3px 7px;
-    border-radius: 2px;
+
+  /* Filled, not just outlined, on hover — a quiet size chip should
+     still feel tactile/clickable, not just change a 1px border. */
+  @media (hover: hover) and (pointer: fine) {
+    .qa-size:not(.unavailable):hover { border-color: var(--ink); background: var(--ink); color: var(--bg); }
   }
-  /* Real-inventory urgency only — see A.stockLabel in assets/site.js.
-     Never rendered unless Shopify actually reports a low quantity. */
-  .fall-drop .stock-note {
-    margin-top: 4px;
-    font-family: var(--mono);
+
+  .qa-size:not(.unavailable):active { transform: scale(0.94); }
+
+  .qa-size.unavailable {
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  .qa-size.unavailable::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -4px; top: 50%;
+    height: 1px;
+    background: var(--muted);
+    transform: rotate(-14deg);
+  }
+
+  /* The visitor's own most-picked size (assets/site.js's
+     preferredSize(), read from real past choices only) — a quiet dot,
+     not a banner, so it helps without shouting. */
+  .qa-size.mine::before {
+    content: '';
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+
+  .qa-size.mine.unavailable::before { background: var(--muted); }
+
+  .qa-msg {
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.05em;
+    color: var(--muted);
+    align-self: center;
+  }
+
+  .qa-msg.err { color: var(--ink); }
+
+  .shop-empty {
+    display: none;
+    padding: 6vh 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .shop-empty.show { display: block; }
+
+  .shop-shipping {
+    margin: 0 0 22px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
     text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.6);
-    text-align: center;
+    color: var(--ink);
   }
 
-  .fall-drop-empty { text-align: center; color: rgba(var(--off-white-rgb), 0.6); font-size: 13px; padding: 4vh 0; }
-
-  .shop-all {
-    display: block;
-    text-align: center;
-    margin-top: 64px;
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.85);
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  /* Shown the instant the page loads, hidden the instant the grid (or
+     the empty/error state) actually renders. Without this, the window
+     between page-load and the catalog fetch resolving -- now capped at
+     12s by shopifyFetch's own timeout, but real on a slow connection
+     regardless -- looked identical to a broken page: nothing on
+     screen, no way to tell "loading" from "stuck." */
+  .shop-loading {
+    padding: 6vh 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .shop-all:hover, .shop-all:focus-visible { color: var(--white); }
 
-  @media (max-width: 900px) {
-    .fall-drop .fall-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+  .shop-loading.hide { display: none; }
+
   @media (max-width: 640px) {
-    .fall-drop { padding: 6vh 20px 10vh; }
-    .fall-drop .fall-grid { gap: 14px; }
-    .fall-drop-sub { margin-bottom: 30px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .fall-drop .product { opacity: 1 !important; transform: none !important; }
-  }
-
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  /* Placeholder-only fields: the visible label is the placeholder, set in
-     Courier so it reads as the interface prompting rather than as copy.
-     Real <label>s are in the markup for anyone not looking at the screen. */
-  .form input {
-    width: 100%;
-    background: transparent;
-    border: 1px solid rgba(var(--grey-800-rgb), 0.55);
-    color: var(--black);
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    text-align: center;
-    padding: 14px;
-    transition: border-color 200ms var(--ease-cut);
+    header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
+    header .mark { font-size: 13px; }
+    /* The phone nav is a full-screen panel now, defined once in
+       assets/site.css. The horizontally scrolling link strip this
+       page used to redeclare for itself is gone -- it was also
+       overriding the shared rule, which is why the panel opened at
+       the width of the old strip. */
+    .shop { padding: 14px 16px 10vh; }
+    .shop-tools { padding: 0 16px; }
+    .shop-tools-row { padding: 8px 0 12px; gap: 4px; }
+    .shop-count { width: 100%; margin: 0 0 8px; }
+    .qa-size { min-width: 24px; height: 24px; font-size: 9.5px; padding: 0 5px; }
   }
 
-  .form input::placeholder {
-    color: rgba(var(--grey-900-rgb), 0.7);
-    text-transform: lowercase;
+  /* 360 and below: the name and the price must still sit on one line
+     and the size controls must still be tappable. */
+  @media (max-width: 380px) {
+    .shop { padding: 12px 12px 10vh; }
   }
 
-  .form input:hover { border-color: rgba(var(--grey-800-rgb), 0.8); }
-  .form input:focus { outline: none; border-color: var(--black); }
 
-  .form button,
-  .pass-form button {
-    width: 100%;
-    margin-top: 4px;
-    border: 1px solid var(--grey-900);
-    background: var(--grey-900);
-    color: var(--white);
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    padding: 15px;
-    cursor: pointer;
-    transition: background-color 200ms var(--ease-cut), transform 140ms var(--ease-cut);
-  }
-
-  .form button:hover,
-  .pass-form button:hover { background: var(--black); }
-  .form button:active,
-  .pass-form button:active { transform: scale(0.985); }
-  .form button[disabled],
-  .pass-form button[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
-
-  /* TCPA consent. Small, but never behind a disclosure — it has to be
-     visible at the point of collection to count. site.css styles .consent
-     for the dark pages, so the colours are restated here for near-white. */
-  .sheet .consent {
-    margin: 16px auto 0;
-    max-width: none;
-    font-family: var(--mono);
-    font-size: 9.5px;
-    line-height: 1.6;
-    letter-spacing: 0.02em;
-    text-align: left;
-    color: rgba(var(--grey-900-rgb), 0.7);
-  }
-
-  .sheet .consent a { color: rgba(var(--grey-900-rgb), 0.7); text-decoration: underline; }
-  .sheet .consent a:hover { color: var(--black); }
-
-  /* Kept in the DOM at all times so the live region exists to announce
-     into; :empty is what hides it, not a class toggle. */
-  .confirm {
-    font-family: var(--mono);
-    font-size: 12px;
-    line-height: 1.5;
-    letter-spacing: 0.04em;
-    text-transform: lowercase;
-    color: var(--black);
-  }
-
-  .confirm:empty { display: none; }
-
-  /* ---------- follow ----------
-     Two cards rather than two more text links, because this sheet exists
-     to make following feel like a destination rather than a footnote.
-     They are links, not embeds: a real Instagram feed needs the Basic
-     Display API and an access token that expires every 60 days, which is
-     a server-side job and a standing maintenance cost — see the note in
-     the markup. */
-  .sheet-follow {
-    width: min(440px, calc(100vw - 32px));
-    max-height: calc(100vh - 32px);
-    overflow-y: auto;
-    padding: 52px clamp(22px, 5vw, 34px) clamp(24px, 4vw, 30px);
-    text-align: center;
-  }
-
-  .follow-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 22px;
-  }
-
-  .fcard {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 18px;
-    border: 1px solid rgba(var(--grey-800-rgb), 0.55);
-    color: var(--black);
-    text-align: left;
-    transition: background-color 200ms var(--ease-cut), border-color 200ms var(--ease-cut);
-  }
-
-  .fcard:hover {
-    background: var(--grey-900);
-    border-color: var(--grey-900);
-    color: var(--white);
-  }
-
-  .fcard svg { width: 22px; height: 22px; flex: 0 0 auto; }
-
-  .fcard-txt { flex: 1; min-width: 0; }
-
-  /* Both are <span>, so without this the network and the handle run
-     together on one line instead of stacking. */
-  .fcard-net,
-  .fcard-at { display: block; }
-
-  .fcard-net {
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  /* The handle is the thing people actually search for, so it is set in
-     the system face and never truncated into ambiguity. */
-  .fcard-at {
-    margin-top: 3px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    color: rgba(var(--grey-900-rgb), 0.7);
-    overflow-wrap: anywhere;
-  }
-
-  .fcard:hover .fcard-at { color: rgba(var(--off-white-rgb), 0.8); }
-
-  .fcard-go {
-    font-family: var(--mono);
-    font-size: 15px;
-    line-height: 1;
-    opacity: 0.45;
-  }
-
-  .fcard:hover .fcard-go { opacity: 1; }
-
-  /* ---------- members' entrance ---------- */
-  .sheet-pass {
-    width: min(400px, calc(100vw - 32px));
-    padding: 52px clamp(22px, 5vw, 34px) clamp(24px, 4vw, 30px);
-    text-align: center;
-  }
-
-  .pass-form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-
-  .pass-form input {
-    width: 100%;
-    background: transparent;
-    border: 1px solid rgba(var(--grey-800-rgb), 0.55);
-    color: var(--black);
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.16em;
-    text-align: center;
-    padding: 14px;
-    transition: border-color 200ms var(--ease-cut);
-  }
-
-  .pass-form input::placeholder { color: rgba(var(--grey-900-rgb), 0.7); letter-spacing: 0.08em; }
-  .pass-form input:hover { border-color: rgba(var(--grey-800-rgb), 0.8); }
-  .pass-form input:focus { outline: none; border-color: var(--black); }
-
-  .pass-msg {
-    margin-top: 14px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: lowercase;
-    color: rgba(var(--grey-900-rgb), 0.7);
-  }
-
-  /* The disambiguation line under the members' entrance form — quieter
-     than .pass-msg, which reports the result of an actual attempt. */
-  .pass-note {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(var(--grey-800-rgb), 0.16);
-    font-family: var(--mono);
-    font-size: 10px;
-    line-height: 1.5;
-    letter-spacing: 0.03em;
-    text-transform: none;
-    color: rgba(var(--grey-900-rgb), 0.55);
-  }
-  .pass-note b { font-weight: 600; color: rgba(var(--grey-900-rgb), 0.75); }
-
-  .pass-msg:empty { display: none; }
-
-  /* ---------- lookbook ----------
-     The only sheet on a black ground. The other three cut to near-white
-     because they are interface — a form, two links, a passphrase — and the
-     hard change of surface is what marks them as a different mode. This
-     one is photography, and the clothes are almost entirely black: on a
-     near-white sheet every garment became a silhouette with a bright
-     border around it. On black the frames bleed into the page and the
-     print and texture are what you see. Everything inside it therefore
-     inverts too, which is what the overrides below are for. */
-  .sheet-look {
-    background: var(--black);
-    color: var(--white);
-    /* One gutter for the title, the strip and the counter, so the first
-       look lines up under the first character of the title. */
-    --gutter: clamp(18px, 4vw, 32px);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: clamp(18px, 3vh, 28px) 0 clamp(18px, 3vh, 26px);
-  }
-
-  .look-head {
-    flex: 0 0 auto;
-    padding: 0 var(--gutter);
-    font-family: var(--mono);
-    font-size: 10px;
-    line-height: 1.7;
-    letter-spacing: 0.2em;
-    text-transform: lowercase;
-    color: rgba(var(--off-white-rgb), 0.72);
-  }
-
-  .look-head b { font-weight: 400; color: var(--white); }
-
-  .look-body {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    align-items: center;
-  }
-
-  /* Left-aligned on the same gutter as the title above, so the first look
-     sits directly under it rather than floating in the middle of the
-     screen with half the frame empty beside it. Start-snapped to match:
-     the counter names the look at the leading edge, which is the one the
-     strip settles against. */
-  .strip {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    /* Definite height, inherited down from .look-body's flex sizing, so
-       the looks below can be measured off it. */
-    height: 100%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 0 var(--gutter);
-    /* Without this, mandatory snapping aligns the first look to the raw
-       scrollport edge and eats the gutter — the strip silently scrolls
-       itself by the padding on open and the first look starts cropped.
-       Snapping has to be told about the gutter separately from the
-       padding, so both are driven off one value. */
-    scroll-padding-left: var(--gutter);
-  }
-
-  .strip::-webkit-scrollbar { display: none; }
-  .strip:focus-visible { outline: 1px solid var(--white); outline-offset: 4px; }
-
-  .shot {
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-    /* Height-led rather than width-led: the look fills the height it is
-       given and the 2/3 crop decides how wide that makes it. */
-    height: 100%;
-    width: auto;
-    aspect-ratio: 2 / 3;
-    overflow: hidden;
-    /* Held while the photo decodes. Barely off the sheet's own black, so
-       an unloaded frame reads as a gap in the row rather than a bright
-       rectangle punched into the page. */
-    background: #17171A;
-  }
-
-  .shot img { width: 100%; height: 100%; object-fit: cover; }
-
-  .look-foot {
-    flex: 0 0 auto;
-    padding: clamp(14px, 2.4vh, 22px) var(--gutter) 0;
-    text-align: center;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: rgba(var(--off-white-rgb), 0.72);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .look-foot b { font-weight: 400; color: var(--white); }
-
-  /* Below this the 2/3 crop at full height is wider than the screen, so
-     width has to lead instead and the height follows. */
-  @media (max-width: 560px) {
-    /* Full-bleed on a phone. The gutter and the sliver of the next look
-       are worth their space on a desktop, where they frame the strip and
-       hint that it scrolls. At 390px they read as a black bar down one
-       side of every photograph — the frame competing with the picture
-       instead of holding it. Edge to edge, one look per screen, and the
-       counter is what says there are more.
-
-       The title and counter keep their gutter, so the type stays inset
-       while the photography runs to the edges. */
-    .strip { padding: 0; scroll-padding-left: 0; }
-    .shot { height: auto; width: 100vw; }
-  }
-
-  /* Nothing here should move for anyone who has asked the OS for less of
-     it. site.css already collapses durations globally; these are the two
-     loops it can't reach. The film is the third, and no stylesheet can
-     stop a video — it is paused in script instead. */
-  @media (prefers-reduced-motion: reduce) {
-    .wordmark { animation: none; opacity: 1; }
-    .strip { scroll-behavior: auto; }
-  }
+  /* Recently-viewed rail. Hidden until there is real history to show.
+     Bottom hairline is the only thing telling a returning visitor
+     "that was your personalized rail, this next part is the full
+     catalog" — without it the two grids read as one undifferentiated
+     block of identical-looking cards. */
+  .shop-recent { display: none; max-width: 1200px; margin: 0 auto; padding: 4vh 40px 5vh; border-bottom: 1px solid var(--line); }
+  .shop-recent.show { display: block; }
+  @media (max-width: 640px) { .shop-recent { padding: 3vh 20px 3.5vh; } }
 </style>
 
 <!-- HEAD:START -->
@@ -1426,1031 +660,834 @@
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
 
-  <!-- The moving ground: Asior's own panther film.
+  <a class="skip-link" href="#main">Skip to content</a>
 
-       Graded into the file rather than with a CSS filter, because a
-       filter on a full-screen video is re-applied every frame and is one
-       of the few things that will genuinely drop a phone below 60fps. The
-       grade desaturates to the palette's neutral range and pulls the top
-       end down hard: the source cuts to a full-frame white flash whose
-       average brightness hits 235, which would erase every word on this
-       page for as long as it held. Graded, the brightest frame averages
-       99, so the type clears AA against the worst frame in the film before
-       the scrim above it does anything.
-
-       It loops on a cut from black to black — the film opens and closes on
-       a held black frame — so there is no visible seam and no crossfade
-       needed.
-
-       muted is what makes autoplay legal in every browser; the file has no
-       audio track at all either way. playsinline stops iOS taking the
-       video fullscreen. If autoplay is refused anyway (iOS Low Power Mode
-       does this), the poster stays up and the page is simply a still. -->
-  <div class="atmos-still" aria-hidden="true"></div>
-  <!-- Painted into only when the browser refuses to play the video
-       outright. See the note on the pump in the script below. -->
-  <canvas class="atmos" id="atmosCanvas" aria-hidden="true" hidden></canvas>
-  <video class="atmos" id="atmos"
-         autoplay muted loop playsinline preload="auto"
-         disablepictureinpicture disableremoteplayback
-         aria-hidden="true" tabindex="-1">
-    <!-- Both formats, MP4 first, each with an explicit codec string.
-
-         Order matters because a browser commits to the first source it
-         believes it can play and never reconsiders. Listing VP9/WebM
-         first is what put the film behind a play button on Mac and iOS:
-         Safari's WebM support is partial, it claimed the file and then
-         would not start it.
-
-         But MP4 alone is not safe either. Firefox on Windows gets H.264
-         from the operating system rather than bundling it, and a Windows
-         install without the media feature pack has no H.264 at all — on
-         those machines an MP4-only page has nothing to play. WebM is
-         bundled with Firefox everywhere, so it covers exactly that gap.
-
-         The codecs= strings are what make the fallback work: the browser
-         decides from the type, not by trying, so a precise string lets a
-         browser without H.264 skip the MP4 honestly and take the WebM.
-         Left as bare video/mp4 it may claim the file and then fail. -->
-    <source src="video/gate.mp4" type='video/mp4; codecs="avc1.4D401E"'>
-    <source src="video/gate.webm" type='video/webm; codecs="vp9"'>
-  </video>
-  <div class="atmos-grade" aria-hidden="true"></div>
-
-  <main class="gate" id="main">
-
-    <div class="gate-core">
-
-      <p class="eyebrow rise pre-only" style="--in: 120ms">fall 26 — early access</p>
-      <p class="eyebrow rise pre-access-only" style="--in: 120ms">you're in</p>
-      <p class="eyebrow rise live-only commerce-ready" style="--in: 120ms">the fall collection is live</p>
-      <p class="eyebrow rise live-only commerce-notready" style="--in: 120ms">the fall collection is almost here</p>
-
-      <!-- Dashes, not zeros, before the script runs: a countdown showing
-           00 00 00 00 looks like the drop has already been and gone.
-           aria-live is off on purpose — a timer that announces itself
-           every second is unusable with a screen reader. -->
-      <div class="countdown rise" id="countdown" style="--in: 240ms" role="timer"
-           aria-live="off" aria-label="Time remaining until the drop">
-        <div class="cd-cell"><span class="cd-num" id="cdDays">--</span><span class="cd-label">days</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdHours">--</span><span class="cd-label">hrs</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdMins">--</span><span class="cd-label">min</span></div>
-        <div class="cd-cell"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">sec</span></div>
-      </div>
-
-      <!-- The heading stays an <h1> for the document outline; the button
-           inside it is the members' entrance. Unmarked on purpose — it
-           looks like the wordmark and nothing else — but a real button,
-           so it is reachable from a keyboard rather than mouse-only. -->
-      <h1 class="wordmark-wrap rise" style="--in: 380ms">
-        <button type="button" class="wordmark" id="markBtn" aria-label="Asior — members' entrance">Asior</button>
-      </h1>
-
-      <div class="actions rise" style="--in: 540ms">
-        <!-- The first-screen focus before access is granted: the code
-             field and its button, not a link that opens something else.
-             ASIOR8 is checked client-side (see the Early Access section
-             of the body script, reusing the same sha256Hex the members'
-             entrance uses) against a hash in assets/launch-config.js —
-             the code itself never appears in this page's source. -->
-        <div class="cta-group pre-only">
-          <form class="ea-inline-form" id="eaForm">
-            <label class="sr-only" for="eaInput">Access code</label>
-            <input type="text" id="eaInput" class="ea-inline-input" placeholder="access code"
-                   autocomplete="off" autocapitalize="characters" spellcheck="false" required>
-            <button type="submit" class="cta" id="eaBtn">Enter Collection</button>
-          </form>
-          <div class="ea-inline-msg" id="eaMsg" role="status" aria-live="polite"></div>
-          <!-- Secondary, for a visitor who doesn't have a code yet — the
-               same email+phone capture this gate has always used,
-               unchanged, just no longer the first thing on the page. -->
-          <p class="cta-sub">new here? <a href="#signup" id="notifyLink">join early access for 10% off</a></p>
-        </div>
-
-        <!-- Once access is granted or the drop is live, the hero itself
-             has nothing left to say — the eyebrow above already says
-             "you're in" / "the fall collection is live" — but it still
-             needs a way back INTO the collection: the auto-scroll on a
-             correct code entry only fires once, at that moment, so
-             anyone who scrolls back up to the hero afterward (or opens
-             a fresh tab, or returns on a later visit) lands here with
-             nothing clickable unless they know to scroll down on their
-             own. Real hrefs, not buttons: they work with JS off (a
-             plain anchor jump). With JS on, the click handler below
-             upgrades that jump to the same smooth scroll the post-code
-             reveal uses — html's scroll-behavior is deliberately left
-             at "auto" (see the rule near :root) for the :target overlay
-             fallback elsewhere on this page, so smoothing this one jump
-             has to happen in JS rather than CSS. -->
-        <div class="cta-group pre-access-only">
-          <a class="cta view-drop-link" href="#fallDropSection">View The Drop</a>
-        </div>
-        <div class="cta-group live-only">
-          <a class="cta view-drop-link" href="#fallDropSection">View The Drop</a>
-        </div>
-
-        <!-- Real product, real link — this is not the drop, it's the
-             lanyard: in stock and orderable today, not a preorder. Points
-             at the dedicated lanyard.html, not product.html or
-             /products/<handle>.html: both of those carry the full site
-             header with a Shop link in it, which would let anyone who
-             clicks through from the gate browse the entire catalog before
-             the drop is public. lanyard.html has no nav at all — see the
-             comment on its own header.
-
-             Outlined rather than filled at rest, so the signup button
-             above stays the one solid shape on first read — but a border,
-             a live-pulse dot and a fill-on-hover give it real weight of
-             its own, well past a plain text link. It gets its own row
-             so it can't be missed as "the third thing next to Follow". -->
-        <a class="lanyard-cta pressable" href="lanyard.html" id="lanyardLink">
-          <span class="lanyard-dot" aria-hidden="true"></span>
-          Buy the Lanyard — Out Now!
-        </a>
-
-        <button type="button" class="action action-2" id="followLink">Follow</button>
-      </div>
-
-    </div>
-
-    <div class="gate-foot">
-      <div class="bracket-row rise" style="--in: 700ms">
-        <!-- No direct [shop] link here on purpose, in either state: before
-             access it would be a purchase path bypassing the code, and
-             once access is granted the Fall drop section below has its
-             own "Shop All" leading to the same place with better
-             context. One link, one job, instead of two doing the same
-             thing at different tiers. -->
-        <a class="bracket" href="#lookbook" id="lookbookLink"><b>[</b> lookbook <b>]</b></a>
-        <!-- JAG Sweats aren't purchasable right now — no price, no buy
-             button, just a waitlist. Same tier as lookbook (secondary
-             nav, not a money action) rather than a pill like the lanyard's,
-             since there's nothing to buy yet. -->
-        <a class="bracket" href="jag-sweats.html" id="jagSweatsLink"><b>[</b> jag sweats restock <b>]</b></a>
-      </div>
-
-      <footer class="rise" style="--in: 820ms">
-        <a href="mailto:hello@asiorclothing.com">hello@asiorclothing.com</a>
-        <span class="meta-right">
-          <a href="privacy-policy.html">privacy</a>
-          <a href="terms-of-service.html">terms</a>
-        </span>
-      </footer>
-    </div>
-
-  </main>
-
-  <!-- ================= signup =================
-       id stays "signup": every other page on the site still links to
-       index.html#signup, and that has to keep landing on the form now
-       that the form lives behind a click. -->
-  <div class="overlay" id="signup" hidden role="dialog" aria-modal="true"
-       aria-labelledby="signupLede">
-    <div class="overlay-scrim" data-close></div>
-
-    <!-- tabindex so the surface can take focus when it opens; it is not in
-         the tab order, and the trap below excludes tabindex="-1". -->
-    <div class="sheet sheet-notify" tabindex="-1">
-      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
-
-      <div class="sheet-in">
-        <p class="sheet-label">early access</p>
-
-        <!-- The offer, in one line. 10% off the first order is the same
-             offer the rest of the site has always run, not a new promise
-             invented for this page — but it only stays true if the Klaviyo
-             welcome flow that sends the code is LIVE, not sitting in Draft.
-             Check that before this goes out. -->
-        <p class="sheet-lede" id="signupLede">
-          <span class="ab-a">First access to the drop, plus 10% off your first order.</span>
-          <span class="ab-b">10% off your first order, plus first access to the Fall Collection.</span>
-        </p>
-
-        <!-- Real signup: calls Klaviyo's public Client API directly (no
-             widget), same real lists the Email &amp; SMS popup form feeds.
-             Email goes to the email list; a phone number, if given, also
-             goes to the SMS list. -->
-        <form class="form" id="signupForm">
-          <label class="sr-only" for="signupEmail">Email address</label>
-          <input type="email" id="signupEmail" name="email" placeholder="email"
-                 autocomplete="email" spellcheck="false" required>
-          <label class="sr-only" for="signupPhone">Phone number (optional)</label>
-          <input type="tel" id="signupPhone" name="phone" placeholder="phone (optional)"
-                 autocomplete="tel" inputmode="tel">
-          <button type="submit" id="signupBtn">
-            <span class="ab-a">Get Early Access</span>
-            <span class="ab-b">Get My 10% Off</span>
-          </button>
-        </form>
-
-        <!-- TCPA consent, and it is not optional. 47 CFR 64.1200(f) requires
-             prior express WRITTEN consent for marketing texts; the clause most
-             brands miss is the "not a condition of purchase" disclosure. It has
-             to be visible at the point of collection, so it is never hidden
-             behind a toggle. Klaviyo subscribes the number to a MARKETING list
-             the moment it is submitted, so this copy is what makes that
-             legitimate. Trimmed as far as it goes and no further — have the
-             final wording reviewed by a lawyer. -->
-        <p class="consent" id="signupConsent">
-          By entering your number you agree to receive recurring automated marketing
-          texts from Asior at that number. Consent is not a condition of any purchase.
-          Message frequency varies and message &amp; data rates may apply. Reply STOP to
-          cancel, HELP for help. See our <a href="privacy-policy.html">Privacy Policy</a>
-          and <a href="terms-of-service.html">Terms of Service</a>.
-        </p>
-
-        <div class="confirm" id="signupConfirm" role="status" aria-live="polite"></div>
-      </div>
+  <!-- HEADER:START -->
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
     </div>
   </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
 
-  <!-- ================= lookbook =================
-       Full-bleed rather than a panel, so it reads as a different kind of
-       thing to the signup: same near-white surface, whole screen. -->
-  <div class="overlay" id="lookbook" hidden role="dialog" aria-modal="true"
-       aria-label="The Fall Collection lookbook">
-    <div class="sheet sheet-look" tabindex="-1">
-      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/collections/accessories.html">Accessories</a>
+      <a href="/manufacturing.html">Manufacturing</a>
+    </nav>
 
-      <div class="sheet-in look-head">
-        <div><b>the fall collection</b></div>
-        <div>september 10 — limited run</div>
-      </div>
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
 
-      <!-- Photographs only: nothing here is a link, because there is
-           nowhere to go yet. tabindex makes the strip scrollable from the
-           keyboard, which an overflow container isn't by default in every
-           browser. Lazy-loading is safe and wanted: the images sit inside
-           a display:none overlay, so the gate itself never pays for them. -->
-      <div class="sheet-in look-body">
-        <div class="strip" id="strip" tabindex="0" role="region" aria-label="The Fall Collection">
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Black Asior tee with animal-print patches, worn with black shorts" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Black Asior polo with animal-print collar and cuff trim" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="Two looks — black Asior tees with Asior sweat shorts" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Black Asior tee with animal-print patches, on a stairwell" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="Navy Asior polo with the panther mark and animal-print trim, worn with black denim shorts" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-09.webp"><img src="images/look-09.jpg" alt="Cream Asior sweat shorts with an animal-print side stripe, worn with a black tee" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Two looks in all black — animal-print tees with black shorts" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Navy Asior polo with animal-print collar and cuff trim, worn with black denim shorts" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="Two looks — black tees with cream Asior sweat shorts, front and back" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-12.webp"><img src="images/look-12.jpg" alt="Black Asior tee with animal-print patches, worn with black shorts at a crossing" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-13.webp"><img src="images/look-13.jpg" alt="Two looks — the navy Asior polo beside an animal-print patch tee" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-14.webp"><img src="images/look-14.jpg" alt="Two looks in cream Asior sweat shorts and black tees" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="Back of a black Asior tee with the script logo in white" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-15.webp"><img src="images/look-15.jpg" alt="Two looks — black tees with cream Asior sweat shorts, showing the animal-print side stripe" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-          <div class="shot"><picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="Asior sweat shorts with an animal-print side stripe" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-        </div>
-      </div>
-
-      <!-- Where you are in the strip, as a count rather than a scrollbar.
-           aria-hidden because the strip itself is already labelled and the
-           counter would otherwise be read out on every scroll event. -->
-      <div class="sheet-in look-foot" id="lookCount" aria-hidden="true"><b>01</b> / 15</div>
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
     </div>
-  </div>
+  </header>
+  <!-- HEADER:END -->
 
-  <!-- ================= follow =================
-       Links, not an embedded feed. A live Instagram grid needs the
-       Instagram Basic Display API, a server to hold the token, and a
-       refresh before it expires every 60 days — a standing maintenance
-       job on a site that is otherwise static files. If you want the real
-       grid later, that is the piece to build. -->
-  <div class="overlay" id="follow" hidden role="dialog" aria-modal="true" aria-label="Follow Asior">
-    <div class="overlay-scrim" data-close></div>
+  <main id="main">
 
-    <div class="sheet sheet-follow" tabindex="-1">
-      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
+  <h1 class="sr-only">Asior — small-run streetwear from Texas</h1>
 
-      <div class="sheet-in">
-        <p class="sheet-label">follow</p>
-        <p class="sheet-lede">Drop dates, fit pics and the studio, first.</p>
+  <!-- Homepage, rebuilt to the measured reference (spec section 4):
+       hero, NEW ARRIVALS, a full-bleed campaign frame with one button,
+       THE LINEUP, category tiles, footer. Sections butt against each
+       other -- the reference's section spacing is 0 and all breathing
+       room comes from inside each block. -->
 
-        <div class="follow-cards">
-          <a class="fcard" href="https://www.instagram.com/asior_clothing/" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/>
-            </svg>
-            <span class="fcard-txt">
-              <span class="fcard-net">Instagram</span>
-              <span class="fcard-at">@asior_clothing</span>
-            </span>
-            <span class="fcard-go" aria-hidden="true">&rarr;</span>
-          </a>
-
-          <!-- Handle corrected: the account is @asiorclothing.com, dot and
-               all. TikTok allows periods in usernames, so the old
-               /@asiorclothing link was pointing at a different account (or
-               none). -->
-          <a class="fcard" href="https://www.tiktok.com/@asiorclothing.com" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/>
-            </svg>
-            <span class="fcard-txt">
-              <span class="fcard-net">TikTok</span>
-              <span class="fcard-at">@asiorclothing.com</span>
-            </span>
-            <span class="fcard-go" aria-hidden="true">&rarr;</span>
-          </a>
-        </div>
-      </div>
+  <!-- [measured] Hero 905px, full bleed, photo behind the transparent
+       header, one underlined text link near the bottom. No heading and
+       no button box: the reference has neither. -->
+  <!-- Two portraits, offset. The shoot is portrait and the reference
+       hero is landscape, so forcing one into a 905px wide band cropped
+       the garment to a head and shoulders. Used as portraits instead:
+       one tall frame, one smaller frame dropped lower, and the wordmark
+       line sitting in the negative space between them. Nothing is
+       stretched and no crop cuts the clothes. -->
+  <section class="hero" aria-label="Asior">
+    <div class="hero-primary">
+      <!-- scripts/build.js writes the live campaign photograph here. -->
+      <!-- HERO:START -->
+      <!-- HERO:END -->
+      <picture class="hero-fallback">
+        <source type="image/webp" srcset="images/look-02.webp">
+        <img src="images/look-02.jpg" alt="Asior, worn" width="800" height="1200" decoding="async">
+      </picture>
     </div>
-  </div>
 
-  <!-- ================= members' entrance =================
-       NOT SECURITY. This is a static site: the store pages sit at their
-       own URLs and answer to anyone who types them, with or without this.
-       The passphrase is checked in the browser, so anyone who opens the
-       dev tools can read the code, and the SHA-256 below only keeps the
-       word itself from sitting in the source in plain text — it does not
-       make the store private. Treat it as a doorway for people you gave
-       the word to, not as a lock. Real gating needs the pages served
-       behind auth. -->
-  <div class="overlay" id="members" hidden role="dialog" aria-modal="true" aria-labelledby="passLede">
-    <div class="overlay-scrim" data-close></div>
-
-    <div class="sheet sheet-pass" tabindex="-1">
-      <button class="close" type="button" data-close aria-label="Close"><b>[</b> close <b>]</b></button>
-
-      <div class="sheet-in">
-        <p class="sheet-label">members</p>
-        <p class="sheet-lede" id="passLede">The store is closed until the drop.</p>
-
-        <form class="pass-form" id="passForm">
-          <label class="sr-only" for="passInput">Passphrase</label>
-          <input type="password" id="passInput" placeholder="passphrase"
-                 autocomplete="off" autocapitalize="none" spellcheck="false" required>
-          <button type="submit" id="passBtn">Enter</button>
-        </form>
-
-        <div class="pass-msg" id="passMsg" role="status" aria-live="polite"></div>
-
-        <!-- Disambiguation: this doorway and Fall Early Access are two
-             different things with two different codes, and this is the
-             one likely to get real Instagram/email/SMS traffic tomorrow
-             asking "where do I put ASIOR8". Answer it before they ask. -->
-        <p class="pass-note">Looking for your Fall Early Access code instead? Close this — that field is right there on the homepage.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= Fall drop =================
-       Shown once the storefront is actually reachable — access granted
-       (pre-launch) or the drop gone public (see .fall-drop's visibility
-       rule earlier in this file) — and NOT inside .gate-core: a product
-       grid needs real width and a scrolling page, not the single-
-       viewport centered column the hero was built for. A solid
-       background is required here specifically because .atmos/
-       .atmos-grade (the looping video) are position:fixed behind
-       everything on this page — without one, the pinned video would
-       show through once this section scrolls into view.
-
-       One grid, rendered by the shared assets/fall-grid.js (also used
-       by fall-collection.html) from assets/launch-config.js's
-       FALL_PRODUCTS/FALL_COMMERCE_READY — it decides placeholder vs.
-       real cards on its own; nothing here branches on data-commerce
-       except the eyebrow above, which is the one place a "live"/"ready"
-       claim is actually being made. -->
-  <section class="fall-drop" id="fallDropSection">
-    <div class="fall-drop-inner">
-      <h2 class="fall-drop-heading">Fall 26</h2>
-      <p class="fall-drop-sub" id="fallDropSub"></p>
-      <div class="fall-grid" id="fallDropGrid"></div>
-      <div class="fall-drop-empty" id="fallDropEmpty"></div>
-      <a class="shop-all" href="shop.html">Shop All</a>
+    <div class="hero-aside">
+      <p class="hero-line">Small runs.<br>Run again rarely.</p>
+      <a class="hero-cta" href="#new">Shop the drop</a>
+      <picture class="hero-secondary">
+        <source type="image/webp" srcset="images/look-09.webp">
+        <img src="images/look-09.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async">
+      </picture>
     </div>
   </section>
 
+  <!-- Personalization from real browsing history. A first-time visitor
+       never sees this section at all (see renderRecentlyViewed). -->
+  <section class="shop-recent" id="shopRecent"></section>
+
+  <!-- [measured] NEW ARRIVALS: label left, "View all" right, then a
+       4-column row. Genuinely the newest pieces -- the build sorts by
+       Shopify's createdAt, so this is a fact about the catalogue and
+       not a hand-picked row labelled "new". -->
+  <section class="home-row" id="new">
+    <div class="row-head">
+      <h2 class="row-title">New arrivals</h2>
+      <a class="row-link" href="/collections/tops.html">View all</a>
+    </div>
+    <div class="shop-grid" id="newGrid">
+      <!-- NEWGRID:START -->
+      <!-- NEWGRID:END -->
+    </div>
+  </section>
+
+  <!-- [measured] Full-bleed campaign frame, 945px, with one centred
+       outline button 116x34. -->
+  <section class="campaign-frame" aria-label="Fall collection, worn">
+    <picture>
+      <source type="image/webp" srcset="images/look-13.webp">
+      <img src="images/look-13.jpg" alt="Asior Fall collection, worn" width="1600" height="900" loading="lazy" decoding="async">
+    </picture>
+    <a class="btn-outline" href="#lineup">Shop now</a>
+  </section>
+
+  <!-- [measured] The reference's second product row is BEST SELLERS.
+       Ours is THE LINEUP, which the spec is explicit about: Asior has
+       no per-product sales data on the site, and a row ordered by
+       invented sales figures is the same class of mistake as an
+       invented stock count. Retitle it the moment real numbers exist. -->
+  <!-- The reference's second product row. Eight pieces here, not the
+       whole catalogue: the homepage is editorial and /shop.html is the
+       catalogue. Titled THE LINEUP rather than BEST SELLERS because
+       nobody has confirmed which pieces actually sell best. -->
+  <section class="home-row" id="lineup">
+    <div class="row-head">
+      <h2 class="row-title">The lineup</h2>
+      <a class="row-link" href="/shop.html">View all</a>
+    </div>
+    <div class="shop-grid shop-grid--featured" id="lineupGrid">
+      <!-- LINEUPGRID:START -->
+      <!-- LINEUPGRID:END -->
+    </div>
+  </section>
+
+  <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
+       padding. The reference's fourth is BEST SELLERS; ours is
+       MANUFACTURING, per the spec. -->
+  <section class="tiles" aria-label="Categories">
+    <a class="tile" href="/collections/tops.html">
+      <picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Tops</span>
+    </a>
+    <a class="tile" href="/collections/bottoms.html">
+      <picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Bottoms</span>
+    </a>
+    <a class="tile" href="/collections/accessories.html">
+      <picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Accessories</span>
+    </a>
+    <a class="tile" href="/manufacturing.html">
+      <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Manufacturing</span>
+    </a>
+  </section>
+
+  </main>
+
+  <!-- FOOTER:START -->
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
+      </div>
+    </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
+  </footer>
+  <!-- FOOTER:END -->
+
 <script src="assets/site.js"></script>
-<script src="assets/fall-grid.js"></script>
 <script>
+  // Storefront plumbing lives in assets/site.js.
   const A = window.Asior;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // Which drop these signups belong to. It rides along on the Klaviyo
-  // event as a property, so a flow can target "signed up for THIS drop"
-  // instead of blasting the whole list. Change it when the next one is
-  // teased.
-  const DROP_NAME = 'Fall Collection';
+  // Sitewide banner (the old email-signup teaser bar, replaced — see
+  // scripts/build.js's comment on HEADER_FULL).
 
-  // ---- A/B test: which signup copy converts better ----
-  // The bucket was already chosen and painted by the inline script in
-  // <head>; this reads that same decision back out of storage so the copy
-  // on screen and the copy named in the event stream can never disagree.
-  //
-  // Exposure fires once per page view against the anonymous id, and the
-  // conversion below reuses that same id — that pairing is the whole
-  // point, because it makes the rate divisible per variant in Klaviyo:
-  //   conversion = "AB Test: Signed Up" / "AB Test: Viewed", split by
-  //   the `variant` property.
-  //
-  // Note that the variant copy now also appears on the gate link itself,
-  // not just inside the form. Exposure still fires on page view, which is
-  // still the moment the visitor first sees the copy, so the denominator
-  // means the same thing it did before.
-  const AB_TEST = 'signup_copy';
-  const AB_VARIANT = A.getVariant(AB_TEST);
+  // Whether scripts/build.js baked a real catalog into the grid at
+  // deploy time. Captured now, before the live render overwrites it.
+  // When it did, there are already products on screen: no loading
+  // message belongs over them, and the live cards shouldn't fade in
+  // over content the visitor is already reading.
+  // The lineup teaser is pre-rendered by the build; this page has no
+  // catalogue grid any more (that is /shop.html).
+  const WAS_PRERENDERED = (document.getElementById('lineupGrid') || {}).children
+    ? document.getElementById('lineupGrid').children.length > 0 : false;
 
-  A.trackABEvent(AB_TEST, AB_VARIANT, 'Viewed');
 
-  // ===================================================================
-  // Countdown
-  // ===================================================================
+  /* Real, live catalog. Whatever's Active in Shopify shows here; Draft
+     products are absent from the response entirely, so they just don't
+     appear rather than erroring.
 
-  // The drop as one fixed instant, not a date string the browser gets to
-  // interpret in whatever timezone the visitor happens to be in. Read
-  // back from window.ASIOR_DROP_AT (set by the inline script in <head>,
-  // which also decides data-campaign) rather than restated here, so the
-  // countdown and the pre/live switch can never name two different
-  // instants. -05:00 is Central Daylight Time, which is what Chicago is
-  // on 10 September (DST doesn't end until November), so everyone
-  // worldwide counts down to the same real moment: Thursday, September
-  // 10, 2026, 7:00 PM CT. If this ever moves to a date outside CDT, the
-  // offset in <head> needs to change to -06:00 (CST) to still mean
-  // Central time — and update the visible date line in the markup above
-  // to match.
-  const DROP_AT = window.ASIOR_DROP_AT;
+     The field set and the normalizer both live in assets/site.js now
+     (PRODUCT_CARD_FIELDS / normalizeProduct), shared with every
+     collection page, so a page cannot ask for less than it renders.
+     Note what the field set still leaves out: quantityAvailable mixed
+     into a catalog query is what broke live images and pricing across
+     browsers earlier this launch, and a card only needs the boolean.
 
-  const countdown = document.getElementById('countdown');
-  const cdDays = document.getElementById('cdDays');
-  const cdHours = document.getElementById('cdHours');
-  const cdMins = document.getElementById('cdMins');
-  const cdSecs = document.getElementById('cdSecs');
-  const pad = (n) => String(n).padStart(2, '0');
-
-  function tick() {
-    const left = DROP_AT - Date.now();
-    if (left <= 0) {
-      // Nothing left to count to. The date line above still reads true on
-      // the day; actually unlocking the store is a person's job.
-      countdown.classList.add('done');
-      clearInterval(cdTimer);
-      return;
-    }
-    const total = Math.floor(left / 1000);
-    cdDays.textContent = pad(Math.floor(total / 86400));
-    cdHours.textContent = pad(Math.floor(total / 3600) % 24);
-    cdMins.textContent = pad(Math.floor(total / 60) % 60);
-    cdSecs.textContent = pad(total % 60);
+     normalizeProduct returns null for a malformed record, so one bad
+     product out of fifty cannot blank the whole grid -- the guarantee
+     the inline try/catch used to give. */
+  async function fetchCatalog() {
+    const data = await A.shopifyFetch(`{
+      products(first: 50) {
+        edges { node { ${A.PRODUCT_CARD_FIELDS} } }
+      }
+    }`);
+    return data.products.edges
+      .map(e => A.normalizeProduct(e.node))
+      .filter(Boolean);
   }
 
-  const cdTimer = setInterval(tick, 1000);
-  tick();
-
-  // A returning visitor who already granted access, or anyone loading
-  // this page after the public drop, sees .fall-drop from first paint
-  // (see the CSS rule in <head>) — this is what actually fills it in.
-  // renderFallDrop is a function declaration further down and hoisted,
-  // so calling it here before its own definition is fine. Skipped
-  // entirely for the common case (no access yet, still pre-launch) so
-  // a visitor who hasn't earned it doesn't cost a Shopify fetch.
-  if (document.documentElement.getAttribute('data-access') === 'granted'
-      || document.documentElement.getAttribute('data-campaign') === 'live') {
-    renderFallDrop();
+  /* The card itself is assets/site.js's productCard, so the grid, the
+     collection pages and (via shopCard in scripts/build.js) the
+     pre-rendered markup all describe the same tile. */
+  function card(p, eager) {
+    return A.productCard(p, { eager: eager });
   }
 
-  // ===================================================================
-  // Overlays
-  //
-  // One controller for both. A dialog that traps focus badly is worse
-  // than no dialog, so this does the whole job: focus moves in, Tab
-  // cycles inside, Escape and the close control both dismiss, focus goes
-  // back where it came from, and the gate behind is made inert so a
-  // screen reader can't wander into it.
-  // ===================================================================
-  const gate = document.getElementById('main');
-  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-  let openOverlay = null;
+  // Add straight from the grid — no navigation, so browsing never
+  // stops. A tapped size becomes a brief confirmation in place of the
+  // size row, then the sizes return so a second piece can be added
+  // right after. Delegated to the grid container since cards re-render
+  // wholesale on every fetch.
+  /* One quick-add at a time, across every grid on the page.
 
-  function makeOverlay(id) {
-    const el = document.getElementById(id);
+     Swapping the chips for "Adding…" hides them but is a rendering
+     change, not a guard: a fast triple-tap still lands three clicks,
+     and each one used to fire its own cartLinesAdd — three separate
+     lines of the same size for what the customer experienced as one
+     tap. Tapping S and then M before the first request resolves did
+     the same thing. The product page has always had a real guard
+     (it disables the button before awaiting); this is the equivalent.
 
-    // `trigger` is passed rather than read off document.activeElement,
-    // because clicking a link does not focus it in every browser (Safari
-    // notably) — so activeElement would be <body> and closing would dump
-    // focus at the top of the page instead of back on the control that
-    // opened this.
-    function open(trigger) {
-      if (openOverlay === el) return;
-      if (openOverlay) close(openOverlay, { restore: false });
+     Module-scoped rather than per-container so the main grid and the
+     recently-viewed rail can't both have one in flight at once — they
+     add to the same cart. */
+  let quickAddInFlight = false;
 
-      el.lastFocus = trigger || document.activeElement;
-      el.hidden = false;
-      document.body.classList.add('locked');
-      if ('inert' in HTMLElement.prototype) gate.inert = true;
+  function bindQuickAdd(container) {
+    container.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.qa-size');
+      if (!btn || btn.disabled) return;
+      if (quickAddInFlight) return;
+      quickAddInFlight = true;
 
-      // Two frames: one for [hidden] to actually resolve to a laid-out
-      // box, one for the browser to register the starting clip-path.
-      // Without this the wipe has nothing to animate from and the surface
-      // just appears.
-      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-open')));
+      const wrap = btn.closest('.quick-add');
+      const handle = wrap.dataset.handle;
+      const size = btn.dataset.size;
+      const variantId = btn.dataset.variantId;
+      const sizesHTML = wrap.innerHTML;
 
-      // Focus the surface itself rather than the first control. It carries
-      // the dialog role and name, so a screen reader announces what just
-      // opened; landing straight on the close button announces only
-      // "close", and landing on the email field would open the keyboard on
-      // a phone before anyone has read the offer.
-      el.querySelector('.sheet').focus({ preventScroll: true });
-      openOverlay = el;
-      history.replaceState(null, '', '#' + id);
-    }
-
-    el.openOverlay = open;
-    return el;
-  }
-
-  function close(el, opts) {
-    const restore = !opts || opts.restore !== false;
-    el.classList.remove('is-open');
-    if (openOverlay === el) openOverlay = null;
-
-    // Release the gate before handing focus back to it. An inert subtree
-    // cannot take focus at all, so doing this the other way round — or
-    // deferring it to the timeout below — silently drops focus onto
-    // <body> and a keyboard user restarts from the top of the page.
-    if (!openOverlay) {
-      document.body.classList.remove('locked');
-      if ('inert' in HTMLElement.prototype) gate.inert = false;
-    }
-
-    if (restore && el.lastFocus && el.lastFocus.focus) {
-      el.lastFocus.focus({ preventScroll: true });
-    }
-    if (!openOverlay) history.replaceState(null, '', location.pathname);
-
-    // Wait out the wipe before pulling the box, so the overlay isn't
-    // yanked off screen mid-transition. It stops intercepting pointer
-    // events the moment is-open comes off, so the gate is live again
-    // straight away. Reduced motion collapses the durations, so there is
-    // nothing to wait for.
-    setTimeout(() => {
-      // Guard against a re-open landing inside the timeout.
-      if (el.classList.contains('is-open')) return;
-      el.hidden = true;
-    }, reduceMotion.matches ? 0 : 340);
-  }
-
-  const notify = makeOverlay('signup');
-  const lookbook = makeOverlay('lookbook');
-  const follow = makeOverlay('follow');
-  const members = makeOverlay('members');
-  const notifyLink = document.getElementById('notifyLink');
-  const lookbookLink = document.getElementById('lookbookLink');
-  const followLink = document.getElementById('followLink');
-  const markBtn = document.getElementById('markBtn');
-  // Declared here rather than down with the rest of the Early Access
-  // logic: openFromHash below needs eaInput, and openFromHash runs
-  // immediately, before that later code has executed.
-  const eaForm = document.getElementById('eaForm');
-  const eaInput = document.getElementById('eaInput');
-  const eaBtn = document.getElementById('eaBtn');
-  const eaMsg = document.getElementById('eaMsg');
-
-  notifyLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    notify.openOverlay(notifyLink);
-  });
-
-  // "View The Drop" — the way back into the Fall section once access is
-  // granted or the drop is live (see the .cta-group.pre-access-only/
-  // .live-only markup earlier in this file for why it exists). A plain
-  // anchor already works with JS off; this only upgrades the jump to a
-  // smooth scroll, same as the one-time reveal in grantEarlyAccess.
-  document.querySelectorAll('.view-drop-link').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      const section = document.getElementById('fallDropSection');
-      if (!section) return;
-      e.preventDefault();
-      section.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+      wrap.innerHTML = `<span class="qa-msg">Adding…</span>`;
+      try {
+        await A.addToShopifyCart(variantId, 1);
+        A.recordSizeChoice(size);
+        A.trackCart('Added To Cart', { handle, size, source: 'shop-grid' });
+        // Onsite twin, for Klaviyo's Abandoned Cart flow. No price:
+        // the card shows a label that can be a range or a markdown
+        // pair, and a guessed number is worse than none — the helper
+        // omits Price when it isn't a real one.
+        A.klaviyoAddedToCart({
+          handle,
+          name: wrap.dataset.name || handle,
+          url: location.origin + '/products/' + handle + '.html',
+          size,
+          quantity: 1,
+          source: 'shop-grid',
+        });
+        // No price here either, for the same reason: the grid's label
+        // can be a range or a markdown pair, and a midpoint or a low
+        // end would be a number nobody is actually charged.
+        // No price: the grid's label can be a range or a markdown
+        // pair, and a guessed value is worse than none.
+        if (window.AsiorAds) {
+          window.AsiorAds.addToCart({ handle, name: wrap.dataset.name || handle, quantity: 1 });
+        }
+        if (window.AsiorAnalytics) {
+          window.AsiorAnalytics.addToCart({
+            handle, name: wrap.dataset.name || handle,
+            variantId, quantity: 1,
+          });
+        }
+        wrap.innerHTML = `<span class="qa-msg">added ${A.escapeHtml(size)}. <a href="/cart.html">View cart</a></span>`;
+        setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
+      } catch (err) {
+        // A failed add is the one funnel step with no other trace: the
+        // shopper sees an error and leaves, and nothing downstream ever
+        // records that they tried. No existing metric covers it, so this
+        // is a new one rather than a duplicate.
+        A.trackCart('Quick Add Failed', { handle, size, source: 'shop-grid' });
+        wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
+        setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
+      } finally {
+        // Always cleared, including on failure — otherwise one failed
+        // add would silently disable quick-add for the whole session.
+        quickAddInFlight = false;
+      }
     });
-  });
+  }
 
-  lookbookLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    lookbook.openOverlay(lookbookLink);
-  });
+  // Shared by both grids on this page (main catalog + recently-viewed)
+  // so a card fades in the same way regardless of which one it's in.
+  // Previously only the main grid was ever wired up here — cards in
+  // "Pick Up Where You Left Off" started at opacity:0 (see .product in
+  // the stylesheet above) and, with nothing ever adding .in, stayed
+  // invisible permanently. Real bug, not a design choice.
+  /* .product starts at opacity 0 and needs .in to be seen.
+     Two ways that used to leave a card black with nothing a visitor
+     could do about it except scroll, both fixed here:
 
-  followLink.addEventListener('click', () => follow.openOverlay(followLink));
-  // The old members' entrance is superseded by ASIOR8 for this launch —
-  // and opening it here would be a real dead end, not just a stray
-  // extra doorway: its destination, shop.html, is now itself gated by
-  // assets/early-access-gate.js, so a visitor who found their way in
-  // with asior2026 would immediately bounce right back out to this
-  // page. Left inert only for the exact window that would happen in;
-  // the underlying passphrase logic is untouched, not deleted, and
-  // markBtn opens it normally again the moment access is granted or
-  // the drop goes public — at which point shop.html no longer bounces.
-  markBtn.addEventListener('click', () => {
-    var campaign = document.documentElement.getAttribute('data-campaign');
-    var access = document.documentElement.getAttribute('data-access');
-    if (campaign === 'pre' && access !== 'granted') return;
-    members.openOverlay(markBtn);
-  });
+       - threshold 0.2 asked for a fifth of the card to be on screen.
+         A card taller than the viewport can never satisfy that, so it
+         stayed invisible no matter how far you scrolled.
+       - a browser without IntersectionObserver observed nothing, so
+         every card stayed at opacity 0 forever.
 
-  document.querySelectorAll('[data-close]').forEach((el) => {
-    el.addEventListener('click', () => {
-      const overlay = el.closest('.overlay');
-      if (overlay) close(overlay);
-    });
-  });
+     Now: anything at or near the first screen is revealed immediately,
+     without waiting to be observed, so a visitor who loads the page
+     and touches nothing sees products. The rest still fade in on
+     approach, with rootMargin so they arrive already visible rather
+     than fading in under the reader's eye. */
+  /* Second-image-on-hover.
 
-  document.addEventListener('keydown', (e) => {
-    if (!openOverlay) return;
+     Delegated to the grid container and bound once, because the cards
+     are re-rendered wholesale on every fetch. The <img> is created on
+     the first pointer entry and then kept, so a tile fetches its hover
+     frame at most once and a tile nobody hovers never fetches one at
+     all. .ready is added on decode so the cross-fade starts from a
+     painted image rather than from a blank box.
 
-    if (e.key === 'Escape') {
-      close(openOverlay);
-      return;
-    }
+     Pointer-gated: a touch "hover" latches after a tap and would leave
+     the second photograph stuck over the first, so this binds nothing
+     on a phone. */
+  /* assets/site.js owns the hover swap now, shared with the collection
+     pages. */
+  function wireHoverSwap(container) {
+    return A.wireHoverSwap(container);
+  }
 
-    if (e.key !== 'Tab') return;
-
-    // Focus trap. Only elements that are actually rendered count —
-    // querySelectorAll would otherwise hand back the signup form after a
-    // successful submit has display:none'd it.
-    const items = Array.from(openOverlay.querySelectorAll(FOCUSABLE))
-      .filter((n) => n.offsetParent !== null);
+  function revealOnScroll(container) {
+    const items = Array.from(container.querySelectorAll('.product'));
     if (!items.length) return;
 
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  });
+    const reveal = (el, i) => setTimeout(() => el.classList.add('in'), (i % 4) * 60);
 
-  // Deep links. index.html#signup is linked from every other page on the
-  // site and predates the form moving behind a click, so it has to keep
-  // landing on the form.
-  function openFromHash() {
-    if (location.hash === '#signup') notify.openOverlay(notifyLink);
-    else if (location.hash === '#lookbook') lookbook.openOverlay(lookbookLink);
-    else if (location.hash === '#follow') follow.openOverlay(followLink);
-    // So an Early Access email/SMS can link straight to
-    // asiorclothing.com/#earlyAccess and land with the cursor already in
-    // the code field — it's inline in the hero now, not behind a click,
-    // so there's nothing to open, just somewhere to focus. A no-op if
-    // access is already granted: the field isn't on screen at all then.
-    else if (location.hash === '#earlyAccess') eaInput.focus({ preventScroll: false });
+    if (!('IntersectionObserver' in window)) {
+      items.forEach(reveal);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (!entry.isIntersecting) return;
+        reveal(entry.target, i);
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0, rootMargin: '300px 0px' });
+
+    const fold = window.innerHeight + 300;
+    items.forEach((p, i) => {
+      // Already on, or just below, the first screen: show it now.
+      if (p.getBoundingClientRect().top < fold) { reveal(p, i); return; }
+      observer.observe(p);
+    });
   }
 
-  openFromHash();
-  window.addEventListener('hashchange', openFromHash);
+  /* The lineup row. The reference homepage carries no sort or filter
+     controls -- browsing by category is what the collection pages and
+     their FILTER drawer are for -- so this renders the catalogue in
+     merchandising order and nothing else. */
+  /* The homepage's second product row. Eight pieces, one row deep at
+     four columns -- a teaser that ends in "View all", not the whole
+     catalogue. /shop.html is the catalogue. */
+  function renderLineup(catalog) {
+    const grid = document.getElementById('lineupGrid');
+    if (!grid || !catalog.length) return;
+    const shownInRecent = renderRecentlyViewed(catalog);
+    const view = catalog.filter(p => !shownInRecent.has(p.handle)).slice(0, 8);
+    grid.innerHTML = view.map((p, i) => card(p, false)).join('');
+    bindQuickAdd(grid);
+    wireHoverSwap(grid);
+    grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+  }
 
-  // ===================================================================
-  // Signup
-  // ===================================================================
-  const signupForm = document.getElementById('signupForm');
-  const signupBtn = document.getElementById('signupBtn');
-  const signupConsent = document.getElementById('signupConsent');
-  const signupConfirm = document.getElementById('signupConfirm');
-  const signupLede = document.getElementById('signupLede');
+  // Personalisation from real browsing history only — the pieces this
+  // browser has actually opened, newest first. Nothing shown if there's
+  // no history, and never anything invented. Returns the set of handles
+  // actually rendered here, so renderGrid can exclude them from the
+  // main catalog below — never the same product twice on one page.
+  function renderRecentlyViewed(catalog) {
+    const seen = A.getViewed()
+      .map(h => catalog.find(p => p.handle === h))
+      .filter(Boolean)
+      .slice(0, 4);
+    if (seen.length < 2) return new Set();
 
-  signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    signupBtn.disabled = true;
-    const email = document.getElementById('signupEmail').value;
-    const phone = document.getElementById('signupPhone').value;
+    // This rail renders as the very first thing on the page for a
+    // returning visitor — it IS the above-the-fold content here, not
+    // the main grid below it. Every card was being marked lazy
+    // regardless of position, which on a real mobile connection meant
+    // a visible gap: heading renders instantly (it's text), then a
+    // wait while the browser gets around to fetching images it was
+    // told it could defer, then the cards pop in. Same eager-first-row
+    // rule renderGrid() already uses for the main grid, applied here.
+    const section = document.getElementById('shopRecent');
+    section.innerHTML = `
+      <h2 class="rail-label">Pick Up Where You Left Off</h2>
+      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3)).join('')}</div>`;
+    const recentGrid = document.getElementById('shopRecentGrid');
+    bindQuickAdd(recentGrid);
+    revealOnScroll(recentGrid);
+    wireHoverSwap(recentGrid);
+    section.classList.add('show');
+    return new Set(seen.map(p => p.handle));
+  }
 
+  // Merchandising order, not Shopify's default order: the four new
+  // Fall pieces first, always — real handles from
+  // window.ASIOR_LAUNCH.FALL_PRODUCTS (assets/launch-config.js), in
+  // the order the founder set there, never a guess at which products
+  // count as "new." Everything else follows, with the visitor's own
+  // real most-picked size (assets/site.js's preferredSize()) bumped
+  // toward the front when it's genuinely in stock — personalization
+  // from actual behavior, not a fabricated recommendation.
+  function sortForMerchandising(catalog) {
+    const fallHandles = (window.ASIOR_LAUNCH && window.ASIOR_LAUNCH.FALL_PRODUCTS || []).map(p => p.handle);
+    const mine = A.preferredSize();
+    const byHandle = new Map(catalog.map(p => [p.handle, p]));
+
+    const fall = fallHandles.map(h => byHandle.get(h)).filter(Boolean);
+    const fallSet = new Set(fall.map(p => p.handle));
+    const rest = catalog.filter(p => !fallSet.has(p.handle));
+
+    if (mine) {
+      const inMySize = p => p.sizes && p.sizes.some(s => s.size === mine && s.available);
+      rest.sort((a, b) => (inMySize(b) ? 1 : 0) - (inMySize(a) ? 1 : 0));
+    }
+
+    return [...fall, ...rest];
+  }
+
+
+  // Config-only states are knowable now; sold-out waits for the fetch.
+
+  /* ---- quick view ---------------------------------------------------
+
+     A shopper on the grid who wants a second look at a piece had two
+     options: add a size blind from the chips, or leave the grid for the
+     product page and come back. This is the third -- the photographs,
+     the price, the size run and Add to Cart, over the grid, with the
+     scroll position still underneath it.
+
+     <dialog> rather than a hand-built modal: focus trapping, Escape,
+     inertness of the page behind it and the top layer all come from the
+     element. It fetches the one product it needs on open, from the same
+     query the product page uses, so nothing here is a second copy of
+     the catalogue that can drift.
+
+     It is not a replacement for the product page. Measurements, the
+     description and shipping live there, and "Full details" is always
+     the first thing after the buy controls. */
+  let peekEl = null;
+  let peekBusy = false;
+  const peekCache = new Map();
+
+  function ensurePeek() {
+    if (peekEl) return peekEl;
+    peekEl = document.createElement('dialog');
+    peekEl.className = 'peek';
+    peekEl.innerHTML = '<div class="peek-in" id="peekIn"></div>';
+    document.body.appendChild(peekEl);
+    // Clicking the backdrop closes. The dialog's own box stops the
+    // click, so this only fires on the area outside it.
+    peekEl.addEventListener('click', (e) => { if (e.target === peekEl) peekEl.close(); });
+    peekEl.addEventListener('close', () => { document.documentElement.style.overflow = ''; });
+    return peekEl;
+  }
+
+  async function fetchOne(handle) {
+    if (peekCache.has(handle)) return peekCache.get(handle);
+    const data = await A.shopifyFetch(`
+      query($handle: String!) {
+        product(handle: $handle) {
+          title handle
+          images(first: 6) { edges { node { ${A.IMAGE_FIELDS} } } }
+          options { name values }
+          variants(first: 40) { edges { node {
+            id title availableForSale price { amount } selectedOptions { name value }
+          } } }
+        }
+      }`, { handle });
+    peekCache.set(handle, data.product);
+    return data.product;
+  }
+
+  async function openPeek(handle) {
+    if (peekBusy) return;
+    peekBusy = true;
+    const dlg = ensurePeek();
+    const box = document.getElementById('peekIn');
+    box.innerHTML = '<p class="peek-wait">Loading\u2026</p>';
+    document.documentElement.style.overflow = 'hidden';
+    dlg.showModal();
     try {
-      // Email is the required part. A bad phone number fails quietly inside
-      // klaviyoSubscribe rather than undoing a signup that already worked.
-      await A.klaviyoSubscribe(email, phone);
-      // Fire and forget — klaviyoTrack swallows its own failures, and a
-      // missing analytics event must never look like a failed signup.
-      // The variant rides along on the real signup event too, so the
-      // existing per-drop flow can segment on it without joining across
-      // two metrics.
-      A.klaviyoTrack('Early Access Signup',
-        Object.assign({ drop: DROP_NAME, ab_test: AB_TEST, ab_variant: AB_VARIANT,
-          source: 'website', signup_location: 'gate', campaign: 'fall_2026', interest: 'fall_collection' },
-          A.getUTMParams()),
-        { email: email });
-      // The other half of the funnel pair started by the exposure event
-      // above. Email is attached here because by this point we have one,
-      // which lets Klaviyo stitch the anonymous view to the known profile.
-      A.trackABEvent(AB_TEST, AB_VARIANT, 'Signed Up', { email: email });
-      signupForm.style.display = 'none';
-      signupConsent.style.display = 'none';
-      signupLede.style.display = 'none';
-      signupConfirm.textContent = "You're in. Check your inbox for your code.";
+      renderPeek(await fetchOne(handle), handle);
     } catch (err) {
-      signupConfirm.textContent = 'Something went wrong — try again in a moment.';
-      signupBtn.disabled = false;
+      console.error('Quick view failed:', err);
+      box.innerHTML = '<p class="peek-wait">Couldn\'t load this piece. '
+        + `<a href="/products/${encodeURIComponent(handle)}.html">Open the full page</a>.</p>`;
+    } finally {
+      peekBusy = false;
     }
-  });
-
-  // ===================================================================
-  // Members' entrance
-  //
-  // Read the warning in the markup before touching this: it is a doorway,
-  // not a lock. The store pages are public URLs and stay public. All this
-  // does is stop the word itself sitting in the source in plain text.
-  //
-  // TO CHANGE THE PASSPHRASE, replace PASS_SHA below with the SHA-256 of
-  // the new one. In a terminal:
-  //     printf 'yourword' | shasum -a 256
-  // or in this page's own console:
-  //     crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourword'))
-  //       .then(b => console.log([...new Uint8Array(b)]
-  //         .map(x => x.toString(16).padStart(2,'0')).join('')))
-  //
-  // Current passphrase: asior2026
-  // ===================================================================
-  const PASS_SHA = '06e49f9482fb38c07a993bd7ac7147a153301973bacd76c5fe668cc1a29ea59c';
-  const MEMBERS_DEST = 'shop.html';
-
-  const passForm = document.getElementById('passForm');
-  const passInput = document.getElementById('passInput');
-  const passBtn = document.getElementById('passBtn');
-  const passMsg = document.getElementById('passMsg');
-
-  async function sha256Hex(text) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
-  passForm.addEventListener('submit', async (e) => {
+  function renderPeek(product, handle) {
+    const box = document.getElementById('peekIn');
+    if (!product) {
+      box.innerHTML = '<p class="peek-wait">That piece isn\'t in the catalog.</p>';
+      return;
+    }
+    // Same ordering rule as the PDP gallery: a photograph is the
+    // first frame in the quick view, never a generated render.
+    const images = A.orderImages(product.images.edges.map(e => e.node));
+    const variants = product.variants.edges.map(e => e.node);
+    const sizeOnly = product.options.length === 1 && product.options[0].name === 'Size';
+    const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => isFinite(n));
+    const lo = Math.min(...prices), hi = Math.max(...prices);
+    const priceLabel = lo === hi ? `$${lo.toFixed(2)}` : `From $${lo.toFixed(2)}`;
+    const allOut = variants.length > 0 && variants.every(v => !v.availableForSale);
+
+    box.innerHTML = `
+      <button type="button" class="peek-close btn btn--quiet btn--sm" id="peekClose" aria-label="Close quick view">Close</button>
+      <div class="peek-media">
+        ${images.length
+          ? images.slice(0, 4).map((im, i) => `<figure class="peek-shot">${A.imgTag(im, {
+              alt: im.altText || product.title, eager: i === 0, sizes: '(max-width: 760px) 86vw, 420px',
+            })}</figure>`).join('')
+          : '<div class="peek-ph"></div>'}
+      </div>
+      <div class="peek-buy">
+        <h2 class="peek-name">${A.escapeHtml(product.title)}</h2>
+        <div class="peek-price tnum">${priceLabel}</div>
+        ${sizeOnly ? `
+          <div class="peek-label">Size</div>
+          <div class="peek-sizes" id="peekSizes">
+            ${variants.map(v => {
+              const size = (v.selectedOptions.find(o => o.name === 'Size') || {}).value || v.title;
+              /* A sold-out size here is not disabled, in either sense.
+                 `disabled` fires no click at all, so "press the size
+                 that is gone to ask for it back" could never have
+                 worked; `aria-disabled` is worse -- it tells a screen
+                 reader the control is dead while it quietly still
+                 acts. It is an ordinary enabled button whose label
+                 says what pressing it does. The strike-through is the
+                 same information for a sighted shopper. */
+              return `<button type="button" class="qa-size${v.availableForSale ? '' : ' unavailable'}"
+                        data-variant-id="${A.escapeAttr(v.id)}" data-size="${A.escapeAttr(size)}"
+                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out \u2014 ask to be emailed when it is back`}"
+                        aria-pressed="false">${A.escapeHtml(size)}</button>`;
+            }).join('')}
+          </div>` : ''}
+        <button type="button" class="btn btn--primary btn--lg btn--block" id="peekAdd"
+                ${allOut ? 'disabled' : ''}>${allOut ? 'Sold Out' : 'Add to Cart'}</button>
+        <p class="peek-msg" id="peekMsg" role="status" aria-live="polite"></p>
+
+        <!-- A sold-out piece was a dead end: the chips were disabled and
+             that was the end of the journey. The same back-in-stock
+             capture the product page offers now lives here, so a
+             stockout becomes a demand signal instead. It says nothing
+             about when -- we do not know, and a restock promise we
+             cannot keep is worse than none. -->
+        <div class="peek-bis" id="peekBis" ${allOut ? '' : 'hidden'}>
+          <div class="peek-label" id="peekBisLabel">Email me when it's back</div>
+          <div class="peek-bis-row">
+            <label class="sr-only" for="peekBisEmail">Email address</label>
+            <input class="field" type="email" id="peekBisEmail" name="email" placeholder="Email"
+                   autocomplete="email" spellcheck="false" required>
+            <button type="button" class="btn btn--ghost btn--sm" id="peekBisBtn">Notify me</button>
+          </div>
+          <p class="peek-msg" id="peekBisMsg" role="status" aria-live="polite"></p>
+        </div>
+        <!-- The same lines the product page states, read from the same
+             helpers so neither sentence can say one thing here and
+             another there. The returns line is gated on a published
+             policy (A.returnsLine) and renders nothing while there
+             isn't one. Measurements and the description are not
+             duplicated -- those are what "Full details" is for. -->
+        <ul class="peek-trust">
+          <li>${A.escapeHtml(A.shippingLine())}</li>
+          ${A.returnsLine() ? `<li>${A.escapeHtml(A.returnsLine())}</li>` : ''}
+        </ul>
+        <a class="peek-full btn btn--ghost btn--block" href="/products/${encodeURIComponent(handle)}.html">Full details</a>
+      </div>`;
+
+    document.getElementById('peekClose').addEventListener('click', () => peekEl.close());
+
+    // One selected size at a time, and the button only becomes live
+    // once there is a variant to add. Same rule as the product page.
+    let picked = sizeOnly ? null : (variants.find(v => v.availableForSale) || null);
+    const addBtn = document.getElementById('peekAdd');
+    const msg = document.getElementById('peekMsg');
+    const sizes = document.getElementById('peekSizes');
+    if (sizes) {
+      addBtn.disabled = true;
+      sizes.addEventListener('click', (e) => {
+        const b = e.target.closest('button.qa-size');
+        if (!b) return;
+        const v = variants.find(x => x.id === b.dataset.variantId) || null;
+        sizes.querySelectorAll('.qa-size').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+
+        // A sold-out size is still a choice worth hearing: pressing it
+        // asks for that size back rather than doing nothing.
+        if (!v || !v.availableForSale) {
+          picked = null;
+          addBtn.disabled = true;
+          msg.textContent = '';
+          openPeekBis(b.dataset.size, v);
+          return;
+        }
+
+        picked = v;
+        addBtn.disabled = !picked;
+        msg.textContent = '';
+        if (!allOut) document.getElementById('peekBis').hidden = true;
+        A.recordSizeChoice(b.dataset.size);
+      });
+    }
+
+    /* Back in stock. The variant matters -- Klaviyo subscribes against a
+       specific variant, so asking for a sold-out M has to send the M. */
+    let bisVariant = allOut ? (variants[0] || null) : null;
+    const bisBox = document.getElementById('peekBis');
+
+    function openPeekBis(sizeLabel, variant) {
+      if (variant) bisVariant = variant;
+      document.getElementById('peekBisLabel').textContent =
+        sizeLabel ? `Sold out in ${sizeLabel}. Email me when it's back.` : "Email me when it's back";
+      document.getElementById('peekBisMsg').textContent = '';
+      bisBox.hidden = false;
+    }
+
+    document.getElementById('peekBisBtn').addEventListener('click', async () => {
+      const input = document.getElementById('peekBisEmail');
+      const bmsg = document.getElementById('peekBisMsg');
+      const btn = document.getElementById('peekBisBtn');
+      if (!input.checkValidity()) { input.reportValidity(); return; }
+      btn.disabled = true;
+      try {
+        await A.klaviyoBackInStock(input.value, bisVariant && bisVariant.id, {
+          product: product.title, handle: handle,
+          size: bisVariant ? (bisVariant.selectedOptions.find(o => o.name === 'Size') || {}).value || null : null,
+          source: 'quick_view',
+        });
+        bmsg.textContent = "You're on the list. We'll email you the moment it's back.";
+        input.style.display = 'none';
+        btn.style.display = 'none';
+      } catch (err) {
+        console.error('Quick view back-in-stock failed:', err);
+        bmsg.textContent = "That didn't go through. Try again in a moment.";
+        btn.disabled = false;
+      }
+    });
+
+    // Sitewide "sold out" state opens the capture with no size named,
+    // because no single size is the one that went.
+    if (allOut) openPeekBis(null, variants[0] || null);
+
+    addBtn.addEventListener('click', async () => {
+      if (!picked || addBtn.disabled) return;
+      addBtn.disabled = true;
+      const was = addBtn.textContent;
+      addBtn.textContent = 'Adding\u2026';
+      try {
+        await A.addToShopifyCart(picked.id, 1);
+        const pickedSize = (picked.selectedOptions.find(o => o.name === 'Size') || {}).value || null;
+        A.trackCart('Added To Cart', { handle, size: pickedSize, source: 'quick_view' });
+        A.klaviyoAddedToCart({
+          handle,
+          name: product.title,
+          url: location.origin + '/products/' + handle + '.html',
+          size: pickedSize,
+          price: parseFloat(picked.price.amount),
+          quantity: 1,
+          source: 'quick_view',
+        });
+        if (pickedSize) A.recordSizeChoice(pickedSize);
+        addBtn.textContent = 'added.';
+        msg.textContent = 'In your cart.';
+        // Close and hand over to the drawer, which is where the rest of
+        // the cart already lives -- two cart surfaces at once is one too
+        // many.
+        setTimeout(() => { peekEl.close(); A.openCartDrawer('quick_view'); }, 450);
+      } catch (err) {
+        console.error('Quick view add failed:', err);
+        A.trackCart('Quick Add Failed', { handle, source: 'quick_view' });
+        addBtn.textContent = was;
+        addBtn.disabled = false;
+        msg.textContent = "That didn't go through. Try again in a moment.";
+      }
+    });
+  }
+
+  // Delegated on the document, so it covers both grids and survives
+  // every re-render the toolbar causes.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-peek]');
+    if (!b) return;
     e.preventDefault();
-    passBtn.disabled = true;
-    passMsg.textContent = '';
-    try {
-      // crypto.subtle only exists in a secure context. Live and on
-      // localhost that is always true; over plain http it is not, and a
-      // thrown error here would look like a wrong password rather than a
-      // broken page.
-      if (!window.crypto || !crypto.subtle) throw new Error('no subtle crypto');
-      const hex = await sha256Hex(passInput.value.trim());
-      if (hex === PASS_SHA) {
-        passMsg.textContent = 'Opening the store…';
-        window.location.href = MEMBERS_DEST;
-        return;
-      }
-      passMsg.textContent = "That's not it. Try again.";
-    } catch (err) {
-      passMsg.textContent = 'Something went wrong — try again in a moment.';
-    }
-    passInput.value = '';
-    passInput.focus();
-    passBtn.disabled = false;
+    openPeek(b.dataset.peek);
   });
 
-  // ===================================================================
-  // Fall Early Access (ASIOR8)
-  //
-  // Same "not a lock" caveat as the members' entrance above, and reuses
-  // its sha256Hex helper — this is a marketing gate, not auth, checked
-  // client-side against a hash so the code itself doesn't sit in the
-  // page source as plaintext. The real difference is what a correct
-  // code does: it persists (data-access, decided in <head> before
-  // paint) so the visitor sees the "you're in" homepage state on every
-  // later visit instead of re-entering the code, and it never routes
-  // anyone to a page presenting Fall as purchasable unless
-  // FALL_COMMERCE_READY says that's actually true — see the
-  // .pre-access-only / .live-only commerce-ready/commerce-notready
-  // pairs earlier in this file.
-  //
-  // TO CHANGE THE CODE, replace EARLY_ACCESS_CODE_SHA in
-  // assets/launch-config.js with the SHA-256 of the new one, uppercased
-  // first (the input is uppercased before hashing here too, so a
-  // visitor typing lowercase still matches):
-  //     printf 'NEWCODE' | shasum -a 256
+  /* ---- toolbar ------------------------------------------------------
 
-  // Fed by assets/fall-grid.js, shared with fall-collection.html — see
-  // the <section id="fallDropSection"> markup above for why this lives
-  // outside .gate-core. Called once on page load (below, if access is
-  // already granted or the drop is public) and again the instant a
-  // correct code is entered.
-  function renderFallDrop() {
-    window.Asior.renderFallGrid({
-      gridEl: document.getElementById('fallDropGrid'),
-      emptyEl: document.getElementById('fallDropEmpty'),
-      subEl: document.getElementById('fallDropSub'),
+     Three controls, all acting on what the catalogue already knows:
+
+       Sort        the order of the grid. "Featured" is the real
+                   merchandising order (sortForMerchandising) and stays
+                   the default -- the Fall pieces first -- so the shop
+                   still opens the way the founder arranged it.
+       In stock    hides pieces where every variant is sold out. Not a
+                   stock count and not a claim about quantity: a
+                   product is in the list or it is not.
+       Density     two across or four. A phone is always two, so the
+                   control only exists where it changes something.
+
+     State lives in the URL (?sort=&stock=&cols=) so a filtered grid
+     can be sent to someone and arrive filtered, and so the back button
+     works. Nothing is persisted beyond that. */
+  let CATALOG = [];
+  const VIEW = { sort: 'featured', stock: 'all', cols: 4 };
+
+  const SORTS = [
+    ['featured', 'Featured'],
+    ['price-asc', 'Price \u2191'],
+    ['price-desc', 'Price \u2193'],
+    ['az', 'A\u2013Z'],
+  ];
+
+
+
+  // The lowest price a product can actually be bought at, which is what
+  // the tile shows, so sorting by price agrees with what is on screen.
+  const lowestPrice = p => {
+    const n = parseFloat(String(p.priceLabel).replace(/[^0-9.]/g, ''));
+    return isFinite(n) ? n : Infinity;
+  };
+
+
+
+
+  // Plain count, no adjectives. "11 pieces" is a fact; "only 11 left"
+  // would be a stock claim the catalogue cannot support.
+
+  fetchCatalog()
+    .then(sortForMerchandising)
+    .then(renderLineup)
+    .catch((err) => {
+      /* Fail open and honest: the pre-rendered cards the build wrote
+         stay on screen, so a fetch failure costs live pricing, not the
+         whole shop. Logged rather than shown, so a real failure is
+         diagnosable from a device console instead of secondhand. */
+      console.error('Shop catalog failed to load:', err);
     });
-  }
-
-  function grantEarlyAccess() {
-    try { localStorage.setItem('asior_early_access', '1'); } catch (err) { /* not durable, but still works for this tab/session */ }
-    document.documentElement.setAttribute('data-access', 'granted');
-    // Anonymous by design — entering a code proves nothing about who
-    // someone is, so this rides on the same anonymous id as the A/B
-    // test events rather than asking for an email to log it.
-    A.klaviyoTrack('Early Access Code Entered', { source: 'website', campaign: 'fall_2026' });
-    renderFallDrop();
-    // Setting the attribute above already reveals .fall-drop via CSS —
-    // this just gets it in view without making a visitor scroll to find
-    // it. rAF so the section has actually laid out (display:none ->
-    // block) before scrollIntoView measures it.
-    requestAnimationFrame(() => {
-      const section = document.getElementById('fallDropSection');
-      if (section) section.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
-    });
-  }
-
-  eaForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    eaBtn.disabled = true;
-    eaMsg.textContent = '';
-    try {
-      if (!window.crypto || !crypto.subtle) throw new Error('no subtle crypto');
-      const hex = await sha256Hex(eaInput.value.trim().toUpperCase());
-      if (hex === window.ASIOR_LAUNCH.EARLY_ACCESS_CODE_SHA) {
-        eaMsg.textContent = "you're in.";
-        grantEarlyAccess();
-        return;
-      }
-      eaMsg.textContent = 'not that one.';
-    } catch (err) {
-      eaMsg.textContent = 'something went wrong — try again in a moment.';
-    }
-    eaInput.value = '';
-    eaInput.focus();
-    eaBtn.disabled = false;
-  });
-
-  // ===================================================================
-  // Lookbook position
-  // ===================================================================
-  const strip = document.getElementById('strip');
-  const lookCount = document.getElementById('lookCount');
-  const shots = Array.from(strip.children);
-
-  // Which look the strip has settled against, measured at the leading edge
-  // to match scroll-snap-align: start. Each shot's position is taken
-  // relative to the first one rather than absolutely, which cancels out
-  // the strip's left padding and its own offset in the page — so this
-  // stays correct when either changes at a breakpoint.
-  function syncStrip() {
-    let best = 0;
-    let bestDist = Infinity;
-    const origin = shots[0].offsetLeft;
-    shots.forEach((el, i) => {
-      const dist = Math.abs(el.offsetLeft - origin - strip.scrollLeft);
-      if (dist < bestDist) { bestDist = dist; best = i; }
-    });
-    lookCount.innerHTML = '<b>' + pad(best + 1) + '</b> / ' + pad(shots.length);
-  }
-
-  strip.addEventListener('scroll', syncStrip, { passive: true });
-  window.addEventListener('resize', syncStrip);
-  syncStrip();
-
-  // ===================================================================
-  // Backdrop
-  //
-  // The film does its own work — it autoplays, loops and is graded in the
-  // file. This is only the two things markup cannot express.
-  // ===================================================================
-  (function backdrop() {
-    const video = document.getElementById('atmos');
-    const canvas = document.getElementById('atmosCanvas');
-    if (!video) return;
-
-    // ---- 1. keep asking to play -------------------------------------
-    // Autoplay is refused far more often than it is blocked, and the
-    // refusals are all timing: element not ready, tab backgrounded at
-    // load, network stalled mid-buffer, iOS leaving Low Power Mode. One
-    // play() call on load loses every one of those.
-    let settled = false;
-
-    function want() {
-      if (reduceMotion.matches) { video.pause(); return; }
-      if (!video.paused) return;
-      const p = video.play();
-      if (p && p.catch) p.catch(() => { /* refused — the pump below covers it */ });
-    }
-
-    ['loadeddata', 'canplay', 'canplaythrough', 'stalled', 'suspend'].forEach((ev) => {
-      video.addEventListener(ev, want);
-    });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) want(); });
-    window.addEventListener('pageshow', want);
-    ['pointerdown', 'keydown'].forEach((ev) => {
-      document.addEventListener(ev, want, { passive: true });
-    });
-
-    video.addEventListener('playing', () => {
-      settled = true;
-      stopPump();
-      video.classList.add('is-playing');
-    });
-
-    // ---- 2. make sure it picked a format it can actually decode ------
-    // Two things go wrong here and both were live bugs.
-    //
-    // First, browsers do not honour the codecs= parameter when choosing
-    // between <source>s — they match on the container alone. A browser
-    // with no H.264 still picks the MP4, then fails with
-    // DEMUXER_ERROR_NO_SUPPORTED_STREAMS and does not fall through to the
-    // WebM. That is Firefox on a Windows install without the media
-    // feature pack, among others.
-    //
-    // Second, the failure happens while the page is still parsing: the
-    // <video> is at the top of <body> with preload="auto", so it has
-    // already errored long before this script runs and an error listener
-    // alone never hears about it. So check the current state as well as
-    // listening for future failures.
-    const TYPES = [
-      ['video/gate.mp4', 'video/mp4; codecs="avc1.4D401E"'],
-      ['video/gate.webm', 'video/webm; codecs="vp9"'],
-    ];
-    let swapped = false;
-
-    video.addEventListener('error', ensureSource, true);
-
-    function ensureSource() {
-      if (swapped) return;
-      const failed = video.error
-        || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE;
-      if (!failed) return;
-      // Ask the browser directly rather than trusting its own pick.
-      const pick = TYPES.filter(function (t) { return video.canPlayType(t[1]); })
-                        .map(function (t) { return t[0]; })[0];
-      if (!pick || (video.currentSrc && video.currentSrc.indexOf(pick) !== -1)) return;
-      swapped = true;
-      video.src = pick;
-      video.load();
-      want();
-    }
-
-    // Runs now, for the failure that already happened during parsing.
-    ensureSource();
-
-    // ---- 3. if it decodes but will not play, pump it by hand ---------
-    // Edge's "Limit" media setting, Firefox's "Block Audio and Video" and
-    // Brave's default all refuse play() even for a silent video, and no
-    // page can make play() succeed against them. Drawing a paused video
-    // into a canvas is not playback and is not governed by that policy,
-    // so the film can still run: step currentTime, paint the frame, wait
-    // for the seek, repeat. ~15fps, which is plenty for footage moving
-    // this slowly, and it costs no extra download — it is the same file.
-    let pumping = false;
-    let cx = null;
-
-    function stopPump() {
-      pumping = false;
-      if (canvas) { canvas.hidden = true; canvas.classList.remove('is-playing'); }
-    }
-
-    function startPump() {
-      if (pumping || settled || reduceMotion.matches) return;
-      if (!canvas || !video.videoWidth || video.readyState < 2) return;
-      pumping = true;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      cx = cx || canvas.getContext('2d');
-      canvas.hidden = false;
-      requestAnimationFrame(() => canvas.classList.add('is-playing'));
-      step();
-    }
-
-    function step() {
-      if (!pumping) return;
-      try { cx.drawImage(video, 0, 0, canvas.width, canvas.height); } catch (err) { stopPump(); return; }
-      // Nothing to draw for a tab nobody is looking at.
-      if (document.hidden) { setTimeout(step, 400); return; }
-      const dur = video.duration || 8.5;
-      let next = video.currentTime + 1 / 15;
-      if (!isFinite(next) || next >= dur) next = 0;
-      // Self-paced by the seek itself, with a timeout in case 'seeked'
-      // never arrives — otherwise one dropped event stops the film.
-      let moved = false;
-      const onSeeked = () => { if (!moved) { moved = true; step(); } };
-      video.addEventListener('seeked', onSeeked, { once: true });
-      setTimeout(() => { if (!moved) { moved = true; video.removeEventListener('seeked', onSeeked); step(); } }, 250);
-      try { video.currentTime = next; } catch (err) { stopPump(); }
-    }
-
-    // Give real playback a fair chance first; only then fall back.
-    let tries = 0;
-    const poll = setInterval(() => {
-      if (settled || reduceMotion.matches) { clearInterval(poll); return; }
-      if (!video.paused) { settled = true; clearInterval(poll); return; }
-      want();
-      if (++tries >= 5) { clearInterval(poll); startPump(); }
-    }, 400);
-
-    function applyMotion() {
-      if (reduceMotion.matches) {
-        video.pause();
-        video.removeAttribute('autoplay');
-        stopPump();
-        video.classList.remove('is-playing');
-      } else {
-        want();
-      }
-    }
-
-    if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', applyMotion);
-    else if (reduceMotion.addListener) reduceMotion.addListener(applyMotion);
-    applyMotion();
-  })();
 </script>
 
 </body>
