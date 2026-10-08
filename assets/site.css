@@ -1317,3 +1317,19 @@ body {
 .prose { max-width: 68ch; }
 .prose p { font-size: 15px; line-height: 1.65; margin: 0 0 16px; }
 .prose p:last-child { margin-bottom: 0; }
+
+/* ---- curated rhythm ----
+   A four-across wall of identical tiles reads as inventory. The lead
+   piece in a row takes two columns and a taller frame, so the eye has
+   somewhere to land before it scans. Applied only where a row is
+   curated (the homepage), never on the catalogue or a category page,
+   where equal weighting is the honest presentation. */
+.shop-grid--featured .product:first-child { grid-column: span 2; grid-row: span 2; }
+.shop-grid--featured .product:first-child .product-img { aspect-ratio: 3 / 3.55; }
+.shop-grid--featured .product:first-child .product-title { font-size: 16px; }
+
+@media (max-width: 900px) {
+  .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: auto; }
+  .shop-grid--featured .product:first-child .product-img { aspect-ratio: 3 / 3.2; }
+  .shop-grid--featured .product:first-child .product-title { font-size: 13px; }
+}

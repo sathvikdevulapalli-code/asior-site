@@ -120,28 +120,34 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- HEADER:START -->
-  <div class="teaser-bar" role="region" aria-label="Collection note"><a href="shop.html">Fall Collection &mdash; limited runs, restocked rarely</a></div>
-  <header>
-    <a class="mark" href="shop.html">Asior</a>
-    <!-- Phone-only duplicate. The cart lives inside <nav> for the
-         desktop row, and <nav> becomes the hidden full-screen panel on
-         a phone -- which would leave the top bar with no cart at all.
-         renderCartCount() writes to every .cart-count and
-         wireCartLinks() binds every a.cart-link, so the copy needs no
-         special handling. -->
-    <a href="cart.html" class="cart-link cart-link--bar">Cart <span class="cart-count">(0)</span></a>
-    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu</button>
-    <nav id="siteNav">
-      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
-      <a href="shop.html">Shop</a>
-      <a href="archive.html">Archive</a>
-      <a href="community.html">Lookbook</a>
-      <a href="about.html">About</a>
-      <a href="cart.html" class="cart-link">Cart <span class="cart-count">(0)</span></a>
-    </nav>
-  </header>
+  <div class="announce" role="region" aria-label="Announcements">
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
+      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+    </div>
+  </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
 
-  <div class="page-top-space"></div>
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/collections/accessories.html">Accessories</a>
+      <a href="/manufacturing.html">Manufacturing</a>
+    </nav>
+
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
+    </div>
+  </header>
   <!-- HEADER:END -->
 
   <main id="main">
@@ -201,10 +207,57 @@
   </main>
 
   <!-- FOOTER:START -->
-  <footer id="order">
-    <div class="sms-signup sms-signup--footer" data-sms-location="footer">
-      <p class="sms-signup-title">Text list.</p>
-      <p class="sms-signup-body">First to know when sizes run low.</p>
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
       <form class="sms-form" data-sms-signup novalidate>
         <label class="sr-only" for="sms-footer">Mobile number</label>
         <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
@@ -220,35 +273,10 @@
         <a href="/privacy-policy.html">Privacy Policy</a>.
       </p>
     </div>
-    <div class="fmark">Asior</div>
-    <div class="fline">Small runs from Texas.</div>
-    <div class="fmeta"><a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></div>
-    <div class="social">
-      <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
-      </a>
-      <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
-      </a>
+      </div>
     </div>
-    <div class="policy-links">
-      <a href="/text">Text List</a>
-      <a href="account.html">Account</a>
-      <a href="privacy-policy.html">Privacy Policy</a>
-      <a href="terms-of-service.html">Terms of Service</a>
-    </div>
-    <!-- Manufacturing is a B2B service for other brands. It was sitting
-         in the main shopping nav between Contact and the cart, which put
-         a different buyer's destination in the middle of a clothing
-         customer's journey. Nothing is removed -- the page, its URL and
-         its form all still work -- it is just reached from here, where
-         someone looking for it will look, instead of from the nav a
-         shopper uses to find a tee. -->
-    <div class="business-links">
-      <a href="contact.html">Contact</a>
-      <span class="business-sep" aria-hidden="true">/</span>
-      <a href="manufacturing.html">For brands</a>
-    </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
   </footer>
   <!-- FOOTER:END -->
 
