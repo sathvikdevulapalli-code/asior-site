@@ -1333,3 +1333,97 @@ body {
   .shop-grid--featured .product:first-child .product-img { aspect-ratio: 3 / 3.2; }
   .shop-grid--featured .product:first-child .product-title { font-size: 13px; }
 }
+
+/* ===================================================================
+   LEOPARD — the brand signature.
+
+   One asset (images/leopard.webp, a seamless 640px tile cut from the
+   founder's supplied artwork), one set of utilities, six deliberate
+   placements. It is a signature, not a theme: the palette above is
+   unchanged and the pattern never sits behind body copy, a price, a
+   size control or the Add to Cart button.
+
+   The tile is near-black (mean luminance 19), so on this white page it
+   reads as a solid dark block with texture in it. --ink backs every
+   placement, which means a failed image request degrades to the flat
+   black the design already uses rather than to a hole.
+   =================================================================== */
+.leo {
+  background-color: var(--ink);
+  background-image: url('/images/leopard.jpg');
+  background-image: image-set(
+    url('/images/leopard.webp') type('image/webp'),
+    url('/images/leopard.jpg') type('image/jpeg'));
+  background-repeat: repeat;
+  background-size: 170px auto;
+}
+
+/* A shallow horizontal band. Used above the footer and in the mobile
+   drawer. */
+.leo-band { height: 64px; width: 100%; }
+
+/* A hairline divider. Used once on the PDP and once in the cart, where
+   a full band would shout over the buying controls. */
+.leo-rule { height: 4px; width: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .leo { transition: opacity var(--dur) var(--ease-out); }
+}
+
+/* ---- 1. hero: one vertical strip down the inner edge of the text
+     column, so the pattern reads as a margin rule beside the
+     photographs rather than competing with them. ---- */
+.hero-aside { position: relative; }
+
+.hero-aside::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 18%;
+  left: 0;
+  width: 26px;
+  background-color: var(--ink);
+  background-image: url('/images/leopard.jpg');
+  background-image: image-set(
+    url('/images/leopard.webp') type('image/webp'),
+    url('/images/leopard.jpg') type('image/jpeg'));
+  background-repeat: repeat;
+  /* Smaller tile than the footer band: at 26px wide a 170px tile shows
+     one spot and reads as a dark line, not as leopard. */
+  background-size: 92px auto;
+}
+
+/* ---- 2. the homepage lead tile: a small corner block, not a frame.
+     Only the featured tile, never every card. ---- */
+.shop-grid--featured .product:first-child .product-frame::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 58px;
+  height: 58px;
+  z-index: 2;
+  background-color: var(--ink);
+  background-image: url('/images/leopard.jpg');
+  background-image: image-set(
+    url('/images/leopard.webp') type('image/webp'),
+    url('/images/leopard.jpg') type('image/jpeg'));
+  background-size: 120px auto;
+  pointer-events: none;
+}
+
+/* ---- 5. footer band. The strongest placement, because shopping is
+     already over by the time anyone reaches it. No text sits on it. ---- */
+.footer-leo { height: 64px; }
+
+@media (max-width: 900px) {
+  .footer-leo { height: 44px; }
+  .hero-aside::before { display: none; }   /* the column is full width on a phone */
+}
+
+/* The drawer strip exists only on a phone, where the drawer exists. */
+.nav-leo { display: none; }
+
+@media (max-width: 900px) {
+  .nav-leo { display: block; margin-top: auto; height: 54px; }
+}
