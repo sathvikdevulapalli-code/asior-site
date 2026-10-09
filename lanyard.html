@@ -464,7 +464,7 @@
       document.getElementById('lpLoading').classList.add('hide');
       if (!p) {
         document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex">');
-        root.innerHTML = `<div class="not-found"><div>That piece isn't in the catalog.</div><a href="index.html">Back to Asior</a></div>`;
+        root.innerHTML = `<div class="not-found"><div>That piece isn't in the catalog.</div><a href="/shop.html">Back to Shop All</a></div>`;
         return;
       }
       const optionNames = p.options.map(o => o.name).filter(n => n !== 'Title');
@@ -498,7 +498,7 @@
     } catch (err) {
       console.error('Lanyard page failed to load:', err);
       document.getElementById('lpLoading').classList.add('hide');
-      root.innerHTML = `<div class="not-found"><div>Couldn't load this right now. Try refreshing.</div><a href="index.html">Back to Asior</a></div>`;
+      root.innerHTML = `<div class="not-found"><div>Couldn't load this right now. Try refreshing.</div><a href="/shop.html">Back to Shop All</a></div>`;
       return;
     }
 
