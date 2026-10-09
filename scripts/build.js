@@ -248,13 +248,16 @@ function renderCollectionPage(template, c) {
      in images/, assigned per category and committed here rather than
      picked at random, so a category's banner does not change on every
      deploy. Replace a value the moment real category art exists. */
-  const BANNERS = { tops: 'look-03', bottoms: 'look-08', accessories: 'look-11' };
-  const banner = BANNERS[c.slug] || 'look-02';
+  const BANNERS = { tops: 'duo-tops-wide', bottoms: 'duo-bottoms-wide', accessories: 'look-11' };
+  const banner = BANNERS[c.slug] || 'duo-tops-wide';
+  const wideBanner = banner.endsWith('-wide');
+  const bannerAlt = c.slug === 'tops'
+    ? 'Two Asior models wearing the Fall tops together on a city street'
+    : c.slug === 'bottoms'
+      ? 'Two Asior models wearing the Fall bottoms together in an urban setting'
+      : '';
   const bannerHtml = `  <div class="coll-banner">
-    <picture>
-      <source type="image/webp" srcset="/images/${banner}.webp">
-      <img src="/images/${banner}.jpg" alt="" width="1600" height="900" fetchpriority="high" decoding="async">
-    </picture>
+    <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${wideBanner ? '1536' : '800'}" height="${wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
   </div>
 `;
   html = replaceBetween(html, '<!-- BANNER:START -->', '<!-- BANNER:END -->', bannerHtml);
@@ -1250,9 +1253,11 @@ function syncArchive(products) {
    gallery order changes. */
 function syncHero() {
   const target = path.join(ROOT, 'index.html');
-  const html = fs.readFileSync(target, 'utf8');
+  let html = fs.readFileSync(target, 'utf8');
+  html = html.replace('<source type="image/webp" srcset="images/look-02.webp">',
+    '<source type="image/jpeg" srcset="images/duo-tops-wide.jpg">');
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    '        <img src="images/look-02.jpg" alt="ASIOR polo worn on the stairs" width="800" height="1200" fetchpriority="high" decoding="async">\n');
+    '        <img src="images/duo-tops-wide.jpg" alt="Two Asior models wearing the black and purple Fall tops together on a city street" width="1536" height="1024" fetchpriority="high" decoding="async">\n');
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return 1;
@@ -1442,7 +1447,7 @@ function syncSharedMarkup() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero() ? 'curated seated Polo photograph' : 'none'}`);
+    console.log(`✓ homepage hero: ${syncHero() ? 'wide Asior duo campaign photo' : 'none'}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);

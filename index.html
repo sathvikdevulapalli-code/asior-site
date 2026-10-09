@@ -523,13 +523,16 @@
 
   .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-  /* Keep the campaign portrait whole and centered at every width. */
+  /* Keep the full landscape campaign duo visible on small screens. */
   @media (max-width: 900px) {
     .hero {
-      height: calc(100svh - var(--announce-h));
-      min-height: 480px;
-      padding: 74px 12px 76px;
+      height: auto;
+      min-height: 0;
+      padding: 74px 12px 58px;
     }
+    .hero-art { height: auto; }
+    .hero-primary { height: auto; }
+    .hero-primary img { display: block; width: 100%; height: auto; object-fit: contain; }
     .hero-link { bottom: 22px; }
 
     .home-row { padding: 16px 15px 0; }
@@ -759,9 +762,9 @@
   <section class="hero" aria-label="Asior campaign">
     <div class="hero-art">
       <picture class="hero-primary">
-        <source type="image/webp" srcset="images/look-02.webp">
+        <source type="image/jpeg" srcset="images/duo-tops-wide.jpg">
       <!-- HERO:START -->
-        <img src="images/look-02.jpg" alt="ASIOR polo worn on the stairs" width="800" height="1200" fetchpriority="high" decoding="async">
+        <img src="images/duo-tops-wide.jpg" alt="Two Asior models wearing the black and purple Fall tops together on a city street" width="1536" height="1024" fetchpriority="high" decoding="async">
   <!-- HERO:END -->
       </picture>
     </div>
