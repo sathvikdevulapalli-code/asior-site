@@ -347,6 +347,25 @@
   .peek-shot, .peek-ph { background: #f7f7f7; }
   .peek-shot img { object-fit: contain; object-position: center; }
 
+  @media (max-width: 760px) {
+    .peek { width: min(560px, calc(100vw - 24px)); height: min(84svh, 760px); }
+    .peek-in {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(180px, 40svh) minmax(0, 1fr);
+    }
+    .peek-media {
+      min-width: 0;
+      min-height: 0;
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+    }
+    .peek-media > * { flex: 0 0 100%; min-width: 0; height: 100%; }
+    .peek-shot { aspect-ratio: auto; height: 100%; }
+    .peek-in .peek-buy { min-height: 0; padding: 18px 18px 20px; }
+  }
+
   /* ---------- product rows [measured: section spacing 0] ---------- */
   .home-row { padding: 16px var(--page-pad) 0; }
 
