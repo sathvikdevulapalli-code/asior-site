@@ -81,26 +81,12 @@
   .pd-shot {
     margin: 0;
     aspect-ratio: 2 / 3;
-    /* Capped against the window, not just the column. The gallery
-       column is about 830px wide at 1440px, so an uncapped 2:3 frame
-       computes 1248px tall and the first photograph alone is taller
-       than the screen -- you cannot see the whole garment at once, and
-       the rest of the set is two scroll-lengths away. The cap crops
-       rather than shrinks (object-fit: cover below), so the frame
-       stays full width. */
-    max-height: 86vh;
-    /* Width-driven, so the cap crops the frame instead of shrinking it.
-       aspect-ratio with only a max-height lets the box shrink both
-       dimensions to keep the ratio, which pulled the photograph in to
-       550px inside an 830px column and left a third of the gallery
-       empty. The image inside is object-fit: cover, so the height cap
-       takes it off the bottom of the frame and nothing is letterboxed. */
+    /* Cap each portrait against the viewport so a single product view
+       stays readable without cutting the source photograph. */
+    max-height: 78vh;
     width: 100%;
     overflow: hidden;
-    /* The old dark-theme surface. On a white page it framed every
-       product photograph in a near-black box, which was most visible
-       on mobile where the gallery is a snapping carousel and the frame
-       shows around a 3:4 crop. Same grey the cards use. */
+    /* Match the quiet grey product-card surface around portrait media. */
     background: var(--surface);
     cursor: zoom-in;
   }
@@ -108,8 +94,8 @@
   .pd-shot img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: contain;
+    object-position: center;
     display: block;
   }
 
@@ -269,7 +255,6 @@
   .pd-buynow[disabled] { opacity: 0.4; cursor: not-allowed; }
 
   /* ---- tabs [measured: 3 equal tabs, 42px tall, 7px gaps] ---- */
-  .pd-leo { margin-top: 22px; }
 
   .pd-tabs {
     display: grid;
@@ -777,13 +762,12 @@
 
     .pd-gallery::-webkit-scrollbar { display: none; }
 
-    /* A swipeable row rather than a vertical stack: four 2:3 frames
-       stacked on a phone is four screens of scrolling before the
-       price. */
+    /* A swipeable portrait row gets the product gallery out of the way
+       without cropping any of its views. */
     .pd-shot {
       flex: 0 0 86%;
       scroll-snap-align: start;
-      aspect-ratio: 3 / 4;
+      aspect-ratio: 2 / 3;
     }
 
     .pd-panel { position: static; }
@@ -1083,7 +1067,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
       <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">Small runs. Run again rarely.</p>
+      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
     </div>
   </div>
   <header class="site-header">
@@ -1123,6 +1107,10 @@
   </main>
 
   <!-- FOOTER:START -->
+  <!-- The brand signature's strongest placement. Shopping is finished
+       by the time anyone is here, so the pattern can be loud without
+       costing a sale. Decorative only: no text sits on it. -->
+  <div class="leo leo-band footer-leo" aria-hidden="true"></div>
   <footer class="site-footer" id="order">
     <div class="footer-cols">
       <div class="fcol fcol--brand">
@@ -1171,7 +1159,7 @@
 
       <div class="fcol fcol--signup">
         <h2 class="fhead">Join the community</h2>
-        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
         <div class="sms-signup sms-signup--footer" data-sms-location="footer">
       
       <form class="sms-form" data-sms-signup novalidate>
@@ -1750,7 +1738,6 @@
     const tabsHTML = TABS.length ? `
       <!-- Signature hairline, below everything that buys the product
            and above everything that explains it. Nothing sits on it. -->
-      <div class="leo leo-rule pd-leo" aria-hidden="true"></div>
       <div class="pd-tabs" role="tablist" aria-label="Product information">
         ${TABS.map(([id, label], i) => `
           <button type="button" class="pd-tab${i === 0 ? ' is-on' : ''}" role="tab"

@@ -497,7 +497,7 @@ function renderProductPage(template, p) {
      sold, which is true, and claims nothing about who sews them. Only
      a product whose Shopify description is empty ever sees it. */
   const desc = plainDescription(p.descriptionHtml,
-    `${name} from Asior — small-run streetwear from Texas.`);
+    `${name} from ASIOR — streetwear from Texas.`);
   const lead = leadImage(p);
   const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
   const alt = lead && lead.altText ? lead.altText : name;
@@ -739,7 +739,7 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
 const ANNOUNCEMENTS = [
   '10% off your first order. Code ASIORTEN',
   'Ships from Texas in 1-2 business days',
-  'Small runs. Run again rarely.',
+  'A point of view, worn your way.',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
@@ -811,9 +811,6 @@ const HEADER_FULL = `${ANNOUNCE_BAR}  <header class="site-header">
     <nav class="nav-main" id="siteNav">
       <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
 ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).join('\n')}
-      <!-- Phone drawer only (hidden at desktop widths by the stylesheet):
-           one patterned strip at the foot of the panel. -->
-      <div class="leo leo-band nav-leo" aria-hidden="true"></div>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
@@ -873,11 +870,10 @@ function smsSignupBlock(variant) {
   const heading = bare
     ? ''
     : footer
-    ? `<p class="sms-signup-title">Text list.</p>
-      <p class="sms-signup-body">First to know when sizes run low.</p>`
-    : `<p class="sms-signup-title">Know before it's gone.</p>
-      <p class="sms-signup-body">Sizes sell out and we restock rarely. One text when something
-        you want is running low. No spam, no daily blasts.</p>`;
+    ? `<p class="sms-signup-title">Stay connected.</p>
+      <p class="sms-signup-body">Notes from ASIOR, when there is something to share.</p>`
+    : `<p class="sms-signup-title">Stay connected with ASIOR.</p>
+      <p class="sms-signup-body">Occasional messages about new collections and what is behind them. No daily blasts.</p>`;
 
   return `<div class="sms-signup sms-signup--${variant}" data-sms-location="${esc(variant)}">
       ${heading}
@@ -983,7 +979,7 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
 
       <div class="fcol fcol--signup">
         <h2 class="fhead">Join the community</h2>
-        <p class="fsignup-copy">Be the first to know about new drops and restocks.</p>
+        <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
         ${smsSignupBlock('footer')}
       </div>
     </div>
@@ -1172,13 +1168,11 @@ function shopCard(p, eager) {
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
-          ${soldOut ? '<span class="product-badge">Sold out</span>' : ''}
-        </div>
+${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
-          ${isPreorder ? '<div class="product-state">Preorder</div>' : ''}
-        </a>
+${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
       </div>`;
 }
 

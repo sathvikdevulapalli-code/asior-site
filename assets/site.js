@@ -546,9 +546,8 @@
      No discount is mentioned, because there is no signup code. */
   function smsSignupHTML() {
     return '<div class="sms-signup sms-signup--pdp" data-sms-location="pdp">'
-      + '<p class="sms-signup-title">Know before it\'s gone.</p>'
-      + '<p class="sms-signup-body">Sizes sell out and we restock rarely. One text when '
-      + 'something you want is running low. No spam, no daily blasts.</p>'
+      + '<p class="sms-signup-title">Stay connected with ASIOR.</p>'
+      + '<p class="sms-signup-body">Occasional messages about new collections and what is behind them. No daily blasts.</p>'
       + '<form class="sms-form" data-sms-signup novalidate>'
       + '<label class="sr-only" for="sms-pdp">Mobile number</label>'
       + '<input class="field" type="tel" id="sms-pdp" name="phone" placeholder="Mobile number" '

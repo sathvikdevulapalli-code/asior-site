@@ -776,20 +776,86 @@ html.cart-drawer-locked { overflow: hidden; }
   gap: 12px 6px;
 }
 
+.coll-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.shop .coll-head { padding: 14px 0 28px; }
+.coll-title { margin: 0; font: 500 20px/1.2 var(--font); letter-spacing: .02em; }
+.coll-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 500 12px/1.2 var(--font);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.coll-filter svg { display: block; width: 15px; height: 15px; }
+.coll-filter:hover { opacity: .6; }
+
+@media (max-width: 900px) {
+  .shop .coll-head { padding: 12px 0 18px; }
+  .shop .coll-title { font-size: 17px; }
+}
+
+/* Catalogue filter drawer: hidden completely until the filter control
+   opens it, so it never contributes to page width or tab order. */
+.filter-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, .42);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.filter-scrim.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+.filter-drawer {
+  position: fixed;
+  z-index: 1101;
+  inset: 0 0 0 auto;
+  width: min(420px, calc(100vw - 24px));
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: -12px 0 36px rgba(0, 0, 0, .12);
+  transform: translateX(102%);
+  visibility: hidden;
+  transition: transform 220ms ease, visibility 0s linear 220ms;
+}
+
+.filter-drawer.is-open { transform: translateX(0); visibility: visible; transition-delay: 0s; }
+.filter-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.filter-title { font: 500 20px/1.2 var(--font); }
+.filter-close { border: 0; border-bottom: 1px solid currentColor; padding: 4px 0; background: none; color: var(--ink); font: 12px/1.3 var(--font); cursor: pointer; }
+.filter-group { min-width: 0; margin: 22px 0 0; padding: 0 0 18px; border: 0; border-bottom: 1px solid var(--line); }
+.filter-legend { margin-bottom: 12px; font-size: 13px; font-weight: 500; }
+.filter-opt { display: flex; align-items: center; gap: 10px; min-height: 38px; font-size: 14px; cursor: pointer; }
+.filter-opt input { width: 16px; height: 16px; accent-color: var(--ink); }
+.filter-actions { padding-top: 20px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-scrim, .filter-drawer { transition: none; }
+}
+
 .product { position: relative; }
 
-/* [measured] Image box 3:4 on #f7f7f7.
-
-   DELIBERATE DEVIATION, flagged: the reference contains its photo
-   inside the grey box with 30px 24px of padding, which works because
-   their product shots are flat-lays that float on the grey. Asior's
-   photography is full-bleed lifestyle, and `contain` would letterbox
-   every one of them into a grey frame. So the grey card and the 3:4
-   ratio are kept -- that is what carries the look -- and the photo
-   covers it. Revisit if flat-lay product shots are ever shot. */
+/* Product cards keep the complete source photo visible. The light
+   surface gives mixed lifestyle and studio photographs one quiet frame. */
 .product-img {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 2 / 3;
   background: var(--surface);
   overflow: hidden;
 }
@@ -797,7 +863,7 @@ html.cart-drawer-locked { overflow: hidden; }
 .product-img img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -875,7 +941,7 @@ html.cart-drawer-locked { overflow: hidden; }
 /* [spec section 11] Two across on a phone, ~10px gap, 15px side
    padding; card titles drop to 12px. */
 @media (max-width: 900px) {
-  .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 18px 10px; }
+  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; }
   .product-title { font-size: 12px; line-height: 28px; }
   .product-price { font-size: 12px; }
 }
@@ -1325,29 +1391,17 @@ body {
    curated (the homepage), never on the catalogue or a category page,
    where equal weighting is the honest presentation. */
 .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: span 2; }
-.shop-grid--featured .product:first-child .product-img { aspect-ratio: 3 / 3.55; }
+.shop-grid--featured .product:first-child .product-img { aspect-ratio: 2 / 3; }
 .shop-grid--featured .product:first-child .product-title { font-size: 16px; }
 
 @media (max-width: 900px) {
   .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: auto; }
-  .shop-grid--featured .product:first-child .product-img { aspect-ratio: 3 / 3.2; }
+  .shop-grid--featured .product:first-child .product-img { aspect-ratio: 2 / 3; }
   .shop-grid--featured .product:first-child .product-title { font-size: 13px; }
 }
 
-/* ===================================================================
-   LEOPARD — the brand signature.
-
-   One asset (images/leopard.webp, a seamless 640px tile cut from the
-   founder's supplied artwork), one set of utilities, six deliberate
-   placements. It is a signature, not a theme: the palette above is
-   unchanged and the pattern never sits behind body copy, a price, a
-   size control or the Add to Cart button.
-
-   The tile is near-black (mean luminance 19), so on this white page it
-   reads as a solid dark block with texture in it. --ink backs every
-   placement, which means a failed image request degrades to the flat
-   black the design already uses rather than to a hole.
-   =================================================================== */
+/* The supplied leopard artwork is one brand signature, shown after the
+   shopping content so it does not compete with product imagery. */
 .leo {
   background-color: var(--ink);
   background-image: url('/images/leopard.jpg');
@@ -1358,72 +1412,15 @@ body {
   background-size: 170px auto;
 }
 
-/* A shallow horizontal band. Used above the footer and in the mobile
-   drawer. */
+/* Pattern appears once, as a full-width signature after the shopping content. */
 .leo-band { height: 64px; width: 100%; }
-
-/* A hairline divider. Used once on the PDP and once in the cart, where
-   a full band would shout over the buying controls. */
-.leo-rule { height: 4px; width: 100%; }
 
 @media (prefers-reduced-motion: no-preference) {
   .leo { transition: opacity var(--dur) var(--ease-out); }
 }
 
-/* ---- 1. hero: one vertical strip down the inner edge of the text
-     column, so the pattern reads as a margin rule beside the
-     photographs rather than competing with them. ---- */
-.hero-aside { position: relative; }
-
-.hero-aside::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 18%;
-  left: 0;
-  width: 26px;
-  background-color: var(--ink);
-  background-image: url('/images/leopard.jpg');
-  background-image: image-set(
-    url('/images/leopard.webp') type('image/webp'),
-    url('/images/leopard.jpg') type('image/jpeg'));
-  background-repeat: repeat;
-  /* Smaller tile than the footer band: at 26px wide a 170px tile shows
-     one spot and reads as a dark line, not as leopard. */
-  background-size: 92px auto;
-}
-
-/* ---- 2. the homepage lead tile: a small corner block, not a frame.
-     Only the featured tile, never every card. ---- */
-.shop-grid--featured .product:first-child .product-frame::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 58px;
-  height: 58px;
-  z-index: 2;
-  background-color: var(--ink);
-  background-image: url('/images/leopard.jpg');
-  background-image: image-set(
-    url('/images/leopard.webp') type('image/webp'),
-    url('/images/leopard.jpg') type('image/jpeg'));
-  background-size: 120px auto;
-  pointer-events: none;
-}
-
-/* ---- 5. footer band. The strongest placement, because shopping is
-     already over by the time anyone reaches it. No text sits on it. ---- */
 .footer-leo { height: 64px; }
 
 @media (max-width: 900px) {
   .footer-leo { height: 44px; }
-  .hero-aside::before { display: none; }   /* the column is full width on a phone */
-}
-
-/* The drawer strip exists only on a phone, where the drawer exists. */
-.nav-leo { display: none; }
-
-@media (max-width: 900px) {
-  .nav-leo { display: block; margin-top: auto; height: 54px; }
 }
