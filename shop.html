@@ -150,7 +150,9 @@
       overflow-x: auto;
       overflow-y: hidden;
       scroll-snap-type: x mandatory;
+      scrollbar-width: none;
     }
+    .peek-media::-webkit-scrollbar { display: none; }
     .peek-media > * { flex: 0 0 100%; min-width: 0; height: 100%; }
     .peek-shot { aspect-ratio: auto; height: 100%; }
     .peek-in .peek-buy { min-height: 0; padding: 18px 18px 20px; }
