@@ -8,8 +8,8 @@
    block; only things that are genuinely identical across pages belong
    here.
 
-   Fonts are loaded via <link> in each page's <head>, not @import, so
-   the browser can start fetching them without parsing CSS first.
+   Fonts are self-hosted; a font file is fetched only when a page uses
+   that family, so the storefront makes no third-party font requests.
    =================================================================== */
 
 :root {
@@ -57,16 +57,13 @@
   --announce-bg: #000000;
   --announce-text: #ffffff;
 
-  /* One face, everywhere: body, headings, nav, buttons. No webfont is
-     loaded at all -- the reference loads none, and acceptance item 2
-     is "Helvetica only. No other font file loads." The three names are
-     kept because the existing rules use them. */
-  --font: Helvetica, Arial, sans-serif;
-  --font-display: Helvetica, Arial, sans-serif;
-  --font-body: Helvetica, Arial, sans-serif;
-  --font-mono: Helvetica, Arial, sans-serif;
-  /* Archivo's width axis is gone with the webfont. Rules still setting
-     font-variation-settings get a no-op rather than a broken axis. */
+  /* Inter Tight carries the interface. The homepage campaign reserves
+     its large display line for the locally hosted Anton face. */
+  --font: 'Inter Tight', Arial, sans-serif;
+  --font-display: 'Inter Tight', Arial, sans-serif;
+  --font-body: 'Inter Tight', Arial, sans-serif;
+  --font-mono: 'Inter Tight', Arial, sans-serif;
+  /* Kept for older component rules that set this optional axis. */
   --display-wide: normal;
 
   /* Layout [measured / theme var] */
@@ -88,6 +85,21 @@
   --ease-img: cubic-bezier(0, 0, .3, 1);
 }
 
+@font-face {
+  font-family: 'Inter Tight';
+  src: url('../fonts/inter-tight-var-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anton';
+  src: url('../fonts/anton-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 

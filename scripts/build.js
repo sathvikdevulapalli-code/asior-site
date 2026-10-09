@@ -1288,11 +1288,11 @@ function syncHero(products) {
       img.w2000 ? `${esc(img.w2000)} 2000w` : '',
     ].filter(Boolean).join(', ');
     /* fetchpriority high and no lazy attribute: this is the LCP element
-       on the highest-traffic page on the site. sizes is 100vw because
-       the frame is the window. */
+       on the highest-traffic page. Match the editorial portrait column,
+       rather than telling the browser it fills the desktop viewport. */
     block = `      <img src="${esc(img.w1600 || img.w1200 || img.url)}"`
       + (srcset ? ` srcset="${srcset}"` : '')
-      + ' sizes="100vw"'
+      + ' sizes="(max-width: 900px) 50vw, 44vw"'
       + ` alt="${esc(img.altText || 'Asior, worn')}"`
       + (img.width ? ` width="${esc(img.width)}"` : '')
       + (img.height ? ` height="${esc(img.height)}"` : '')

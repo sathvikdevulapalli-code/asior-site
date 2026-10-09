@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASIOR — Streetwear from Texas</title>
-<meta name="description" content="A point of view, worn your way. ASIOR streetwear from Texas. Ships in 1-2 business days.">
-<meta name="theme-color" content="#ffffff">
+<meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
+<meta name="theme-color" content="#0e0e0d">
 <link rel="canonical" href="https://asiorclothing.com/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ASIOR — Streetwear from Texas">
-<meta property="og:description" content="A point of view, worn your way. ASIOR streetwear from Texas. Ships in 1-2 business days.">
+<meta property="og:description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
@@ -45,23 +45,11 @@
     header nav a:hover::after { width: 100%; }
   }
 
-  /* Scoped to this page only (this <style> block doesn't reach any
-     other page) — the shared header markup (scripts/build.js's
-     HEADER_FULL) is untouched, just restyled here for the page ad
-     traffic actually lands on now.
-
-     This page used to also re-declare the header as
-     `backdrop-filter: blur(10px); background: rgba(11,10,8,0.82)`,
-     which did two unwanted things. It reintroduced a translucent
-     header on the one page that explicitly made it solid so nothing
-     shows through the nav mid-scroll. And backdrop-filter makes an
-     element the containing block for fixed-position descendants, so
-     the mobile menu panel's `inset: 0` filled the 390x60 header box
-     instead of the viewport -- the panel opened as a sliver over the
-     bar with its links above the top edge. Removed; the shared
-     opaque header is the intended one. */
+  /* The shared sticky header overlays the campaign image on this page.
+     Inherit its text color so the active link remains legible before
+     and after the header solidifies on scroll. */
   header nav a[href="shop.html"] {
-    color: var(--ink);
+    color: inherit;
     position: relative;
   }
   header nav a[href="shop.html"]::after {
@@ -69,7 +57,7 @@
     position: absolute;
     left: 0; right: 0; bottom: -4px;
     height: 1px;
-    background: var(--ink);
+    background: currentColor;
   }
 
   /* ---------- shop grid ----------
@@ -270,81 +258,99 @@
     .product-peek { opacity: 1; transform: none; pointer-events: auto; }
   }
 
-  /* ---------- hero ----------
-     Asymmetric two-portrait composition. The garment stays whole. */
+  /* ---------- campaign hero ----------
+     A lived-in two-frame campaign leads into the collection story.
+     Both photos keep portrait proportions so the pieces stay visible. */
   .hero {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap: 0;
-    align-items: start;
-    padding: 0 0 7vh;
-    background: var(--bg);
+    grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr);
+    gap: clamp(28px, 5vw, 76px);
+    align-items: center;
+    min-height: min(820px, calc(100svh - 125px));
+    padding: clamp(30px, 4.4vw, 68px);
+    background: #0e0e0d;
+    color: #f0ece4;
   }
 
-  .hero-primary { position: relative; overflow: hidden; }
+  .hero-art {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr);
+    align-items: end;
+    gap: clamp(10px, 1.5vw, 22px);
+    min-width: 0;
+  }
 
-  .hero-primary img {
+  .hero-primary,
+  .hero-secondary { display: block; overflow: hidden; background: #1a1917; }
+  .hero-secondary { margin-bottom: 8%; }
+
+  .hero-primary img,
+  .hero-secondary img {
     width: 100%;
-    height: min(86vh, 860px);
-    object-fit: contain;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
     object-position: center;
-    background: var(--surface);
     display: block;
   }
 
-  .hero:has(.hero-primary > img) .hero-fallback { display: none; }
-  @supports not selector(:has(*)) { .hero-primary > img { display: none; } }
-
-  /* The right column is mostly negative space on purpose: the line
-     sits in it, and the second frame drops well below the first so the
-     two never read as a pair of equal tiles. */
   .hero-aside {
-    display: grid;
-    grid-template-rows: auto auto 1fr;
-    padding: clamp(40px, 7vw, 96px) var(--page-pad) 0 clamp(24px, 4vw, 64px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 590px;
+    padding: 8px 0;
+  }
+
+  .hero-kicker {
+    margin: 0 0 clamp(22px, 4vw, 50px);
+    color: #aaa69e;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
   }
 
   .hero-line {
     margin: 0;
-    font-family: var(--font);
-    font-size: clamp(28px, 3.4vw, 50px);
-    font-weight: 500;
-    line-height: 1.04;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    text-wrap: balance;
+    max-width: 8ch;
+    font-family: 'Anton', Impact, sans-serif;
+    font-size: clamp(62px, 8vw, 124px);
+    font-weight: 400;
+    line-height: .94;
+    letter-spacing: -.035em;
+    color: #f0ece4;
+    text-transform: uppercase;
+  }
+
+  .hero-note {
+    max-width: 29ch;
+    margin: clamp(22px, 3vw, 38px) 0 0;
+    color: #c4bfb6;
+    font-family: var(--font-body);
+    font-size: clamp(15px, 1.25vw, 18px);
+    line-height: 1.5;
   }
 
   /* One action. Underlined text, not a button: the button on this page
      is Add to Cart, and nothing should compete with it. */
   .hero-cta {
     justify-self: start;
-    margin-top: 26px;
-    font-family: var(--font);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
+    margin-top: 30px;
+    color: #f0ece4;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    color: var(--ink);
     text-decoration: none;
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 4px;
+    border-bottom: 1px solid #aaa69e;
+    padding-bottom: 8px;
   }
 
-  .hero-cta:hover { opacity: 0.55; }
-  .hero-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
-
-  .hero-secondary {
-    display: block;
-    margin-top: clamp(48px, 9vh, 120px);
-    max-width: 330px;
-  }
-
-  .hero-secondary img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
+  .hero-cta:hover { color: #c4bfb6; border-color: #c4bfb6; }
+  .hero-cta:focus-visible { outline: 2px solid #f0ece4; outline-offset: 4px; }
 
   /* ---------- product rows [measured: section spacing 0] ---------- */
   .home-row { padding: 16px var(--page-pad) 0; }
@@ -501,17 +507,22 @@
 
   .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-  /* Mobile moves the portrait-led sections into a single column while
-     keeping each full photograph visible. */
+  /* Keep both full campaign frames side by side on phones, so the story
+     of wearing the pieces together survives the smaller canvas. */
   @media (max-width: 900px) {
-    /* Mobile: the tall portrait leads, the line sits under it, and
-       the second frame is dropped -- two images stacked on a phone is
-       a scroll before anything is shoppable. */
-    .hero { grid-template-columns: 1fr; padding-bottom: 4vh; }
-    .hero-primary img { height: 68vh; min-height: 420px; }
-    .hero-aside { padding: 22px 15px 0; }
-    .hero-line { font-size: clamp(26px, 8vw, 34px); }
-    .hero-secondary { display: none; }
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 0;
+      min-height: 0;
+      padding: 0 0 26px;
+    }
+    .hero-art { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 8px; }
+    .hero-secondary { display: block; margin-bottom: 0; }
+    .hero-aside { max-width: none; padding: 24px 20px 0; }
+    .hero-kicker { margin-bottom: 16px; font-size: 10px; }
+    .hero-line { max-width: 8ch; font-size: clamp(48px, 14vw, 68px); }
+    .hero-note { margin-top: 16px; }
+    .hero-cta { margin-top: 18px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }
@@ -696,7 +707,7 @@
   <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
-<body>
+<body class="page--hero">
 
   <a class="skip-link" href="#main">Skip to content</a>
 
@@ -735,40 +746,27 @@
 
   <h1 class="sr-only">ASIOR — Streetwear from Texas</h1>
 
-  <!-- Homepage, rebuilt to the measured reference (spec section 4):
-       hero, NEW ARRIVALS, a full-bleed campaign frame with one button,
-       THE LINEUP, category tiles, footer. Sections butt against each
-       other -- the reference's section spacing is 0 and all breathing
-       room comes from inside each block. -->
-
-  <!-- [measured] Hero 905px, full bleed, photo behind the transparent
-       header, one underlined text link near the bottom. No heading and
-       no button box: the reference has neither. -->
-  <!-- Two portraits, offset. The shoot is portrait and the reference
-       hero is landscape, so forcing one into a 905px wide band cropped
-       the garment to a head and shoulders. Used as portraits instead:
-       one tall frame, one smaller frame dropped lower, and the wordmark
-       line sitting in the negative space between them. Nothing is
-       stretched and no crop cuts the clothes. -->
+  <!-- The campaign opens on two real Fall 2026 frames and a short
+       feeling-led line before the product grid begins. -->
   <section class="hero" aria-label="Asior">
-    <div class="hero-primary">
-      <!-- scripts/build.js writes the live campaign photograph here. -->
+    <div class="hero-art" role="group" aria-label="Asior Fall collection campaign photographs">
+      <div class="hero-primary">
+        <!-- The build keeps this first frame tied to the lead live product. -->
       <!-- HERO:START -->
-      <img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1600x.jpg.webp?v=1783830070" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_800x.jpg.webp?v=1783830070 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1200x.jpg.webp?v=1783830070 1200w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1600x.jpg.webp?v=1783830070 1600w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_2000x.jpg.webp?v=1783830070 2000w" sizes="100vw" alt="Asior, worn" width="3885" height="5824" fetchpriority="high" decoding="async">
+      <img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1600x.jpg.webp?v=1783830070" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_800x.jpg.webp?v=1783830070 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1200x.jpg.webp?v=1783830070 1200w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1600x.jpg.webp?v=1783830070 1600w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_2000x.jpg.webp?v=1783830070 2000w" sizes="(max-width: 900px) 50vw, 44vw" alt="Asior, worn" width="3885" height="5824" fetchpriority="high" decoding="async">
   <!-- HERO:END -->
-      <picture class="hero-fallback">
-        <source type="image/webp" srcset="images/look-02.webp">
-        <img src="images/look-02.jpg" alt="Asior, worn" width="800" height="1200" decoding="async">
+      </div>
+      <picture class="hero-secondary">
+        <source type="image/webp" srcset="images/look-03.webp">
+        <img src="images/look-03.jpg" alt="Two friends wearing Asior together" width="800" height="1200" loading="lazy" decoding="async">
       </picture>
     </div>
 
     <div class="hero-aside">
-      <p class="hero-line">A point of view,<br>worn your way.</p>
-      <a class="hero-cta" href="#new">Shop the drop</a>
-      <picture class="hero-secondary">
-        <source type="image/webp" srcset="images/look-09.webp">
-        <img src="images/look-09.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async">
-      </picture>
+      <p class="hero-kicker">ASIOR <span aria-hidden="true">/</span> FALL 2026</p>
+      <h2 class="hero-line">After hours.<br>In good<br>company.</h2>
+      <p class="hero-note">A new season, worn with your people.</p>
+      <a class="hero-cta" href="#new">See the Fall collection</a>
     </div>
   </section>
 
