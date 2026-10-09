@@ -248,16 +248,17 @@ function renderCollectionPage(template, c) {
      in images/, assigned per category and committed here rather than
      picked at random, so a category's banner does not change on every
      deploy. Replace a value the moment real category art exists. */
-  const BANNERS = { tops: 'duo-tops-wide', bottoms: 'duo-bottoms-wide', accessories: 'look-11' };
+  const BANNERS = { tops: 'duo-tops-extended', bottoms: 'duo-bottoms-extended', accessories: 'look-12' };
   const banner = BANNERS[c.slug] || 'duo-tops-wide';
-  const wideBanner = banner.endsWith('-wide');
+  const wideBanner = banner.endsWith('-wide') || banner.endsWith('-extended');
+  const expandedBanner = banner.endsWith('-extended');
   const bannerAlt = c.slug === 'tops'
     ? 'Two Asior models wearing the Fall tops together on a city street'
     : c.slug === 'bottoms'
       ? 'Two Asior models wearing the Fall bottoms together in an urban setting'
-      : '';
+      : 'Asior model in black streetwear with subtle leopard print on a city street';
   const bannerHtml = `  <div class="coll-banner">
-    <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${wideBanner ? '1536' : '800'}" height="${wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
+    <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${expandedBanner ? '1600' : wideBanner ? '1536' : '800'}" height="${expandedBanner ? '1200' : wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
   </div>
 `;
   html = replaceBetween(html, '<!-- BANNER:START -->', '<!-- BANNER:END -->', bannerHtml);
@@ -1160,11 +1161,10 @@ function shopCard(p, eager) {
   const altImg = all.find(im => im && im.url && im.url !== firstUrl && !isGeneratedImage(im));
   const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
 
-  /* Same two-link shape as card() in shop.html: the photograph and the
-     caption link separately so the quick view trigger can sit on the
-     frame. The trigger itself is NOT pre-rendered -- it does nothing
-     without JS, and a dead button in the served HTML is worse than no
-     button. The live grid adds it a moment later. */
+  /* The plus is a working link before JavaScript loads. Shop/home
+     intercept it for their quick-view dialog; collection pages fall
+     through to the full product page, where the complete gallery and
+     size selector work without JavaScript. */
   return `
       <div class="product in" data-handle="${esc(p.handle)}">
         <div class="product-frame">
@@ -1172,6 +1172,7 @@ function shopCard(p, eager) {
             <div class="product-img"${altAttr}>${media}</div>
           </a>
 ${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}        </div>
+        <a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Choose a size and preview ${esc(name)}">Quick view</a>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
@@ -1254,10 +1255,10 @@ function syncArchive(products) {
 function syncHero() {
   const target = path.join(ROOT, 'index.html');
   let html = fs.readFileSync(target, 'utf8');
-  html = html.replace('<source type="image/webp" srcset="images/look-02.webp">',
-    '<source type="image/jpeg" srcset="images/duo-tops-wide.jpg">');
+  html = html.replace(/<source type="image\/(?:webp|jpeg)" srcset="images\/[^\"]+">/,
+    '<source type="image/jpeg" srcset="images/duo-home-extended.jpg">');
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    '        <img src="images/duo-tops-wide.jpg" alt="Two Asior models wearing the black and purple Fall tops together on a city street" width="1536" height="1024" fetchpriority="high" decoding="async">\n');
+    '        <img src="images/duo-home-extended.jpg" alt="Two Asior models in Asior streetwear, seated together on a leather sofa" width="1600" height="1200" fetchpriority="high" decoding="async">\n');
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return 1;

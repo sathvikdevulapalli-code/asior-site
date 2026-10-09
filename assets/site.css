@@ -109,6 +109,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Pinyon Script';
+  src: url('../fonts/PinyonScript-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* Removes the 300ms double-tap-zoom delay on taps without disabling
@@ -1085,9 +1093,9 @@ html.cart-drawer-locked { overflow: hidden; }
 }
 
 .mark-text {
-  font-family: 'Dancing Script', 'Brush Script MT', cursive;
-  font-weight: 600;
-  font-size: 34px;
+  font-family: 'Pinyon Script', 'Dancing Script', 'Brush Script MT', cursive;
+  font-weight: 400;
+  font-size: 40px;
   letter-spacing: 0;
   width: auto;
   text-align: center;
@@ -1178,7 +1186,7 @@ html.cart-drawer-locked { overflow: hidden; }
   }
   .nav-toggle span { display: block; height: 1.5px; background: currentColor; }
 
-  .mark-text { font-size: 28px; }
+  .mark-text { font-size: 33px; }
   .market { display: none; }
   .header-right { gap: 0; }
 
@@ -1452,24 +1460,25 @@ body {
 /* The supplied leopard artwork is one brand signature, shown after the
    shopping content so it does not compete with product imagery. */
 .leo {
-  background-color: var(--ink);
+  background-color: #0a0a0a;
   background-image: url('/images/leopard.jpg');
   background-image: image-set(
     url('/images/leopard.webp') type('image/webp'),
     url('/images/leopard.jpg') type('image/jpeg'));
   background-repeat: repeat;
-  background-size: 170px auto;
+  background-size: 210px auto;
+  filter: brightness(.78) contrast(.92);
 }
 
 /* Pattern appears once, as a full-width signature after the shopping content. */
-.leo-band { height: 64px; width: 100%; }
+.leo-band { height: 54px; width: 100%; }
 
 @media (prefers-reduced-motion: no-preference) {
   .leo { transition: opacity var(--dur) var(--ease-out); }
 }
 
-.footer-leo { height: 64px; }
+.footer-leo { height: 54px; }
 
 @media (max-width: 900px) {
-  .footer-leo { height: 44px; }
+  .footer-leo { height: 38px; }
 }

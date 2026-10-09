@@ -511,7 +511,7 @@
     if (mode === 'desc') view.sort(function (a, b) { return minPrice(b) - minPrice(a); });
 
     grid.innerHTML = view.map(function (p, i) {
-      return A.productCard(p, { eager: i < 4, peek: false });
+      return A.productCard(p, { eager: i < 4, peek: true });
     }).join('');
 
     var empty = document.getElementById('collEmpty');

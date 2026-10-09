@@ -1385,9 +1385,9 @@
   }
 
   /* opts.eager  -- first row only; everything below the fold stays lazy.
-     opts.peek   -- render the quick view trigger (default true). It is
-                    never pre-rendered server side: it does nothing
-                    without JS, and a dead button is worse than none. */
+     opts.peek   -- render the quick view trigger (default true). The
+                    link opens quick view where available and falls back
+                    to the full product page everywhere else. */
   function productCard(p, opts) {
     opts = opts || {};
     var media = p.image
@@ -1426,7 +1426,7 @@
        to sit on the photograph and a <button> cannot legally live
        inside an <a>. The frame is what positions it. */
     var peek = opts.peek === false ? ''
-      : '<button type="button" class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '" aria-label="Choose a size and preview ' + escapeAttr(p.name) + '">Quick view</button>';
+      : '<a class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '" href="/products/' + encodeURIComponent(p.handle) + '.html" aria-label="Choose a size and preview ' + escapeAttr(p.name) + '">Quick view</a>';
 
     /* [measured] A small black badge top-left on the image. The
        reference's reads "Notify Me" and opens a restock signup; ours
