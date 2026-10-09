@@ -1426,7 +1426,7 @@
        to sit on the photograph and a <button> cannot legally live
        inside an <a>. The frame is what positions it. */
     var peek = opts.peek === false ? ''
-      : '<button type="button" class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '">Quick view</button>';
+      : '<button type="button" class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '" aria-label="Choose a size and preview ' + escapeAttr(p.name) + '">Quick view</button>';
 
     /* [measured] A small black badge top-left on the image. The
        reference's reads "Notify Me" and opens a restock signup; ours

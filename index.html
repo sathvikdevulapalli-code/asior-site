@@ -121,9 +121,9 @@
 
   .peek-media > * { flex: 0 0 auto; scroll-snap-align: start; }
 
-  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; }
-  .peek-shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
-  .peek-ph { aspect-ratio: 2 / 3; background: #141219; }
+  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; background: #f7f7f7; }
+  .peek-shot img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; background: #f7f7f7; }
+  .peek-ph { aspect-ratio: 2 / 3; background: #f7f7f7; }
 
   .peek-buy {
     padding: 26px 26px 28px;
@@ -225,18 +225,34 @@
 
   .product-peek {
     position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    /* Above the hover frame, which is z-index 1 in this same context. */
+    top: 12px;
+    right: 12px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: 50%;
+    background: #fff;
+    color: #000;
+    font-size: 0;
+    cursor: pointer;
     z-index: 2;
-    background: var(--surface);
-    box-shadow: inset 0 0 0 1px var(--field-line);
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+    transform: translateY(4px);
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), background 180ms var(--ease-out);
     pointer-events: none;
   }
+
+  .product-peek::before {
+    content: '+';
+    display: block;
+    font-family: var(--font-body);
+    font-size: 27px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .product-peek:hover { background: #f1f1f1; }
 
   @media (hover: hover) and (pointer: fine) {
     .product-frame:hover .product-peek,
@@ -258,99 +274,78 @@
     .product-peek { opacity: 1; transform: none; pointer-events: auto; }
   }
 
-  /* ---------- campaign hero ----------
-     A lived-in two-frame campaign leads into the collection story.
-     Both photos keep portrait proportions so the pieces stay visible. */
+  /* ---------- single-frame campaign hero ---------- */
   .hero {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr);
-    gap: clamp(28px, 5vw, 76px);
-    align-items: center;
-    min-height: min(820px, calc(100svh - 125px));
-    padding: clamp(30px, 4.4vw, 68px);
+    place-items: center;
+    height: calc(100svh - var(--announce-h));
+    min-height: 560px;
+    max-height: 960px;
+    overflow: hidden;
+    padding: 88px 20px 94px;
     background: #0e0e0d;
     color: #f0ece4;
   }
 
   .hero-art {
-    display: grid;
-    grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr);
-    align-items: end;
-    gap: clamp(10px, 1.5vw, 22px);
-    min-width: 0;
-  }
-
-  .hero-primary,
-  .hero-secondary { display: block; overflow: hidden; background: #1a1917; }
-  .hero-secondary { margin-bottom: 8%; }
-
-  .hero-primary img,
-  .hero-secondary img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-  }
-
-  .hero-aside {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    max-width: 590px;
-    padding: 8px 0;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
   }
 
-  .hero-kicker {
-    margin: 0 0 clamp(22px, 4vw, 50px);
-    color: #aaa69e;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .18em;
-    text-transform: uppercase;
+  .hero-primary {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    text-align: center;
   }
 
-  .hero-line {
-    margin: 0;
-    max-width: 8ch;
-    font-family: 'Anton', Impact, sans-serif;
-    font-size: clamp(62px, 8vw, 124px);
-    font-weight: 400;
-    line-height: .94;
-    letter-spacing: -.035em;
-    color: #f0ece4;
-    text-transform: uppercase;
+  .hero-primary img {
+    display: inline-block;
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: center;
   }
 
-  .hero-note {
-    max-width: 29ch;
-    margin: clamp(22px, 3vw, 38px) 0 0;
-    color: #c4bfb6;
-    font-family: var(--font-body);
-    font-size: clamp(15px, 1.25vw, 18px);
-    line-height: 1.5;
-  }
-
-  /* One action. Underlined text, not a button: the button on this page
-     is Add to Cart, and nothing should compete with it. */
-  .hero-cta {
-    justify-self: start;
-    margin-top: 30px;
+  .hero-link {
+    position: absolute;
+    left: 50%;
+    bottom: 30px;
+    z-index: 2;
+    transform: translateX(-50%);
     color: #f0ece4;
     font-family: var(--font-body);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: .12em;
-    text-transform: uppercase;
     text-decoration: none;
-    border-bottom: 1px solid #aaa69e;
-    padding-bottom: 8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 5px;
   }
 
-  .hero-cta:hover { color: #c4bfb6; border-color: #c4bfb6; }
-  .hero-cta:focus-visible { outline: 2px solid #f0ece4; outline-offset: 4px; }
+  .hero-link:hover { opacity: .7; }
+  .hero-link:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+
+  @media (max-height: 680px) and (min-width: 901px) {
+    .hero { min-height: 0; padding-top: 76px; padding-bottom: 76px; }
+    .hero-link { bottom: 20px; }
+  }
+
+  /* Quick-view photography stays on the clean, continuous surface. */
+  .peek { background: #f7f7f7; }
+  .peek::backdrop { background: rgba(0, 0, 0, .62); }
+  .peek-media { background: #f7f7f7; gap: 8px; }
+  .peek-shot, .peek-ph { background: #f7f7f7; }
+  .peek-shot img { object-fit: contain; object-position: center; }
 
   /* ---------- product rows [measured: section spacing 0] ---------- */
   .home-row { padding: 16px var(--page-pad) 0; }
@@ -507,22 +502,14 @@
 
   .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-  /* Keep both full campaign frames side by side on phones, so the story
-     of wearing the pieces together survives the smaller canvas. */
+  /* Keep the campaign portrait whole and centered at every width. */
   @media (max-width: 900px) {
     .hero {
-      grid-template-columns: 1fr;
-      gap: 0;
-      min-height: 0;
-      padding: 0 0 26px;
+      height: calc(100svh - var(--announce-h));
+      min-height: 480px;
+      padding: 74px 12px 76px;
     }
-    .hero-art { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 8px; }
-    .hero-secondary { display: block; margin-bottom: 0; }
-    .hero-aside { max-width: none; padding: 24px 20px 0; }
-    .hero-kicker { margin-bottom: 16px; font-size: 10px; }
-    .hero-line { max-width: 8ch; font-size: clamp(48px, 14vw, 68px); }
-    .hero-note { margin-top: 16px; }
-    .hero-cta { margin-top: 18px; }
+    .hero-link { bottom: 22px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }
@@ -731,7 +718,7 @@
       <a href="/manufacturing.html">Manufacturing</a>
     </nav>
 
-    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
 
     <div class="header-right">
       <!-- Static, not a picker. One market is enabled in Shopify, so a
@@ -746,28 +733,18 @@
 
   <h1 class="sr-only">ASIOR — Streetwear from Texas</h1>
 
-  <!-- The campaign opens on two real Fall 2026 frames and a short
-       feeling-led line before the product grid begins. -->
-  <section class="hero" aria-label="Asior">
-    <div class="hero-art" role="group" aria-label="Asior Fall collection campaign photographs">
-      <div class="hero-primary">
-        <!-- The build keeps this first frame tied to the lead live product. -->
+  <!-- One real campaign photograph, with the same quiet shopping cue as
+       the reference. The photo stays uncropped on desktop and mobile. -->
+  <section class="hero" aria-label="Asior campaign">
+    <div class="hero-art">
+      <picture class="hero-primary">
+        <source type="image/webp" srcset="images/look-02.webp">
       <!-- HERO:START -->
-      <img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1600x.jpg.webp?v=1783830070" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_800x.jpg.webp?v=1783830070 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1200x.jpg.webp?v=1783830070 1200w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_1600x.jpg.webp?v=1783830070 1600w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01465_2000x.jpg.webp?v=1783830070 2000w" sizes="(max-width: 900px) 50vw, 44vw" alt="Asior, worn" width="3885" height="5824" fetchpriority="high" decoding="async">
+        <img src="images/look-02.jpg" alt="ASIOR polo worn on the stairs" width="800" height="1200" fetchpriority="high" decoding="async">
   <!-- HERO:END -->
-      </div>
-      <picture class="hero-secondary">
-        <source type="image/webp" srcset="images/look-03.webp">
-        <img src="images/look-03.jpg" alt="Two friends wearing Asior together" width="800" height="1200" loading="lazy" decoding="async">
       </picture>
     </div>
-
-    <div class="hero-aside">
-      <p class="hero-kicker">ASIOR <span aria-hidden="true">/</span> FALL 2026</p>
-      <h2 class="hero-line">After hours.<br>In good<br>company.</h2>
-      <p class="hero-note">A new season, worn with your people.</p>
-      <a class="hero-cta" href="#new">See the Fall collection</a>
-    </div>
+    <a class="hero-link" href="#new">Shop the latest</a>
   </section>
 
   <!-- Personalization from real browsing history. A first-time visitor
@@ -998,7 +975,7 @@
   <footer class="site-footer" id="order">
     <div class="footer-cols">
       <div class="fcol fcol--brand">
-        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <div class="fmark"><span class="mark-text">Asior</span></div>
         <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
         <!-- About, the lookbook and the archive had no inbound link
              anywhere after the nav was cut to the reference's four

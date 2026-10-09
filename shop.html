@@ -100,12 +100,12 @@
        dialog, and a scroll container needs a bounded parent or it just
        makes the dialog taller. */
     height: min(680px, 88vh);
-    background: var(--surface);
+    background: #f7f7f7;
     color: var(--ink);
     overflow: hidden;
   }
 
-  .peek::backdrop { background: rgba(6, 5, 9, 0.82); }
+  .peek::backdrop { background: rgba(0, 0, 0, .62); }
 
   .peek-in {
     display: grid;
@@ -125,17 +125,17 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    background: #0a0910;
+    gap: 8px;
+    background: #f7f7f7;
     scroll-snap-type: y mandatory;
     scrollbar-width: thin;
   }
 
   .peek-media > * { flex: 0 0 auto; scroll-snap-align: start; }
 
-  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; }
-  .peek-shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
-  .peek-ph { aspect-ratio: 2 / 3; background: #141219; }
+  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; background: #f7f7f7; }
+  .peek-shot img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; background: #f7f7f7; }
+  .peek-ph { aspect-ratio: 2 / 3; background: #f7f7f7; }
 
   .peek-buy {
     padding: 26px 26px 28px;
@@ -237,18 +237,34 @@
 
   .product-peek {
     position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    /* Above the hover frame, which is z-index 1 in this same context. */
+    top: 12px;
+    right: 12px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: 50%;
+    background: #fff;
+    color: #000;
+    font-size: 0;
+    cursor: pointer;
     z-index: 2;
-    background: var(--surface);
-    box-shadow: inset 0 0 0 1px var(--field-line);
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+    transform: translateY(4px);
+    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), background 180ms var(--ease-out);
     pointer-events: none;
   }
+
+  .product-peek::before {
+    content: '+';
+    display: block;
+    font-family: var(--font-body);
+    font-size: 27px;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .product-peek:hover { background: #f1f1f1; }
 
   @media (hover: hover) and (pointer: fine) {
     .product-frame:hover .product-peek,
@@ -667,7 +683,7 @@
       <a href="/manufacturing.html">Manufacturing</a>
     </nav>
 
-    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">ASIOR</span></a>
+    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
 
     <div class="header-right">
       <!-- Static, not a picker. One market is enabled in Shopify, so a
@@ -868,7 +884,7 @@
   <footer class="site-footer" id="order">
     <div class="footer-cols">
       <div class="fcol fcol--brand">
-        <div class="fmark"><span class="mark-text">ASIOR</span></div>
+        <div class="fmark"><span class="mark-text">Asior</span></div>
         <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
         <!-- About, the lookbook and the archive had no inbound link
              anywhere after the nav was cut to the reference's four

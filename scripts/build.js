@@ -759,7 +759,7 @@ ${ANNOUNCEMENTS.map((m, i) =>
    same 95px optical width, and the moment a real mark lands it
    replaces the span here and nowhere else. It is NOT generated: an
    AI-made logo would be both off-brand and against CLAUDE.md. */
-const WORDMARK = '<span class="mark-text">ASIOR</span>';
+const WORDMARK = '<span class="mark-text">Asior</span>';
 
 /* Category links come from one place, assets/launch-config.js, so the
    nav, the footer and the generated collection pages cannot disagree
@@ -1245,64 +1245,17 @@ function syncArchive(products) {
 
 /* The homepage photograph.
 
-   Written from the live catalog rather than hardcoded, for the same
-   reason nothing else on the grid is hardcoded: the founder changes a
-   product photo in Shopify Admin and the homepage follows on the next
-   deploy instead of pointing at a URL that has moved.
-
-   The Polo is the lead Fall piece (FALL_PRODUCTS[0]) and its
-   photograph is one of the real shoot frames -- the OLI-prefixed files
-   off the camera roll, which is the photo brief v14 asks for. If that
-   product is ever gone from the catalog, the first merchandised
-   product with a real photograph stands in. leadImage() is what makes
-   that "real": a generator filename is never promoted here, so the
-   biggest image on the site cannot end up being a render.
-
-   No markers written means the served fallback photograph stays, which
-   is a local file that is always there. */
-const HERO_HANDLE = 'scripture-polo';
-
-function heroImage(products) {
-  const byHandle = new Map(products.map(p => [p.handle, p]));
-  const preferred = byHandle.get(HERO_HANDLE);
-  const candidates = preferred
-    ? [preferred, ...sortForMerchandising(products)]
-    : sortForMerchandising(products);
-  for (const p of candidates) {
-    const img = leadImage(p);
-    if (img && img.url && !isGeneratedImage(img)) return img;
-  }
-  return null;
-}
-
-function syncHero(products) {
+   This is the founder's specifically chosen seated Polo frame, checked
+   into images/look-02. It should not change when Shopify's product
+   gallery order changes. */
+function syncHero() {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
-  const img = heroImage(products);
-  let block = '';
-  if (img) {
-    const srcset = [
-      img.w800 ? `${esc(img.w800)} 800w` : '',
-      img.w1200 ? `${esc(img.w1200)} 1200w` : '',
-      img.w1600 ? `${esc(img.w1600)} 1600w` : '',
-      img.w2000 ? `${esc(img.w2000)} 2000w` : '',
-    ].filter(Boolean).join(', ');
-    /* fetchpriority high and no lazy attribute: this is the LCP element
-       on the highest-traffic page. Match the editorial portrait column,
-       rather than telling the browser it fills the desktop viewport. */
-    block = `      <img src="${esc(img.w1600 || img.w1200 || img.url)}"`
-      + (srcset ? ` srcset="${srcset}"` : '')
-      + ' sizes="(max-width: 900px) 50vw, 44vw"'
-      + ` alt="${esc(img.altText || 'Asior, worn')}"`
-      + (img.width ? ` width="${esc(img.width)}"` : '')
-      + (img.height ? ` height="${esc(img.height)}"` : '')
-      + ' fetchpriority="high" decoding="async">\n';
-  }
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    block || '\n');
+    '        <img src="images/look-02.jpg" alt="ASIOR polo worn on the stairs" width="800" height="1200" fetchpriority="high" decoding="async">\n');
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
-  return img ? 1 : 0;
+  return 1;
 }
 
 /* [measured] The NEW ARRIVALS row.
@@ -1489,7 +1442,7 @@ function syncSharedMarkup() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero(products) ? 'live photograph' : 'none, served fallback stands'}`);
+    console.log(`✓ homepage hero: ${syncHero() ? 'curated seated Polo photograph' : 'none'}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
