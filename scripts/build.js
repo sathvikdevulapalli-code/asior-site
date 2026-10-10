@@ -1249,16 +1249,16 @@ function syncArchive(products) {
 
 /* The homepage photograph.
 
-   This is the founder's specifically chosen seated Polo frame, checked
-   into images/look-02. It should not change when Shopify's product
-   gallery order changes. */
+   Keep the original Polo shot as the mobile image and the edited
+   full-bleed landscape as the desktop hero. Neither depends on Shopify
+   gallery ordering. */
 function syncHero() {
   const target = path.join(ROOT, 'index.html');
   let html = fs.readFileSync(target, 'utf8');
-  html = html.replace(/<source type="image\/(?:webp|jpeg)" srcset="images\/[^\"]+">/,
-    '<source type="image/jpeg" srcset="images/duo-home-extended.jpg">');
+  html = html.replace(/<source class="hero-desktop"[^>]*>/,
+    '<source class="hero-desktop" type="image/webp" srcset="images/asior-hero-wide.webp" width="1916" height="821">');
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    '        <img src="images/duo-home-extended.jpg" alt="Two Asior models in Asior streetwear, seated together on a leather sofa" width="1600" height="1200" fetchpriority="high" decoding="async">\n');
+    '        <img src="images/asior-hero-wide.jpg" alt="Asior model wearing the black leopard-trimmed Polo, seated on a city stairway" width="1916" height="821" fetchpriority="high" decoding="async">\n');
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return 1;
@@ -1448,7 +1448,7 @@ function syncSharedMarkup() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero() ? 'wide Asior duo campaign photo' : 'none'}`);
+    console.log(`✓ homepage hero: ${syncHero() ? 'full-width Asior Polo campaign photo' : 'none'}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);

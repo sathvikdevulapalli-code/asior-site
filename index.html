@@ -284,22 +284,27 @@
     max-height: 960px;
     overflow: hidden;
     padding: 88px 20px 94px;
-    background-color: #0e0e0d;
-    background-image:
-      linear-gradient(rgba(14, 14, 13, .58), rgba(14, 14, 13, .58)),
-      image-set(url('images/leopard.webp') type('image/webp'), url('images/leopard.jpg') type('image/jpeg'));
-    background-repeat: no-repeat, repeat;
-    background-size: auto, 210px auto;
+    background: #0e0e0d;
     color: #f0ece4;
   }
 
   .hero-art {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
     width: 100%;
     height: 100%;
     min-height: 0;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .42), rgba(0, 0, 0, .12) 24%, transparent 54%, rgba(0, 0, 0, .3));
+    pointer-events: none;
   }
 
   .hero-primary {
@@ -307,16 +312,14 @@
     width: 100%;
     height: 100%;
     min-height: 0;
-    text-align: center;
   }
 
   .hero-primary img {
-    display: inline-block;
-    width: auto;
+    display: block;
+    width: 100%;
     height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-    object-position: center;
+    object-fit: cover;
+    object-position: center 48%;
   }
 
   .hero-link {
@@ -533,11 +536,11 @@
     .hero {
       height: auto;
       min-height: 0;
-      padding: 74px 12px 58px;
+      padding: 64px 0 58px;
     }
-    .hero-art { height: auto; }
+    .hero-art { position: relative; inset: auto; height: auto; }
     .hero-primary { height: auto; }
-    .hero-primary img { display: block; width: 100%; height: auto; object-fit: contain; }
+    .hero-primary img { height: auto; object-fit: contain; object-position: center; }
     .hero-link { bottom: 22px; }
 
     .home-row { padding: 16px 15px 0; }
@@ -767,9 +770,10 @@
   <section class="hero" aria-label="Asior campaign">
     <div class="hero-art">
       <picture class="hero-primary">
-        <source type="image/jpeg" srcset="images/duo-home-extended.jpg">
+        <source class="hero-mobile" media="(max-width: 900px)" type="image/webp" srcset="images/look-02.webp" width="800" height="1200">
+        <source class="hero-desktop" type="image/webp" srcset="images/asior-hero-wide.webp" width="1916" height="821">
       <!-- HERO:START -->
-        <img src="images/duo-home-extended.jpg" alt="Two Asior models in Asior streetwear, seated together on a leather sofa" width="1600" height="1200" fetchpriority="high" decoding="async">
+        <img src="images/asior-hero-wide.jpg" alt="Asior model wearing the black leopard-trimmed Polo, seated on a city stairway" width="1916" height="821" fetchpriority="high" decoding="async">
   <!-- HERO:END -->
       </picture>
     </div>
