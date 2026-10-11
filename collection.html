@@ -38,8 +38,8 @@
      build. */
   .coll-banner {
     position: relative;
-    height: min(72svh, 760px);
-    min-height: 440px;
+    height: auto;
+    min-height: 0;
     overflow: hidden;
     background: #121211;
   }
@@ -48,9 +48,14 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    object-position: center;
     display: block;
   }
+
+  /* The Tops and Bottoms campaign frames are landscape originals.
+     Let them run edge to edge at their native ratio on desktop instead
+     of shrinking them into a centered box with black gutters. */
+  .coll-banner--wide { height: auto; min-height: 0; }
+  .coll-banner--wide img { height: auto; object-fit: initial; }
 
   /* The header sits on the banner in white. A photo with a bright top
      edge would swallow it, so the same 0.2 overlay the reference uses
@@ -59,7 +64,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, .18), transparent 48%, rgba(0, 0, 0, .08));
+    background: linear-gradient(180deg, rgba(0, 0, 0, .32), transparent 38%, rgba(0, 0, 0, .08));
     pointer-events: none;
   }
 
@@ -226,6 +231,7 @@
 
   @media (max-width: 900px) {
     .coll-banner { height: auto; aspect-ratio: 3 / 2; min-height: 0; }
+    .coll-banner img { height: 100%; object-fit: contain; }
     .coll { padding: 0 15px 8vh; }
     .coll-head { padding-top: 34px; }
     .coll-title { font-size: 17px; }
@@ -399,6 +405,8 @@
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>
           <li><a href="/text.html">Text List</a></li>
         </ul>
@@ -407,6 +415,16 @@
       <div class="fcol fcol--signup">
         <h2 class="fhead">Join the community</h2>
         <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
+        <div class="email-signup" data-email-location="footer">
+      <form class="sms-form email-form" data-email-signup novalidate>
+        <label class="sr-only" for="email-footer">Email address</label>
+        <input class="field" type="email" id="email-footer" name="email" placeholder="Email address"
+               autocomplete="email" spellcheck="false" required>
+        <button type="submit">Join</button>
+        <p class="sms-msg" data-email-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="email-consent">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
+    </div>
         <div class="sms-signup sms-signup--footer" data-sms-location="footer">
       
       <form class="sms-form" data-sms-signup novalidate>

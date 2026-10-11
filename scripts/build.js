@@ -56,6 +56,7 @@ const API = `https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`;
 const STATIC_PAGES = [
   '/', '/shop.html', '/community.html', '/contact.html',
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
+  '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
 ];
 
@@ -248,7 +249,7 @@ function renderCollectionPage(template, c) {
      in images/, assigned per category and committed here rather than
      picked at random, so a category's banner does not change on every
      deploy. Replace a value the moment real category art exists. */
-  const BANNERS = { tops: 'duo-tops-extended', bottoms: 'duo-bottoms-extended', accessories: 'look-12' };
+  const BANNERS = { tops: 'duo-tops-wide', bottoms: 'duo-bottoms-wide', accessories: 'look-12' };
   const banner = BANNERS[c.slug] || 'duo-tops-wide';
   const wideBanner = banner.endsWith('-wide') || banner.endsWith('-extended');
   const expandedBanner = banner.endsWith('-extended');
@@ -257,7 +258,7 @@ function renderCollectionPage(template, c) {
     : c.slug === 'bottoms'
       ? 'Two Asior models wearing the Fall bottoms together in an urban setting'
       : 'Asior model in black streetwear with subtle leopard print on a city street';
-  const bannerHtml = `  <div class="coll-banner">
+  const bannerHtml = `  <div class="coll-banner${wideBanner ? ' coll-banner--wide' : ''}">
     <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${expandedBanner ? '1600' : wideBanner ? '1536' : '800'}" height="${expandedBanner ? '1200' : wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
   </div>
 `;
@@ -892,6 +893,19 @@ function smsSignupBlock(variant) {
     </div>`;
 }
 
+function emailSignupBlock() {
+  return `<div class="email-signup" data-email-location="footer">
+      <form class="sms-form email-form" data-email-signup novalidate>
+        <label class="sr-only" for="email-footer">Email address</label>
+        <input class="field" type="email" id="email-footer" name="email" placeholder="Email address"
+               autocomplete="email" spellcheck="false" required>
+        <button type="submit">Join</button>
+        <p class="sms-msg" data-email-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="email-consent">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
+    </div>`;
+}
+
 /* The one customer-facing support address.
 
    The site used hello@asiorclothing.com in the footer while Shopify's
@@ -976,6 +990,8 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>
           <li><a href="/text.html">Text List</a></li>
         </ul>
@@ -984,6 +1000,7 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
       <div class="fcol fcol--signup">
         <h2 class="fhead">Join the community</h2>
         <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
+        ${emailSignupBlock()}
         ${smsSignupBlock('footer')}
       </div>
     </div>
@@ -1042,6 +1059,7 @@ const HEAD_PAGES = [
   'shop.html', 'product.html', 'cart.html', 'community.html', 'contact.html',
   'manufacturing.html', 'account.html', 'privacy-policy.html',
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
+  'shipping-policy.html', 'refund-policy.html',
   'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
   'collection.html',
 ];
@@ -1056,6 +1074,8 @@ const SHARED_MARKUP_PAGES = [
   ['account.html', HEADER_FULL],
   ['privacy-policy.html', HEADER_MINIMAL],
   ['terms-of-service.html', HEADER_MINIMAL],
+  ['shipping-policy.html', HEADER_MINIMAL],
+  ['refund-policy.html', HEADER_MINIMAL],
   ['fall-collection.html', HEADER_FULL],
   ['text.html', HEADER_FULL],
   ['archive.html', HEADER_FULL],
@@ -1122,7 +1142,7 @@ function shopCard(p, eager) {
   const max = Math.max(...prices);
   const compare = compares.length && compares[0] > min ? compares[0] : null;
   const priceLabel = min === max
-    ? `${compare ? `<span class="compare">$${compare}</span>` : ''}$${min}`
+    ? `${compare ? `<span class="compare"><span class="sr-only">Was </span>$${compare}</span><span class="sale-price"><span class="sr-only">Now </span>$${min}</span>` : `$${min}`}`
     : `From $${min}`;
 
   const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
@@ -1183,10 +1203,22 @@ ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}    
 function renderShopGrid(products) {
   // First row is the LCP candidate — eager, same rule the live render
   // uses. Everything below the fold stays lazy.
-  return sortForMerchandising(products)
-    .map((p, i) => shopCard(p, i < 3))
+  const ordered = sortForMerchandising(products);
+  const fallHandles = new Set((LAUNCH.FALL_PRODUCTS || []).map(p => p.handle));
+  const fall = ordered.filter(p => fallHandles.has(p.handle));
+  const other = ordered.filter(p => !fallHandles.has(p.handle));
+  const cards = (items, offset) => items
+    .map((p, i) => shopCard(p, offset + i < 3))
     .filter(Boolean)
-    .join('\n') + '\n';
+    .join('\n');
+  const sections = [];
+  if (fall.length) {
+    sections.push(`<h2 class="shop-grid-heading">Fall collection</h2>\n${cards(fall, 0)}`);
+  }
+  if (other.length) {
+    sections.push(`<h2 class="shop-grid-heading">More from Asior</h2>\n${cards(other, fall.length)}`);
+  }
+  return sections.join('\n') + '\n';
 }
 
 /* The archive rows.
@@ -1300,8 +1332,14 @@ function syncLineup(products) {
 function syncShopGrid(products) {
   const target = path.join(ROOT, 'shop.html');
   const html = fs.readFileSync(target, 'utf8');
-  const next = replaceBetween(html, '<!-- SHOPGRID:START -->', '<!-- SHOPGRID:END -->', renderShopGrid(products));
-  if (next === null) throw new Error('shop.html: SHOPGRID markers missing');
+  const grid = replaceBetween(html, '<!-- SHOPGRID:START -->', '<!-- SHOPGRID:END -->', renderShopGrid(products));
+  if (grid === null) throw new Error('shop.html: SHOPGRID markers missing');
+  const suggestions = sortForMerchandising(products)
+    .map(p => `          <option value="${esc(p.title.replace(/\s*\[preorder\]\s*/i, '').trim())}"></option>`)
+    .join('\n');
+  const next = replaceBetween(grid, '<!-- SHOPSEARCH:START -->', '<!-- SHOPSEARCH:END -->',
+    suggestions ? '\n' + suggestions + '\n        ' : '\n        ');
+  if (next === null) throw new Error('shop.html: SHOPSEARCH markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return sortForMerchandising(products).length;
 }

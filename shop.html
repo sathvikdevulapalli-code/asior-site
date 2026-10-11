@@ -724,6 +724,28 @@
   <section class="shop coll">
     <div class="coll-head">
       <h1 class="coll-title">Shop all</h1>
+      <label class="shop-search">
+        <span class="sr-only">Search products</span>
+        <input class="field" type="search" id="shopSearch" list="shopSearchSuggestions"
+               placeholder="Search products" autocomplete="off" aria-controls="shopGrid">
+        <datalist id="shopSearchSuggestions">
+          <!-- SHOPSEARCH:START -->
+
+          <option value="ASIOR Polo"></option>
+          <option value="JAG shorts"></option>
+          <option value="Holes Tee"></option>
+          <option value="ASR shorts"></option>
+          <option value="Kova Eternal Lotus Graphic T-Shirt"></option>
+          <option value="Ja-yu Blossom Tee"></option>
+          <option value="JAG Sweats"></option>
+          <option value="JAG Crewneck"></option>
+          <option value="JAG Set"></option>
+          <option value="Helia Pendant &amp; Chain, Silver"></option>
+          <option value="JAG Lanyard"></option>
+          <!-- SHOPSEARCH:END -->
+        </datalist>
+      </label>
+      <span class="shop-search-status" id="shopSearchStatus" role="status" aria-live="polite"></span>
       <button type="button" class="coll-filter" id="filterOpen" aria-expanded="false" aria-controls="filterDrawer">
         Filter
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
@@ -734,6 +756,7 @@
 
     <div class="shop-grid coll-grid" id="shopGrid">
       <!-- SHOPGRID:START -->
+<h2 class="shop-grid-heading">Fall collection</h2>
 
       <div class="product in" data-handle="scripture-polo">
         <div class="product-frame">
@@ -786,6 +809,7 @@
           <div class="product-price tnum">$35.99</div>
         </a>
       </div>
+<h2 class="shop-grid-heading">More from Asior</h2>
 
       <div class="product in" data-handle="kova-eternal-lotus-graphic-t-shirt">
         <div class="product-frame">
@@ -796,7 +820,7 @@
         <a class="product-peek btn btn--sm" data-peek="kova-eternal-lotus-graphic-t-shirt" href="/products/kova-eternal-lotus-graphic-t-shirt.html" aria-label="Choose a size and preview Kova Eternal Lotus Graphic T-Shirt">Quick view</a>
         <a class="product-link" href="/products/kova-eternal-lotus-graphic-t-shirt.html">
           <div class="product-title">Kova Eternal Lotus Graphic T-Shirt</div>
-          <div class="product-price tnum"><span class="compare">$40</span>$30</div>
+          <div class="product-price tnum"><span class="compare"><span class="sr-only">Was </span>$40</span><span class="sale-price"><span class="sr-only">Now </span>$30</span></div>
         </a>
       </div>
 
@@ -809,7 +833,7 @@
         <a class="product-peek btn btn--sm" data-peek="ja-yu-blossom-tee" href="/products/ja-yu-blossom-tee.html" aria-label="Choose a size and preview Ja-yu Blossom Tee">Quick view</a>
         <a class="product-link" href="/products/ja-yu-blossom-tee.html">
           <div class="product-title">Ja-yu Blossom Tee</div>
-          <div class="product-price tnum"><span class="compare">$40</span>$30</div>
+          <div class="product-price tnum"><span class="compare"><span class="sr-only">Was </span>$40</span><span class="sale-price"><span class="sr-only">Now </span>$30</span></div>
         </a>
       </div>
 
@@ -954,6 +978,8 @@
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>
           <li><a href="/text.html">Text List</a></li>
         </ul>
@@ -962,6 +988,16 @@
       <div class="fcol fcol--signup">
         <h2 class="fhead">Join the community</h2>
         <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
+        <div class="email-signup" data-email-location="footer">
+      <form class="sms-form email-form" data-email-signup novalidate>
+        <label class="sr-only" for="email-footer">Email address</label>
+        <input class="field" type="email" id="email-footer" name="email" placeholder="Email address"
+               autocomplete="email" spellcheck="false" required>
+        <button type="submit">Join</button>
+        <p class="sms-msg" data-email-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="email-consent">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
+    </div>
         <div class="sms-signup sms-signup--footer" data-sms-location="footer">
       
       <form class="sms-form" data-sms-signup novalidate>

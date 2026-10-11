@@ -80,20 +80,21 @@
 
   .pd-shot {
     margin: 0;
-    aspect-ratio: 2 / 3;
-    /* Cap each portrait against the viewport so a single product view
-       stays readable without cutting the source photograph. */
+    /* Let each source photo set its own shape. The old fixed frame was
+       square at desktop once the viewport-height cap applied, leaving
+       wide grey rails around every portrait product shot. */
     max-height: 78vh;
     width: 100%;
     overflow: hidden;
-    /* Match the quiet grey product-card surface around portrait media. */
-    background: var(--surface);
     cursor: zoom-in;
   }
 
   .pd-shot img {
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 78vh;
+    margin: 0 auto;
     object-fit: contain;
     object-position: center;
     display: block;
@@ -324,6 +325,12 @@
     }
     .pd-panel { position: static; top: auto; }
     .pd-gallery { gap: 10px; }
+    .pd-shot {
+      aspect-ratio: 2 / 3;
+      max-height: none;
+      background: var(--surface);
+    }
+    .pd-shot img { width: 100%; height: 100%; max-height: none; }
     /* Add to Cart was landing at 658px of an 844px viewport because a
        full 3:4 frame sat above the panel. A shorter lead frame puts the
        name, price, size row and button inside the first screen without
@@ -707,33 +714,57 @@
      has no media. Everything inside reuses the real classes, so it
      reads as the product rather than as a placeholder. */
   .pd-prerender {
-    max-width: 560px;
+    max-width: 1700px;
     margin: 0 auto;
-    /* Side gutter matters here: this block is the whole page for a
-       client with no JS, and without it the title and the photo run
-       into both edges of a phone screen. */
-    padding: 48px 20px;
+    padding: 24px var(--page-pad) 12vh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 642px;
+    gap: 20px;
+    align-items: start;
   }
 
-  /* The build-time product photo. Same 3:4 frame and top-anchored crop
-     as the real gallery, so the swap at hydration is not a visible
-     change of shape. */
+  /* Keep the no-JavaScript product summary in the same desktop rhythm
+     as the hydrated page, and preserve the photograph's full frame. */
   .pd-prerender-media {
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border-radius: 0;
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    display: flex;
+    justify-content: center;
+    max-height: 78vh;
     margin: 22px 0 26px;
   }
 
   .pd-prerender-media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 78vh;
+    object-fit: contain;
     display: block;
   }
 
+  .pd-prerender > .pd-name { grid-column: 2; grid-row: 1; }
+  .pd-prerender > .pd-price { grid-column: 2; grid-row: 2; }
+  .pd-prerender > .pd-sizes { grid-column: 2; grid-row: 3; }
+  .pd-prerender > .pd-desc { grid-column: 2; grid-row: 4; }
+
   @media (max-width: 900px) {
+    .pd-prerender {
+      grid-template-columns: 1fr;
+      padding: 16px 15px 12vh;
+    }
+    .pd-prerender > .pd-name,
+    .pd-prerender > .pd-price,
+    .pd-prerender > .pd-sizes,
+    .pd-prerender > .pd-desc { grid-column: 1; grid-row: auto; }
+    .pd-prerender-media {
+      grid-column: 1;
+      grid-row: auto;
+      aspect-ratio: 4 / 3.6;
+      max-height: none;
+      margin: 14px 0 20px;
+    }
+    .pd-prerender-media img { width: 100%; height: 100%; max-height: none; }
     /* One column, source order: gallery, then the panel. Nothing is
        repositioned by grid-areas any more -- the markup is already in
        the order a phone wants, which is image, then name and price,
@@ -1152,6 +1183,8 @@
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>
           <li><a href="/text.html">Text List</a></li>
         </ul>
@@ -1160,6 +1193,16 @@
       <div class="fcol fcol--signup">
         <h2 class="fhead">Join the community</h2>
         <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
+        <div class="email-signup" data-email-location="footer">
+      <form class="sms-form email-form" data-email-signup novalidate>
+        <label class="sr-only" for="email-footer">Email address</label>
+        <input class="field" type="email" id="email-footer" name="email" placeholder="Email address"
+               autocomplete="email" spellcheck="false" required>
+        <button type="submit">Join</button>
+        <p class="sms-msg" data-email-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="email-consent">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
+    </div>
         <div class="sms-signup sms-signup--footer" data-sms-location="footer">
       
       <form class="sms-form" data-sms-signup novalidate>
@@ -1686,13 +1729,10 @@
 
 
     // ---- copy blocks ----
-    /* The returns paragraph is gated with the rest of the returns copy
-       (A.returnsLine / RETURNS_POLICY_PUBLISHED). With no policy
-       published it does not render, and the accordion is titled
-       "Shipping" rather than promising a Returns section that is not
-       there. */
+    /* Match the published case-by-case policy in the Shipping tab.
+       No fit guarantee or return window is implied here. */
     const returnsPara = A.returnsLine()
-      ? `<p>Returns and exchanges accepted within ${A.escapeHtml(String(A.shippingConfig().RETURNS_WINDOW_DAYS))} days of delivery, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> to start one. Sizing exchanges are subject to availability. Items must be unworn, unwashed, with tags attached. Return shipping is on us if something arrived damaged or wrong, otherwise it's on you.</p>`
+      ? `<p>For fit, order, damage, or other issues, email <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a> so we can review it with you. We usually offer a replacement first. Refunds can be discussed and arranged by email.</p>`
       : '';
 
     /* ---- the three tabs [measured: DETAILS | SHIPPING | SIZING] ----

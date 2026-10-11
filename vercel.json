@@ -62,6 +62,16 @@
       "source": "/policies/terms-of-service",
       "destination": "/terms-of-service.html",
       "permanent": true
+    },
+    {
+      "source": "/policies/shipping-policy",
+      "destination": "/shipping-policy.html",
+      "permanent": true
+    },
+    {
+      "source": "/policies/refund-policy",
+      "destination": "/refund-policy.html",
+      "permanent": true
     }
   ],
   "headers": [

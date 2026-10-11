@@ -97,32 +97,31 @@ these. Nothing else is a source, and nothing may be written from memory.
 - Do **not** render `shopify.fabric` or the other `shopify.*` taxonomy
   values. Those are Shopify's auto-suggestions, not verified facts.
 
-**Shipping** (live Shopify config, 2026-10-05) lives in
+**Shipping** (last checked in Shopify, 2026-10-05) lives in
 `assets/promo-config.js`:
 - Dispatch 1–2 business days. That is handling time, not delivery.
 - US rates: Economy $4.90 (0–5 lb), Standard $6.90 (0–1 lb) / $9.90
   (1–5 lb). Transit: Economy 5–8 business days, Standard 3–4. Each
   transit time belongs to its own rate and may not be quoted next to a
   different one.
-- **No country count may be stated anywhere.** Delivery zones are active
-  for 244 countries, the policy text still says "US only for now", and
-  the founder has not decided which is true. Until he does, the site
-  says nothing about where it ships beyond the US rates above.
+- Sathvik confirmed US and international shipping on 2026-10-11. The
+  public policy says international destinations and rates are shown at
+  checkout; it does not claim a country count. The Shopify Admin policy
+  still needs to be synchronized with `shipping-policy.html` so the
+  checkout footer agrees.
 
 **Support email** is one address site-wide, from `SUPPORT_EMAIL` in
 `scripts/build.js`. It is Shopify's contact address. Do not switch it to
 `hello@` until someone confirms that inbox is read.
 
-**No refund policy exists** — not in Shopify, and `/refund-policy.html`
-is a 404. Returns copy is therefore gated on
-`RETURNS_POLICY_PUBLISHED` in `assets/promo-config.js` (client-readable,
-next to the shipping facts — every returns string is rendered from JS,
-so a build-time constant could not reach them). It is `false`, and
-`Asior.returnsLine()` returns `''`, so the PDP spec list, the quick
-view and the shipping accordion all say nothing about returns. With no
-policy published the site makes no returns promise and no refusal
-either. To turn it on: publish the policy in Shopify Admin, confirm
-`/refund-policy.html` serves it, then flip the flag.
+**Returns policy:** the storefront policy at `/refund-policy.html` says
+fit or order issues are reviewed case by case; replacements are usually
+the first solution, and refunds may be agreed by email. Sathvik
+confirmed this on 2026-10-11. The matching Shopify Admin policy still
+needs to be synchronized before checkout displays it.
+`RETURNS_POLICY_PUBLISHED` in `assets/promo-config.js` controls the
+matching PDP/quick-view sentence. Do not add a return window or promise
+a specific refund timeline without confirmation.
 
 ## Brand and design
 

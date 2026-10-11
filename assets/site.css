@@ -405,6 +405,11 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
   min-width: 0;
 }
 
+.sms-form input[type="email"] {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
 .sms-form button {
   flex: 0 0 auto;
   background: var(--ink);
@@ -449,9 +454,19 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
 /* Once accepted there is nothing left to type. The status line stays,
    because it is the only place that says to reply YES. */
 .sms-form.is-done input[type="tel"],
+.sms-form.is-done input[type="email"],
 .sms-form.is-done button { display: none; }
 
 .sms-signup .consent { margin-top: 12px; }
+
+.email-signup { margin: 0 0 16px; }
+.email-consent {
+  margin: 9px 0 0;
+  font-family: var(--font);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 
 /* Footer placement: same block, condensed, centred with the rest of
    the footer. */
@@ -475,6 +490,7 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
 
 @media (max-width: 420px) {
   .sms-form input[type="tel"] { flex: 1 1 100%; }
+  .sms-form input[type="email"] { flex: 1 1 100%; }
   .sms-form button { flex: 1 1 100%; }
 }
 
@@ -813,6 +829,10 @@ html.cart-drawer-locked { overflow: hidden; }
 
 .shop .coll-head { padding: 14px 0 28px; }
 .coll-title { margin: 0; font: 500 20px/1.2 var(--font); letter-spacing: .02em; }
+.shop-search { flex: 1 1 260px; max-width: 340px; margin-left: auto; }
+.shop-search input { width: 100%; }
+.shop-search-status { min-width: 0; color: var(--muted); font-size: 11px; }
+.shop-search-status:empty { display: none; }
 .coll-filter {
   display: inline-flex;
   align-items: center;
@@ -832,6 +852,12 @@ html.cart-drawer-locked { overflow: hidden; }
 @media (max-width: 900px) {
   .shop .coll-head { padding: 12px 0 18px; }
   .shop .coll-title { font-size: 17px; }
+}
+
+@media (max-width: 640px) {
+  .shop .coll-head { flex-wrap: wrap; gap: 10px 14px; }
+  .shop-search { order: 3; flex: 1 0 100%; max-width: none; margin: 0; }
+  .shop-search-status { order: 4; flex: 1 0 100%; }
 }
 
 /* Catalogue filter drawer: hidden completely until the filter control
@@ -938,6 +964,23 @@ html.cart-drawer-locked { overflow: hidden; }
   text-decoration: line-through;
   margin-right: 6px;
 }
+
+.product-price .sale-price { color: var(--ink); }
+
+.shop-grid-heading {
+  grid-column: 1 / -1;
+  margin: 32px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.shop-grid-heading:first-child { margin-top: 0; }
 
 .product-state {
   margin-top: 4px;
