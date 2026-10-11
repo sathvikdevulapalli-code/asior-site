@@ -56,27 +56,21 @@
 
   .gallery {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .look {
     position: relative;
-    /* Taller than 3/4 because the frame is now the full width of the
-       window: at 1440px a 3/4 box is 1920px tall and one photograph
-       becomes two screens of scrolling. */
-    aspect-ratio: 16 / 11;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
-    opacity: 0;
-    transition: opacity 600ms var(--ease-out);
+    background: #f2f0eb;
   }
-
-  .look.in { opacity: 1; }
 
   .look img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
   }
 
@@ -90,13 +84,7 @@
        the width of the old strip. */
     .lookbook .rail-label,
     .look-intro { padding-left: 20px; padding-right: 20px; }
-    /* Portrait on a phone: the window is narrow, so a wide crop would
-       throw away most of the subject. */
-    .look { aspect-ratio: 3 / 4; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .look { opacity: 1 !important; }
+    .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   }
 </style>
 
@@ -167,12 +155,12 @@
     <h1 class="rail-label">Lookbook</h1>
     <p class="look-intro">The Fall collection, worn. Shot on the people who actually wear it.</p>
     <div class="gallery">
-      <div class="look"><picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Asior look 01" width="800" height="1200" fetchpriority="high" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Asior look 02" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="Asior look 03" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Asior look 04" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="Asior look 05" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="Asior look 06" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Two models wearing Asior tees and shorts against a brick wall" width="800" height="1200" fetchpriority="high" decoding="async"></picture></div>
+      <div class="look"><picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Model wearing the Asior Polo on outdoor steps" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Close streetwear look showing the black tee and purple details" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Model wearing the Asior Polo in a city setting" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="look"><picture><source type="image/webp" srcset="images/look-15.webp"><img src="images/look-15.jpg" alt="Two models showing the back details of Asior shorts and tees" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <div class="look"><picture><source type="image/webp" srcset="images/look-14.webp"><img src="images/look-14.jpg" alt="Model wearing the light Asior shorts with a black tee" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
     </div>
   </section>
 
@@ -305,16 +293,6 @@
   // otherwise need launch-config.js, so it is
   // loaded here rather than assumed already present.
 
-  const looks = document.querySelectorAll('.look');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.2 });
-  looks.forEach(l => observer.observe(l));
 </script>
 
 </body>

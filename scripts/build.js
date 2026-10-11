@@ -253,17 +253,21 @@ function renderCollectionPage(template, c) {
   const banner = BANNERS[c.slug] || 'duo-tops-wide';
   const wideBanner = banner.endsWith('-wide') || banner.endsWith('-extended');
   const expandedBanner = banner.endsWith('-extended');
+  const compactBanner = c.slug === 'accessories';
   const bannerAlt = c.slug === 'tops'
     ? 'Two Asior models wearing the Fall tops together on a city street'
     : c.slug === 'bottoms'
       ? 'Two Asior models wearing the Fall bottoms together in an urban setting'
       : 'Asior model in black streetwear with subtle leopard print on a city street';
-  const bannerHtml = `  <div class="coll-banner${wideBanner ? ' coll-banner--wide' : ''}">
+  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner${wideBanner ? ' coll-banner--wide' : ''}">
     <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${expandedBanner ? '1600' : wideBanner ? '1536' : '800'}" height="${expandedBanner ? '1200' : wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
   </div>
 `;
   html = replaceBetween(html, '<!-- BANNER:START -->', '<!-- BANNER:END -->', bannerHtml);
   if (html === null) throw new Error(`${c.slug}: BANNER markers missing`);
+  if (compactBanner) {
+    html = html.replace('<body class="page--hero">', '<body>');
+  }
 
   const grid = sortForMerchandising(c.products)
     .map((p, i) => shopCard(p, i < 4))
@@ -1281,16 +1285,17 @@ function syncArchive(products) {
 
 /* The homepage photograph.
 
-   Keep the original Polo shot as the mobile image and the edited
-   full-bleed landscape as the desktop hero. Neither depends on Shopify
-   gallery ordering. */
+   Keep the approved duo campaign photo as the full-frame hero on desktop
+   and mobile. Neither depends on Shopify gallery ordering. */
 function syncHero() {
   const target = path.join(ROOT, 'index.html');
   let html = fs.readFileSync(target, 'utf8');
+  html = html.replace(/<source class="hero-mobile"[^>]*>/,
+    '<source class="hero-mobile" media="(max-width: 900px)" type="image/webp" srcset="images/asior-hero-wide.webp" width="1900" height="859">');
   html = html.replace(/<source class="hero-desktop"[^>]*>/,
-    '<source class="hero-desktop" type="image/webp" srcset="images/asior-hero-wide.webp" width="1916" height="821">');
+    '<source class="hero-desktop" type="image/webp" srcset="images/asior-hero-wide.webp" width="1900" height="859">');
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    '        <img src="images/asior-hero-wide.jpg" alt="Asior model wearing the black leopard-trimmed Polo, seated on a city stairway" width="1916" height="821" fetchpriority="high" decoding="async">\n');
+    '        <img src="images/asior-hero-wide.jpg" alt="Two Asior models wearing black pieces with purple leopard trim on a city street" width="1900" height="859" fetchpriority="high" decoding="async">\n');
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
   return 1;
@@ -1486,7 +1491,7 @@ function syncSharedMarkup() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero() ? 'full-width Asior Polo campaign photo' : 'none'}`);
+    console.log(`✓ homepage hero: ${syncHero() ? 'approved Asior duo campaign photo' : 'none'}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);

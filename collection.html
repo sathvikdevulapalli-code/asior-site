@@ -51,11 +51,11 @@
     display: block;
   }
 
-  /* The Tops and Bottoms campaign frames are landscape originals.
-     Let them run edge to edge at their native ratio on desktop instead
-     of shrinking them into a centered box with black gutters. */
-  .coll-banner--wide { height: auto; min-height: 0; }
-  .coll-banner--wide img { height: auto; object-fit: initial; }
+  /* Keep faces in frame and let the first product cards peek into the
+     desktop fold. Align the shallow crop from the top so heads stay in
+     view on the wide source photos. */
+  .coll-banner--wide { height: min(68svh, 680px); min-height: 0; }
+  .coll-banner--wide img { height: 100%; object-fit: cover; object-position: center top; }
 
   /* The header sits on the banner in white. A photo with a bright top
      edge would swallow it, so the same 0.2 overlay the reference uses
