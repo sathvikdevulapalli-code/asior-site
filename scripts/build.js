@@ -189,7 +189,7 @@ function collectionProducts(collection, products, shopifyMembership) {
     : collection.handles;
 
   if (handles === null) {
-    console.log(`  ${collection.slug}: not returned by Shopify — no page generated`);
+    console.log(`  ${collection.slug}: not returned by Shopify, no page generated`);
     return null;
   }
 
@@ -210,7 +210,7 @@ function renderCollectionPage(template, c) {
      one of these collections has an empty descriptionHtml in Shopify,
      and writing an intro for them here would be inventing copy. */
   const n = c.products.length;
-  const desc = `${c.name} from Asior — ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const desc = `${c.name} from Asior. ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
   const lead = c.products.map(leadImage).find(Boolean);
   const img = lead && lead.url ? lead.url : `${BASE}/assets/og-default.jpg`;
 
@@ -538,7 +538,7 @@ function renderProductPage(template, p) {
      sold, which is true, and claims nothing about who sews them. Only
      a product whose Shopify description is empty ever sees it. */
   const desc = plainDescription(p.descriptionHtml,
-    `${name} from ASIOR — streetwear from Texas.`);
+    `${name} from ASIOR. Streetwear from Texas.`);
   const lead = leadImage(p);
   const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
   const alt = lead && lead.altText ? lead.altText : name;
@@ -1665,7 +1665,7 @@ function hashLocalImages() {
         path.join(collDir, `${coll.slug}.html`),
         renderCollectionPage(collTemplate, { ...coll, products: inColl }));
       built.push({ slug: coll.slug, name: coll.name, count: inColl.length });
-      console.log(`  /collections/${coll.slug}.html — ${inColl.length} product(s) [${coll.source}]`);
+      console.log(`  /collections/${coll.slug}.html - ${inColl.length} product(s) [${coll.source}]`);
     }
     console.log(`✓ ${built.length} collection pages -> /collections/`);
     console.log(`✓ vercel.json routes ${checkCollectionRoutes(built.map(b => b.slug))}/${built.length} collections`);
@@ -1702,5 +1702,5 @@ function hashLocalImages() {
   // A policy-sync failure is not fatal: the pages keep their previous
   // synced text and still link out to the live policy. The log makes it
   // visible in the Netlify build output.
-  if (failed) console.error('\nBuild finished with warnings — policy pages left as they were.');
+  if (failed) console.error('\nBuild finished with warnings. Policy pages left as they were.');
 })();

@@ -513,7 +513,7 @@
           // Double opt-in: accepted, not subscribed. Saying "you're in"
           // here would be a lie until they reply.
           form.classList.add('is-done');
-          say('Almost done — check your texts and reply YES to confirm.', false);
+          say('Almost done. Check your texts and reply YES to confirm.', false);
           input.value = '';
           /* An event as well as the subscription, so the signup shows
              up in Klaviyo's stream against the same first touch and can
@@ -1681,7 +1681,7 @@
       return 'Free shipping over $' + s.FREE_THRESHOLD + '. Dispatched in ' + fulfil + region + '.';
     }
     if (typeof s.FROM_PRICE === 'number') {
-      return 'Dispatched in ' + fulfil + '. Delivery is on top of that \u2014 US shipping from $'
+      return 'Dispatched in ' + fulfil + '. Delivery time is extra. US shipping starts at $'
         + s.FROM_PRICE.toFixed(2) + ', calculated at checkout.';
     }
     return 'Dispatched in ' + fulfil + '. Delivery and shipping calculated at checkout'

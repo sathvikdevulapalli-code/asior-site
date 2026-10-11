@@ -50,6 +50,14 @@ const BANNED = [
    product.html rather than here, because a bare number is not a star. */
 const STARS = /[★☆⭐]/;
 
+/* The em dash (U+2014). Sathvik does not want one anywhere a customer
+   reads, and they creep back in every time copy is rewritten.
+
+   Comments are stripped before this runs, like every other rule, so a
+   comment may still contain one -- the rule is about what renders, not
+   about how the source is punctuated. */
+const EM_DASH = /\u2014/;
+
 function pages(dir, out) {
   out = out || [];
   for (const name of fs.readdirSync(dir)) {
@@ -57,7 +65,10 @@ function pages(dir, out) {
     const full = path.join(dir, name);
     const st = fs.statSync(full);
     if (st.isDirectory()) pages(full, out);
-    else if (name.endsWith('.html')) out.push(full);
+    /* .js as well as .html: assets/site.js builds the shipping and
+       returns sentences at runtime, so they are never in the built
+       HTML and a rule that only read .html could not see them. */
+    else if (name.endsWith('.html') || name.endsWith('.js')) out.push(full);
   }
   return out;
 }
@@ -74,15 +85,29 @@ for (const file of pages(ROOT)) {
     .replace(/<!--[\s\S]*?-->/g, m => m.replace(/[^\n]/g, ' '))
     .replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '))
     .replace(/(^|[^:])\/\/[^\n]*/g, (m, p1) => p1 + ' '.repeat(m.length - p1.length));
-  for (const [re, why] of BANNED) {
+  /* The phrase and star rules describe what a page renders, so they
+     run on HTML only. Pointed at a .js file they fire on the code that
+     implements them -- isGeneratedImage()'s own "Firefly_" detector,
+     and the free-shipping helper that exists to stay switched off.
+     The em-dash rule is the one that has to read both. */
+  const isJs = rel.endsWith('.js');
+  for (const [re, why] of (isJs ? [] : BANNED)) {
     const m = re.exec(html);
     if (!m) continue;
     const line = html.slice(0, m.index).split('\n').length;
-    console.error(`  ${rel}:${line}  "${m[0]}"  — ${why}`);
+    console.error(`  ${rel}:${line}  "${m[0]}"  - ${why}`);
     hits++;
   }
-  if (STARS.test(html)) {
-    console.error(`  ${rel}  star glyph — v13 §0: no star ratings`);
+  if (!isJs && STARS.test(html)) {
+    console.error(`  ${rel}  star glyph - v13 §0: no star ratings`);
+    hits++;
+  }
+  const em = EM_DASH.exec(html);
+  if (em) {
+    const line = html.slice(0, em.index).split('\n').length;
+    const ctx = html.split('\n')[line - 1].trim().slice(0, 72);
+    console.error(`  ${rel}:${line}  em dash (U+2014) in rendered copy - use a full stop, a colon or a comma`);
+    console.error(`      ${ctx}`);
     hits++;
   }
 }
