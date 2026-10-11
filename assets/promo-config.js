@@ -139,8 +139,9 @@ window.ASIOR_SHIPPING = {
 
   // International is live through Shopify Managed Markets, with
   // Global-e as merchant of record. Rates are carrier-calculated and
-  // shown at checkout with duties and taxes included in the total, so
-  // there is nothing to collect on delivery. "US only for now" was
+  // shown at checkout. Whether duties and taxes are included in that
+  // total is NOT confirmed -- see INTERNATIONAL_DUTIES_INCLUDED below.
+  // "US only for now" was
   // wrong and was turning away buyers the store can actually ship to.
   // REGION stays null: the shipping line names the US price without
   // claiming the US is the only destination.
@@ -167,7 +168,16 @@ window.ASIOR_SHIPPING = {
   // The exact destination count changes with Shopify's delivery zones;
   // don't publish a country count here.
   INTERNATIONAL_COUNTRIES: null,
-  INTERNATIONAL_DUTIES_INCLUDED: true,
+  /* false since 2026-10-11. Asked whether he had completed an
+     international checkout that showed duties included in the total,
+     Sathvik said no, and the matching sentence came out of
+     shipping-policy.html for that reason. internationalLine() renders
+     nothing today either way, because INTERNATIONAL_COUNTRIES is null
+     and it returns early without one -- but leaving this true left the
+     same unverified claim armed, ready to ship the moment a country
+     count was filled in. Flip it back once a real international order
+     has been seen landing with nothing to pay on delivery. */
+  INTERNATIONAL_DUTIES_INCLUDED: false,
   INTERNATIONAL_PHONE_REQUIRED: true,
   INTERNATIONAL_CHINA_RESIDENT_ID: true,
 
