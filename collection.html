@@ -529,7 +529,8 @@
     if (mode === 'desc') view.sort(function (a, b) { return minPrice(b) - minPrice(a); });
 
     grid.innerHTML = view.map(function (p, i) {
-      return A.productCard(p, { eager: i < 4, peek: true });
+      /* Category grid is full-bleed, not the capped shop grid. */
+      return A.productCard(p, { eager: i < 4, peek: true, sizes: A.CARD_SIZES.row });
     }).join('');
 
     var empty = document.getElementById('collEmpty');

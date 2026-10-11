@@ -1066,8 +1066,8 @@
   /* The card itself is assets/site.js's productCard, so the grid, the
      collection pages and (via shopCard in scripts/build.js) the
      pre-rendered markup all describe the same tile. */
-  function card(p, eager) {
-    return A.productCard(p, { eager: eager });
+  function card(p, eager, sizes) {
+    return A.productCard(p, { eager: eager, sizes: sizes });
   }
 
   // Add straight from the grid — no navigation, so browsing never
@@ -1287,7 +1287,7 @@
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
       <h2 class="rail-label">Pick Up Where You Left Off</h2>
-      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3)).join('')}</div>`;
+      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3, A.CARD_SIZES.grid)).join('')}</div>`;
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
     revealOnScroll(recentGrid);

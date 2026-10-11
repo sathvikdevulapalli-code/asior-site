@@ -271,7 +271,7 @@ function renderCollectionPage(template, c) {
   }
 
   const grid = sortForMerchandising(c.products)
-    .map((p, i) => shopCard(p, i < 4))
+    .map((p, i) => shopCard(p, i < 4, CARD_SIZES.row))
     .filter(Boolean)
     .join('\n') + '\n';
 
@@ -1135,7 +1135,35 @@ function sortForMerchandising(products) {
    JS-rendered markup are the same shape. Quick-add chips are
    deliberately omitted: they do nothing without JS, and the live render
    adds them the moment it runs. */
-function shopCard(p, eager) {
+/* ---- card `sizes`, measured 2026-10-11 ------------------------------
+
+   The old single string ended in `300px`, which was only ever right
+   for shop.html. Measured slot widths at 1920 / 1440 / 1024 / 768 /
+   390:
+
+     shop.html grid      271 271 223 364 175  (grid caps at 1100px)
+     homepage + category 456 336 232 364 175  (full width)
+     homepage featured   917 677 469 738 360  (spans 2x2)
+
+   Declaring 300px for a 917px slot made the browser choose the 400w
+   candidate and scale it up 2.3x, which is the soft featured card on
+   the homepage. Each string below is >= the measured slot at every one
+   of those widths, so the browser picks the next candidate up rather
+   than one that has to be stretched.
+
+   These must stay in step with CARD_SIZES in assets/site.js: the live
+   render replaces this markup, and a mismatch would simply move the
+   problem to after hydration. */
+const CARD_SIZES = {
+  // shop.html, whose grid is capped, so the slot stops growing at 1280
+  grid: '(max-width: 768px) 48vw, (max-width: 1279px) 23vw, 280px',
+  // homepage rows and the category pages, both full-bleed
+  row: '(max-width: 768px) 48vw, 25vw',
+  // the 2x2 first card in .shop-grid--featured
+  featured: '(max-width: 768px) 97vw, 48vw',
+};
+
+function shopCard(p, eager, sizes) {
   const variants = p.variants.edges.map(e => e.node);
   const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
   if (!prices.length) return '';
@@ -1161,7 +1189,7 @@ function shopCard(p, eager) {
     media = '<img '
       + `src="${esc(img.w1200 || img.url)}" `
       + (srcset ? `srcset="${srcset}" ` : '')
-      + 'sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" '
+      + `sizes="${sizes || CARD_SIZES.grid}" `
       + `alt="${esc('Asior ' + name)}" `
       + (img.width ? `width="${esc(img.width)}" ` : '')
       + (img.height ? `height="${esc(img.height)}" ` : '')
@@ -1315,7 +1343,7 @@ function syncNewArrivals(products) {
     .slice()
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
     .slice(0, 4);
-  const grid = newest.map(p => shopCard(p, false)).filter(Boolean).join('\n') + '\n';
+  const grid = newest.map(p => shopCard(p, false, CARD_SIZES.row)).filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
   if (next === null) throw new Error('index.html: NEWGRID markers missing');
   if (next !== html) fs.writeFileSync(target, next);
@@ -1328,7 +1356,9 @@ function syncLineup(products) {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
   const rows = sortForMerchandising(products).slice(0, 8)
-    .map((p, i) => shopCard(p, false)).filter(Boolean).join('\n') + '\n';
+    /* The first card spans 2x2 in .shop-grid--featured. */
+    .map((p, i) => shopCard(p, false, i === 0 ? CARD_SIZES.featured : CARD_SIZES.row))
+    .filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
   if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
   if (next !== html) fs.writeFileSync(target, next);

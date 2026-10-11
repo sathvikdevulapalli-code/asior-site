@@ -1455,13 +1455,27 @@
      opts.peek   -- render the quick view trigger (default true). The
                     link opens quick view where available and falls back
                     to the full product page everywhere else. */
+  /* Measured slot widths, 2026-10-11, at 1920/1440/1024/768/390:
+       shop.html grid      271 271 223 364 175  (grid caps at 1100px)
+       homepage + category 456 336 232 364 175  (full width)
+       homepage featured   917 677 469 738 360  (spans 2x2)
+     The old single string ended in 300px, so a 917px slot was handed
+     the 400w candidate and stretched 2.3x. Each string is >= the
+     measured slot at every one of those widths.
+     Must stay in step with CARD_SIZES in scripts/build.js. */
+  var CARD_SIZES = {
+    grid: '(max-width: 768px) 48vw, (max-width: 1279px) 23vw, 280px',
+    row: '(max-width: 768px) 48vw, 25vw',
+    featured: '(max-width: 768px) 97vw, 48vw',
+  };
+
   function productCard(p, opts) {
     opts = opts || {};
     var media = p.image
       ? imgTag(p.image, {
           alt: 'Asior ' + p.name,
           eager: !!opts.eager,
-          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
+          sizes: opts.sizes || CARD_SIZES.grid,
         })
       : '';
     /* The hover frame rides along as data and only becomes a real <img>
@@ -1748,6 +1762,7 @@
 
   // -----------------------------------------------------------------
   window.Asior = {
+    CARD_SIZES: CARD_SIZES,
     applyCardFocus: applyCardFocus,
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
