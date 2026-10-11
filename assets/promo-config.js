@@ -227,3 +227,26 @@ window.ASIOR_ANALYTICS = {
      means sending nothing. */
   REQUIRE_CONSENT_API: false,
 };
+
+/* ===================================================================
+   PER-PRODUCT CARD CROP
+
+   Product cards fill a 2:3 frame with object-fit: cover, so a photo
+   that is not 2:3 is trimmed. This map moves the crop for a product
+   whose subject is not in the middle of the frame -- a flat-lay shot
+   from above, or a group shot where cover would cut a face.
+
+   Key: the Shopify product handle, exactly as it appears in
+   data-handle on the card. Value: any CSS object-position, e.g.
+   '50% 30%' to favour the top of the frame.
+
+   EMPTY ON PURPOSE. Every lead image in the catalogue was measured on
+   2026-10-11 and all ten are portrait, 0.56 to 0.75 against the
+   frame's 0.667, so the centre crop is already right for all of them
+   and no entry would be doing anything. Add one only after looking at
+   the card and seeing the crop go wrong -- a value guessed without
+   seeing the photograph is worse than the default.
+   =================================================================== */
+window.ASIOR_CARD_FOCUS = {
+  // 'some-handle': '50% 30%',
+};

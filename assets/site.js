@@ -1702,8 +1702,53 @@
     return { unlocked: false, away: away, text: '$' + away.toFixed(2) + ' away from free shipping' };
   }
 
+  /* ---- per-product card crop ------------------------------------
+
+     Cards fill a 2:3 frame with object-fit: cover. CARD_FOCUS in
+     assets/promo-config.js can move that crop for a product whose
+     subject is off-centre; everything else keeps the centre default
+     from the stylesheet.
+
+     Applied here rather than in the card markup because three places
+     build a card -- shopCard() in scripts/build.js for the prerender,
+     and a card() in each of shop.html and index.html for the live
+     render -- and they would drift. One observer covers all three and
+     anything rendered later. */
+  function applyCardFocus(root) {
+    var map = window.ASIOR_CARD_FOCUS;
+    if (!map) return 0;
+    var n = 0;
+    var cards = (root || document).querySelectorAll('.product[data-handle]');
+    for (var i = 0; i < cards.length; i++) {
+      var pos = map[cards[i].getAttribute('data-handle')];
+      if (!pos) continue;
+      var frame = cards[i].querySelector('.product-img');
+      if (frame) { frame.style.setProperty('--card-focus', pos); n++; }
+    }
+    return n;
+  }
+
+  function watchCardFocus() {
+    if (!window.ASIOR_CARD_FOCUS || !Object.keys(window.ASIOR_CARD_FOCUS).length) return;
+    applyCardFocus(document);
+    if (typeof MutationObserver !== 'function') return;
+    var pending = false;
+    new MutationObserver(function () {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function () { pending = false; applyCardFocus(document); });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchCardFocus);
+  } else {
+    watchCardFocus();
+  }
+
   // -----------------------------------------------------------------
   window.Asior = {
+    applyCardFocus: applyCardFocus,
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
     shippingLine: shippingLine,

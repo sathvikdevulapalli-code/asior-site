@@ -905,8 +905,22 @@ html.cart-drawer-locked { overflow: hidden; }
 
 .product { position: relative; }
 
-/* Product cards keep the complete source photo visible. The light
-   surface gives mixed lifestyle and studio photographs one quiet frame. */
+/* One frame for every card, on the homepage rows, shop.html, the
+   collection pages and archive.html -- they all use .product-img.
+
+   2:3 rather than 3:4 because that is what every lead photograph in
+   the catalogue already is: measured 2026-10-11, the lead images run
+   0.56 to 0.75 against this frame's 0.667, so the shape is the one the
+   photography was shot in rather than one imposed on it.
+
+   object-fit was contain, which letterboxed anything that was not
+   exactly 2:3 -- grey bars down the sides of the 0.75 shots and across
+   the top and bottom of the 0.56 ones, so no two cards matched. cover
+   fills the frame instead; at the measured extremes it trims about 11%
+   of width or 16% of height, and nothing letterboxes.
+
+   The background stays as the frame colour behind a photo that has not
+   decoded yet. It is no longer reachable once one has. */
 .product-img {
   position: relative;
   aspect-ratio: 2 / 3;
@@ -914,10 +928,15 @@ html.cart-drawer-locked { overflow: hidden; }
   overflow: hidden;
 }
 
+/* --card-focus is set per product from CARD_FOCUS in
+   assets/promo-config.js; see applyCardFocus() in assets/site.js. The
+   fallback is the centre crop, which is correct for every lead image
+   in the catalogue as measured. */
 .product-img img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: var(--card-focus, 50% 50%);
   display: block;
 }
 
