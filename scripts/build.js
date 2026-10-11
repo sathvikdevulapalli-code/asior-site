@@ -250,18 +250,49 @@ function renderCollectionPage(template, c) {
      in images/, assigned per category and committed here rather than
      picked at random, so a category's banner does not change on every
      deploy. Replace a value the moment real category art exists. */
-  const BANNERS = { tops: 'duo-tops-wide', bottoms: 'duo-bottoms-wide', accessories: 'look-12' };
-  const banner = BANNERS[c.slug] || 'duo-tops-wide';
-  const wideBanner = banner.endsWith('-wide') || banner.endsWith('-extended');
-  const expandedBanner = banner.endsWith('-extended');
+  /* Category banners.
+
+     The duo-*-wide files are not used here. They carry no camera EXIF,
+     they are 1536x1024 landscape when every verified frame from the
+     shoot is 800x1200 portrait, and Sathvik could not confirm on
+     2026-10-11 whether they are original photographs or AI-extended
+     from a portrait. CLAUDE.md says real photos only, so until that is
+     settled the banners are built from look-*, which carry Sony
+     ILCE-6400 EXIF. The duo files are left in images/ untouched; that
+     is the founder's call, not this build's.
+
+     Two frames per banner, side by side. One 800px-wide portrait
+     stretched across a 1905px banner would be a 2.4x upscale -- worse
+     than the 1.24x the duo files were being stretched by. A pair gives
+     ~1600px of real pixels across the same band, about 1.19x, and the
+     crop stays horizontal.
+
+     Chosen for what each photograph actually shows:
+       tops    look-13, look-08  polo and tee, upper body
+       bottoms look-06, look-09  shorts, no face in either to cut
+     accessories keeps its single compact frame and no wide banner. */
+  const BANNERS = {
+    tops: ['look-13', 'look-08'],
+    bottoms: ['look-06', 'look-09'],
+    accessories: ['look-12'],
+  };
+  /* Where the shallow band is taken from, vertically. Tops crop high
+     so heads and chests stay in frame; bottoms crop low so the band
+     holds the shorts rather than the tee above them. */
+  const BANNER_FOCUS = { tops: '20%', bottoms: '66%' };
+  const bannerFiles = BANNERS[c.slug] || BANNERS.tops;
   const compactBanner = c.slug === 'accessories';
   const bannerAlt = c.slug === 'tops'
-    ? 'Two Asior models wearing the Fall tops together on a city street'
+    ? 'Asior Fall tops worn on a city street'
     : c.slug === 'bottoms'
-      ? 'Two Asior models wearing the Fall bottoms together in an urban setting'
-      : 'Asior model in black streetwear with subtle leopard print on a city street';
-  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner${wideBanner ? ' coll-banner--wide' : ''}">
-    <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${expandedBanner ? '1600' : wideBanner ? '1536' : '800'}" height="${expandedBanner ? '1200' : wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
+      ? 'Asior Fall shorts worn on a city street'
+      : 'Asior model in black streetwear on a city street';
+  /* alt on the first frame only: the pair is one picture of one
+     subject, so a screen reader should hear it described once. */
+  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair" style="--banner-focus: ${BANNER_FOCUS[c.slug] || '20%'}">
+${bannerFiles.map((f, i) => `    <img src="/images/${f}.jpg" alt="${i === 0 ? bannerAlt : ''}"`
+    + `${i === 0 ? '' : ' aria-hidden="true"'} width="800" height="1200"`
+    + ` ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`).join('\n')}
   </div>
 `;
   html = replaceBetween(html, '<!-- BANNER:START -->', '<!-- BANNER:END -->', bannerHtml);

@@ -57,6 +57,28 @@
   .coll-banner--wide { height: min(68svh, 680px); min-height: 0; }
   .coll-banner--wide img { height: 100%; object-fit: cover; object-position: center top; }
 
+  /* Two real frames side by side rather than one stretched across the
+     width: each source is 800x1200, so a single one would be scaled
+     2.4x at 1905px. A pair puts ~1600px of real pixels across the same
+     band. 1px gap so the seam reads as deliberate, not as a glitch. */
+  .coll-banner--pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* An explicit row. Without it the row is auto-sized, each image
+       lays out at its full 1281px height and the container just clips
+       the top of it -- so object-position had nothing to move and both
+       frames showed their top edge whatever the focus said. */
+    grid-template-rows: 100%;
+    gap: 1px;
+  }
+
+  /* The band is shallow, so where it is taken from matters. --banner-focus
+     is set per category by scripts/build.js: tops crop high so heads
+     and chests stay in frame, bottoms crop low so the band holds the
+     shorts instead of the tee above them. */
+  .coll-banner--pair img { width: 100%; height: 100%; min-height: 0; object-fit: cover;
+    object-position: center var(--banner-focus, 20%); }
+
   /* The header sits on the banner in white. A photo with a bright top
      edge would swallow it, so the same 0.2 overlay the reference uses
      on its hero backs the nav here too. */
@@ -232,6 +254,8 @@
   @media (max-width: 900px) {
     .coll-banner { height: auto; aspect-ratio: 3 / 2; min-height: 0; }
     .coll-banner img { height: 100%; object-fit: contain; }
+    /* The pair keeps cropping on a phone; contain would letterbox it. */
+    .coll-banner--pair img { object-fit: cover; }
     .coll { padding: 0 15px 8vh; }
     .coll-head { padding-top: 34px; }
     .coll-title { font-size: 17px; }
