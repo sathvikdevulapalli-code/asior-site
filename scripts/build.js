@@ -34,6 +34,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
@@ -1452,6 +1453,94 @@ function syncSharedMarkup() {
   return synced;
 }
 
+/* ---- content-hashed image filenames ---------------------------------
+
+   vercel.json caches /images/ for a week, and the filenames never
+   changed, so a returning visitor kept the hero they cached seven days
+   ago: when the duo hero shipped, people were still being served the
+   old stairs photograph. Shortening the TTL alone only narrows the
+   window; the fix is to make the URL change whenever the bytes change.
+
+   Every local image reference in the built HTML is rewritten to
+   <base>.<8 hex of sha256>.<ext>, and that file is written next to the
+   original. The canonical name stays on disk and in git -- it is what
+   og:image and any link already shared point at -- so this adds a
+   cache-busting alias rather than renaming the source.
+
+   Idempotent: a reference that already carries a hash is canonicalised
+   before being re-hashed, so running the build twice does not produce
+   foo.aaaaaaaa.bbbbbbbb.webp. Stale aliases whose hash no longer
+   matches are deleted, so the directory does not grow without bound.
+
+   assets/site.css and assets/site.js are deliberately left alone: they
+   are served with max-age=3600 must-revalidate, so they revalidate
+   hourly and were never part of this bug. Rewriting them in place
+   would churn two hand-maintained files on every build. */
+const IMG_EXT = '(?:jpg|jpeg|png|webp|avif|gif)';
+const HASHED_RE = new RegExp(`\\.[0-9a-f]{8}(\\.${IMG_EXT})$`, 'i');
+const canonicalImage = f => f.replace(HASHED_RE, '$1');
+
+function hashLocalImages() {
+  const imgDir = path.join(ROOT, 'images');
+  if (!fs.existsSync(imgDir)) return 0;
+
+  const pages = [];
+  for (const f of fs.readdirSync(ROOT)) {
+    if (f.endsWith('.html')) pages.push(path.join(ROOT, f));
+  }
+  for (const sub of ['products', 'collections']) {
+    const d = path.join(ROOT, sub);
+    if (!fs.existsSync(d)) continue;
+    for (const f of fs.readdirSync(d)) {
+      if (f.endsWith('.html')) pages.push(path.join(d, f));
+    }
+  }
+
+  /* Pass 1: every distinct image the built HTML asks for, canonicalised. */
+  const refRe = new RegExp(`images/([A-Za-z0-9._-]+\\.${IMG_EXT})`, 'gi');
+  const wanted = new Set();
+  const sources = pages.map(f => [f, fs.readFileSync(f, 'utf8')]);
+  for (const [, html] of sources) {
+    for (const m of html.matchAll(refRe)) wanted.add(canonicalImage(m[1]));
+  }
+
+  /* Pass 2: hash each one and write the alias. */
+  const alias = new Map();
+  const keep = new Set();
+  for (const name of wanted) {
+    const src = path.join(imgDir, name);
+    if (!fs.existsSync(src)) continue;          // referenced but absent
+    const buf = fs.readFileSync(src);
+    const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 8);
+    const ext = path.extname(name);
+    const hashed = `${name.slice(0, -ext.length)}.${hash}${ext}`;
+    const dest = path.join(imgDir, hashed);
+    if (!fs.existsSync(dest) || !fs.readFileSync(dest).equals(buf)) {
+      fs.writeFileSync(dest, buf);
+    }
+    alias.set(name, hashed);
+    keep.add(hashed);
+  }
+
+  /* Pass 3: point every reference at the alias. */
+  let rewritten = 0;
+  for (const [file, html] of sources) {
+    const next = html.replace(refRe, (whole, name) => {
+      const hashed = alias.get(canonicalImage(name));
+      return hashed ? `images/${hashed}` : whole;
+    });
+    if (next !== html) { fs.writeFileSync(file, next); rewritten++; }
+  }
+
+  /* Pass 4: drop aliases from earlier builds. */
+  let pruned = 0;
+  for (const f of fs.readdirSync(imgDir)) {
+    if (HASHED_RE.test(f) && !keep.has(f)) { fs.unlinkSync(path.join(imgDir, f)); pruned++; }
+  }
+
+  return { images: alias.size, rewritten, pruned };
+}
+
 (async function main() {
   let failed = false;
 
@@ -1526,6 +1615,11 @@ function syncSharedMarkup() {
        after they are generated or it would publish a sitemap that
        omits every one of them. */
     console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
+
+    /* Last: rewrites references in every page written above. */
+    const h = hashLocalImages();
+    console.log(`✓ image cache busting: ${h.images} image(s) hashed, `
+      + `${h.rewritten} page(s) rewritten, ${h.pruned} stale alias(es) pruned`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
     // which is far better than publishing a site whose shop links all
