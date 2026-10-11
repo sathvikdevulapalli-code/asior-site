@@ -2187,6 +2187,28 @@
 
     renderPrice(); renderSizes(); renderAddButton(); wireGallery();
 
+    /* #size=<value> arrives from a size button on a grid card for a
+       product with a second option still to pick (Color + Size): quick
+       view has no size row for those, so the card sends the customer
+       here with the size they already clicked.
+
+       This is not preselecting a size for anyone -- CLAUDE.md rules
+       that out and it still holds. It is carrying the customer's own
+       click across a navigation. Nothing is chosen unless the hash
+       names a size this product actually has, and the remaining
+       option is still theirs to pick. */
+    (function honourSizeFromHash() {
+      const m = /(?:^|[#&])size=([^&]+)/.exec(location.hash || '');
+      if (!m) return;
+      let wanted;
+      try { wanted = decodeURIComponent(m[1]); } catch (err) { return; }
+      const sizeOption = product.optionNames.filter(n => n === 'Size')[0];
+      if (!sizeOption) return;
+      const exists = product.variants.some(v => v.options[sizeOption] === wanted);
+      if (!exists) return;
+      selectOption(sizeOption, wanted, false);
+    })();
+
     // Same instant as the sitewide banner (scripts/build.js's
     // HEADER_FULL) and index.html's post-Early-Access section — all
 

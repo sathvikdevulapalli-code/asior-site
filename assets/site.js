@@ -1389,6 +1389,7 @@
   var PRODUCT_CARD_FIELDS = `
     title
     handle
+    createdAt
     options { name values }
     featuredImage { ${IMAGE_FIELDS} }
     images(first: 2) { edges { node { ${IMAGE_FIELDS} } } }
@@ -1413,7 +1414,18 @@
       var maxPrice = Math.max.apply(null, prices);
       var compare = compares.length && compares[0] > minPrice ? compares[0] : null;
       var opts = node.options || [];
-      var hasSizeOnly = opts.length === 1 && opts[0].name === 'Size';
+      var sizeOpt = opts.filter(function (o) { return o.name === 'Size'; })[0];
+      /* One option and it is Size: a size button names exactly one
+         variant, so it can add straight to the cart. */
+      var hasSizeOnly = opts.length === 1 && !!sizeOpt;
+      /* Size plus something else (Kova and Ja-yu are Color + Size).
+         These used to get no size row at all, so two apparel cards
+         looked broken next to the rest. They get one now, but a button
+         cannot add to the cart: several colours share a size, so
+         picking one here would be choosing a colour on the customer's
+         behalf. They open quick view with that size already chosen,
+         where the remaining option is visible. */
+      var needsChoice = opts.length > 1 && !!sizeOpt;
       var all = ((node.images && node.images.edges) || []).map(function (x) { return x.node; });
       /* leadImage, not featuredImage: a generated render is never the
          grid tile, and the alt frame has to clear the same bar or the
@@ -1423,6 +1435,10 @@
 
       return {
         handle: node.handle,
+        /* Carried so the homepage's NEW ARRIVALS row can sort the way
+           syncNewArrivals() does in the build, instead of reordering
+           into merchandising order when it re-renders. */
+        createdAt: node.createdAt || '',
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
         image: lead,
         altImage: orderImages(all).filter(function (im) { return im.url !== firstUrl; })[0] || null,
@@ -1438,12 +1454,31 @@
            choice. A product with a second option (color, material)
            needs the full product page, where that choice has room to be
            made correctly. */
+        needsChoice: needsChoice,
         sizes: hasSizeOnly
           ? variants.map(function (v) {
               var o = (v.selectedOptions || []).filter(function (x) { return x.name === 'Size'; })[0];
               return o ? { size: o.value, variantId: v.id, available: v.availableForSale } : null;
             }).filter(Boolean)
-          : null,
+          : needsChoice
+            /* Distinct sizes in Shopify's own option order. A size is
+               offered when any variant in it is sellable, and disabled
+               when none is -- the same sold-out rule as the
+               single-option row, applied across the colours. */
+            ? (sizeOpt.values || []).map(function (value) {
+                var inSize = variants.filter(function (v) {
+                  return (v.selectedOptions || []).some(function (x) {
+                    return x.name === 'Size' && x.value === value;
+                  });
+                });
+                if (!inSize.length) return null;
+                return {
+                  size: value,
+                  variantId: null,
+                  available: inSize.some(function (v) { return v.availableForSale; }),
+                };
+              }).filter(Boolean)
+            : null,
       };
     } catch (err) {
       console.warn('Skipping malformed product:', node && node.handle, err);
@@ -1488,15 +1523,22 @@
       : '';
     var mine = preferredSize();
 
+    /* data-choose marks a row whose buttons open quick view instead of
+       adding, because the product has a second option still to pick.
+       The click handlers on each page branch on it. */
     var quickAdd = p.sizes
-      ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '">'
+      ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '"'
+        + (p.needsChoice ? ' data-choose="1"' : '') + '>'
         + p.sizes.map(function (s) {
+            var label = !s.available ? 'Size ' + escapeAttr(s.size) + ', sold out'
+              : p.needsChoice ? 'Choose size ' + escapeAttr(s.size) + ' for ' + escapeAttr(p.name)
+              : 'Add size ' + escapeAttr(s.size) + ' to cart';
             return '<button type="button" class="qa-size' + (s.available ? '' : ' unavailable')
               + (s.size === mine ? ' mine' : '') + '"'
-              + ' data-variant-id="' + escapeAttr(s.variantId) + '" data-size="' + escapeAttr(s.size) + '"'
+              + (s.variantId ? ' data-variant-id="' + escapeAttr(s.variantId) + '"' : '')
+              + ' data-size="' + escapeAttr(s.size) + '"'
               + (s.available ? '' : ' disabled')
-              + ' aria-label="' + (s.available ? 'Add size ' + escapeAttr(s.size) + ' to cart'
-                                               : 'Size ' + escapeAttr(s.size) + ', sold out') + '">'
+              + ' aria-label="' + label + '">'
               + escapeHtml(s.size) + '</button>';
           }).join('')
         + '</div>'

@@ -1094,6 +1094,18 @@
     container.addEventListener('click', async (e) => {
       const btn = e.target.closest('.qa-size');
       if (!btn || btn.disabled) return;
+      /* Second option still to pick (Color + Size). Quick view has no
+         size row for these -- it shares the single-option assumption --
+         so it would strand the customer in a dialog that cannot express
+         the choice. The product page is the only place both options
+         exist; the size they just clicked rides along in the hash. */
+      const chooseWrap = btn.closest('.quick-add[data-choose]');
+      if (chooseWrap) {
+        e.preventDefault();
+        location.href = '/products/' + encodeURIComponent(chooseWrap.dataset.handle)
+          + '.html#size=' + encodeURIComponent(btn.dataset.size);
+        return;
+      }
       if (quickAddInFlight) return;
       quickAddInFlight = true;
 

@@ -1183,6 +1183,18 @@
     container.addEventListener('click', async (e) => {
       const btn = e.target.closest('.qa-size');
       if (!btn || btn.disabled) return;
+      /* Second option still to pick (Color + Size). Quick view has no
+         size row for these -- it shares the single-option assumption --
+         so it would strand the customer in a dialog that cannot express
+         the choice. The product page is the only place both options
+         exist; the size they just clicked rides along in the hash. */
+      const chooseWrap = btn.closest('.quick-add[data-choose]');
+      if (chooseWrap) {
+        e.preventDefault();
+        location.href = '/products/' + encodeURIComponent(chooseWrap.dataset.handle)
+          + '.html#size=' + encodeURIComponent(btn.dataset.size);
+        return;
+      }
       if (quickAddInFlight) return;
       quickAddInFlight = true;
 
@@ -1314,6 +1326,23 @@
   /* The homepage's second product row. Eight pieces, one row deep at
      four columns -- a teaser that ends in "View all", not the whole
      catalogue. /shop.html is the catalogue. */
+  /* NEW ARRIVALS is server markup from syncNewArrivals(), and
+     scripts/build.js does not render a size row at all -- so this row
+     was the one place on the site where no card had size buttons.
+     Re-rendered from the same catalogue the lineup uses, newest first
+     by createdAt, which is the order the build used. */
+  function renderNewArrivals(catalog) {
+    const grid = document.getElementById('newGrid');
+    if (!grid || !catalog.length) return;
+    const view = catalog.slice()
+      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+      .slice(0, 4);
+    grid.innerHTML = view.map(p => card(p, false, A.CARD_SIZES.row)).join('');
+    bindQuickAdd(grid);
+    wireHoverSwap(grid);
+    grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+  }
+
   function renderLineup(catalog) {
     const grid = document.getElementById('lineupGrid');
     if (!grid || !catalog.length) return;
@@ -1698,7 +1727,7 @@
 
   fetchCatalog()
     .then(sortForMerchandising)
-    .then(renderLineup)
+    .then((catalog) => { renderNewArrivals(catalog); renderLineup(catalog); })
     .catch((err) => {
       /* Fail open and honest: the pre-rendered cards the build wrote
          stay on screen, so a fetch failure costs live pricing, not the

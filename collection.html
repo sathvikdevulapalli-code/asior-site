@@ -507,6 +507,58 @@
     if (e.key === 'Escape' && drawer && drawer.classList.contains('is-open')) setDrawer(false);
   });
 
+  /* Category pages render the same card as the homepage and shop.html,
+     size row included, but they have no quick-view dialog -- the Quick
+     view link falls through to the product page here. So the size
+     buttons sat in the markup doing nothing: clicking one neither
+     added to the cart nor opened anything.
+
+     Bound once, at the grid, so the filter's re-renders do not stack
+     listeners. A size that names exactly one variant adds it; a
+     product with a second option still to pick goes to the product
+     page, where the full picker is, with the size carried in the hash. */
+  var collQuickAddBound = false;
+  function bindCollectionQuickAdd(grid) {
+    if (!grid || collQuickAddBound) return;
+    collQuickAddBound = true;
+    var inFlight = false;
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.qa-size') : null;
+      if (!btn || btn.disabled) return;
+      var wrap = btn.closest('.quick-add');
+      if (!wrap) return;
+      e.preventDefault();
+
+      if (wrap.hasAttribute('data-choose') || !btn.dataset.variantId) {
+        location.href = '/products/' + encodeURIComponent(wrap.dataset.handle)
+          + '.html#size=' + encodeURIComponent(btn.dataset.size);
+        return;
+      }
+      if (inFlight) return;
+      inFlight = true;
+      var sizesHTML = wrap.innerHTML;
+      wrap.innerHTML = '<span class="qa-msg">Adding\u2026</span>';
+      A.addToShopifyCart(btn.dataset.variantId, 1).then(function () {
+        A.recordSizeChoice(btn.dataset.size);
+        A.trackCart('Added To Cart', {
+          handle: wrap.dataset.handle, size: btn.dataset.size, source: 'collection-grid',
+        });
+        A.klaviyoAddedToCart({
+          handle: wrap.dataset.handle,
+          name: wrap.dataset.name || wrap.dataset.handle,
+          url: location.origin + '/products/' + wrap.dataset.handle + '.html',
+          size: btn.dataset.size, quantity: 1, source: 'collection-grid',
+        });
+        A.refreshCartCount();
+        wrap.innerHTML = '<span class="qa-msg">added.</span>';
+        setTimeout(function () { wrap.innerHTML = sizesHTML; }, 1400);
+      }).catch(function () {
+        wrap.innerHTML = '<span class="qa-msg">could not add. try again.</span>';
+        setTimeout(function () { wrap.innerHTML = sizesHTML; }, 2000);
+      }).then(function () { inFlight = false; });
+    });
+  }
+
   function sortMode() {
     var picked = drawer && drawer.querySelector('input[name="fltSort"]:checked');
     return picked ? picked.value : 'featured';
@@ -532,6 +584,8 @@
       /* Category grid is full-bleed, not the capped shop grid. */
       return A.productCard(p, { eager: i < 4, peek: true, sizes: A.CARD_SIZES.row });
     }).join('');
+
+    bindCollectionQuickAdd(grid);
 
     var empty = document.getElementById('collEmpty');
     if (empty) {
