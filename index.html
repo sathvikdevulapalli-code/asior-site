@@ -28,6 +28,9 @@
 <link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+<!-- LCP element. Both <source>s in the hero resolve to this one file,
+     so a single href is the whole candidate set -- no imagesrcset. -->
+<link rel="preload" as="image" type="image/webp" href="images/asior-hero-wide.webp" fetchpriority="high">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
      overrides) and the commerce flag. It no longer carries a drop-close
      date: the collection has no end date. -->
@@ -279,6 +282,9 @@
     position: relative;
     display: grid;
     place-items: center;
+    /* Mean colour of asior-hero-wide.jpg, so first paint is not a
+       black frame waiting for the photograph. */
+    background: #706d5e;
     height: calc(100svh - var(--announce-h));
     min-height: 560px;
     max-height: 960px;

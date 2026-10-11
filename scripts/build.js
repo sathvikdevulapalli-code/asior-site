@@ -1315,7 +1315,7 @@ function syncNewArrivals(products) {
     .slice()
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
     .slice(0, 4);
-  const grid = newest.map((p, i) => shopCard(p, i < 4)).filter(Boolean).join('\n') + '\n';
+  const grid = newest.map(p => shopCard(p, false)).filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
   if (next === null) throw new Error('index.html: NEWGRID markers missing');
   if (next !== html) fs.writeFileSync(target, next);
