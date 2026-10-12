@@ -1497,6 +1497,24 @@
     const images = A.orderImages(product.images.edges.map(e => e.node));
     const variants = product.variants.edges.map(e => e.node);
     const sizeOnly = product.options.length === 1 && product.options[0].name === 'Size';
+    /* Color + Size. Quick view cannot express the colour, so it offers
+       the sizes and hands over to the product page. A size is offered
+       when some variant carrying it is sellable, which is the same
+       rule the grid card uses. */
+    const hasSizeOption = product.options.some(o => o.name === 'Size');
+    /* The option still to pick after Size, named only when it really is
+       a choice: Kova is Color: Black and nothing else, so telling a
+       customer to go and choose a colour there would be a lie. */
+    const otherOpt = product.options.find(o => o.name !== 'Size');
+    const otherChoice = otherOpt && (otherOpt.values || []).length > 1 ? otherOpt.name : null;
+    const sizeValues = (!sizeOnly && hasSizeOption)
+      ? (product.options.find(o => o.name === 'Size').values || []).map(size => ({
+          size,
+          available: variants.some(v =>
+            (v.selectedOptions || []).some(o => o.name === 'Size' && o.value === size)
+            && v.availableForSale),
+        }))
+      : [];
     const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => isFinite(n));
     const lo = Math.min(...prices), hi = Math.max(...prices);
     const priceLabel = lo === hi ? `$${lo.toFixed(2)}` : `From $${lo.toFixed(2)}`;
@@ -1514,6 +1532,21 @@
       <div class="peek-buy">
         <h2 class="peek-name">${A.escapeHtml(product.title)}</h2>
         <div class="peek-price tnum">${priceLabel}</div>
+        ${!sizeOnly && hasSizeOption ? `
+          <div class="peek-label">Size</div>
+          <div class="peek-sizes" id="peekChooseSizes">
+            ${sizeValues.map(sv => `<button type="button"
+                class="qa-size${sv.available ? '' : ' unavailable'}"
+                data-size="${A.escapeAttr(sv.size)}"
+                aria-label="${sv.available
+                  ? 'Choose size ' + A.escapeAttr(sv.size) + ' for ' + A.escapeAttr(product.title)
+                  : 'Size ' + A.escapeAttr(sv.size) + ', sold out'}"
+                >${A.escapeHtml(sv.size)}</button>`).join('')}
+          </div>
+          <p class="peek-note">${otherChoice
+            ? 'Pick a size, then choose ' + A.escapeHtml(otherChoice.toLowerCase()) + ' on the full page.'
+            : 'Pick a size to continue on the full page.'}</p>
+        ` : ''}
         ${sizeOnly ? `
           <div class="peek-label">Size</div>
           <div class="peek-sizes" id="peekSizes">
@@ -1568,12 +1601,42 @@
 
     document.getElementById('peekClose').addEventListener('click', () => peekEl.close());
 
+    /* Color + Size: each size goes to the product page with that size
+       already chosen, leaving the colour to the customer. Same hand-off
+       the grid card makes. */
+    const chooseSizes = document.getElementById('peekChooseSizes');
+    if (chooseSizes) {
+      chooseSizes.addEventListener('click', (e) => {
+        const b = e.target.closest('button.qa-size');
+        if (!b) return;
+        e.preventDefault();
+        location.href = '/products/' + encodeURIComponent(handle)
+          + '.html#size=' + encodeURIComponent(b.dataset.size);
+      });
+    }
+
     // One selected size at a time, and the button only becomes live
     // once there is a variant to add. Same rule as the product page.
-    let picked = sizeOnly ? null : (variants.find(v => v.availableForSale) || null);
+    /* Never a variant the customer did not choose.
+
+       This used to be `sizeOnly ? null : variants.find(availableForSale)`,
+       so on a Color + Size product quick view silently selected the
+       first sellable variant -- a colour AND a size nobody picked --
+       and left Add to Cart enabled on top of it. Pressing it added
+       that variant for real. CLAUDE.md is explicit that a size is
+       never chosen for a customer, and this chose two options.
+
+       Quick view has no colour picker, so for those products it
+       offers the sizes and hands over to the product page, which is
+       the only place both options exist. */
+    let picked = null;
     const addBtn = document.getElementById('peekAdd');
     const msg = document.getElementById('peekMsg');
     const sizes = document.getElementById('peekSizes');
+    /* Off until something is actually chosen, in either mode. On a
+       Color + Size product it stays off: the size buttons above hand
+       over to the product page, which is where the colour lives. */
+    if (addBtn) addBtn.disabled = true;
     if (sizes) {
       addBtn.disabled = true;
       sizes.addEventListener('click', (e) => {

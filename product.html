@@ -1695,8 +1695,30 @@
     if (canonical) canonical.href = location.origin + productUrl(product.handle);
 
     const hasOptions = product.optionNames.length > 0;
+    /* Exact match: every option named and equal. This is what actually
+       gets added to the cart, so it stays strict. */
     const findVariant = sel => product.variants.find(v =>
       product.optionNames.every(n => v.options[n] === sel[n]));
+
+    /* Every variant consistent with a PARTIAL selection -- only the
+       options named in `sel` are compared.
+
+       findVariant() cannot answer "is this value still worth
+       offering?" on a product with more than one option. Asked whether
+       Color: Black is available before a size exists, it looked for a
+       variant whose Size equalled undefined, found none, and reported
+       Black sold out. Every value on both rows rendered unavailable,
+       and because a click on an unavailable value opens the
+       back-in-stock form instead of selecting, the selection could
+       never be filled in and Add to bag never enabled. Kova and Ja-yu
+       were unbuyable on the site for that reason. */
+    const variantsMatching = sel => product.variants.filter(v =>
+      Object.keys(sel).every(n => sel[n] == null || v.options[n] === sel[n]));
+
+    /* A value is offered when some variant carrying it, consistent
+       with the choices already made, is in stock. */
+    const valueAvailable = (name, val) =>
+      variantsMatching({ ...selection, [name]: val }).some(v => v.available);
 
     // Nothing preselected. A past "usual size, preselected" feature
     // here defaulted the size picker to whichever size this browser
@@ -1708,6 +1730,21 @@
     // has exactly one real variant, so it's still selected by default
     // — there's no picker to leave blank in that case.
     const selection = hasOptions ? {} : { ...product.variants[0].options };
+
+    /* An option with exactly one value is not a choice -- Kova is
+       Color: Black and nothing else -- so leaving it blank made the
+       customer click it before a size would do anything. Fixed up
+       front instead.
+
+       Size is excluded whatever its length: CLAUDE.md is explicit that
+       a size is never chosen for a customer, and that still holds. */
+    if (hasOptions) {
+      product.optionNames.forEach(name => {
+        if (name === 'Size') return;
+        const values = [...new Set(product.variants.map(v => v.options[name]))];
+        if (values.length === 1) selection[name] = values[0];
+      });
+    }
 
     // ---- media ----
     // Every real image the product has, at full size, stacked. The
@@ -2009,9 +2046,8 @@
       wrap.innerHTML = product.optionNames.map(name => {
         const values = [...new Set(product.variants.map(v => v.options[name]))];
         const row = values.map(val => {
-          const v = findVariant({ ...selection, [name]: val });
           const sel = selection[name] === val;
-          const avail = v ? v.available : false;
+          const avail = valueAvailable(name, val);
           return `<button type="button" class="pd-size${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
                     data-option="${A.escapeAttr(name)}" data-value="${A.escapeAttr(val)}"
                     aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
@@ -2051,9 +2087,8 @@
       if (!wrap || !product.optionNames.includes('Size')) return;
       const values = [...new Set(product.variants.map(v => v.options.Size))];
       wrap.innerHTML = values.map(val => {
-        const v = findVariant({ ...selection, Size: val });
         const sel = selection.Size === val;
-        const avail = v ? v.available : false;
+        const avail = valueAvailable('Size', val);
         return `<button type="button" class="pd-size${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
                   data-option="Size" data-value="${A.escapeAttr(val)}"
                   aria-label="Size ${A.escapeAttr(val)}" aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
@@ -2078,7 +2113,10 @@
       const btn = document.getElementById('addBtn');
       const buyBtn = document.getElementById('buyNowBtn');
       const stickyBtn = document.getElementById('addBtnSticky');
-      const needsPick = hasOptions && product.optionNames.includes('Size') && !selection.Size;
+      /* Every option, not just Size. On a Color + Size product a size
+         alone does not name a variant, so the old check let the button
+         enable with nothing addable behind it. */
+      const needsPick = hasOptions && product.optionNames.some(n => !selection[n]);
       if (needsPick) {
         // Nothing chosen yet. The button keeps saying what it does and
         // is simply disabled: it used to relabel itself "Select a Size",
