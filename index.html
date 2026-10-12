@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASIOR — Streetwear from Texas</title>
+<title>ASIOR | Streetwear from Texas</title>
 <meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta name="theme-color" content="#0e0e0d">
 <link rel="canonical" href="https://asiorclothing.com/">
@@ -12,7 +12,7 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ASIOR — Streetwear from Texas">
+<meta property="og:title" content="ASIOR | Streetwear from Texas">
 <meta property="og:description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
@@ -28,6 +28,9 @@
 <link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
+<!-- LCP element. Both <source>s in the hero resolve to this one file,
+     so a single href is the whole candidate set -- no imagesrcset. -->
+<link rel="preload" as="image" type="image/webp" href="images/asior-hero-wide.webp" fetchpriority="high">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
      overrides) and the commerce flag. It no longer carries a drop-close
      date: the collection has no end date. -->
@@ -279,6 +282,9 @@
     position: relative;
     display: grid;
     place-items: center;
+    /* Mean colour of asior-hero-wide.jpg, so first paint is not a
+       black frame waiting for the photograph. */
+    background: #706d5e;
     height: calc(100svh - var(--announce-h));
     min-height: 560px;
     max-height: 960px;
@@ -763,7 +769,7 @@
 
   <main id="main">
 
-  <h1 class="sr-only">ASIOR — Streetwear from Texas</h1>
+  <h1 class="sr-only">ASIOR | Streetwear from Texas</h1>
 
   <!-- One real campaign photograph, with the same quiet shopping cue as
        the reference. The photo stays uncropped on desktop and mobile. -->
@@ -1149,8 +1155,8 @@
   /* The card itself is assets/site.js's productCard, so the grid, the
      collection pages and (via shopCard in scripts/build.js) the
      pre-rendered markup all describe the same tile. */
-  function card(p, eager) {
-    return A.productCard(p, { eager: eager });
+  function card(p, eager, sizes) {
+    return A.productCard(p, { eager: eager, sizes: sizes });
   }
 
   // Add straight from the grid — no navigation, so browsing never
@@ -1177,6 +1183,18 @@
     container.addEventListener('click', async (e) => {
       const btn = e.target.closest('.qa-size');
       if (!btn || btn.disabled) return;
+      /* Second option still to pick (Color + Size). Quick view has no
+         size row for these -- it shares the single-option assumption --
+         so it would strand the customer in a dialog that cannot express
+         the choice. The product page is the only place both options
+         exist; the size they just clicked rides along in the hash. */
+      const chooseWrap = btn.closest('.quick-add[data-choose]');
+      if (chooseWrap) {
+        e.preventDefault();
+        location.href = '/products/' + encodeURIComponent(chooseWrap.dataset.handle)
+          + '.html#size=' + encodeURIComponent(btn.dataset.size);
+        return;
+      }
       if (quickAddInFlight) return;
       quickAddInFlight = true;
 
@@ -1225,7 +1243,7 @@
         // records that they tried. No existing metric covers it, so this
         // is a new one rather than a duplicate.
         A.trackCart('Quick Add Failed', { handle, size, source: 'shop-grid' });
-        wrap.innerHTML = `<span class="qa-msg err">Couldn't add that — try again</span>`;
+        wrap.innerHTML = `<span class="qa-msg err">Couldn't add that. Try again</span>`;
         setTimeout(() => { wrap.innerHTML = sizesHTML; }, 2200);
       } finally {
         // Always cleared, including on failure — otherwise one failed
@@ -1308,12 +1326,31 @@
   /* The homepage's second product row. Eight pieces, one row deep at
      four columns -- a teaser that ends in "View all", not the whole
      catalogue. /shop.html is the catalogue. */
+  /* NEW ARRIVALS is server markup from syncNewArrivals(), and
+     scripts/build.js does not render a size row at all -- so this row
+     was the one place on the site where no card had size buttons.
+     Re-rendered from the same catalogue the lineup uses, newest first
+     by createdAt, which is the order the build used. */
+  function renderNewArrivals(catalog) {
+    const grid = document.getElementById('newGrid');
+    if (!grid || !catalog.length) return;
+    const view = catalog.slice()
+      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+      .slice(0, 4);
+    grid.innerHTML = view.map(p => card(p, false, A.CARD_SIZES.row)).join('');
+    bindQuickAdd(grid);
+    wireHoverSwap(grid);
+    grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+  }
+
   function renderLineup(catalog) {
     const grid = document.getElementById('lineupGrid');
     if (!grid || !catalog.length) return;
     const shownInRecent = renderRecentlyViewed(catalog);
     const view = catalog.filter(p => !shownInRecent.has(p.handle)).slice(0, 8);
-    grid.innerHTML = view.map((p, i) => card(p, false)).join('');
+    /* First card spans 2x2 in .shop-grid--featured. */
+    grid.innerHTML = view.map((p, i) =>
+      card(p, false, i === 0 ? A.CARD_SIZES.featured : A.CARD_SIZES.row)).join('');
     bindQuickAdd(grid);
     wireHoverSwap(grid);
     grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
@@ -1342,7 +1379,7 @@
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
       <h2 class="rail-label">Pick Up Where You Left Off</h2>
-      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3)).join('')}</div>`;
+      <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3, A.CARD_SIZES.row)).join('')}</div>`;
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
     revealOnScroll(recentGrid);
@@ -1460,6 +1497,24 @@
     const images = A.orderImages(product.images.edges.map(e => e.node));
     const variants = product.variants.edges.map(e => e.node);
     const sizeOnly = product.options.length === 1 && product.options[0].name === 'Size';
+    /* Color + Size. Quick view cannot express the colour, so it offers
+       the sizes and hands over to the product page. A size is offered
+       when some variant carrying it is sellable, which is the same
+       rule the grid card uses. */
+    const hasSizeOption = product.options.some(o => o.name === 'Size');
+    /* The option still to pick after Size, named only when it really is
+       a choice: Kova is Color: Black and nothing else, so telling a
+       customer to go and choose a colour there would be a lie. */
+    const otherOpt = product.options.find(o => o.name !== 'Size');
+    const otherChoice = otherOpt && (otherOpt.values || []).length > 1 ? otherOpt.name : null;
+    const sizeValues = (!sizeOnly && hasSizeOption)
+      ? (product.options.find(o => o.name === 'Size').values || []).map(size => ({
+          size,
+          available: variants.some(v =>
+            (v.selectedOptions || []).some(o => o.name === 'Size' && o.value === size)
+            && v.availableForSale),
+        }))
+      : [];
     const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => isFinite(n));
     const lo = Math.min(...prices), hi = Math.max(...prices);
     const priceLabel = lo === hi ? `$${lo.toFixed(2)}` : `From $${lo.toFixed(2)}`;
@@ -1477,6 +1532,21 @@
       <div class="peek-buy">
         <h2 class="peek-name">${A.escapeHtml(product.title)}</h2>
         <div class="peek-price tnum">${priceLabel}</div>
+        ${!sizeOnly && hasSizeOption ? `
+          <div class="peek-label">Size</div>
+          <div class="peek-sizes" id="peekChooseSizes">
+            ${sizeValues.map(sv => `<button type="button"
+                class="qa-size${sv.available ? '' : ' unavailable'}"
+                data-size="${A.escapeAttr(sv.size)}"
+                aria-label="${sv.available
+                  ? 'Choose size ' + A.escapeAttr(sv.size) + ' for ' + A.escapeAttr(product.title)
+                  : 'Size ' + A.escapeAttr(sv.size) + ', sold out'}"
+                >${A.escapeHtml(sv.size)}</button>`).join('')}
+          </div>
+          <p class="peek-note">${otherChoice
+            ? 'Pick a size, then choose ' + A.escapeHtml(otherChoice.toLowerCase()) + ' on the full page.'
+            : 'Pick a size to continue on the full page.'}</p>
+        ` : ''}
         ${sizeOnly ? `
           <div class="peek-label">Size</div>
           <div class="peek-sizes" id="peekSizes">
@@ -1531,12 +1601,42 @@
 
     document.getElementById('peekClose').addEventListener('click', () => peekEl.close());
 
+    /* Color + Size: each size goes to the product page with that size
+       already chosen, leaving the colour to the customer. Same hand-off
+       the grid card makes. */
+    const chooseSizes = document.getElementById('peekChooseSizes');
+    if (chooseSizes) {
+      chooseSizes.addEventListener('click', (e) => {
+        const b = e.target.closest('button.qa-size');
+        if (!b) return;
+        e.preventDefault();
+        location.href = '/products/' + encodeURIComponent(handle)
+          + '.html#size=' + encodeURIComponent(b.dataset.size);
+      });
+    }
+
     // One selected size at a time, and the button only becomes live
     // once there is a variant to add. Same rule as the product page.
-    let picked = sizeOnly ? null : (variants.find(v => v.availableForSale) || null);
+    /* Never a variant the customer did not choose.
+
+       This used to be `sizeOnly ? null : variants.find(availableForSale)`,
+       so on a Color + Size product quick view silently selected the
+       first sellable variant -- a colour AND a size nobody picked --
+       and left Add to Cart enabled on top of it. Pressing it added
+       that variant for real. CLAUDE.md is explicit that a size is
+       never chosen for a customer, and this chose two options.
+
+       Quick view has no colour picker, so for those products it
+       offers the sizes and hands over to the product page, which is
+       the only place both options exist. */
+    let picked = null;
     const addBtn = document.getElementById('peekAdd');
     const msg = document.getElementById('peekMsg');
     const sizes = document.getElementById('peekSizes');
+    /* Off until something is actually chosen, in either mode. On a
+       Color + Size product it stays off: the size buttons above hand
+       over to the product page, which is where the colour lives. */
+    if (addBtn) addBtn.disabled = true;
     if (sizes) {
       addBtn.disabled = true;
       sizes.addEventListener('click', (e) => {
@@ -1690,7 +1790,7 @@
 
   fetchCatalog()
     .then(sortForMerchandising)
-    .then(renderLineup)
+    .then((catalog) => { renderNewArrivals(catalog); renderLineup(catalog); })
     .catch((err) => {
       /* Fail open and honest: the pre-rendered cards the build wrote
          stay on screen, so a fetch failure costs live pricing, not the

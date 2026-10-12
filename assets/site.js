@@ -513,7 +513,7 @@
           // Double opt-in: accepted, not subscribed. Saying "you're in"
           // here would be a lie until they reply.
           form.classList.add('is-done');
-          say('Almost done — check your texts and reply YES to confirm.', false);
+          say('Almost done. Check your texts and reply YES to confirm.', false);
           input.value = '';
           /* An event as well as the subscription, so the signup shows
              up in Klaviyo's stream against the same first touch and can
@@ -1389,6 +1389,7 @@
   var PRODUCT_CARD_FIELDS = `
     title
     handle
+    createdAt
     options { name values }
     featuredImage { ${IMAGE_FIELDS} }
     images(first: 2) { edges { node { ${IMAGE_FIELDS} } } }
@@ -1413,7 +1414,18 @@
       var maxPrice = Math.max.apply(null, prices);
       var compare = compares.length && compares[0] > minPrice ? compares[0] : null;
       var opts = node.options || [];
-      var hasSizeOnly = opts.length === 1 && opts[0].name === 'Size';
+      var sizeOpt = opts.filter(function (o) { return o.name === 'Size'; })[0];
+      /* One option and it is Size: a size button names exactly one
+         variant, so it can add straight to the cart. */
+      var hasSizeOnly = opts.length === 1 && !!sizeOpt;
+      /* Size plus something else (Kova and Ja-yu are Color + Size).
+         These used to get no size row at all, so two apparel cards
+         looked broken next to the rest. They get one now, but a button
+         cannot add to the cart: several colours share a size, so
+         picking one here would be choosing a colour on the customer's
+         behalf. They open quick view with that size already chosen,
+         where the remaining option is visible. */
+      var needsChoice = opts.length > 1 && !!sizeOpt;
       var all = ((node.images && node.images.edges) || []).map(function (x) { return x.node; });
       /* leadImage, not featuredImage: a generated render is never the
          grid tile, and the alt frame has to clear the same bar or the
@@ -1423,6 +1435,10 @@
 
       return {
         handle: node.handle,
+        /* Carried so the homepage's NEW ARRIVALS row can sort the way
+           syncNewArrivals() does in the build, instead of reordering
+           into merchandising order when it re-renders. */
+        createdAt: node.createdAt || '',
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
         image: lead,
         altImage: orderImages(all).filter(function (im) { return im.url !== firstUrl; })[0] || null,
@@ -1438,12 +1454,31 @@
            choice. A product with a second option (color, material)
            needs the full product page, where that choice has room to be
            made correctly. */
+        needsChoice: needsChoice,
         sizes: hasSizeOnly
           ? variants.map(function (v) {
               var o = (v.selectedOptions || []).filter(function (x) { return x.name === 'Size'; })[0];
               return o ? { size: o.value, variantId: v.id, available: v.availableForSale } : null;
             }).filter(Boolean)
-          : null,
+          : needsChoice
+            /* Distinct sizes in Shopify's own option order. A size is
+               offered when any variant in it is sellable, and disabled
+               when none is -- the same sold-out rule as the
+               single-option row, applied across the colours. */
+            ? (sizeOpt.values || []).map(function (value) {
+                var inSize = variants.filter(function (v) {
+                  return (v.selectedOptions || []).some(function (x) {
+                    return x.name === 'Size' && x.value === value;
+                  });
+                });
+                if (!inSize.length) return null;
+                return {
+                  size: value,
+                  variantId: null,
+                  available: inSize.some(function (v) { return v.availableForSale; }),
+                };
+              }).filter(Boolean)
+            : null,
       };
     } catch (err) {
       console.warn('Skipping malformed product:', node && node.handle, err);
@@ -1455,13 +1490,27 @@
      opts.peek   -- render the quick view trigger (default true). The
                     link opens quick view where available and falls back
                     to the full product page everywhere else. */
+  /* Measured slot widths, 2026-10-11, at 1920/1440/1024/768/390:
+       shop.html grid      271 271 223 364 175  (grid caps at 1100px)
+       homepage + category 456 336 232 364 175  (full width)
+       homepage featured   917 677 469 738 360  (spans 2x2)
+     The old single string ended in 300px, so a 917px slot was handed
+     the 400w candidate and stretched 2.3x. Each string is >= the
+     measured slot at every one of those widths.
+     Must stay in step with CARD_SIZES in scripts/build.js. */
+  var CARD_SIZES = {
+    grid: '(max-width: 768px) 48vw, (max-width: 1279px) 23vw, 280px',
+    row: '(max-width: 768px) 48vw, 25vw',
+    featured: '(max-width: 768px) 97vw, 48vw',
+  };
+
   function productCard(p, opts) {
     opts = opts || {};
     var media = p.image
       ? imgTag(p.image, {
           alt: 'Asior ' + p.name,
           eager: !!opts.eager,
-          sizes: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px',
+          sizes: opts.sizes || CARD_SIZES.grid,
         })
       : '';
     /* The hover frame rides along as data and only becomes a real <img>
@@ -1474,15 +1523,22 @@
       : '';
     var mine = preferredSize();
 
+    /* data-choose marks a row whose buttons open quick view instead of
+       adding, because the product has a second option still to pick.
+       The click handlers on each page branch on it. */
     var quickAdd = p.sizes
-      ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '">'
+      ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '"'
+        + (p.needsChoice ? ' data-choose="1"' : '') + '>'
         + p.sizes.map(function (s) {
+            var label = !s.available ? 'Size ' + escapeAttr(s.size) + ', sold out'
+              : p.needsChoice ? 'Choose size ' + escapeAttr(s.size) + ' for ' + escapeAttr(p.name)
+              : 'Add size ' + escapeAttr(s.size) + ' to cart';
             return '<button type="button" class="qa-size' + (s.available ? '' : ' unavailable')
               + (s.size === mine ? ' mine' : '') + '"'
-              + ' data-variant-id="' + escapeAttr(s.variantId) + '" data-size="' + escapeAttr(s.size) + '"'
+              + (s.variantId ? ' data-variant-id="' + escapeAttr(s.variantId) + '"' : '')
+              + ' data-size="' + escapeAttr(s.size) + '"'
               + (s.available ? '' : ' disabled')
-              + ' aria-label="' + (s.available ? 'Add size ' + escapeAttr(s.size) + ' to cart'
-                                               : 'Size ' + escapeAttr(s.size) + ', sold out') + '">'
+              + ' aria-label="' + label + '">'
               + escapeHtml(s.size) + '</button>';
           }).join('')
         + '</div>'
@@ -1625,7 +1681,7 @@
       return 'Free shipping over $' + s.FREE_THRESHOLD + '. Dispatched in ' + fulfil + region + '.';
     }
     if (typeof s.FROM_PRICE === 'number') {
-      return 'Dispatched in ' + fulfil + '. Delivery is on top of that \u2014 US shipping from $'
+      return 'Dispatched in ' + fulfil + '. Delivery time is extra. US shipping starts at $'
         + s.FROM_PRICE.toFixed(2) + ', calculated at checkout.';
     }
     return 'Dispatched in ' + fulfil + '. Delivery and shipping calculated at checkout'
@@ -1702,8 +1758,54 @@
     return { unlocked: false, away: away, text: '$' + away.toFixed(2) + ' away from free shipping' };
   }
 
+  /* ---- per-product card crop ------------------------------------
+
+     Cards fill a 2:3 frame with object-fit: cover. CARD_FOCUS in
+     assets/promo-config.js can move that crop for a product whose
+     subject is off-centre; everything else keeps the centre default
+     from the stylesheet.
+
+     Applied here rather than in the card markup because three places
+     build a card -- shopCard() in scripts/build.js for the prerender,
+     and a card() in each of shop.html and index.html for the live
+     render -- and they would drift. One observer covers all three and
+     anything rendered later. */
+  function applyCardFocus(root) {
+    var map = window.ASIOR_CARD_FOCUS;
+    if (!map) return 0;
+    var n = 0;
+    var cards = (root || document).querySelectorAll('.product[data-handle]');
+    for (var i = 0; i < cards.length; i++) {
+      var pos = map[cards[i].getAttribute('data-handle')];
+      if (!pos) continue;
+      var frame = cards[i].querySelector('.product-img');
+      if (frame) { frame.style.setProperty('--card-focus', pos); n++; }
+    }
+    return n;
+  }
+
+  function watchCardFocus() {
+    if (!window.ASIOR_CARD_FOCUS || !Object.keys(window.ASIOR_CARD_FOCUS).length) return;
+    applyCardFocus(document);
+    if (typeof MutationObserver !== 'function') return;
+    var pending = false;
+    new MutationObserver(function () {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function () { pending = false; applyCardFocus(document); });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchCardFocus);
+  } else {
+    watchCardFocus();
+  }
+
   // -----------------------------------------------------------------
   window.Asior = {
+    CARD_SIZES: CARD_SIZES,
+    applyCardFocus: applyCardFocus,
     shopifyFetch: shopifyFetch,
     IMAGE_FIELDS: IMAGE_FIELDS,
     shippingLine: shippingLine,

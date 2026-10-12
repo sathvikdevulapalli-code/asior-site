@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — small runs, run again rarely">
+<meta property="og:image:alt" content="Asior: small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
@@ -1503,7 +1503,7 @@
               <th scope="row">${A.escapeHtml(sz)}</th>
               ${cols.map(c => {
                 const v = rows[sz] ? rows[sz][c.key] : null;
-                return `<td>${v == null ? '—' : v + ' / ' + toCm(v)}</td>`;
+                return `<td>${v == null ? '-' : v + ' / ' + toCm(v)}</td>`;
               }).join('')}
             </tr>`).join('')}
         </tbody>
@@ -1512,19 +1512,19 @@
 
   function howToMeasure(kind) {
     const top = `
-      <li><strong>Chest</strong> — measure armpit to armpit across the front, then double it.</li>
-      <li><strong>Length</strong> — from the highest point of the shoulder straight down to the hem.</li>
-      <li><strong>Sleeve</strong> — from the centre back of the neck out to the cuff.</li>`;
+      <li><strong>Chest</strong>: measure armpit to armpit across the front, then double it.</li>
+      <li><strong>Length</strong>: from the highest point of the shoulder straight down to the hem.</li>
+      <li><strong>Sleeve</strong>: from the centre back of the neck out to the cuff.</li>`;
     // Sweats: no rise line — an elastic waistband isn't measured that way.
     const bottom = `
-      <li><strong>Waist</strong> — across the flat waistband, then double it.</li>
-      <li><strong>Inseam</strong> — crotch seam down to the leg opening.</li>
-      <li><strong>Outseam</strong> — top of the waistband straight down the outside of the leg.</li>`;
+      <li><strong>Waist</strong>: across the flat waistband, then double it.</li>
+      <li><strong>Inseam</strong>: crotch seam down to the leg opening.</li>
+      <li><strong>Outseam</strong>: top of the waistband straight down the outside of the leg.</li>`;
     const shorts = `
-      <li><strong>Waist</strong> — across the flat waistband, then double it.</li>
-      <li><strong>Rise</strong> — crotch seam up to the top of the waistband.</li>
-      <li><strong>Inseam</strong> — crotch seam down to the leg opening.</li>
-      <li><strong>Outseam</strong> — top of the waistband straight down the outside of the leg.</li>`;
+      <li><strong>Waist</strong>: across the flat waistband, then double it.</li>
+      <li><strong>Rise</strong>: crotch seam up to the top of the waistband.</li>
+      <li><strong>Inseam</strong>: crotch seam down to the leg opening.</li>
+      <li><strong>Outseam</strong>: top of the waistband straight down the outside of the leg.</li>`;
     const which = kind === 'bottom' ? bottom
       : kind === 'shorts' ? shorts
       : kind === 'set' ? top + bottom
@@ -1695,8 +1695,30 @@
     if (canonical) canonical.href = location.origin + productUrl(product.handle);
 
     const hasOptions = product.optionNames.length > 0;
+    /* Exact match: every option named and equal. This is what actually
+       gets added to the cart, so it stays strict. */
     const findVariant = sel => product.variants.find(v =>
       product.optionNames.every(n => v.options[n] === sel[n]));
+
+    /* Every variant consistent with a PARTIAL selection -- only the
+       options named in `sel` are compared.
+
+       findVariant() cannot answer "is this value still worth
+       offering?" on a product with more than one option. Asked whether
+       Color: Black is available before a size exists, it looked for a
+       variant whose Size equalled undefined, found none, and reported
+       Black sold out. Every value on both rows rendered unavailable,
+       and because a click on an unavailable value opens the
+       back-in-stock form instead of selecting, the selection could
+       never be filled in and Add to bag never enabled. Kova and Ja-yu
+       were unbuyable on the site for that reason. */
+    const variantsMatching = sel => product.variants.filter(v =>
+      Object.keys(sel).every(n => sel[n] == null || v.options[n] === sel[n]));
+
+    /* A value is offered when some variant carrying it, consistent
+       with the choices already made, is in stock. */
+    const valueAvailable = (name, val) =>
+      variantsMatching({ ...selection, [name]: val }).some(v => v.available);
 
     // Nothing preselected. A past "usual size, preselected" feature
     // here defaulted the size picker to whichever size this browser
@@ -1708,6 +1730,21 @@
     // has exactly one real variant, so it's still selected by default
     // — there's no picker to leave blank in that case.
     const selection = hasOptions ? {} : { ...product.variants[0].options };
+
+    /* An option with exactly one value is not a choice -- Kova is
+       Color: Black and nothing else -- so leaving it blank made the
+       customer click it before a size would do anything. Fixed up
+       front instead.
+
+       Size is excluded whatever its length: CLAUDE.md is explicit that
+       a size is never chosen for a customer, and that still holds. */
+    if (hasOptions) {
+      product.optionNames.forEach(name => {
+        if (name === 'Size') return;
+        const values = [...new Set(product.variants.map(v => v.options[name]))];
+        if (values.length === 1) selection[name] = values[0];
+      });
+    }
 
     // ---- media ----
     // Every real image the product has, at full size, stacked. The
@@ -1802,7 +1839,7 @@
             ${items.map(r => `
               <figure class="pd-trust-item">
                 <img src="${A.escapeAttr(r.image)}" alt="${A.escapeAttr(r.name ? r.name + '’s photo' : 'Customer photo')}" loading="lazy">
-                ${r.quote ? `<figcaption>${A.escapeHtml(r.quote)}${r.size ? ` <span class="pd-trust-size">— size ${A.escapeHtml(r.size)}</span>` : ''}</figcaption>` : ''}
+                ${r.quote ? `<figcaption>${A.escapeHtml(r.quote)}${r.size ? ` <span class="pd-trust-size">(size ${A.escapeHtml(r.size)})</span>` : ''}</figcaption>` : ''}
               </figure>`).join('')}
           </div>
         </section>`;
@@ -2009,9 +2046,8 @@
       wrap.innerHTML = product.optionNames.map(name => {
         const values = [...new Set(product.variants.map(v => v.options[name]))];
         const row = values.map(val => {
-          const v = findVariant({ ...selection, [name]: val });
           const sel = selection[name] === val;
-          const avail = v ? v.available : false;
+          const avail = valueAvailable(name, val);
           return `<button type="button" class="pd-size${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
                     data-option="${A.escapeAttr(name)}" data-value="${A.escapeAttr(val)}"
                     aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
@@ -2051,9 +2087,8 @@
       if (!wrap || !product.optionNames.includes('Size')) return;
       const values = [...new Set(product.variants.map(v => v.options.Size))];
       wrap.innerHTML = values.map(val => {
-        const v = findVariant({ ...selection, Size: val });
         const sel = selection.Size === val;
-        const avail = v ? v.available : false;
+        const avail = valueAvailable('Size', val);
         return `<button type="button" class="pd-size${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
                   data-option="Size" data-value="${A.escapeAttr(val)}"
                   aria-label="Size ${A.escapeAttr(val)}" aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
@@ -2078,7 +2113,10 @@
       const btn = document.getElementById('addBtn');
       const buyBtn = document.getElementById('buyNowBtn');
       const stickyBtn = document.getElementById('addBtnSticky');
-      const needsPick = hasOptions && product.optionNames.includes('Size') && !selection.Size;
+      /* Every option, not just Size. On a Color + Size product a size
+         alone does not name a variant, so the old check let the button
+         enable with nothing addable behind it. */
+      const needsPick = hasOptions && product.optionNames.some(n => !selection[n]);
       if (needsPick) {
         // Nothing chosen yet. The button keeps saying what it does and
         // is simply disabled: it used to relabel itself "Select a Size",
@@ -2186,6 +2224,28 @@
     lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.close(); });
 
     renderPrice(); renderSizes(); renderAddButton(); wireGallery();
+
+    /* #size=<value> arrives from a size button on a grid card for a
+       product with a second option still to pick (Color + Size): quick
+       view has no size row for those, so the card sends the customer
+       here with the size they already clicked.
+
+       This is not preselecting a size for anyone -- CLAUDE.md rules
+       that out and it still holds. It is carrying the customer's own
+       click across a navigation. Nothing is chosen unless the hash
+       names a size this product actually has, and the remaining
+       option is still theirs to pick. */
+    (function honourSizeFromHash() {
+      const m = /(?:^|[#&])size=([^&]+)/.exec(location.hash || '');
+      if (!m) return;
+      let wanted;
+      try { wanted = decodeURIComponent(m[1]); } catch (err) { return; }
+      const sizeOption = product.optionNames.filter(n => n === 'Size')[0];
+      if (!sizeOption) return;
+      const exists = product.variants.some(v => v.options[sizeOption] === wanted);
+      if (!exists) return;
+      selectOption(sizeOption, wanted, false);
+    })();
 
     // Same instant as the sitewide banner (scripts/build.js's
     // HEADER_FULL) and index.html's post-Early-Access section — all

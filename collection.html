@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — small runs, run again rarely">
+<meta property="og:image:alt" content="Asior: small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
@@ -56,6 +56,28 @@
      view on the wide source photos. */
   .coll-banner--wide { height: min(68svh, 680px); min-height: 0; }
   .coll-banner--wide img { height: 100%; object-fit: cover; object-position: center top; }
+
+  /* Two real frames side by side rather than one stretched across the
+     width: each source is 800x1200, so a single one would be scaled
+     2.4x at 1905px. A pair puts ~1600px of real pixels across the same
+     band. 1px gap so the seam reads as deliberate, not as a glitch. */
+  .coll-banner--pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* An explicit row. Without it the row is auto-sized, each image
+       lays out at its full 1281px height and the container just clips
+       the top of it -- so object-position had nothing to move and both
+       frames showed their top edge whatever the focus said. */
+    grid-template-rows: 100%;
+    gap: 1px;
+  }
+
+  /* The band is shallow, so where it is taken from matters. --banner-focus
+     is set per category by scripts/build.js: tops crop high so heads
+     and chests stay in frame, bottoms crop low so the band holds the
+     shorts instead of the tee above them. */
+  .coll-banner--pair img { width: 100%; height: 100%; min-height: 0; object-fit: cover;
+    object-position: center var(--banner-focus, 20%); }
 
   /* The header sits on the banner in white. A photo with a bright top
      edge would swallow it, so the same 0.2 overlay the reference uses
@@ -232,6 +254,8 @@
   @media (max-width: 900px) {
     .coll-banner { height: auto; aspect-ratio: 3 / 2; min-height: 0; }
     .coll-banner img { height: 100%; object-fit: contain; }
+    /* The pair keeps cropping on a phone; contain would letterbox it. */
+    .coll-banner--pair img { object-fit: cover; }
     .coll { padding: 0 15px 8vh; }
     .coll-head { padding-top: 34px; }
     .coll-title { font-size: 17px; }
@@ -507,6 +531,58 @@
     if (e.key === 'Escape' && drawer && drawer.classList.contains('is-open')) setDrawer(false);
   });
 
+  /* Category pages render the same card as the homepage and shop.html,
+     size row included, but they have no quick-view dialog -- the Quick
+     view link falls through to the product page here. So the size
+     buttons sat in the markup doing nothing: clicking one neither
+     added to the cart nor opened anything.
+
+     Bound once, at the grid, so the filter's re-renders do not stack
+     listeners. A size that names exactly one variant adds it; a
+     product with a second option still to pick goes to the product
+     page, where the full picker is, with the size carried in the hash. */
+  var collQuickAddBound = false;
+  function bindCollectionQuickAdd(grid) {
+    if (!grid || collQuickAddBound) return;
+    collQuickAddBound = true;
+    var inFlight = false;
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.qa-size') : null;
+      if (!btn || btn.disabled) return;
+      var wrap = btn.closest('.quick-add');
+      if (!wrap) return;
+      e.preventDefault();
+
+      if (wrap.hasAttribute('data-choose') || !btn.dataset.variantId) {
+        location.href = '/products/' + encodeURIComponent(wrap.dataset.handle)
+          + '.html#size=' + encodeURIComponent(btn.dataset.size);
+        return;
+      }
+      if (inFlight) return;
+      inFlight = true;
+      var sizesHTML = wrap.innerHTML;
+      wrap.innerHTML = '<span class="qa-msg">Adding\u2026</span>';
+      A.addToShopifyCart(btn.dataset.variantId, 1).then(function () {
+        A.recordSizeChoice(btn.dataset.size);
+        A.trackCart('Added To Cart', {
+          handle: wrap.dataset.handle, size: btn.dataset.size, source: 'collection-grid',
+        });
+        A.klaviyoAddedToCart({
+          handle: wrap.dataset.handle,
+          name: wrap.dataset.name || wrap.dataset.handle,
+          url: location.origin + '/products/' + wrap.dataset.handle + '.html',
+          size: btn.dataset.size, quantity: 1, source: 'collection-grid',
+        });
+        A.refreshCartCount();
+        wrap.innerHTML = '<span class="qa-msg">added.</span>';
+        setTimeout(function () { wrap.innerHTML = sizesHTML; }, 1400);
+      }).catch(function () {
+        wrap.innerHTML = '<span class="qa-msg">could not add. try again.</span>';
+        setTimeout(function () { wrap.innerHTML = sizesHTML; }, 2000);
+      }).then(function () { inFlight = false; });
+    });
+  }
+
   function sortMode() {
     var picked = drawer && drawer.querySelector('input[name="fltSort"]:checked');
     return picked ? picked.value : 'featured';
@@ -529,8 +605,11 @@
     if (mode === 'desc') view.sort(function (a, b) { return minPrice(b) - minPrice(a); });
 
     grid.innerHTML = view.map(function (p, i) {
-      return A.productCard(p, { eager: i < 4, peek: true });
+      /* Category grid is full-bleed, not the capped shop grid. */
+      return A.productCard(p, { eager: i < 4, peek: true, sizes: A.CARD_SIZES.row });
     }).join('');
+
+    bindCollectionQuickAdd(grid);
 
     var empty = document.getElementById('collEmpty');
     if (empty) {

@@ -34,6 +34,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
@@ -188,7 +189,7 @@ function collectionProducts(collection, products, shopifyMembership) {
     : collection.handles;
 
   if (handles === null) {
-    console.log(`  ${collection.slug}: not returned by Shopify — no page generated`);
+    console.log(`  ${collection.slug}: not returned by Shopify, no page generated`);
     return null;
   }
 
@@ -209,7 +210,7 @@ function renderCollectionPage(template, c) {
      one of these collections has an empty descriptionHtml in Shopify,
      and writing an intro for them here would be inventing copy. */
   const n = c.products.length;
-  const desc = `${c.name} from Asior — ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const desc = `${c.name} from Asior. ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
   const lead = c.products.map(leadImage).find(Boolean);
   const img = lead && lead.url ? lead.url : `${BASE}/assets/og-default.jpg`;
 
@@ -249,18 +250,49 @@ function renderCollectionPage(template, c) {
      in images/, assigned per category and committed here rather than
      picked at random, so a category's banner does not change on every
      deploy. Replace a value the moment real category art exists. */
-  const BANNERS = { tops: 'duo-tops-wide', bottoms: 'duo-bottoms-wide', accessories: 'look-12' };
-  const banner = BANNERS[c.slug] || 'duo-tops-wide';
-  const wideBanner = banner.endsWith('-wide') || banner.endsWith('-extended');
-  const expandedBanner = banner.endsWith('-extended');
+  /* Category banners.
+
+     The duo-*-wide files are not used here. They carry no camera EXIF,
+     they are 1536x1024 landscape when every verified frame from the
+     shoot is 800x1200 portrait, and Sathvik could not confirm on
+     2026-10-11 whether they are original photographs or AI-extended
+     from a portrait. CLAUDE.md says real photos only, so until that is
+     settled the banners are built from look-*, which carry Sony
+     ILCE-6400 EXIF. The duo files are left in images/ untouched; that
+     is the founder's call, not this build's.
+
+     Two frames per banner, side by side. One 800px-wide portrait
+     stretched across a 1905px banner would be a 2.4x upscale -- worse
+     than the 1.24x the duo files were being stretched by. A pair gives
+     ~1600px of real pixels across the same band, about 1.19x, and the
+     crop stays horizontal.
+
+     Chosen for what each photograph actually shows:
+       tops    look-13, look-08  polo and tee, upper body
+       bottoms look-06, look-09  shorts, no face in either to cut
+     accessories keeps its single compact frame and no wide banner. */
+  const BANNERS = {
+    tops: ['look-13', 'look-08'],
+    bottoms: ['look-06', 'look-09'],
+    accessories: ['look-12'],
+  };
+  /* Where the shallow band is taken from, vertically. Tops crop high
+     so heads and chests stay in frame; bottoms crop low so the band
+     holds the shorts rather than the tee above them. */
+  const BANNER_FOCUS = { tops: '20%', bottoms: '66%' };
+  const bannerFiles = BANNERS[c.slug] || BANNERS.tops;
   const compactBanner = c.slug === 'accessories';
   const bannerAlt = c.slug === 'tops'
-    ? 'Two Asior models wearing the Fall tops together on a city street'
+    ? 'Asior Fall tops worn on a city street'
     : c.slug === 'bottoms'
-      ? 'Two Asior models wearing the Fall bottoms together in an urban setting'
-      : 'Asior model in black streetwear with subtle leopard print on a city street';
-  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner${wideBanner ? ' coll-banner--wide' : ''}">
-    <img src="/images/${banner}.jpg" alt="${bannerAlt}" width="${expandedBanner ? '1600' : wideBanner ? '1536' : '800'}" height="${expandedBanner ? '1200' : wideBanner ? '1024' : '1200'}" fetchpriority="high" decoding="async">
+      ? 'Asior Fall shorts worn on a city street'
+      : 'Asior model in black streetwear on a city street';
+  /* alt on the first frame only: the pair is one picture of one
+     subject, so a screen reader should hear it described once. */
+  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair" style="--banner-focus: ${BANNER_FOCUS[c.slug] || '20%'}">
+${bannerFiles.map((f, i) => `    <img src="/images/${f}.jpg" alt="${i === 0 ? bannerAlt : ''}"`
+    + `${i === 0 ? '' : ' aria-hidden="true"'} width="800" height="1200"`
+    + ` ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`).join('\n')}
   </div>
 `;
   html = replaceBetween(html, '<!-- BANNER:START -->', '<!-- BANNER:END -->', bannerHtml);
@@ -270,7 +302,7 @@ function renderCollectionPage(template, c) {
   }
 
   const grid = sortForMerchandising(c.products)
-    .map((p, i) => shopCard(p, i < 4))
+    .map((p, i) => shopCard(p, i < 4, CARD_SIZES.row))
     .filter(Boolean)
     .join('\n') + '\n';
 
@@ -506,7 +538,7 @@ function renderProductPage(template, p) {
      sold, which is true, and claims nothing about who sews them. Only
      a product whose Shopify description is empty ever sees it. */
   const desc = plainDescription(p.descriptionHtml,
-    `${name} from ASIOR — streetwear from Texas.`);
+    `${name} from ASIOR. Streetwear from Texas.`);
   const lead = leadImage(p);
   const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
   const alt = lead && lead.altText ? lead.altText : name;
@@ -1134,7 +1166,35 @@ function sortForMerchandising(products) {
    JS-rendered markup are the same shape. Quick-add chips are
    deliberately omitted: they do nothing without JS, and the live render
    adds them the moment it runs. */
-function shopCard(p, eager) {
+/* ---- card `sizes`, measured 2026-10-11 ------------------------------
+
+   The old single string ended in `300px`, which was only ever right
+   for shop.html. Measured slot widths at 1920 / 1440 / 1024 / 768 /
+   390:
+
+     shop.html grid      271 271 223 364 175  (grid caps at 1100px)
+     homepage + category 456 336 232 364 175  (full width)
+     homepage featured   917 677 469 738 360  (spans 2x2)
+
+   Declaring 300px for a 917px slot made the browser choose the 400w
+   candidate and scale it up 2.3x, which is the soft featured card on
+   the homepage. Each string below is >= the measured slot at every one
+   of those widths, so the browser picks the next candidate up rather
+   than one that has to be stretched.
+
+   These must stay in step with CARD_SIZES in assets/site.js: the live
+   render replaces this markup, and a mismatch would simply move the
+   problem to after hydration. */
+const CARD_SIZES = {
+  // shop.html, whose grid is capped, so the slot stops growing at 1280
+  grid: '(max-width: 768px) 48vw, (max-width: 1279px) 23vw, 280px',
+  // homepage rows and the category pages, both full-bleed
+  row: '(max-width: 768px) 48vw, 25vw',
+  // the 2x2 first card in .shop-grid--featured
+  featured: '(max-width: 768px) 97vw, 48vw',
+};
+
+function shopCard(p, eager, sizes) {
   const variants = p.variants.edges.map(e => e.node);
   const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
   if (!prices.length) return '';
@@ -1160,7 +1220,7 @@ function shopCard(p, eager) {
     media = '<img '
       + `src="${esc(img.w1200 || img.url)}" `
       + (srcset ? `srcset="${srcset}" ` : '')
-      + 'sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" '
+      + `sizes="${sizes || CARD_SIZES.grid}" `
       + `alt="${esc('Asior ' + name)}" `
       + (img.width ? `width="${esc(img.width)}" ` : '')
       + (img.height ? `height="${esc(img.height)}" ` : '')
@@ -1314,7 +1374,7 @@ function syncNewArrivals(products) {
     .slice()
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
     .slice(0, 4);
-  const grid = newest.map((p, i) => shopCard(p, i < 4)).filter(Boolean).join('\n') + '\n';
+  const grid = newest.map(p => shopCard(p, false, CARD_SIZES.row)).filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
   if (next === null) throw new Error('index.html: NEWGRID markers missing');
   if (next !== html) fs.writeFileSync(target, next);
@@ -1327,7 +1387,9 @@ function syncLineup(products) {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
   const rows = sortForMerchandising(products).slice(0, 8)
-    .map((p, i) => shopCard(p, false)).filter(Boolean).join('\n') + '\n';
+    /* The first card spans 2x2 in .shop-grid--featured. */
+    .map((p, i) => shopCard(p, false, i === 0 ? CARD_SIZES.featured : CARD_SIZES.row))
+    .filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
   if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
   if (next !== html) fs.writeFileSync(target, next);
@@ -1452,6 +1514,94 @@ function syncSharedMarkup() {
   return synced;
 }
 
+/* ---- content-hashed image filenames ---------------------------------
+
+   vercel.json caches /images/ for a week, and the filenames never
+   changed, so a returning visitor kept the hero they cached seven days
+   ago: when the duo hero shipped, people were still being served the
+   old stairs photograph. Shortening the TTL alone only narrows the
+   window; the fix is to make the URL change whenever the bytes change.
+
+   Every local image reference in the built HTML is rewritten to
+   <base>.<8 hex of sha256>.<ext>, and that file is written next to the
+   original. The canonical name stays on disk and in git -- it is what
+   og:image and any link already shared point at -- so this adds a
+   cache-busting alias rather than renaming the source.
+
+   Idempotent: a reference that already carries a hash is canonicalised
+   before being re-hashed, so running the build twice does not produce
+   foo.aaaaaaaa.bbbbbbbb.webp. Stale aliases whose hash no longer
+   matches are deleted, so the directory does not grow without bound.
+
+   assets/site.css and assets/site.js are deliberately left alone: they
+   are served with max-age=3600 must-revalidate, so they revalidate
+   hourly and were never part of this bug. Rewriting them in place
+   would churn two hand-maintained files on every build. */
+const IMG_EXT = '(?:jpg|jpeg|png|webp|avif|gif)';
+const HASHED_RE = new RegExp(`\\.[0-9a-f]{8}(\\.${IMG_EXT})$`, 'i');
+const canonicalImage = f => f.replace(HASHED_RE, '$1');
+
+function hashLocalImages() {
+  const imgDir = path.join(ROOT, 'images');
+  if (!fs.existsSync(imgDir)) return 0;
+
+  const pages = [];
+  for (const f of fs.readdirSync(ROOT)) {
+    if (f.endsWith('.html')) pages.push(path.join(ROOT, f));
+  }
+  for (const sub of ['products', 'collections']) {
+    const d = path.join(ROOT, sub);
+    if (!fs.existsSync(d)) continue;
+    for (const f of fs.readdirSync(d)) {
+      if (f.endsWith('.html')) pages.push(path.join(d, f));
+    }
+  }
+
+  /* Pass 1: every distinct image the built HTML asks for, canonicalised. */
+  const refRe = new RegExp(`images/([A-Za-z0-9._-]+\\.${IMG_EXT})`, 'gi');
+  const wanted = new Set();
+  const sources = pages.map(f => [f, fs.readFileSync(f, 'utf8')]);
+  for (const [, html] of sources) {
+    for (const m of html.matchAll(refRe)) wanted.add(canonicalImage(m[1]));
+  }
+
+  /* Pass 2: hash each one and write the alias. */
+  const alias = new Map();
+  const keep = new Set();
+  for (const name of wanted) {
+    const src = path.join(imgDir, name);
+    if (!fs.existsSync(src)) continue;          // referenced but absent
+    const buf = fs.readFileSync(src);
+    const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 8);
+    const ext = path.extname(name);
+    const hashed = `${name.slice(0, -ext.length)}.${hash}${ext}`;
+    const dest = path.join(imgDir, hashed);
+    if (!fs.existsSync(dest) || !fs.readFileSync(dest).equals(buf)) {
+      fs.writeFileSync(dest, buf);
+    }
+    alias.set(name, hashed);
+    keep.add(hashed);
+  }
+
+  /* Pass 3: point every reference at the alias. */
+  let rewritten = 0;
+  for (const [file, html] of sources) {
+    const next = html.replace(refRe, (whole, name) => {
+      const hashed = alias.get(canonicalImage(name));
+      return hashed ? `images/${hashed}` : whole;
+    });
+    if (next !== html) { fs.writeFileSync(file, next); rewritten++; }
+  }
+
+  /* Pass 4: drop aliases from earlier builds. */
+  let pruned = 0;
+  for (const f of fs.readdirSync(imgDir)) {
+    if (HASHED_RE.test(f) && !keep.has(f)) { fs.unlinkSync(path.join(imgDir, f)); pruned++; }
+  }
+
+  return { images: alias.size, rewritten, pruned };
+}
+
 (async function main() {
   let failed = false;
 
@@ -1515,7 +1665,7 @@ function syncSharedMarkup() {
         path.join(collDir, `${coll.slug}.html`),
         renderCollectionPage(collTemplate, { ...coll, products: inColl }));
       built.push({ slug: coll.slug, name: coll.name, count: inColl.length });
-      console.log(`  /collections/${coll.slug}.html — ${inColl.length} product(s) [${coll.source}]`);
+      console.log(`  /collections/${coll.slug}.html - ${inColl.length} product(s) [${coll.source}]`);
     }
     console.log(`✓ ${built.length} collection pages -> /collections/`);
     console.log(`✓ vercel.json routes ${checkCollectionRoutes(built.map(b => b.slug))}/${built.length} collections`);
@@ -1526,6 +1676,11 @@ function syncSharedMarkup() {
        after they are generated or it would publish a sitemap that
        omits every one of them. */
     console.log(`✓ sitemap.xml with ${writeSitemap(products)} URLs`);
+
+    /* Last: rewrites references in every page written above. */
+    const h = hashLocalImages();
+    console.log(`✓ image cache busting: ${h.images} image(s) hashed, `
+      + `${h.rewritten} page(s) rewritten, ${h.pruned} stale alias(es) pruned`);
   } catch (err) {
     // Fail the deploy. Netlify then keeps the last good build live,
     // which is far better than publishing a site whose shop links all
@@ -1547,5 +1702,5 @@ function syncSharedMarkup() {
   // A policy-sync failure is not fatal: the pages keep their previous
   // synced text and still link out to the live policy. The log makes it
   // visible in the Netlify build output.
-  if (failed) console.error('\nBuild finished with warnings — policy pages left as they were.');
+  if (failed) console.error('\nBuild finished with warnings. Policy pages left as they were.');
 })();

@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Asior — small runs, run again rarely">
+<meta property="og:image:alt" content="Asior: small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Fonts via <link>, not @import inside a style block: an @import means the
@@ -54,25 +54,42 @@
     max-width: 48ch;
   }
 
+  /* Two columns, editorial. Three made each frame small enough that
+     the clothes stopped being readable, which is the one thing a
+     lookbook has to do. */
   .gallery {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px 24px;
+    padding: 0 40px;
   }
 
-  .look {
-    position: relative;
-    aspect-ratio: 2 / 3;
-    overflow: hidden;
+  .look { margin: 0; }
+
+  /* The frame is the photograph. No fixed aspect-ratio box: every
+     look-* is 800x1200, so they already agree, and letting them set
+     their own height means nothing is cropped or letterboxed. */
+  .look img {
+    width: 100%;
+    height: auto;
+    display: block;
     background: #f2f0eb;
   }
 
-  .look img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center;
+  /* What is worn in the frame, linked to the product. Only on the
+     photographs where the piece is unmistakable -- the rest carry no
+     caption rather than a guess. */
+  .look-worn {
+    margin: 10px 0 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
+
+  .look-worn a { color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .look-worn a:hover { color: var(--muted); }
 
   @media (max-width: 640px) {
     header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
@@ -84,7 +101,9 @@
        the width of the old strip. */
     .lookbook .rail-label,
     .look-intro { padding-left: 20px; padding-right: 20px; }
-    .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    /* One column on a phone: a lookbook frame at half a phone
+       width is too small to read the garment in. */
+    .gallery { grid-template-columns: 1fr; gap: 28px; padding: 0 20px; }
   }
 </style>
 
@@ -153,14 +172,60 @@
        commented out until there is permissioned content to put in it. -->
   <section class="lookbook" id="look">
     <h1 class="rail-label">Lookbook</h1>
-    <p class="look-intro">The Fall collection, worn. Shot on the people who actually wear it.</p>
+    <p class="look-intro">The Fall collection, worn.</p>
     <div class="gallery">
-      <div class="look"><picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Two models wearing Asior tees and shorts against a brick wall" width="800" height="1200" fetchpriority="high" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Model wearing the Asior Polo on outdoor steps" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Close streetwear look showing the black tee and purple details" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Model wearing the Asior Polo in a city setting" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-15.webp"><img src="images/look-15.jpg" alt="Two models showing the back details of Asior shorts and tees" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
-      <div class="look"><picture><source type="image/webp" srcset="images/look-14.webp"><img src="images/look-14.jpg" alt="Model wearing the light Asior shorts with a black tee" width="800" height="1200" loading="lazy" decoding="async"></picture></div>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Model in the Holes Tee against a wall of utility meters" width="800" height="1200" fetchpriority="high" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Model wearing the Asior Polo seated on outdoor steps" width="800" height="1200" loading="lazy" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="Two models on a leather couch wearing black tees and light shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Two models outside a brick building, one in the Holes Tee" width="800" height="1200" loading="lazy" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="Back of a black Asior tee showing the script logo" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="Light Asior shorts worn with white socks and sneakers on a kerb" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Close view of the Holes Tee showing the distressed openings" width="800" height="1200" loading="lazy" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="Model wearing the Asior Polo on a walkway above the street" width="800" height="1200" loading="lazy" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-09.webp"><img src="images/look-09.jpg" alt="Two models under a scaffold, one in light Asior shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Model wearing the Asior Polo against a pale building" width="800" height="1200" loading="lazy" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="Two models in black tees and light shorts beside a parked car" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-12.webp"><img src="images/look-12.jpg" alt="Model leaning on a pole outside a storefront in a black tee and shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-13.webp"><img src="images/look-13.jpg" alt="Two models on a street corner, one in the Asior Polo and one in the Holes Tee" width="800" height="1200" loading="lazy" decoding="async"></picture>
+        <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a> / <a href="/products/holes-tee.html">Holes Tee</a></p>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-14.webp"><img src="images/look-14.jpg" alt="Two models crossing a street in black tees and light shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
+      <figure class="look">
+        <picture><source type="image/webp" srcset="images/look-15.webp"><img src="images/look-15.jpg" alt="Two models from behind in black tees and light shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      </figure>
     </div>
   </section>
 

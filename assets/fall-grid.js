@@ -162,7 +162,7 @@
 
     if (mapped.length === 0) {
       opts.gridEl.innerHTML = products.map(placeholderCard).join('');
-      if (opts.subEl) opts.subEl.textContent = 'Dropping september 10 — limited run. Real photos and pricing land the moment Shopify confirms them.';
+      if (opts.subEl) opts.subEl.textContent = 'Dropping september 10. Limited run. Real photos and pricing land the moment Shopify confirms them.';
       return;
     }
 
@@ -188,7 +188,7 @@
       // or "the whole drop is live".
       if (opts.subEl) {
         opts.subEl.textContent = mapped.length < products.length
-          ? 'Live now — the rest of the lineup lands as each piece is confirmed.'
+          ? 'Live now. The rest of the lineup lands as each piece is confirmed.'
           : '';
       }
       revealOnScroll(opts.gridEl);
@@ -199,7 +199,7 @@
       // grid instead: every name still shows, nothing fake renders, and
       // a refresh is one honest sentence away rather than a dead box.
       opts.gridEl.innerHTML = products.map(placeholderCard).join('');
-      if (opts.emptyEl) opts.emptyEl.textContent = "Couldn't load live pricing right now — try refreshing.";
+      if (opts.emptyEl) opts.emptyEl.textContent = "Couldn't load live pricing right now. Try refreshing.";
     }
   }
 

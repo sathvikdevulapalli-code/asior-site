@@ -16,3 +16,12 @@ skills-lock.json
 
 .DS_Store
 node_modules/
+
+# Content-hashed image aliases written by scripts/build.js (item: stale
+# image cache). The canonical images/<name>.<ext> files stay in git;
+# these are regenerated on every build, including on Vercel.
+images/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].jpg
+images/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].jpeg
+images/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].png
+images/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].webp
+images/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].avif
