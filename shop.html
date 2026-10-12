@@ -256,34 +256,11 @@
      control would otherwise be unreachable. */
   .product-frame { position: relative; }
 
-  .product-peek {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border: 1px solid rgba(0, 0, 0, .12);
-    border-radius: 50%;
-    background: #fff;
-    color: #000;
-    font-size: 0;
-    cursor: pointer;
-    z-index: 2;
-    opacity: 0;
-    transform: translateY(4px);
-    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), background 180ms var(--ease-out);
-    pointer-events: none;
-  }
+  /* .product-peek lives in assets/site.css. It used to be redeclared
+     here as well, and because a page's own <style> loads after the
+     shared sheet, this copy won -- so fixing the plus in one place
+     changed nothing on the two pages that matter. */
 
-  .product-peek::before {
-    content: '+';
-    display: block;
-    font-family: var(--font-body);
-    font-size: 27px;
-    font-weight: 300;
-    line-height: 1;
-  }
 
   .product-peek:hover { background: #f1f1f1; }
 
@@ -340,26 +317,7 @@
 
   /* [measured] One underlined text link near the bottom, centred:
      12px, weight 500, letter-spacing 1px, white. Not a button. */
-  .hero-link {
-    position: absolute;
-    left: 50%;
-    bottom: 86px;
-    transform: translateX(-50%);
-    z-index: 2;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    color: #fff;
-    text-decoration: none;
-    border-bottom: 1px solid #fff;
-    padding-bottom: 3px;
-    white-space: nowrap;
-  }
 
-  .hero-link:hover { opacity: 0.75; }
-  .hero-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 
   /* ---------- product rows [measured: section spacing 0] ---------- */
   .home-row { padding: 16px var(--page-pad) 0; }
@@ -503,7 +461,6 @@
      the viewport instead of scaled down proportionally. */
   @media (max-width: 900px) {
     .hero { height: 78vh; min-height: 460px; }
-    .hero-link { bottom: 46px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }

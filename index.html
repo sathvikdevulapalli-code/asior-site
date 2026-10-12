@@ -226,34 +226,11 @@
      control would otherwise be unreachable. */
   .product-frame { position: relative; }
 
-  .product-peek {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border: 1px solid rgba(0, 0, 0, .12);
-    border-radius: 50%;
-    background: #fff;
-    color: #000;
-    font-size: 0;
-    cursor: pointer;
-    z-index: 2;
-    opacity: 0;
-    transform: translateY(4px);
-    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), background 180ms var(--ease-out);
-    pointer-events: none;
-  }
+  /* .product-peek lives in assets/site.css. It used to be redeclared
+     here as well, and because a page's own <style> loads after the
+     shared sheet, this copy won -- so fixing the plus in one place
+     changed nothing on the two pages that matter. */
 
-  .product-peek::before {
-    content: '+';
-    display: block;
-    font-family: var(--font-body);
-    font-size: 27px;
-    font-weight: 300;
-    line-height: 1;
-  }
 
   .product-peek:hover { background: #f1f1f1; }
 
@@ -328,30 +305,10 @@
     object-position: center 48%;
   }
 
-  .hero-link {
-    position: absolute;
-    left: 50%;
-    bottom: 30px;
-    z-index: 2;
-    transform: translateX(-50%);
-    color: #f0ece4;
-    font-family: 'Pinyon Script', 'Dancing Script', cursive;
-    font-size: 30px;
-    font-weight: 400;
-    letter-spacing: 0;
-    text-decoration: none;
-    text-transform: none;
-    white-space: nowrap;
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 5px;
-  }
 
-  .hero-link:hover { opacity: .7; }
-  .hero-link:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
 
   @media (max-height: 680px) and (min-width: 901px) {
     .hero { min-height: 0; padding-top: 76px; padding-bottom: 76px; }
-    .hero-link { bottom: 20px; }
   }
 
   /* Quick-view photography stays on the clean, continuous surface. */
@@ -547,7 +504,6 @@
     .hero-art { position: relative; inset: auto; height: auto; }
     .hero-primary { height: auto; }
     .hero-primary img { height: auto; object-fit: contain; object-position: center; }
-    .hero-link { bottom: 22px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }
@@ -783,7 +739,6 @@
   <!-- HERO:END -->
       </picture>
     </div>
-    <a class="hero-link" href="#new">See what feels like you</a>
   </section>
 
   <!-- Personalization from real browsing history. A first-time visitor

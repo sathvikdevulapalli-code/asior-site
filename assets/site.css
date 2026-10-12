@@ -1093,6 +1093,11 @@ html.cart-drawer-locked { overflow: hidden; }
   padding: 0 var(--page-pad);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
+  /* A real gutter either side of the wordmark. The nav column is 1fr,
+     whose minimum is its content, so a long nav grows column one and
+     pushes the centred mark into it: before this the last link's right
+     edge and the mark's left edge were touching at 1152 and below. */
+  column-gap: 24px;
   align-items: center;
   background: var(--bg);
   color: var(--ink);
@@ -1409,13 +1414,30 @@ html.cart-drawer-locked { overflow: hidden; }
   transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), background 180ms var(--ease-out);
   pointer-events: none;
 }
+/* The plus is drawn, not typed. As a glyph it sat low and left of the
+   circle: a '+' is positioned on the font's maths axis rather than in
+   the middle of its line box, so no amount of flex centring puts it in
+   the middle of a 42px circle. Two bars crossing at the exact centre
+   are centred by construction, at any size, in any face. */
+.product-peek::before,
+.product-peek::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: currentColor;
+}
+
 .product-peek::before {
-  content: '+';
-  display: block;
-  font-family: var(--font-body);
-  font-size: 27px;
-  font-weight: 300;
-  line-height: 1;
+  width: 15px;
+  height: 1.5px;
+  transform: translate(-50%, -50%);
+}
+
+.product-peek::after {
+  width: 1.5px;
+  height: 15px;
+  transform: translate(-50%, -50%);
 }
 .product-peek:hover { background: #f1f1f1; }
 @media (hover: hover) and (pointer: fine) {
