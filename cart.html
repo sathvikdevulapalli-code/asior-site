@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cart | Asior</title>
 <meta name="description" content="Your Asior cart.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0E0E0D">
 <link rel="canonical" href="https://asiorclothing.com/cart.html">
 <!-- No search value, and the cart renders a different page per session. -->
 <meta name="robots" content="noindex, follow">
@@ -179,14 +179,23 @@
 
   .cart-item .qty.is-busy { opacity: 0.5; pointer-events: none; }
 
+  /* Centred explicitly. A button centres its text horizontally by
+     default but leans on line-height vertically, which drifts between
+     the + and the - because they sit at different heights in the
+     face. */
   .cart-item .qty button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 32px;
     height: 34px;
+    padding: 0;
     background: none;
     border: 0;
     color: var(--ink);
     font-family: var(--font-mono);
     font-size: 13px;
+    line-height: 1;
     cursor: pointer;
   }
 

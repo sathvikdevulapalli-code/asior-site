@@ -59,6 +59,7 @@ const STATIC_PAGES = [
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
+  '/waitlist.html',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -837,6 +838,7 @@ const NAV_LINKS = [
   ['Shop all', '/shop.html'],
   ...CATEGORIES.map(c => [c.name, `/collections/${c.slug}.html`]),
   ['Manufacturing', '/manufacturing.html'],
+  ['Waitlist', '/waitlist.html'],
 ];
 
 /* Header [measured: 85px tall, 40px side padding, nav left, logo
@@ -1114,6 +1116,7 @@ const SHARED_MARKUP_PAGES = [
   ['refund-policy.html', HEADER_MINIMAL],
   ['fall-collection.html', HEADER_FULL],
   ['text.html', HEADER_FULL],
+  ['waitlist.html', HEADER_FULL],
   ['archive.html', HEADER_FULL],
   ['about.html', HEADER_FULL],
   ['collection.html', HEADER_FULL],

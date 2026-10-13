@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shop all | Asior</title>
 <meta name="description" content="Every Asior piece currently in stock. graphic tees, crewnecks, sweats and sets. Limited runs, restocked rarely.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0E0E0D">
 <link rel="canonical" href="https://asiorclothing.com/shop.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -100,7 +100,7 @@
        dialog, and a scroll container needs a bounded parent or it just
        makes the dialog taller. */
     height: min(680px, 88vh);
-    background: #f7f7f7;
+    background: var(--surface);
     color: var(--ink);
     overflow: hidden;
   }
@@ -126,16 +126,16 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: #f7f7f7;
+    background: var(--surface);
     scroll-snap-type: y mandatory;
     scrollbar-width: thin;
   }
 
   .peek-media > * { flex: 0 0 auto; scroll-snap-align: start; }
 
-  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; background: #f7f7f7; }
-  .peek-shot img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; background: #f7f7f7; }
-  .peek-ph { aspect-ratio: 2 / 3; background: #f7f7f7; }
+  .peek-shot { margin: 0; aspect-ratio: 2 / 3; overflow: hidden; background: var(--surface); }
+  .peek-shot img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; background: var(--surface); }
+  .peek-ph { aspect-ratio: 2 / 3; background: var(--surface); }
 
   @media (max-width: 760px) {
     .peek { width: min(560px, calc(100vw - 24px)); height: min(84svh, 760px); }
@@ -256,36 +256,13 @@
      control would otherwise be unreachable. */
   .product-frame { position: relative; }
 
-  .product-peek {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border: 1px solid rgba(0, 0, 0, .12);
-    border-radius: 50%;
-    background: #fff;
-    color: #000;
-    font-size: 0;
-    cursor: pointer;
-    z-index: 2;
-    opacity: 0;
-    transform: translateY(4px);
-    transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), background 180ms var(--ease-out);
-    pointer-events: none;
-  }
+  /* .product-peek lives in assets/site.css. It used to be redeclared
+     here as well, and because a page's own <style> loads after the
+     shared sheet, this copy won -- so fixing the plus in one place
+     changed nothing on the two pages that matter. */
 
-  .product-peek::before {
-    content: '+';
-    display: block;
-    font-family: var(--font-body);
-    font-size: 27px;
-    font-weight: 300;
-    line-height: 1;
-  }
 
-  .product-peek:hover { background: #f1f1f1; }
+  .product-peek:hover { background: var(--surface-hi); }
 
   @media (hover: hover) and (pointer: fine) {
     .product-frame:hover .product-peek,
@@ -340,39 +317,17 @@
 
   /* [measured] One underlined text link near the bottom, centred:
      12px, weight 500, letter-spacing 1px, white. Not a button. */
-  .hero-link {
-    position: absolute;
-    left: 50%;
-    bottom: 86px;
-    transform: translateX(-50%);
-    z-index: 2;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    color: #fff;
-    text-decoration: none;
-    border-bottom: 1px solid #fff;
-    padding-bottom: 3px;
-    white-space: nowrap;
-  }
 
-  .hero-link:hover { opacity: 0.75; }
-  .hero-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 
   /* ---------- product rows [measured: section spacing 0] ---------- */
   .home-row { padding: 16px var(--page-pad) 0; }
 
   /* [measured] Label left 14px 400, "View all" right 12px 500 with
      1px tracking; cards start 37px below the row. */
-  .row-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 37px;
-  }
+  /* .row-head lives in assets/site.css, where it is centred. It was
+     redeclared here with justify-content: space-between, and a page's
+     own <style> loads after the shared sheet, so this copy won and the
+     section heads stayed split to opposite edges. */
 
   .row-title {
     margin: 0;
@@ -417,33 +372,7 @@
 
   /* [measured] 116x34, 1px white border, transparent, 12px 500,
      letter-spacing 1px, padding 7px 20px, square. */
-  .btn-outline {
-    position: absolute;
-    left: 50%;
-    bottom: 96px;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 116px;
-    height: 34px;
-    padding: 7px 20px;
-    border: 1px solid #fff;
-    border-radius: var(--btn-radius);
-    background: transparent;
-    color: #fff;
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
-  }
 
-  .btn-outline:hover { background: #fff; color: #000; }
-  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
   /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
        30px side padding] ---------- */
@@ -503,7 +432,6 @@
      the viewport instead of scaled down proportionally. */
   @media (max-width: 900px) {
     .hero { height: 78vh; min-height: 460px; }
-    .hero-link { bottom: 46px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }
@@ -511,7 +439,6 @@
     .row-head { margin-bottom: 20px; }
 
     .campaign-frame { height: 62vh; min-height: 400px; margin-top: 34px; }
-    .btn-outline { bottom: 48px; }
 
     .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
     .tile-label { bottom: 16px; font-size: 12px; }
