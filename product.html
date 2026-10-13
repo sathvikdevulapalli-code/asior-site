@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior</title>
 <meta name="description" content="Asior makes limited-run streetwear in small batches.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0E0E0D">
 <link rel="canonical" href="https://asiorclothing.com/product.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -121,11 +121,15 @@
 
   /* [measured] Title left, price right, same row, both 15px/500
      uppercase with 0.6px tracking on the name. */
+  /* Centred with the rest of the site: the name over the price rather
+     than pushed to opposite edges of the panel. */
   .pd-titlerow {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 18px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
   }
 
   .pd-name {
@@ -156,6 +160,7 @@
   /* [measured] 13px/500 uppercase, 0.52px tracking, ~20px under the
      title. */
   .pd-sizelabel {
+    text-align: center;
     margin-top: 20px;
     font-family: var(--font);
     font-size: 13px;
@@ -170,7 +175,7 @@
 
   /* [measured] 52x40, 8px gap, 1px #d1d5db, white, 13px/500 uppercase.
      Selected inverts to black with 600 weight. */
-  .pd-size-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pd-size-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 
   .pd-size {
     min-width: 52px;

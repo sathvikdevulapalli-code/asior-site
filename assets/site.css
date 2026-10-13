@@ -13,49 +13,55 @@
    =================================================================== */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* ===================================================================
-     WITHERED HILLS REFERENCE SYSTEM
-     Measured 2026-10-08 from the live site at 1920 (see the reference
-     spec). This replaces the v14 near-black/off-white/Archivo system.
+     ASIOR, DARK
 
-     The token NAMES are unchanged on purpose. Sixteen pages and ~180
-     rules already reference --bg, --ink, --muted, --accent and the
-     rest, so the site inverts from dark to light by changing values
-     here rather than by rewriting every rule that uses them. Anything
-     that still looks wrong after this is a rule that hardcoded a
-     colour instead of using a token, which is worth finding.
+     Back to the palette CLAUDE.md names as the brand's own: near-black
+     #0E0E0D, off-white #F0ECE4, one muted grey #96928A. No other colour
+     except the product photographs.
+
+     Every token keeps its name and its job, so the whole site inverts
+     from here rather than rule by rule. The light values are kept in
+     the comments: this flipped once before and will likely flip again.
+
+     The greys between background and off-white are warm, not neutral:
+     a neutral grey next to #F0ECE4 reads blue, which on a clothing
+     site makes the photographs look cold.
      =================================================================== */
 
-  --bg: #ffffff;
-  --ink: #000000;
-  --muted: #666666;          /* [measured] footer links, rgb(102,102,102) */
+  --bg: #0E0E0D;             /* was #ffffff */
+  --ink: #F0ECE4;            /* was #000000 */
+  --muted: #96928A;          /* was #666666. 5.3:1 on --bg */
 
-  /* The primary action is black on white: ADD TO BAG, CHECK OUT,
-     Submit Now. Square, never rounded. */
-  --accent: #000000;
-  --accent-press: #1a1a1a;
-  --on-accent: #ffffff;
-  --alert: #000000;
+  /* The primary action inverts with everything else: off-white on
+     near-black for ADD TO BAG, CHECK OUT, JOIN. Square, never rounded. */
+  --accent: #F0ECE4;         /* was #000000 */
+  --accent-press: #DAD5CB;   /* was #1a1a1a */
+  --on-accent: #0E0E0D;      /* was #ffffff */
+  --alert: #F0ECE4;
 
-  --surface: #f7f7f7;        /* [theme var] --pcard-style1-bg, behind product photos */
-  --panel-bg: #f4f4f4;       /* [measured] inactive PDP tabs */
+  --surface: #171716;        /* was #f7f7f7. behind product photos */
+  --surface-hi: #201F1D;     /* was #f1f1f1. hover on chrome */
+  --panel-bg: #1C1B19;       /* was #f4f4f4. inactive PDP tabs */
 
-  /* Hairlines on white. --line is decorative (section rules, card
+  /* Hairlines on near-black. --line is decorative (section rules, card
      edges); --field-line bounds anything you can type in or press and
-     so has to clear WCAG 1.4.11's 3:1, which #aeaeae does on white. */
-  --line: #e6e6e6;
-  --field-line: #aeaeae;     /* [measured] input border */
-  --input-bg: #f2f2f2;       /* [measured] */
+     so has to clear WCAG 1.4.11's 3:1, which #6E6A62 does on --bg. */
+  --line: #2A2926;           /* was #e6e6e6 */
+  --field-line: #6E6A62;     /* was #aeaeae */
+  --input-bg: #171716;       /* was #f2f2f2 */
   --input-radius: 5px;       /* [theme var] --inputs-radius */
-  --size-border: #d1d5db;    /* [measured] PDP size buttons */
+  --size-border: #3A3835;    /* was #d1d5db. PDP size buttons */
 
-  --ink-dim: #333333;
-  --violet-edge: #d1d5db;    /* retained name: the disabled outline */
+  --ink-dim: #CFCABF;       /* was #333333 */
+  --violet-edge: #3A3835;   /* was #d1d5db */    /* retained name: the disabled outline */
 
-  --announce-bg: #000000;
-  --announce-text: #ffffff;
+  /* A lifted band rather than an inverted slab: a white bar across
+     the top of a near-black page is the loudest thing on the site. */
+  --announce-bg: #171716;   /* was #000000 */
+  --announce-text: #F0ECE4; /* was #ffffff */
 
   /* Inter Tight carries the interface; the script face belongs only to
      the hand-drawn ASIOR signature. */
@@ -883,7 +889,7 @@ html.cart-drawer-locked { overflow: hidden; }
   overflow-y: auto;
   background: var(--bg);
   color: var(--ink);
-  box-shadow: -12px 0 36px rgba(0, 0, 0, .12);
+  box-shadow: -12px 0 36px var(--line);
   transform: translateX(102%);
   visibility: hidden;
   transition: transform 220ms ease, visibility 0s linear 220ms;
@@ -1089,19 +1095,58 @@ html.cart-drawer-locked { overflow: hidden; }
   position: sticky;
   top: 0;
   z-index: 50;
-  height: var(--header-h-ref);
+  min-height: var(--header-h-ref);
   padding: 0 var(--page-pad);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  /* A real gutter either side of the wordmark. The nav column is 1fr,
-     whose minimum is its content, so a long nav grows column one and
-     pushes the centred mark into it: before this the last link's right
-     edge and the mark's left edge were touching at 1152 and below. */
   column-gap: 24px;
   align-items: center;
   background: var(--bg);
   color: var(--ink);
   transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+}
+
+/* ---- the header is centred, in two rows ----------------------------
+
+   The wordmark sits on its own line with the nav centred beneath it,
+   which is the composition the brief asked for. Done entirely with
+   grid areas: the markup order stays nav-toggle, nav, mark,
+   header-right, so the phone drawer and everything wired to it are
+   untouched.
+
+   The nav row also ends the old collision for good. The nav used to
+   share a row with the centred mark, and because a 1fr column takes
+   its minimum from its content, a long nav grew column one and pushed
+   the mark sideways into it. On its own row it cannot. */
+@media (min-width: 901px) {
+  .site-header {
+    grid-template-areas:
+      ".   mark  right"
+      "nav nav   nav";
+    grid-template-rows: auto auto;
+    row-gap: 2px;
+    padding-top: 18px;
+    padding-bottom: 14px;
+  }
+
+  .site-header .mark { grid-area: mark; }
+  .site-header .header-right { grid-area: right; }
+
+  .site-header .nav-main {
+    grid-area: nav;
+    justify-content: center;
+    /* the -16px that pulled the first link flush left belongs to the
+       old left-aligned nav; a centred row needs no such correction */
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .site-header .nav-main a { padding-top: 10px; padding-bottom: 10px; }
+
+  /* Taller now that it is two rows, and .page--hero's negative margin
+     reads this, so the hero still starts under the announcement bar. */
+  .site-header,
+  .page--hero .site-header { --header-h-ref: 124px; }
 }
 
 /* Over the image on the homepage and the collection pages. The
@@ -1404,10 +1449,10 @@ html.cart-drawer-locked { overflow: hidden; }
   width: 42px;
   height: 42px;
   padding: 0;
-  border: 1px solid rgba(0, 0, 0, .12);
+  border: 1px solid var(--line);
   border-radius: 50%;
-  background: #fff;
-  color: #000;
+  background: var(--bg);
+  color: var(--ink);
   font-size: 0;
   cursor: pointer;
   transform: translateY(4px);
@@ -1439,7 +1484,7 @@ html.cart-drawer-locked { overflow: hidden; }
   height: 15px;
   transform: translate(-50%, -50%);
 }
-.product-peek:hover { background: #f1f1f1; }
+.product-peek:hover { background: var(--surface-hi); }
 @media (hover: hover) and (pointer: fine) {
   .product .product-peek { opacity: 0; transition: opacity var(--dur) var(--ease-out); }
   .product:hover .product-peek,
@@ -1560,3 +1605,116 @@ body {
 @media (max-width: 900px) {
   .footer-leo { height: 38px; }
 }
+
+/* ===================================================================
+   CENTRED LAYOUT
+
+   The brief is "centre everything". Everything that reads as
+   composition is centred here: the section heads, the card captions,
+   the collection and page titles, the cart summary, the footer.
+
+   Two deliberate exceptions, both about reading rather than looks:
+   multi-paragraph body copy on the policy, about and contact pages
+   stays left-aligned, because centred ragged-both-edges prose is
+   genuinely harder to read line to line; and form fields keep their
+   left-aligned labels so the eye has one start position down a form.
+   Headings on those pages are centred like everywhere else.
+   =================================================================== */
+
+/* Section heads: title and the "view all" link, stacked and centred
+   rather than pushed to opposite edges. */
+.row-head {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+/* Collection and catalogue title rows, same treatment. */
+.coll-head {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+/* The search field and the filter button were laid out for a row:
+   flex: 1 1 260px plus an auto left margin that pushed them to the far
+   edge. Turned on its side, that 260px basis became a 260px HEIGHT and
+   opened a dead gap between the title and the grid. Reset both for the
+   column. */
+.coll-head .shop-search {
+  flex: 0 0 auto;
+  width: min(340px, 100%);
+  margin: 0 auto;
+}
+
+.coll-head .coll-filter { margin: 0 auto; }
+
+/* Card captions under the photograph. */
+.product-title,
+.product-price,
+.product .price,
+.product-meta { text-align: center; }
+
+/* The size row on a card centres with them. */
+.product .quick-add { justify-content: center; }
+
+/* Page titles and lede copy. */
+.t-h1,
+.coll-title,
+.cart-head,
+.nf-line,
+.rail-label,
+.look-intro,
+.textpage h1,
+.textpage-lede,
+.arch-subhead,
+.coll-count,
+.coll-empty { text-align: center; }
+
+.look-intro,
+.textpage-lede { margin-left: auto; margin-right: auto; }
+
+/* Lookbook captions sit under their frame, centred with it. */
+.look-worn { text-align: center; }
+
+/* Footer: columns centred, and the base row centred rather than
+   split to both edges. */
+.footer-cols { text-align: center; }
+.footer-cols .flinks { list-style: none; padding-left: 0; }
+.footer-base { justify-content: center; text-align: center; }
+.site-footer .social { justify-content: center; }
+.sms-signup { text-align: center; }
+.sms-form { justify-content: center; }
+
+/* The announcement bar was already centred; keep it explicit so a
+   future change to the bar does not quietly left-align it. */
+.announce { text-align: center; }
+
+/* PDP supporting copy, centred with the buy box above it. */
+.pd-trustlines,
+.pd-bis,
+.pd-discount-note,
+.pd-stocknote,
+.pd-msg { text-align: center; }
+
+/* Cart summary column: the subtotal row keeps its two edges, because a
+   label and a figure that belong together read better aligned to the
+   box they sit in; everything under the button centres. */
+.cart-sum .cart-note,
+.cart-taxnote,
+.cart-guest,
+.cart-klaviyo-sub,
+.cart-empty { text-align: center; }
+
+/* Text-page bodies: short one-line items, so they centre cleanly. The
+   bullets come off with them, since a centred list with hanging
+   markers reads as broken rather than as a list. */
+.textpage-what { list-style: none; padding-left: 0; text-align: center; }
+.textpage-what li { margin-left: auto; margin-right: auto; max-width: 56ch; }
+.textpage-number,
+.consent { text-align: center; }
+.consent { margin-left: auto; margin-right: auto; max-width: 62ch; }
