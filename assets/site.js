@@ -1890,9 +1890,14 @@
     var status = document.getElementById('shopSearchStatus');
     if (!input || !grid) return;
 
-    var cards = Array.prototype.slice.call(grid.querySelectorAll('.product'));
-    var headings = Array.prototype.slice.call(grid.querySelectorAll('.shop-grid-heading'));
-    input.addEventListener('input', function () {
+    /* Queried per keystroke, not captured once. shop.html replaces the
+       whole grid with innerHTML as soon as the live catalogue arrives,
+       so the nodes collected at wire time are detached a moment later
+       and hiding them does nothing on screen. That is why typing in the
+       search field changed the count but never the grid. */
+    function apply() {
+      var cards = Array.prototype.slice.call(grid.querySelectorAll('.product'));
+      var headings = Array.prototype.slice.call(grid.querySelectorAll('.shop-grid-heading'));
       var query = input.value.trim().toLocaleLowerCase();
       var shown = 0;
       cards.forEach(function (card) {
@@ -1913,7 +1918,27 @@
       if (status) status.textContent = query
         ? shown + ' product' + (shown === 1 ? '' : 's')
         : '';
-    });
+    }
+
+    input.addEventListener('input', apply);
+
+    /* ?q= seeds the field and runs once, so a search is linkable and
+       the WebSite SearchAction in the home page's structured data
+       points at something that actually works. */
+    var q = null;
+    try { q = new URLSearchParams(location.search).get('q'); } catch (err) { q = null; }
+    if (q) { input.value = q; apply(); }
+
+    /* The grid is re-rendered after the live fetch; re-apply so a
+       seeded or typed query survives it. */
+    if (typeof MutationObserver === 'function') {
+      var pending = false;
+      new MutationObserver(function () {
+        if (pending || !input.value.trim()) return;
+        pending = true;
+        requestAnimationFrame(function () { pending = false; apply(); });
+      }).observe(grid, { childList: true });
+    }
   }
 
   /* The announcement bar rotates [measured: the reference's bar changed

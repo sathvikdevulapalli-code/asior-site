@@ -313,6 +313,14 @@ ${bannerFiles.map((f, i) => `    <img src="/images/${f}.jpg" alt="${i === 0 ? ba
     .filter(Boolean)
     .join('\n') + '\n';
 
+  /* Home > Shop all > <category>. */
+  html = html.replace('<script src="/assets/site.js"></script>',
+    `<script type="application/ld+json">${breadcrumbJsonLd([
+      { name: 'Home', path: '/' },
+      { name: 'Shop all', path: '/shop.html' },
+      { name: c.name, path: `/collections/${c.slug}.html` },
+    ])}</script>\n<script src="/assets/site.js"></script>`);
+
   html = replaceBetween(html, '<!-- COLLTITLE:START -->', '<!-- COLLTITLE:END -->', esc(c.name));
   if (html === null) throw new Error(`${c.slug}: COLLTITLE markers missing`);
   html = replaceBetween(html, '<!-- COLLGRID:START -->', '<!-- COLLGRID:END -->', grid);
@@ -458,6 +466,68 @@ function leadImage(p) {
   return featured || all[0] || null;
 }
 
+/* ---- brand-level structured data ------------------------------------
+
+   The catalogue already emits Product on every generated page. What was
+   missing is anything describing the shop itself, which is what Google
+   reads for a brand result and for the sitelinks search box.
+
+   Only facts that are already on the site: the name, the canonical
+   home, the logo, the two social profiles linked in the footer, and
+   the support address from SUPPORT_EMAIL. No founder name, no address,
+   no telephone, no rating, because none of those are established here
+   and structured data that overstates is worse than none. */
+function siteJsonLd() {
+  const org = {
+    '@type': 'Organization',
+    '@id': BASE + '/#organization',
+    name: 'Asior',
+    url: BASE + '/',
+    logo: BASE + '/images/asior-hero-wide.jpg',
+    sameAs: [
+      'https://www.instagram.com/asior_clothing/',
+      'https://www.tiktok.com/@asiorclothing.com',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: SUPPORT_EMAIL,
+      availableLanguage: 'English',
+    },
+  };
+  const site = {
+    '@type': 'WebSite',
+    '@id': BASE + '/#website',
+    name: 'Asior',
+    url: BASE + '/',
+    publisher: { '@id': BASE + '/#organization' },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: BASE + '/shop.html?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+  return JSON.stringify({ '@context': 'https://schema.org', '@graph': [org, site] });
+}
+
+/* Home > Shop all > <name>. Two levels above the page, both real URLs
+   a visitor can reach from the page itself. */
+function breadcrumbJsonLd(trail) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: trail.map((t, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: t.name,
+      item: BASE + t.path,
+    })),
+  });
+}
+
 function productJsonLd(p, url) {
   const variants = p.variants.edges.map(e => e.node);
   const inStock = variants.some(v => v.availableForSale);
@@ -582,6 +652,12 @@ function renderProductPage(template, p) {
   html = html.replace('<script src="/assets/site.js"></script>',
     `<script>window.__PRODUCT_HANDLE = ${JSON.stringify(p.handle)};</script>\n`
     + `<script type="application/ld+json">${productJsonLd(p, canonical)}</script>\n`
+    + `<script type="application/ld+json">${breadcrumbJsonLd([
+        { name: 'Home', path: '/' },
+        { name: 'Shop all', path: '/shop.html' },
+        { name: p.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+          path: canonical.replace(BASE, '') },
+      ])}</script>\n`
     + '<script src="/assets/site.js"></script>');
 
   /* Real content in the served body, in place of the empty root and
@@ -1611,6 +1687,17 @@ function hashLocalImages() {
   return { images: alias.size, rewritten, pruned };
 }
 
+/* The brand block, home page only. */
+function syncSiteJsonLd() {
+  const target = path.join(ROOT, 'index.html');
+  const html = fs.readFileSync(target, 'utf8');
+  const block = `  <script type="application/ld+json">${siteJsonLd()}</script>\n`;
+  const next = replaceBetween(html, '<!-- SITEJSONLD:START -->', '<!-- SITEJSONLD:END -->', block);
+  if (next === null) throw new Error('index.html: SITEJSONLD markers missing');
+  if (next !== html) fs.writeFileSync(target, next);
+  return 1;
+}
+
 (async function main() {
   let failed = false;
 
@@ -1651,6 +1738,7 @@ function hashLocalImages() {
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ homepage hero: ${syncHero() ? 'approved Asior duo campaign photo' : 'none'}`);
+    console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);

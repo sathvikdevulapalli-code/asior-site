@@ -115,9 +115,19 @@
   font-display: swap;
 }
 
+/* Subset woff2, 15KB, against 141KB for the raw TrueType it replaces.
+   This face used to draw one word per page (the wordmark); it now sets
+   every product name, so it is on the catalogue's rendering path and
+   141KB of uncompressed TTF was no longer defensible. Subset to the
+   Latin the site actually sets in it.
+
+   The .ttf stays as a second source for anything that cannot take
+   woff2. Nothing modern fetches it: the browser takes the first format
+   it supports and stops. */
 @font-face {
   font-family: 'Pinyon Script';
-  src: url('../fonts/PinyonScript-Regular.ttf') format('truetype');
+  src: url('../fonts/pinyon-script-latin.woff2') format('woff2'),
+       url('../fonts/PinyonScript-Regular.ttf') format('truetype');
   font-style: normal;
   font-weight: 400;
   font-display: swap;
