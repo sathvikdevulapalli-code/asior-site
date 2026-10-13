@@ -115,9 +115,19 @@
   font-display: swap;
 }
 
+/* Subset woff2, 15KB, against 141KB for the raw TrueType it replaces.
+   This face used to draw one word per page (the wordmark); it now sets
+   every product name, so it is on the catalogue's rendering path and
+   141KB of uncompressed TTF was no longer defensible. Subset to the
+   Latin the site actually sets in it.
+
+   The .ttf stays as a second source for anything that cannot take
+   woff2. Nothing modern fetches it: the browser takes the first format
+   it supports and stops. */
 @font-face {
   font-family: 'Pinyon Script';
-  src: url('../fonts/PinyonScript-Regular.ttf') format('truetype');
+  src: url('../fonts/pinyon-script-latin.woff2') format('woff2'),
+       url('../fonts/PinyonScript-Regular.ttf') format('truetype');
   font-style: normal;
   font-weight: 400;
   font-display: swap;
@@ -1718,3 +1728,67 @@ body {
 .textpage-number,
 .consent { text-align: center; }
 .consent { margin-left: auto; margin-right: auto; max-width: 62ch; }
+
+/* ===================================================================
+   CARD CAPTION: TWO FACES
+
+   The name is set in the script the wordmark uses and the price in the
+   interface sans, so the two never read as one run of text. The script
+   needs sentence case and more size than a sans at the same optical
+   weight: Pinyon has a small x-height, and set in capitals it is not
+   readable at all, which is why the uppercase comes off here.
+   =================================================================== */
+.product-title {
+  font-family: 'Pinyon Script', 'Dancing Script', 'Brush Script MT', cursive;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  /* Script descenders are long; the old 35px line box clipped them. */
+  white-space: normal;
+  overflow: visible;
+  margin-top: 10px;
+}
+
+.product-price,
+.product .price {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ---- size chips --------------------------------------------------
+
+   They were 26px tall carrying 10px text with a 5px gap, which at card
+   width collapsed into a row of grey blocks rather than reading as
+   buttons. Bigger, further apart, and centred under the caption with
+   everything else. 32px also clears the 24px minimum for a touch
+   target far more comfortably than 26px did. */
+.product .quick-add {
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+  min-height: 32px;
+}
+
+.product .qa-size {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  border-color: var(--size-border);
+}
+
+.product .qa-size:not(.unavailable):hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
