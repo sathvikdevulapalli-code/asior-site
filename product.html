@@ -2435,10 +2435,24 @@
         url: location.origin + productUrl(product.handle),
       },
     };
-    const ldTag = document.createElement('script');
-    ldTag.type = 'application/ld+json';
-    ldTag.textContent = JSON.stringify(ld);
-    document.head.appendChild(ldTag);
+    // REPLACE the build-time Product node, never add to it. The build
+    // writes one from the catalog so a crawler that runs no JS still
+    // sees price and availability; this one is the same product with
+    // every image, the SKU and live availability. Appending left two
+    // Product nodes describing one page, which is a conflict a search
+    // engine resolves by picking one or trusting neither. Pages that
+    // have no build-time node (product.html reached directly with
+    // ?id=) still get this one appended.
+    const existingLd = document.querySelector('script[type="application/ld+json"][data-product-ld]');
+    if (existingLd) {
+      existingLd.textContent = JSON.stringify(ld);
+    } else {
+      const ldTag = document.createElement('script');
+      ldTag.type = 'application/ld+json';
+      ldTag.setAttribute('data-product-ld', '');
+      ldTag.textContent = JSON.stringify(ld);
+      document.head.appendChild(ldTag);
+    }
 
     // ---- related + recently viewed ----
     // "You Might Also Like" used to be catalog.filter(not-this-product)

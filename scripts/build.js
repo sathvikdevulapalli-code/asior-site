@@ -206,16 +206,63 @@ function collectionProducts(collection, products, shopifyMembership) {
   return found;
 }
 
+/* Garment nouns, matched against real Shopify product titles. Order is
+   the order they read in a sentence; the first pattern that matches a
+   title claims it, so "Kova Eternal Lotus Graphic T-Shirt" counts once,
+   as a tee, not as both a tee and a graphic. */
+const GARMENT_NOUNS = [
+  [/\bpolo\b/i, 'polos'],
+  [/\bcrewneck\b/i, 'crewnecks'],
+  [/\bhood(ie|ed)\b/i, 'hoodies'],
+  [/\b(tee|t-?shirt)\b/i, 'tees'],
+  [/\bsweat(pant|s)\b/i, 'sweatpants'],
+  [/\bshorts\b/i, 'shorts'],
+  [/\bset\b/i, 'sets'],
+  [/\b(pendant|chain|necklace)\b/i, 'chains'],
+  [/\blanyard\b/i, 'lanyards'],
+  [/\b(cap|hat|beanie)\b/i, 'caps'],
+];
+
+function garmentNouns(products) {
+  const seen = [];
+  for (const [re, noun] of GARMENT_NOUNS) {
+    if (products.some(p => re.test(p.title)) && !seen.includes(noun)) seen.push(noun);
+  }
+  return seen;
+}
+
+/* "Tops from Asior - polos, tees, crewnecks and sets." Falls back to
+   the name and the count when no title matches a known garment. */
+function collectionDescription(c) {
+  const n = c.products.length;
+  const count = `${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const nouns = garmentNouns(c.products);
+  if (!nouns.length) return `${c.name} from Asior. ${count}`;
+  const list = nouns.length === 1
+    ? nouns[0]
+    : nouns.slice(0, -1).join(', ') + ' and ' + nouns[nouns.length - 1];
+  return `${c.name} from Asior: ${list}. ${count}`;
+}
+
 /* Turn collection.html into a per-collection page, the same way
    renderProductPage turns product.html into a per-product one. */
 function renderCollectionPage(template, c) {
   const url = `${BASE}/collections/${c.slug}.html`;
   const title = `${c.name} | Asior`;
-  /* The description is the collection's name and its real size. Every
-     one of these collections has an empty descriptionHtml in Shopify,
-     and writing an intro for them here would be inventing copy. */
+  /* Every one of these collections has an empty descriptionHtml in
+     Shopify, and writing an intro for them here would be inventing
+     copy. What is NOT invention is what the collection actually
+     contains, so the description is built from the product titles
+     themselves: "Tops from Asior - polos, tees, crewnecks and sets."
+     Each noun below has to be matched in a real title to appear, so
+     the sentence can only ever describe stock that exists. A
+     collection whose titles match nothing falls back to the plain
+     name-and-count line.
+
+     This replaced "Tops from Asior. 6 pieces." -- 26 characters that
+     told a search result nothing about what was on the page. */
   const n = c.products.length;
-  const desc = `${c.name} from Asior. ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const desc = `${collectionDescription(c)} Sold out stays listed.`;
   const lead = c.products.map(leadImage).find(Boolean);
   const img = lead && lead.url ? lead.url : `${BASE}/assets/og-default.jpg`;
 
@@ -668,7 +715,7 @@ function renderProductPage(template, p) {
   // tell the page which product it is, plus the prerendered JSON-LD
   html = html.replace('<script src="/assets/site.js"></script>',
     `<script>window.__PRODUCT_HANDLE = ${JSON.stringify(p.handle)};</script>\n`
-    + `<script type="application/ld+json">${productJsonLd(p, canonical)}</script>\n`
+    + `<script type="application/ld+json" data-product-ld>${productJsonLd(p, canonical)}</script>\n`
     + `<script type="application/ld+json">${breadcrumbJsonLd([
         { name: 'Home', path: '/' },
         { name: 'Shop all', path: '/shop.html' },
@@ -1498,8 +1545,24 @@ function syncArchive(products) {
     .map(archiveRow)
     .filter(Boolean)
     .join('\n') + '\n';
-  const next = replaceBetween(html, '<!-- ARCHIVE:START -->', '<!-- ARCHIVE:END -->', rows);
+  let next = replaceBetween(html, '<!-- ARCHIVE:START -->', '<!-- ARCHIVE:END -->', rows);
   if (next === null) throw new Error('archive.html: ARCHIVE markers missing');
+
+  /* The archive is the whole catalog, so its description is written
+     from the whole catalog, by the same rule the collection pages use:
+     only garment nouns that a real product title contains. Hand-writing
+     the list here would go stale the first time a category is added or
+     emptied. */
+  const nouns = garmentNouns(products);
+  if (nouns.length) {
+    const list = nouns.length === 1
+      ? nouns[0]
+      : nouns.slice(0, -1).join(', ') + ' and ' + nouns[nouns.length - 1];
+    const desc = `Everything Asior has made: ${list}. Sold out stays listed.`;
+    next = next
+      .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
+      .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(desc)}">`);
+  }
   if (next !== html) fs.writeFileSync(target, next);
   return sortForMerchandising(products).length;
 }
@@ -1624,10 +1687,29 @@ function syncBespokeJsonLd(products) {
     const html = fs.readFileSync(target, 'utf8');
     const p = products.find(x => x.handle === handle);
     const block = p
-      ? `<script type="application/ld+json">${productJsonLd(p, BASE + page)}</script>`
+      ? `<script type="application/ld+json" data-product-ld>${productJsonLd(p, BASE + page)}</script>`
       : '';
-    const next = replaceBetween(html, '<!-- JSONLD:START -->', '<!-- JSONLD:END -->', block + '\n');
+    let next = replaceBetween(html, '<!-- JSONLD:START -->', '<!-- JSONLD:END -->', block + '\n');
     if (next === null) throw new Error(`${page}: JSONLD markers missing`);
+
+    /* The title and description come from the catalog too, for the same
+       reason the markup does. This page builds its body client-side, so
+       its <title> was hand-written and had drifted: it read "Asior
+       Lanyard | Out Now" while the <h1> the page actually rendered read
+       "JAG Lanyard". A title that disagrees with its own heading is a
+       title search engines and customers both have to guess about.
+       Taking both from Shopify means they cannot drift again. */
+    if (p) {
+      const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+      const metaTitle = `${name} | Asior`;
+      const metaDesc = plainDescription(p.descriptionHtml, `${name} from Asior.`);
+      next = next
+        .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(metaTitle)}</title>`)
+        .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(metaDesc)}">`)
+        .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${esc(metaTitle)}">`)
+        .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(metaDesc)}">`);
+    }
+
     if (next !== html) fs.writeFileSync(target, next);
     if (p) synced++;
   }
