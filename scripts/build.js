@@ -124,8 +124,12 @@ async function fetchProducts() {
           url
           w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
         } } }
+        # options and selectedOptions drive the prerendered size row;
+        # the variant id is what its buttons add to the cart.
+        options { name values }
         variants(first: 40) { edges { node {
-          title sku availableForSale price { amount currencyCode } compareAtPrice { amount }
+          id title sku availableForSale price { amount currencyCode } compareAtPrice { amount }
+          selectedOptions { name value }
         } } }
       } }
     }
@@ -269,8 +273,27 @@ function renderCollectionPage(template, c) {
      crop stays horizontal.
 
      Chosen for what each photograph actually shows:
-       tops    look-13, look-08  polo and tee, upper body
-       bottoms look-14, look-11  shorts worn at full length
+       tops    look-13, look-07, look-05, look-02
+       bottoms look-14, look-06, look-09, look-03
+
+     Chosen for range as well as subject. The first pass at four put
+     three near-identical polo shots next to each other on tops, and
+     two frames of the same pair on bottoms, which reads as a contact
+     sheet of one photograph rather than a strip. These alternate: a
+     pair, a close detail, a different garment, a different setting.
+
+     Four frames, not two. Every photograph from the shoot is 2:3
+     portrait and the band is about 2.35:1, so the width each frame
+     gets decides how much of the picture survives:
+
+       2 frames  720px wide  crops 52%
+       3 frames  480px wide  crops 28%
+       4 frames  360px wide  crops  4%
+
+     At two the band was a thin horizontal slice of a tall portrait,
+     which is what made it look wrong rather than merely cropped. At
+     four almost the whole frame is in shot and the sources are still
+     downscaled (800px into 360px), so nothing is soft either.
 
      look-06 was the first choice for bottoms and was wrong: it is
      already a tight shot of shorts, socks and shoes, so cropping it
@@ -279,14 +302,15 @@ function renderCollectionPage(template, c) {
      shorts read as clothing on a person rather than as a detail.
      accessories keeps its single compact frame and no wide banner. */
   const BANNERS = {
-    tops: ['look-13', 'look-08'],
-    bottoms: ['look-14', 'look-11'],
+    tops: ['look-13', 'look-07', 'look-05', 'look-02'],
+    bottoms: ['look-14', 'look-06', 'look-09', 'look-03'],
     accessories: ['look-12'],
   };
   /* Where the shallow band is taken from, vertically. Tops crop high
      so heads and chests stay in frame; bottoms crop low so the band
      holds the shorts rather than the tee above them. */
-  const BANNER_FOCUS = { tops: '20%', bottoms: '54%' };
+  /* Barely any crop left to place, so these only nudge it. */
+  const BANNER_FOCUS = { tops: '34%', bottoms: '52%' };
   const bannerFiles = BANNERS[c.slug] || BANNERS.tops;
   const compactBanner = c.slug === 'accessories';
   const bannerAlt = c.slug === 'tops'
@@ -1279,6 +1303,54 @@ const CARD_SIZES = {
   featured: '(max-width: 768px) 97vw, 48vw',
 };
 
+/* The size row, rendered into the served HTML.
+
+   It used to exist only in the live render, so the prerendered cards
+   carried no sizes at all and the chips appeared a beat after the
+   Storefront fetch resolved. When that fetch was slow the row popped
+   in late, and when it failed the row never arrived: measured, a
+   blocked graphql.json left 0 of 11 cards with sizes. That is the
+   "SML sometimes doesn't load".
+
+   Same markup contract as productCard() in assets/site.js, so the
+   handlers bind to either and the live render swaps one for the other
+   without the row moving. */
+function quickAddRow(p, name) {
+  const opts = (p.options || []).filter(o => o.name !== 'Title');
+  const sizeOpt = opts.filter(o => o.name === 'Size')[0];
+  if (!sizeOpt) return '';
+  const variants = (p.variants && p.variants.edges || []).map(e => e.node);
+  const hasSizeOnly = opts.length === 1;
+  const needsChoice = opts.length > 1;
+
+  const sizes = hasSizeOnly
+    ? variants.map(v => {
+        const o = (v.selectedOptions || []).filter(x => x.name === 'Size')[0];
+        return o ? { size: o.value, variantId: v.id, available: v.availableForSale } : null;
+      }).filter(Boolean)
+    : (sizeOpt.values || []).map(value => {
+        const inSize = variants.filter(v =>
+          (v.selectedOptions || []).some(x => x.name === 'Size' && x.value === value));
+        if (!inSize.length) return null;
+        return { size: value, variantId: null, available: inSize.some(v => v.availableForSale) };
+      }).filter(Boolean);
+  if (!sizes.length) return '';
+
+  const buttons = sizes.map(sz => {
+    const label = !sz.available ? `Size ${esc(sz.size)}, sold out`
+      : needsChoice ? `Choose size ${esc(sz.size)} for ${esc(name)}`
+      : `Add size ${esc(sz.size)} to cart`;
+    return `<button type="button" class="qa-size${sz.available ? '' : ' unavailable'}"`
+      + (sz.variantId ? ` data-variant-id="${esc(sz.variantId)}"` : '')
+      + ` data-size="${esc(sz.size)}"`
+      + (sz.available ? '' : ' disabled')
+      + ` aria-label="${label}">${esc(sz.size)}</button>`;
+  }).join('');
+
+  return `<div class="quick-add" data-handle="${esc(p.handle)}" data-name="${esc(name)}"`
+    + (needsChoice ? ' data-choose="1"' : '') + `>${buttons}</div>`;
+}
+
 function shopCard(p, eager, sizes) {
   const variants = p.variants.edges.map(e => e.node);
   const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
@@ -1346,6 +1418,7 @@ ${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}     
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
 ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
+        ${quickAddRow(p, name)}
       </div>`;
 }
 

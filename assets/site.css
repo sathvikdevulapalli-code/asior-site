@@ -1478,22 +1478,21 @@ html.cart-drawer-locked { overflow: hidden; }
 .product-peek::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
+  /* inset: 0 with margin: auto and a definite size centres an absolutely
+     positioned box exactly, in both axes, with no transform.
+
+     translate(-50%, -50%) was doing it before, and on a 1.5px bar that
+     is a 0.75px offset: the bar landed on a half pixel and antialiased
+     unevenly, so the cross read a hair high and left however exactly
+     the maths centred it. Even sizes and no fractional offset remove
+     the rounding entirely. */
+  inset: 0;
+  margin: auto;
   background: currentColor;
 }
 
-.product-peek::before {
-  width: 15px;
-  height: 1.5px;
-  transform: translate(-50%, -50%);
-}
-
-.product-peek::after {
-  width: 1.5px;
-  height: 15px;
-  transform: translate(-50%, -50%);
-}
+.product-peek::before { width: 16px; height: 2px; }
+.product-peek::after  { width: 2px;  height: 16px; }
 .product-peek:hover { background: var(--surface-hi); }
 @media (hover: hover) and (pointer: fine) {
   .product .product-peek { opacity: 0; transition: opacity var(--dur) var(--ease-out); }
@@ -1730,37 +1729,46 @@ body {
 .consent { margin-left: auto; margin-right: auto; max-width: 62ch; }
 
 /* ===================================================================
-   CARD CAPTION: TWO FACES
+   CARD CAPTION
 
-   The name is set in the script the wordmark uses and the price in the
-   interface sans, so the two never read as one run of text. The script
-   needs sentence case and more size than a sans at the same optical
-   weight: Pinyon has a small x-height, and set in capitals it is not
-   readable at all, which is why the uppercase comes off here.
+   The name was set in the script face for a while and it did not work.
+   Pinyon is a formal cursive: product names here are short and
+   acronym-heavy (JAG, ASR, ASIOR), and a cursive renders capitals as
+   ornate swashes, so exactly the names a customer is scanning for were
+   the hardest to read. The script is back to the one job it is good
+   at, the wordmark.
+
+   The contrast between name and price is still there, it just comes
+   from case, weight, tracking and colour instead of a second face.
+   That is what the type system already had to offer, and one family
+   used properly reads quieter than two fighting.
    =================================================================== */
 .product-title {
-  font-family: 'Pinyon Script', 'Dancing Script', 'Brush Script MT', cursive;
-  font-size: 21px;
-  font-weight: 400;
-  line-height: 1.25;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  /* Script descenders are long; the old 35px line box clipped them. */
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
   white-space: normal;
   overflow: visible;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
+/* Lining figures, lighter and quieter than the name above it: the
+   price is data, the name is the label. */
 .product-price,
 .product .price {
   font-family: var(--font);
   font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
-  margin-top: 2px;
+  margin-top: 4px;
 }
+
 
 /* ---- size chips --------------------------------------------------
 

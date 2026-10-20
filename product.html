@@ -439,46 +439,9 @@
   .pd-desc li + li { margin-top: 8px; }
   .pd-desc li::before { content: '-'; position: absolute; left: 0; color: var(--muted); }
 
-  .pd-ship {
-    margin-top: 24px;
-  }
 
-  .pd-ship summary {
-    cursor: pointer;
-    list-style: none;
-    position: relative;
-    padding: 12px 20px 12px 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-top: 1px solid var(--line);
-    transition: color 0.3s ease;
-  }
 
-  .pd-ship summary::-webkit-details-marker { display: none; }
-  .pd-ship summary:hover { color: var(--ink); }
 
-  .pd-ship summary::after {
-    content: '+';
-    position: absolute;
-    right: 2px;
-    top: 10px;
-    font-family: var(--font-body);
-    font-size: 15px;
-  }
-
-  .pd-ship[open] summary::after { content: '\2212'; }
-
-  .pd-ship-body {
-    padding: 4px 0 16px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--ink);
-  }
-
-  .pd-ship-body p + p { margin-top: 10px; }
 
   /* The real US rate card, rendered from assets/promo-config.js. Each
      transit time stays attached to the rate it belongs to -- quoting
