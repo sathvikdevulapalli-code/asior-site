@@ -257,72 +257,65 @@ function renderCollectionPage(template, c) {
      deploy. Replace a value the moment real category art exists. */
   /* Category banners.
 
-     The duo-*-wide files are not used here. They carry no camera EXIF,
-     they are 1536x1024 landscape when every verified frame from the
-     shoot is 800x1200 portrait, and Sathvik could not confirm on
-     2026-10-11 whether they are original photographs or AI-extended
-     from a portrait. CLAUDE.md says real photos only, so until that is
-     settled the banners are built from look-*, which carry Sony
-     ILCE-6400 EXIF. The duo files are left in images/ untouched; that
-     is the founder's call, not this build's.
+     EXIF-verified photographs only. Checked every file in images/ on
+     2026-10-20: exactly three carry camera EXIF, look-01.jpg,
+     look-02.jpg and look-03.jpg, all Sony ILCE-6400, shot 2026-07-08.
+     The other 43 files carry none, look-04 through look-15 included.
+     An earlier comment here claimed the whole look-* set was verified.
+     It was wrong, and this is the correction.
 
-     Two frames per banner, side by side. One 800px-wide portrait
-     stretched across a 1905px banner would be a 2.4x upscale -- worse
-     than the 1.24x the duo files were being stretched by. A pair gives
-     ~1600px of real pixels across the same band, about 1.19x, and the
-     crop stays horizontal.
+     (The .webp siblings of even those three carry no EXIF either,
+     because the conversion strips it. The provenance lives in the
+     .jpg; the webp is a rendition of a verified original.)
 
-     Chosen for what each photograph actually shows:
-       tops    look-13, look-07, look-05, look-02
-       bottoms look-14, look-06, look-09, look-03
+     So the banners draw on three photographs, not fifteen.
 
-     Chosen for range as well as subject. The first pass at four put
-     three near-identical polo shots next to each other on tops, and
-     two frames of the same pair on bottoms, which reads as a contact
-     sheet of one photograph rather than a strip. These alternate: a
-     pair, a close detail, a different garment, a different setting.
+     Width per frame decides how much of a 2:3 portrait survives a
+     2.35:1 band: 2 frames crop 52%, 3 crop 28%, 4 crop 4%.
 
-     Four frames, not two. Every photograph from the shoot is 2:3
-     portrait and the band is about 2.35:1, so the width each frame
-     gets decides how much of the picture survives:
+     Four cells was tried first, which with three sources means
+     repeating one. It did not work: a different focus does not
+     disguise the same person in the same pose, so cells one and four
+     read as a duplicate rather than a strip. Three cells, one per
+     verified photograph, at 28% crop instead of 4%. The band still
+     shows most of each frame and nothing repeats.
 
-       2 frames  720px wide  crops 52%
-       3 frames  480px wide  crops 28%
-       4 frames  360px wide  crops  4%
+     BANNER_STYLE picks between that and no banner at all, which is
+     what the accessories page already does. Both are screenshotted in
+     the PR for Sathvik to choose; flip the constant, nothing else. */
+  /* 'strip' = four cells from the three verified frames.
+     'none'  = no banner, products start under the title. */
+  const BANNER_STYLE = 'strip';
 
-     At two the band was a thin horizontal slice of a tall portrait,
-     which is what made it look wrong rather than merely cropped. At
-     four almost the whole frame is in shot and the sources are still
-     downscaled (800px into 360px), so nothing is soft either.
-
-     look-06 was the first choice for bottoms and was wrong: it is
-     already a tight shot of shorts, socks and shoes, so cropping it
-     into a shallow band left a close-up of someone's knees with no
-     garment context at all. These two are shot further back, so the
-     shorts read as clothing on a person rather than as a detail.
-     accessories keeps its single compact frame and no wide banner. */
   const BANNERS = {
-    tops: ['look-13', 'look-07', 'look-05', 'look-02'],
-    bottoms: ['look-14', 'look-06', 'look-09', 'look-03'],
-    accessories: ['look-12'],
+    tops: ['look-02', 'look-01', 'look-03'],
+    bottoms: ['look-03', 'look-01', 'look-02'],
+    accessories: ['look-02'],
   };
   /* Where the shallow band is taken from, vertically. Tops crop high
      so heads and chests stay in frame; bottoms crop low so the band
      holds the shorts rather than the tee above them. */
   /* Barely any crop left to place, so these only nudge it. */
-  const BANNER_FOCUS = { tops: '34%', bottoms: '52%' };
+  /* Per cell, so the repeated photograph is not the same crop twice. */
+  const BANNER_FOCUS = {
+    tops:    ['24%', '22%', '46%'],
+    bottoms: ['52%', '60%', '56%'],
+  };
   const bannerFiles = BANNERS[c.slug] || BANNERS.tops;
-  const compactBanner = c.slug === 'accessories';
+  const bannerFocus = BANNER_FOCUS[c.slug] || [];
+  /* Accessories has never carried one; BANNER_STYLE turns the rest off. */
+  const compactBanner = c.slug === 'accessories' || BANNER_STYLE === 'none';
   const bannerAlt = c.slug === 'tops'
     ? 'Asior Fall tops worn on a city street'
     : c.slug === 'bottoms'
       ? 'Asior Fall shorts worn on a city street'
       : 'Asior model in black streetwear on a city street';
-  /* alt on the first frame only: the pair is one picture of one
+  /* alt on the first frame only: the strip is one picture of one
      subject, so a screen reader should hear it described once. */
-  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair" style="--banner-focus: ${BANNER_FOCUS[c.slug] || '20%'}">
+  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair">
 ${bannerFiles.map((f, i) => `    <img src="/images/${f}.jpg" alt="${i === 0 ? bannerAlt : ''}"`
     + `${i === 0 ? '' : ' aria-hidden="true"'} width="800" height="1200"`
+    + ` style="object-position: center ${bannerFocus[i] || '40%'}"`
     + ` ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`).join('\n')}
   </div>
 `;
@@ -930,6 +923,14 @@ const CATEGORIES = LAUNCH.CATEGORIES || [];
    from Shopify, not from a list here. */
 const SHOPIFY_COLLECTIONS = LAUNCH.SHOPIFY_COLLECTIONS || [];
 
+/* Handles cleared to show a struck-through former price. Same list the
+   browser reads, so a card rendered here and the same card rendered by
+   assets/site.js cannot disagree. Fails closed: anything but a real
+   array means no compare-at is rendered at all. */
+const VERIFIED_COMPARE_AT = Array.isArray(LAUNCH.VERIFIED_COMPARE_AT)
+  ? LAUNCH.VERIFIED_COMPARE_AT
+  : [];
+
 /* Every collection that gets a page, from both sources, through one
    generator. `source` decides where the membership comes from. */
 /* Filled by the collection pass, read by the sitemap. */
@@ -1361,7 +1362,9 @@ function shopCard(p, eager, sizes) {
     .filter(Boolean);
   const min = Math.min(...prices);
   const max = Math.max(...prices);
-  const compare = compares.length && compares[0] > min ? compares[0] : null;
+  const compare = VERIFIED_COMPARE_AT.includes(p.handle) && compares.length && compares[0] > min
+    ? compares[0]
+    : null;
   const priceLabel = min === max
     ? `${compare ? `<span class="compare"><span class="sr-only">Was </span>$${compare}</span><span class="sale-price"><span class="sr-only">Now </span>$${min}</span>` : `$${min}`}`
     : `From $${min}`;
@@ -1507,16 +1510,32 @@ function syncArchive(products) {
    and mobile. Neither depends on Shopify gallery ordering. */
 function syncHero() {
   const target = path.join(ROOT, 'index.html');
-  let html = fs.readFileSync(target, 'utf8');
-  html = html.replace(/<source class="hero-mobile"[^>]*>/,
-    '<source class="hero-mobile" media="(max-width: 900px)" type="image/webp" srcset="images/asior-hero-wide.webp" width="1900" height="859">');
-  html = html.replace(/<source class="hero-desktop"[^>]*>/,
-    '<source class="hero-desktop" type="image/webp" srcset="images/asior-hero-wide.webp" width="1900" height="859">');
-  const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    '        <img src="images/asior-hero-wide.jpg" alt="Two Asior models wearing black pieces with purple leopard trim on a city street" width="1900" height="859" fetchpriority="high" decoding="async">\n');
+  const html = fs.readFileSync(target, 'utf8');
+
+  /* EXIF-verified only. Native 800x1200, three across on desktop and
+     look-02 alone on a phone, so nothing is upscaled at either width:
+     the section takes its height from the pictures rather than the
+     pictures being stretched to a section height. */
+  /* Third value is the vertical crop, per frame: each photograph puts
+     its subject somewhere different, and look-03 has a dark ceiling at
+     the top that a shared value drags into shot. */
+  const frames = [
+    ['look-01', 'Asior Holes Tee worn on a street in Texas', '30%'],
+    ['look-02', 'Asior Polo with leopard trim worn on outdoor steps', '34%'],
+    ['look-03', 'Two people in Asior tees and sweat shorts', '58%'],
+  ];
+  const block = frames.map(([file, alt, focus], i) =>
+    `        <picture class="hero-frame${i === 1 ? ' hero-frame--mobile' : ''}">\n`
+    + `          <source type="image/webp" srcset="images/${file}.webp" width="800" height="1200">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="800" height="1200"`
+    + ` style="object-position: center ${focus}"`
+    + ` ${i === 1 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">\n`
+    + '        </picture>').join('\n') + '\n';
+
+  const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
-  return 1;
+  return frames.length;
 }
 
 /* [measured] The NEW ARRIVALS row.
@@ -1810,7 +1829,7 @@ function syncSiteJsonLd() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero() ? 'approved Asior duo campaign photo' : 'none'}`);
+    console.log(`✓ homepage hero: ${syncHero()} EXIF-verified frame(s)`);
     console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
     console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);

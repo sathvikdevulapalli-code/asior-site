@@ -1167,6 +1167,12 @@ html.cart-drawer-locked { overflow: hidden; }
    that forgets gets the safe white header rather than white-on-white. */
 .page--hero .site-header {
   margin-bottom: calc(var(--header-h-ref) * -1);
+  /* Transparent, and the scrim that makes the nav readable belongs to
+     the picture underneath (.hero::after, .coll-banner::after), not to
+     the header. Two stacked gradients compounded to ~.89 alpha across
+     the masthead, and a gradient ending at the header's own bottom
+     edge put a hard line across the photograph. One scrim, owned by
+     the image, holds through the header band and fades out below it. */
   background: transparent;
   color: #fff;
 }

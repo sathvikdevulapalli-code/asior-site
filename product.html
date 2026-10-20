@@ -1990,7 +1990,13 @@
       const el = document.getElementById('pdPrice');
       const stickyEl = document.getElementById('pdStickyPrice');
       if (v) {
-        const onSale = v.comparePrice && v.comparePrice > v.price;
+        // A compare-at price is a claim that this shop once charged
+        // that number, so it needs the handle on the verified list in
+        // launch-config.js. Unverified: show the price alone.
+        const verifiedCompare = window.Asior && window.Asior.compareAtVerified
+          ? window.Asior.compareAtVerified(product.handle)
+          : false;
+        const onSale = verifiedCompare && v.comparePrice && v.comparePrice > v.price;
         el.innerHTML = onSale
           ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
             + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`

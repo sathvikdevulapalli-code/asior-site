@@ -398,6 +398,10 @@
   </footer>
   <!-- FOOTER:END -->
 
+<!-- The verified-compare-at list lives here. Without it this page's
+     gate can only fail closed, so a price the founder has actually
+     verified would still never show. -->
+<script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/product-details.js"></script>
@@ -591,7 +595,13 @@
       const v = currentVariant();
       const el = document.getElementById('lpPrice');
       if (!v) { el.textContent = ''; return; }
-      el.innerHTML = `${v.comparePrice && v.comparePrice > v.price ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
+      // Verified-only, the same rule the grid cards and the PDP use:
+      // Shopify's compare_at_price is not evidence of a former price.
+      const verifiedCompare = window.Asior && window.Asior.compareAtVerified
+        ? window.Asior.compareAtVerified(HANDLE)
+        : false;
+      const showCompare = verifiedCompare && v.comparePrice && v.comparePrice > v.price;
+      el.innerHTML = `${showCompare ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
     }
 
     function renderOpts() {

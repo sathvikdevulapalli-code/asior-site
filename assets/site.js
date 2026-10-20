@@ -1400,6 +1400,18 @@
       } }
     }`;
 
+  /* Is this handle allowed to show a struck-through former price?
+     Shopify's compare_at_price is free text and carries no evidence
+     that the shop ever charged it, so a handle has to be on the
+     verified list in launch-config.js. Fails closed: a missing or
+     malformed list shows no compare-at anywhere. */
+  function compareAtVerified(handle) {
+    var cfg = window.ASIOR_LAUNCH || {};
+    var list = cfg.VERIFIED_COMPARE_AT;
+    if (!Array.isArray(list) || !list.length || !handle) return false;
+    return list.indexOf(handle) !== -1;
+  }
+
   /* Storefront node -> the shape a card renders. Returns null for a
      malformed product rather than throwing, so one bad record cannot
      take down every other tile on the page. */
@@ -1412,7 +1424,9 @@
         .filter(Boolean);
       var minPrice = Math.min.apply(null, prices);
       var maxPrice = Math.max.apply(null, prices);
-      var compare = compares.length && compares[0] > minPrice ? compares[0] : null;
+      var compare = compareAtVerified(node.handle) && compares.length && compares[0] > minPrice
+        ? compares[0]
+        : null;
       var opts = node.options || [];
       var sizeOpt = opts.filter(function (o) { return o.name === 'Size'; })[0];
       /* One option and it is Size: a size button names exactly one
@@ -1813,6 +1827,7 @@
     returnsLine: returnsLine,
     shippingConfig: shippingConfig,
     isGeneratedImage: isGeneratedImage,
+    compareAtVerified: compareAtVerified,
     leadImage: leadImage,
     orderImages: orderImages,
     PRODUCT_CARD_FIELDS: PRODUCT_CARD_FIELDS,

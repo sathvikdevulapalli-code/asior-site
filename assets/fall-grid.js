@@ -82,7 +82,14 @@
         .filter(Boolean);
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
-      const compare = minPrice === maxPrice && compares.length && compares[0] > minPrice ? compares[0] : null;
+      // Same verified-only rule the cards and the PDP use: an
+      // unverified compare_at_price is not a former price.
+      const verified = window.Asior && window.Asior.compareAtVerified
+        ? window.Asior.compareAtVerified(node.handle)
+        : false;
+      const compare = verified && minPrice === maxPrice && compares.length && compares[0] > minPrice
+        ? compares[0]
+        : null;
       return {
         handle: node.handle,
         name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
