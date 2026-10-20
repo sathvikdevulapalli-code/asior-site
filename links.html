@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Links | ASIOR</title>
+<meta name="description" content="Every ASIOR link in one place: the shop, the collections, the lookbook and the waitlist.">
+<meta name="theme-color" content="#0E0E0D">
+<link rel="canonical" href="https://asiorclothing.com/links">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL.
+     This page is the destination of the Instagram and TikTok bio links,
+     so what it looks like when pasted is most of its job. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ASIOR">
+<meta property="og:description" content="Every ASIOR link in one place.">
+<meta property="og:url" content="https://asiorclothing.com/links">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ASIOR streetwear campaign">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
+<style>
+  /* A stack of rules, not a stack of buttons. Every link-in-bio page
+     on the internet is a column of rounded pills; this one is the same
+     1px rule the product rows and the footer already use, so the page
+     looks like the rest of the site instead of like the tool that
+     usually makes it. */
+  .links {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 7vh 20px 14vh;
+  }
+
+  /* The wordmark, same face the header uses. It carries .mark-text so
+     the Pinyon Script @font-face in site.css applies; setting a
+     family here would have quietly fallen back to the body sans. */
+  .links-mark {
+    display: block;
+    text-align: center;
+    color: var(--ink);
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+
+  .links-mark .mark-text { font-size: 44px; }
+
+  .links-sub {
+    margin: 0 0 40px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .links-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+
+  .links-row { border-bottom: 1px solid var(--line); }
+
+  .links-row a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 4px;
+    color: var(--ink);
+    text-decoration: none;
+    /* 44px minimum target comes from the 20px padding either side of a
+       13px line, not from a fixed height, so a row with a note under it
+       simply gets taller. */
+    min-height: 44px;
+  }
+
+  .links-row a:hover .links-label,
+  .links-row a:focus-visible .links-label { color: var(--muted); }
+  .links-row a:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+  .links-text { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+  .links-label {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color var(--dur) var(--ease-out);
+  }
+
+  .links-note {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Points right for a page on this site, up-and-out for one that
+     leaves it. The only difference between the two rows. */
+  .links-arrow { flex: none; color: var(--muted); font-size: 13px; line-height: 1; }
+
+  @media (max-width: 600px) {
+    .links { padding-top: 5vh; }
+    .links-mark { font-size: 30px; }
+  }
+</style>
+<!-- HEAD:START -->
+<!-- HEAD:END -->
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <main id="main" class="links">
+    <!-- Every other page has one; the wordmark below is an image of a
+         name, not a heading, so the heading is given to a screen
+         reader and a crawler separately. Same pattern as index.html. -->
+    <h1 class="sr-only">ASIOR links</h1>
+    <a class="links-mark" href="/" aria-label="Asior home"><span class="mark-text">Asior</span></a>
+    <p class="links-sub">Streetwear from Texas</p>
+
+    <!-- Rendered from assets/links-config.js. Server-rendered markup is
+         not possible here without a build step that knows the config,
+         and the list is short enough that one pass on DOMContentLoaded
+         costs nothing. The <noscript> below carries the same links so
+         the page is never empty. -->
+    <ul class="links-list" id="linksList"></ul>
+
+    <noscript>
+      <ul class="links-list">
+        <li class="links-row"><a href="/shop.html"><span class="links-text"><span class="links-label">Shop all</span></span></a></li>
+        <li class="links-row"><a href="/community.html"><span class="links-text"><span class="links-label">Lookbook</span></span></a></li>
+        <li class="links-row"><a href="/waitlist.html"><span class="links-text"><span class="links-label">Waitlist</span></span></a></li>
+        <li class="links-row"><a href="/archive.html"><span class="links-text"><span class="links-label">Archive</span></span></a></li>
+        <li class="links-row"><a href="https://www.instagram.com/asior_clothing/"><span class="links-text"><span class="links-label">Instagram</span></span></a></li>
+        <li class="links-row"><a href="https://www.tiktok.com/@asiorclothing.com"><span class="links-text"><span class="links-label">TikTok</span></span></a></li>
+        <li class="links-row"><a href="/contact.html"><span class="links-text"><span class="links-label">Contact</span></span></a></li>
+      </ul>
+    </noscript>
+  </main>
+
+<script src="assets/links-config.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
+<script>
+(function () {
+  var cfg = window.ASIOR_LINKS || {};
+  var list = document.getElementById('linksList');
+  if (!list || !Array.isArray(cfg.LINKS)) return;
+
+  /* What the visitor arrived with wins.
+
+     If someone opens /links from a creator's post that already carries
+     utm_content, that is the attribution worth keeping — stamping
+     source=linkinbio over it would quietly reassign every sale from
+     that post to ourselves. So the incoming params are read first and
+     the defaults only fill what is missing. */
+  function outboundHref(href) {
+    try {
+      var incoming = new URLSearchParams(location.search);
+      var url = new URL(href, location.origin);
+      var merged = {};
+      Object.keys(cfg.DEFAULT_UTM || {}).forEach(function (k) { merged[k] = cfg.DEFAULT_UTM[k]; });
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+       'ttclid', 'fbclid', 'gclid'].forEach(function (k) {
+        var v = incoming.get(k);
+        if (v) merged[k] = v;
+      });
+      Object.keys(merged).forEach(function (k) {
+        // Never overwrite a param the destination already specifies.
+        if (!url.searchParams.has(k)) url.searchParams.set(k, merged[k]);
+      });
+      return url.pathname + url.search + url.hash;
+    } catch (err) {
+      return href;   // a malformed URL is still a link that should work
+    }
+  }
+
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  list.innerHTML = cfg.LINKS.map(function (l) {
+    if (!l || !l.href || !l.label) return '';
+    /* Only this site's own URLs get the UTMs. Appending our parameters
+       to instagram.com would hand a third party a tracking string that
+       says nothing to them and follows the visitor off-site. */
+    var href = l.external ? l.href : outboundHref(l.href);
+    var rel = l.external ? ' target="_blank" rel="noopener"' : '';
+    var arrow = l.external ? '&#8599;' : '&#8594;';
+    return '<li class="links-row"><a href="' + esc(href) + '"' + rel + '>'
+      + '<span class="links-text"><span class="links-label">' + esc(l.label) + '</span>'
+      + (l.note ? '<span class="links-note">' + esc(l.note) + '</span>' : '')
+      + '</span><span class="links-arrow" aria-hidden="true">' + arrow + '</span></a></li>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

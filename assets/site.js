@@ -138,15 +138,69 @@
   // -----------------------------------------------------------------
   // Cart
   // -----------------------------------------------------------------
+
+  /* First-touch attribution, carried into the cart itself.
+
+     Until now the UTMs lived on the Klaviyo profile and on analytics
+     events, which answers "where did this subscriber come from" but
+     not "where did this ORDER come from" -- the order lands in Shopify
+     with nothing on it, so a creator who drove a sale cannot be paid
+     for a sale. Cart attributes ride through checkout and show up on
+     the order in Shopify Admin, which is the one place the founder
+     actually reconciles revenue.
+
+     getUTMParams() is first-touch and already bounded to 200
+     characters per value. Shopify caps attributes, so this takes the
+     keys that carry attribution and stops: no phone number, no email,
+     nothing that is not already in the URL the visitor arrived on. */
+  function cartAttributes() {
+    try {
+      var utm = getUTMParams();
+      return Object.keys(utm)
+        .filter(function (k) { return utm[k]; })
+        .slice(0, 8)
+        .map(function (k) { return { key: k, value: String(utm[k]).slice(0, 200) }; });
+    } catch (err) {
+      return [];   // attribution is never worth failing a cart over
+    }
+  }
+
+  async function createCart(attributes) {
+    var mutation = 'mutation($attributes: [AttributeInput!]) {'
+      + '  cartCreate(input: { attributes: $attributes }) { cart { id checkoutUrl totalQuantity } }'
+      + '}';
+    try {
+      var data = await shopifyFetch(mutation, { attributes: attributes || [] });
+      return data.cartCreate.cart;
+    } catch (err) {
+      if (!attributes || !attributes.length) throw err;   // not the attributes' fault
+      if (window.console && console.info) {
+        console.info('[asior] cartCreate rejected the attributes input; creating the cart without attribution.');
+      }
+      var bare = await shopifyFetch('mutation { cartCreate { cart { id checkoutUrl totalQuantity } } }');
+      return bare.cartCreate.cart;
+    }
+  }
+
   async function getOrCreateCart() {
     var existingId = localStorage.getItem('shopify_cart_id');
     if (existingId) {
       var data = await shopifyFetch('query($id: ID!) { cart(id: $id) { id checkoutUrl totalQuantity } }', { id: existingId });
       if (data.cart) return data.cart;
     }
-    var created = await shopifyFetch('mutation { cartCreate { cart { id checkoutUrl totalQuantity } } }');
-    localStorage.setItem('shopify_cart_id', created.cartCreate.cart.id);
-    return created.cartCreate.cart;
+    /* Attributes go on at creation. They cannot be added later without
+       a second round trip on every add-to-cart, and the first touch is
+       already known by the time a cart exists.
+
+       Attribution never costs a sale. shopifyFetch throws on any
+       GraphQL error, so if this store's API version rejected the
+       attributes input, every add-to-cart on the site would throw and
+       nobody could buy anything -- which is a failure this storefront
+       has had before, from a different confident assumption about the
+       API. The retry drops the attributes and keeps the cart. */
+    var created = await createCart(cartAttributes());
+    localStorage.setItem('shopify_cart_id', created.id);
+    return created;
   }
 
   async function addToShopifyCart(variantId, qty) {
@@ -215,13 +269,27 @@
 
      Same shape as Shopify's own "Buy it now". */
   async function createBuyNowCart(variantId, qty) {
-    var data = await shopifyFetch(
-      'mutation($lines: [CartLineInput!]!) {' +
-      '  cartCreate(input: { lines: $lines }) { cart { id checkoutUrl totalQuantity } }' +
-      '}',
-      { lines: [{ merchandiseId: variantId, quantity: qty || 1 }] }
-    );
-    return data.cartCreate.cart;
+    var lines = [{ merchandiseId: variantId, quantity: qty || 1 }];
+    var withAttrs = 'mutation($lines: [CartLineInput!]!, $attributes: [AttributeInput!]) {'
+      + '  cartCreate(input: { lines: $lines, attributes: $attributes })'
+      + '    { cart { id checkoutUrl totalQuantity } }'
+      + '}';
+    var attributes = cartAttributes();
+    try {
+      var data = await shopifyFetch(withAttrs, { lines: lines, attributes: attributes });
+      return data.cartCreate.cart;
+    } catch (err) {
+      // Buy it now goes straight to checkout, so this is the least
+      // forgiving path on the site. Same rule: keep the sale.
+      if (!attributes.length) throw err;
+      var bare = await shopifyFetch(
+        'mutation($lines: [CartLineInput!]!) {' +
+        '  cartCreate(input: { lines: $lines }) { cart { id checkoutUrl totalQuantity } }' +
+        '}',
+        { lines: lines }
+      );
+      return bare.cartCreate.cart;
+    }
   }
 
   /* Apply discount codes to the saved cart — or clear them, with [].
