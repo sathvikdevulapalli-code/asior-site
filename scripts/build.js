@@ -990,7 +990,21 @@ const ALL_COLLECTIONS = [
 
 const NAV_LINKS = [
   ['Shop all', '/shop.html'],
-  ...CATEGORIES.map(c => [c.name, `/collections/${c.slug}.html`]),
+  /* Accessories is deliberately NOT in the header.
+
+     The nav is where someone decides what kind of garment they want,
+     and a lanyard and a pendant are not a third kind of garment --
+     they are what you add once you have chosen one. Giving them equal
+     billing with Tops and Bottoms made a two-item collection look like
+     a third of the range.
+
+     Nothing is removed: the collection, its page, its products and its
+     sitemap entry are untouched, it is still reachable from Shop all,
+     from the homepage category tiles, and from the footer, and
+     /collections/accessories.html keeps working for anything already
+     linking to it. */
+  ...CATEGORIES.filter(c => c.slug !== 'accessories')
+    .map(c => [c.name, `/collections/${c.slug}.html`]),
   /* Manufacturing stays in the main nav. It was moved to the footer
      once on the grounds that a B2B service does not belong between
      Tops and Accessories; it is a real part of what Asior offers and
@@ -1474,13 +1488,12 @@ function shopCard(p, eager, sizes) {
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
-${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}        </div>
-        <a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Choose a size and preview ${esc(name)}">Quick view</a>
+${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          <a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Choose a size and preview ${esc(name)}">Quick view</a>
+${quickAddRow(p, name)}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
 ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
-        ${quickAddRow(p, name)}
       </div>`;
 }
 
@@ -1587,30 +1600,31 @@ function syncHero() {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
 
-  /* EXIF-verified only. Native 800x1200, three across on desktop and
-     look-02 alone on a phone, so nothing is upscaled at either width:
-     the section takes its height from the pictures rather than the
-     pictures being stretched to a section height. */
-  /* Third value is the vertical crop, per frame: each photograph puts
-     its subject somewhere different, and look-03 has a dark ceiling at
-     the top that a shared value drags into shot. */
-  const frames = [
-    ['look-01', 'Asior Holes Tee worn on a street in Texas', '30%'],
-    ['look-02', 'Asior Polo with leopard trim worn on outdoor steps', '34%'],
-    ['look-03', 'Two people in Asior tees and sweat shorts', '58%'],
-  ];
-  const block = frames.map(([file, alt, focus], i) =>
-    `        <picture class="hero-frame${i === 1 ? ' hero-frame--mobile' : ''}">\n`
-    + `          <source type="image/webp" srcset="images/${file}.webp" width="800" height="1200">\n`
-    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="800" height="1200"`
-    + ` style="object-position: center ${focus}"`
-    + ` ${i === 1 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">\n`
-    + '        </picture>').join('\n') + '\n';
+  /* One photograph, at its own shape.
+
+     The campaign files are 2:3 portraits. The previous hero ran three
+     of them side by side to fill a wide band; this shows one, large,
+     in a split with the type beside it, which is what a portrait
+     wants. Nothing is stretched and nothing is cropped to a letterbox.
+
+     srcset carries the 800w variant for phones and the 1600w for
+     everything else, so a phone does not download a 1600px file to
+     paint it 390px wide. */
+  const file = 'oli04281';
+  const alt = 'Two models in Asior tops and sweat shorts walking a downtown passage';
+  const block =
+    '        <picture class="hero-figure">\n'
+    + `          <source type="image/webp" media="(max-width: 700px)" srcset="images/${file}-800.webp">\n`
+    + `          <source type="image/webp" srcset="images/${file}.webp">\n`
+    + `          <source media="(max-width: 700px)" srcset="images/${file}-800.jpg">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400"`
+    + ' fetchpriority="high" decoding="async">\n'
+    + '        </picture>\n';
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
-  return frames.length;
+  return 1;
 }
 
 /* The NEW ARRIVALS row is gone, and so is its sync.
@@ -1921,7 +1935,7 @@ function syncSiteJsonLd() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero()} EXIF-verified frame(s)`);
+    console.log(`✓ homepage hero: ${syncHero()} campaign frame`);
     console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
