@@ -59,7 +59,7 @@ const STATIC_PAGES = [
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
-  '/waitlist.html',
+  '/waitlist.html', '/links',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -1258,6 +1258,7 @@ const HEAD_PAGES = [
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
   'shipping-policy.html', 'refund-policy.html',
   'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
+  'links.html',
   'collection.html',
 ];
 
