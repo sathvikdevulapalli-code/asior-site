@@ -558,14 +558,12 @@
 
   /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
        30px side padding] ---------- */
-  /* Three shopping categories. Manufacturing used to sit here as a
-     fourth: it is a service for other labels, not a rail of clothes,
-     and putting it in a row captioned Tops / Bottoms / Accessories
-     asked the customer to read it as one. It keeps its page and its
-     footer link. */
+  /* Four: the three shopping categories and Manufacturing, which is a
+     real part of what Asior offers and which people go looking for
+     here. */
   .tiles {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     padding: 54px 30px;
   }
@@ -652,12 +650,7 @@
     .campaign-note { margin-top: 12px; }
     .btn-outline { margin-top: 20px; }
 
-    /* Three categories in a two-up left Accessories alone on its own
-       row at half width, which reads as a missing fourth tile. One
-       column, edge to edge: each category gets a photograph big
-       enough to be worth looking at, which is the point of the row. */
-    .tiles { grid-template-columns: 1fr; gap: 2px; padding: 28px 0; }
-    .tile { aspect-ratio: 3 / 2; }
+    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
     .tile-label { bottom: 16px; font-size: 12px; }
   }
 
@@ -1055,6 +1048,10 @@
     <a class="tile" href="/collections/accessories.html">
       <picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
       <span class="tile-label">Accessories</span>
+    </a>
+    <a class="tile" href="/manufacturing.html">
+      <picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Manufacturing</span>
     </a>
   </section>
 
