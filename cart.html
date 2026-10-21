@@ -201,6 +201,23 @@
 
   .cart-item .qty button:hover { background: var(--line); }
 
+  /* Drawn, not typed. A "+" sits on the font's maths axis and a "-" on
+     a different height again, so as glyphs the two never line up with
+     each other or with the middle of the button. */
+  .cart-item .qty button { font-size: 0; position: relative; }
+
+  .cart-item .qty button::before,
+  .cart-item .qty button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: currentColor;
+  }
+
+  .cart-item .qty button::before { width: 11px; height: 1px; }
+  .cart-item .qty .qty-up::after { width: 1px; height: 11px; }
+
   .cart-item .qty-val {
     min-width: 26px;
     text-align: center;

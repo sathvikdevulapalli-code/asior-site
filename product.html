@@ -78,25 +78,30 @@
   /* [measured] Images stacked, ~20px apart, no thumbnails. */
   .pd-gallery { display: grid; gap: 20px; }
 
+  /* The photograph fills its column.
+
+     The 78vh cap was meant to stop a tall portrait running off the
+     screen, but it sizes the image by the HEIGHT of the window, and
+     every source here is 2:3. On a 900px-tall laptop that capped the
+     main product shot at 468px inside a 698px column -- measured 67%
+     of the width, with empty rails either side, on the one page where
+     the photograph is the product.
+
+     The cap is gone. A portrait is now as wide as the column and as
+     tall as it needs to be, which is the point of a gallery you
+     scroll past a sticky buy panel: the panel keeps the price and Add
+     to Bag on screen however far down the photography you go, so
+     there is no reason left to shrink the photography. */
   .pd-shot {
     margin: 0;
-    /* Let each source photo set its own shape. The old fixed frame was
-       square at desktop once the viewport-height cap applied, leaving
-       wide grey rails around every portrait product shot. */
-    max-height: 78vh;
     width: 100%;
     overflow: hidden;
     cursor: zoom-in;
   }
 
   .pd-shot img {
-    width: auto;
+    width: 100%;
     height: auto;
-    max-width: 100%;
-    max-height: 78vh;
-    margin: 0 auto;
-    object-fit: contain;
-    object-position: center;
     display: block;
   }
 
@@ -439,46 +444,9 @@
   .pd-desc li + li { margin-top: 8px; }
   .pd-desc li::before { content: '-'; position: absolute; left: 0; color: var(--muted); }
 
-  .pd-ship {
-    margin-top: 24px;
-  }
 
-  .pd-ship summary {
-    cursor: pointer;
-    list-style: none;
-    position: relative;
-    padding: 12px 20px 12px 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-top: 1px solid var(--line);
-    transition: color 0.3s ease;
-  }
 
-  .pd-ship summary::-webkit-details-marker { display: none; }
-  .pd-ship summary:hover { color: var(--ink); }
 
-  .pd-ship summary::after {
-    content: '+';
-    position: absolute;
-    right: 2px;
-    top: 10px;
-    font-family: var(--font-body);
-    font-size: 15px;
-  }
-
-  .pd-ship[open] summary::after { content: '\2212'; }
-
-  .pd-ship-body {
-    padding: 4px 0 16px;
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--ink);
-  }
-
-  .pd-ship-body p + p { margin-top: 10px; }
 
   /* The real US rate card, rendered from assets/promo-config.js. Each
      transit time stays attached to the rate it belongs to -- quoting
@@ -671,7 +639,7 @@
     bottom: 8px;
     right: 10px;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11.5px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #fff;
@@ -811,7 +779,7 @@
   }
 
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header { padding: 20px; font-size: 11.5px; letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
@@ -857,7 +825,7 @@
 
   .pd-spec dt {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
@@ -1033,7 +1001,7 @@
 
   .pd-bis-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
@@ -1048,7 +1016,7 @@
     background: none;
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0 16px;
@@ -1978,9 +1946,16 @@
           </div>
         </aside>
       </div>
+      <!-- The trust block (dispatch, returns) belongs next to the
+           purchase decision: it answers questions a shopper has while
+           deciding. The SMS signup does not -- it was the first thing
+           below Add to Bag, a full-width ask for a phone number
+           between the product and the pieces that go with it, and the
+           footer on this same page already carries the identical form.
+           It moves below the related rail, where it stops competing
+           with the product. -->
       <section class="pd-below">
         ${trustBlockHTML(product.handle)}
-        ${A.smsSignupHTML()}
       </section>
       <div class="pd-sticky" id="pdSticky">
         <div class="pd-sticky-top">
@@ -2027,7 +2002,13 @@
       const el = document.getElementById('pdPrice');
       const stickyEl = document.getElementById('pdStickyPrice');
       if (v) {
-        const onSale = v.comparePrice && v.comparePrice > v.price;
+        // A compare-at price is a claim that this shop once charged
+        // that number, so it needs the handle on the verified list in
+        // launch-config.js. Unverified: show the price alone.
+        const verifiedCompare = window.Asior && window.Asior.compareAtVerified
+          ? window.Asior.compareAtVerified(product.handle)
+          : false;
+        const onSale = verifiedCompare && v.comparePrice && v.comparePrice > v.price;
         el.innerHTML = onSale
           ? `<span class="compare">$${v.comparePrice}</span>$${v.price}`
             + `<span class="save">save $${Math.round(v.comparePrice - v.price)}</span>`
@@ -2466,10 +2447,24 @@
         url: location.origin + productUrl(product.handle),
       },
     };
-    const ldTag = document.createElement('script');
-    ldTag.type = 'application/ld+json';
-    ldTag.textContent = JSON.stringify(ld);
-    document.head.appendChild(ldTag);
+    // REPLACE the build-time Product node, never add to it. The build
+    // writes one from the catalog so a crawler that runs no JS still
+    // sees price and availability; this one is the same product with
+    // every image, the SKU and live availability. Appending left two
+    // Product nodes describing one page, which is a conflict a search
+    // engine resolves by picking one or trusting neither. Pages that
+    // have no build-time node (product.html reached directly with
+    // ?id=) still get this one appended.
+    const existingLd = document.querySelector('script[type="application/ld+json"][data-product-ld]');
+    if (existingLd) {
+      existingLd.textContent = JSON.stringify(ld);
+    } else {
+      const ldTag = document.createElement('script');
+      ldTag.type = 'application/ld+json';
+      ldTag.setAttribute('data-product-ld', '');
+      ldTag.textContent = JSON.stringify(ld);
+      document.head.appendChild(ldTag);
+    }
 
     // ---- related + recently viewed ----
     // "You Might Also Like" used to be catalog.filter(not-this-product)
@@ -2515,11 +2510,17 @@
       relHTML += `<section class="rel-section"><div class="rel-label">Recently Viewed</div>
         <div class="rel-grid">${tiles(priorViews.slice(0, 4))}</div></section>`;
     }
+    /* The SMS signup now sits AFTER the related rail rather than
+       directly under Add to Bag. Same form, same consent text, same
+       list -- only its position in the page changed, so nothing about
+       what a shopper agrees to is different. */
+    relHTML += A.smsSignupHTML();
     relRoot.innerHTML = relHTML;
 
-    // The block above renders with the buy box, so it is wired here
-    // rather than on page load like the footer's.
+    // Wired here rather than on page load like the footer's, because
+    // this block is rendered with the product, after that pass.
     A.wireSmsSignup(root);
+    A.wireSmsSignup(relRoot);
 
     A.recordView(product.handle);
     A.klaviyoTrack('Viewed Product', { product: product.name, handle: product.handle });

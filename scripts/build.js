@@ -124,8 +124,12 @@ async function fetchProducts() {
           url
           w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
         } } }
+        # options and selectedOptions drive the prerendered size row;
+        # the variant id is what its buttons add to the cart.
+        options { name values }
         variants(first: 40) { edges { node {
-          title sku availableForSale price { amount currencyCode } compareAtPrice { amount }
+          id title sku availableForSale price { amount currencyCode } compareAtPrice { amount }
+          selectedOptions { name value }
         } } }
       } }
     }
@@ -202,16 +206,63 @@ function collectionProducts(collection, products, shopifyMembership) {
   return found;
 }
 
+/* Garment nouns, matched against real Shopify product titles. Order is
+   the order they read in a sentence; the first pattern that matches a
+   title claims it, so "Kova Eternal Lotus Graphic T-Shirt" counts once,
+   as a tee, not as both a tee and a graphic. */
+const GARMENT_NOUNS = [
+  [/\bpolo\b/i, 'polos'],
+  [/\bcrewneck\b/i, 'crewnecks'],
+  [/\bhood(ie|ed)\b/i, 'hoodies'],
+  [/\b(tee|t-?shirt)\b/i, 'tees'],
+  [/\bsweat(pant|s)\b/i, 'sweatpants'],
+  [/\bshorts\b/i, 'shorts'],
+  [/\bset\b/i, 'sets'],
+  [/\b(pendant|chain|necklace)\b/i, 'chains'],
+  [/\blanyard\b/i, 'lanyards'],
+  [/\b(cap|hat|beanie)\b/i, 'caps'],
+];
+
+function garmentNouns(products) {
+  const seen = [];
+  for (const [re, noun] of GARMENT_NOUNS) {
+    if (products.some(p => re.test(p.title)) && !seen.includes(noun)) seen.push(noun);
+  }
+  return seen;
+}
+
+/* "Tops from Asior - polos, tees, crewnecks and sets." Falls back to
+   the name and the count when no title matches a known garment. */
+function collectionDescription(c) {
+  const n = c.products.length;
+  const count = `${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const nouns = garmentNouns(c.products);
+  if (!nouns.length) return `${c.name} from Asior. ${count}`;
+  const list = nouns.length === 1
+    ? nouns[0]
+    : nouns.slice(0, -1).join(', ') + ' and ' + nouns[nouns.length - 1];
+  return `${c.name} from Asior: ${list}. ${count}`;
+}
+
 /* Turn collection.html into a per-collection page, the same way
    renderProductPage turns product.html into a per-product one. */
 function renderCollectionPage(template, c) {
   const url = `${BASE}/collections/${c.slug}.html`;
   const title = `${c.name} | Asior`;
-  /* The description is the collection's name and its real size. Every
-     one of these collections has an empty descriptionHtml in Shopify,
-     and writing an intro for them here would be inventing copy. */
+  /* Every one of these collections has an empty descriptionHtml in
+     Shopify, and writing an intro for them here would be inventing
+     copy. What is NOT invention is what the collection actually
+     contains, so the description is built from the product titles
+     themselves: "Tops from Asior - polos, tees, crewnecks and sets."
+     Each noun below has to be matched in a real title to appear, so
+     the sentence can only ever describe stock that exists. A
+     collection whose titles match nothing falls back to the plain
+     name-and-count line.
+
+     This replaced "Tops from Asior. 6 pieces." -- 26 characters that
+     told a search result nothing about what was on the page. */
   const n = c.products.length;
-  const desc = `${c.name} from Asior. ${n} ${n === 1 ? 'piece' : 'pieces'}.`;
+  const desc = `${collectionDescription(c)} Sold out stays listed.`;
   const lead = c.products.map(leadImage).find(Boolean);
   const img = lead && lead.url ? lead.url : `${BASE}/assets/og-default.jpg`;
 
@@ -253,52 +304,65 @@ function renderCollectionPage(template, c) {
      deploy. Replace a value the moment real category art exists. */
   /* Category banners.
 
-     The duo-*-wide files are not used here. They carry no camera EXIF,
-     they are 1536x1024 landscape when every verified frame from the
-     shoot is 800x1200 portrait, and Sathvik could not confirm on
-     2026-10-11 whether they are original photographs or AI-extended
-     from a portrait. CLAUDE.md says real photos only, so until that is
-     settled the banners are built from look-*, which carry Sony
-     ILCE-6400 EXIF. The duo files are left in images/ untouched; that
-     is the founder's call, not this build's.
+     EXIF-verified photographs only. Checked every file in images/ on
+     2026-10-20: exactly three carry camera EXIF, look-01.jpg,
+     look-02.jpg and look-03.jpg, all Sony ILCE-6400, shot 2026-07-08.
+     The other 43 files carry none, look-04 through look-15 included.
+     An earlier comment here claimed the whole look-* set was verified.
+     It was wrong, and this is the correction.
 
-     Two frames per banner, side by side. One 800px-wide portrait
-     stretched across a 1905px banner would be a 2.4x upscale -- worse
-     than the 1.24x the duo files were being stretched by. A pair gives
-     ~1600px of real pixels across the same band, about 1.19x, and the
-     crop stays horizontal.
+     (The .webp siblings of even those three carry no EXIF either,
+     because the conversion strips it. The provenance lives in the
+     .jpg; the webp is a rendition of a verified original.)
 
-     Chosen for what each photograph actually shows:
-       tops    look-13, look-08  polo and tee, upper body
-       bottoms look-14, look-11  shorts worn at full length
+     So the banners draw on three photographs, not fifteen.
 
-     look-06 was the first choice for bottoms and was wrong: it is
-     already a tight shot of shorts, socks and shoes, so cropping it
-     into a shallow band left a close-up of someone's knees with no
-     garment context at all. These two are shot further back, so the
-     shorts read as clothing on a person rather than as a detail.
-     accessories keeps its single compact frame and no wide banner. */
+     Width per frame decides how much of a 2:3 portrait survives a
+     2.35:1 band: 2 frames crop 52%, 3 crop 28%, 4 crop 4%.
+
+     Four cells was tried first, which with three sources means
+     repeating one. It did not work: a different focus does not
+     disguise the same person in the same pose, so cells one and four
+     read as a duplicate rather than a strip. Three cells, one per
+     verified photograph, at 28% crop instead of 4%. The band still
+     shows most of each frame and nothing repeats.
+
+     BANNER_STYLE picks between that and no banner at all, which is
+     what the accessories page already does. Both are screenshotted in
+     the PR for Sathvik to choose; flip the constant, nothing else. */
+  /* 'strip' = four cells from the three verified frames.
+     'none'  = no banner, products start under the title. */
+  const BANNER_STYLE = 'strip';
+
   const BANNERS = {
-    tops: ['look-13', 'look-08'],
-    bottoms: ['look-14', 'look-11'],
-    accessories: ['look-12'],
+    tops: ['look-02', 'look-01', 'look-03'],
+    bottoms: ['look-03', 'look-01', 'look-02'],
+    accessories: ['look-02'],
   };
   /* Where the shallow band is taken from, vertically. Tops crop high
      so heads and chests stay in frame; bottoms crop low so the band
      holds the shorts rather than the tee above them. */
-  const BANNER_FOCUS = { tops: '20%', bottoms: '54%' };
+  /* Barely any crop left to place, so these only nudge it. */
+  /* Per cell, so the repeated photograph is not the same crop twice. */
+  const BANNER_FOCUS = {
+    tops:    ['24%', '22%', '46%'],
+    bottoms: ['52%', '60%', '56%'],
+  };
   const bannerFiles = BANNERS[c.slug] || BANNERS.tops;
-  const compactBanner = c.slug === 'accessories';
+  const bannerFocus = BANNER_FOCUS[c.slug] || [];
+  /* Accessories has never carried one; BANNER_STYLE turns the rest off. */
+  const compactBanner = c.slug === 'accessories' || BANNER_STYLE === 'none';
   const bannerAlt = c.slug === 'tops'
     ? 'Asior Fall tops worn on a city street'
     : c.slug === 'bottoms'
       ? 'Asior Fall shorts worn on a city street'
       : 'Asior model in black streetwear on a city street';
-  /* alt on the first frame only: the pair is one picture of one
+  /* alt on the first frame only: the strip is one picture of one
      subject, so a screen reader should hear it described once. */
-  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair" style="--banner-focus: ${BANNER_FOCUS[c.slug] || '20%'}">
+  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair">
 ${bannerFiles.map((f, i) => `    <img src="/images/${f}.jpg" alt="${i === 0 ? bannerAlt : ''}"`
     + `${i === 0 ? '' : ' aria-hidden="true"'} width="800" height="1200"`
+    + ` style="object-position: center ${bannerFocus[i] || '40%'}"`
     + ` ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`).join('\n')}
   </div>
 `;
@@ -651,7 +715,7 @@ function renderProductPage(template, p) {
   // tell the page which product it is, plus the prerendered JSON-LD
   html = html.replace('<script src="/assets/site.js"></script>',
     `<script>window.__PRODUCT_HANDLE = ${JSON.stringify(p.handle)};</script>\n`
-    + `<script type="application/ld+json">${productJsonLd(p, canonical)}</script>\n`
+    + `<script type="application/ld+json" data-product-ld>${productJsonLd(p, canonical)}</script>\n`
     + `<script type="application/ld+json">${breadcrumbJsonLd([
         { name: 'Home', path: '/' },
         { name: 'Shop all', path: '/shop.html' },
@@ -906,6 +970,14 @@ const CATEGORIES = LAUNCH.CATEGORIES || [];
    from Shopify, not from a list here. */
 const SHOPIFY_COLLECTIONS = LAUNCH.SHOPIFY_COLLECTIONS || [];
 
+/* Handles cleared to show a struck-through former price. Same list the
+   browser reads, so a card rendered here and the same card rendered by
+   assets/site.js cannot disagree. Fails closed: anything but a real
+   array means no compare-at is rendered at all. */
+const VERIFIED_COMPARE_AT = Array.isArray(LAUNCH.VERIFIED_COMPARE_AT)
+  ? LAUNCH.VERIFIED_COMPARE_AT
+  : [];
+
 /* Every collection that gets a page, from both sources, through one
    generator. `source` decides where the membership comes from. */
 /* Filled by the collection pass, read by the sitemap. */
@@ -919,7 +991,12 @@ const ALL_COLLECTIONS = [
 const NAV_LINKS = [
   ['Shop all', '/shop.html'],
   ...CATEGORIES.map(c => [c.name, `/collections/${c.slug}.html`]),
-  ['Manufacturing', '/manufacturing.html'],
+  /* Manufacturing is NOT here. It is a service offered to other
+     labels, and between Tops and Waitlist it read as another rail of
+     clothes -- a customer clicking it from a shopping nav lands on a
+     B2B enquiry page. It keeps its page, its footer link under
+     Customer service, and its enquiry form; it just stops competing
+     with the collection for the shopper's attention. */
   ['Waitlist', '/waitlist.html'],
 ];
 
@@ -1279,6 +1356,64 @@ const CARD_SIZES = {
   featured: '(max-width: 768px) 97vw, 48vw',
 };
 
+/* The size row, rendered into the served HTML.
+
+   It used to exist only in the live render, so the prerendered cards
+   carried no sizes at all and the chips appeared a beat after the
+   Storefront fetch resolved. When that fetch was slow the row popped
+   in late, and when it failed the row never arrived: measured, a
+   blocked graphql.json left 0 of 11 cards with sizes. That is the
+   "SML sometimes doesn't load".
+
+   Same markup contract as productCard() in assets/site.js, so the
+   handlers bind to either and the live render swaps one for the other
+   without the row moving.
+
+   NOT CALLED as of the creative-direction pass. A clothing grid is a
+   set of photographs, and eight products each trailing "S M L XL"
+   turned it into a spreadsheet -- the chips were the first thing the
+   eye landed on instead of the garment. Sizes moved to where the
+   decision is actually made: the quick view and the product page,
+   both inventory-aware, both able to show a sold-out size properly.
+   Kept rather than deleted because the markup contract above is the
+   hard part, and a future grid that wants a size row (a dedicated
+   restock page, say) should use this and not re-derive it. */
+function quickAddRow(p, name) {   // eslint-disable-line no-unused-vars
+  const opts = (p.options || []).filter(o => o.name !== 'Title');
+  const sizeOpt = opts.filter(o => o.name === 'Size')[0];
+  if (!sizeOpt) return '';
+  const variants = (p.variants && p.variants.edges || []).map(e => e.node);
+  const hasSizeOnly = opts.length === 1;
+  const needsChoice = opts.length > 1;
+
+  const sizes = hasSizeOnly
+    ? variants.map(v => {
+        const o = (v.selectedOptions || []).filter(x => x.name === 'Size')[0];
+        return o ? { size: o.value, variantId: v.id, available: v.availableForSale } : null;
+      }).filter(Boolean)
+    : (sizeOpt.values || []).map(value => {
+        const inSize = variants.filter(v =>
+          (v.selectedOptions || []).some(x => x.name === 'Size' && x.value === value));
+        if (!inSize.length) return null;
+        return { size: value, variantId: null, available: inSize.some(v => v.availableForSale) };
+      }).filter(Boolean);
+  if (!sizes.length) return '';
+
+  const buttons = sizes.map(sz => {
+    const label = !sz.available ? `Size ${esc(sz.size)}, sold out`
+      : needsChoice ? `Choose size ${esc(sz.size)} for ${esc(name)}`
+      : `Add size ${esc(sz.size)} to cart`;
+    return `<button type="button" class="qa-size${sz.available ? '' : ' unavailable'}"`
+      + (sz.variantId ? ` data-variant-id="${esc(sz.variantId)}"` : '')
+      + ` data-size="${esc(sz.size)}"`
+      + (sz.available ? '' : ' disabled')
+      + ` aria-label="${label}">${esc(sz.size)}</button>`;
+  }).join('');
+
+  return `<div class="quick-add" data-handle="${esc(p.handle)}" data-name="${esc(name)}"`
+    + (needsChoice ? ' data-choose="1"' : '') + `>${buttons}</div>`;
+}
+
 function shopCard(p, eager, sizes) {
   const variants = p.variants.edges.map(e => e.node);
   const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
@@ -1289,7 +1424,9 @@ function shopCard(p, eager, sizes) {
     .filter(Boolean);
   const min = Math.min(...prices);
   const max = Math.max(...prices);
-  const compare = compares.length && compares[0] > min ? compares[0] : null;
+  const compare = VERIFIED_COMPARE_AT.includes(p.handle) && compares.length && compares[0] > min
+    ? compares[0]
+    : null;
   const priceLabel = min === max
     ? `${compare ? `<span class="compare"><span class="sr-only">Was </span>$${compare}</span><span class="sale-price"><span class="sr-only">Now </span>$${min}</span>` : `$${min}`}`
     : `From $${min}`;
@@ -1422,8 +1559,24 @@ function syncArchive(products) {
     .map(archiveRow)
     .filter(Boolean)
     .join('\n') + '\n';
-  const next = replaceBetween(html, '<!-- ARCHIVE:START -->', '<!-- ARCHIVE:END -->', rows);
+  let next = replaceBetween(html, '<!-- ARCHIVE:START -->', '<!-- ARCHIVE:END -->', rows);
   if (next === null) throw new Error('archive.html: ARCHIVE markers missing');
+
+  /* The archive is the whole catalog, so its description is written
+     from the whole catalog, by the same rule the collection pages use:
+     only garment nouns that a real product title contains. Hand-writing
+     the list here would go stale the first time a category is added or
+     emptied. */
+  const nouns = garmentNouns(products);
+  if (nouns.length) {
+    const list = nouns.length === 1
+      ? nouns[0]
+      : nouns.slice(0, -1).join(', ') + ' and ' + nouns[nouns.length - 1];
+    const desc = `Everything Asior has made: ${list}. Sold out stays listed.`;
+    next = next
+      .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}">`)
+      .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(desc)}">`);
+  }
   if (next !== html) fs.writeFileSync(target, next);
   return sortForMerchandising(products).length;
 }
@@ -1434,46 +1587,60 @@ function syncArchive(products) {
    and mobile. Neither depends on Shopify gallery ordering. */
 function syncHero() {
   const target = path.join(ROOT, 'index.html');
-  let html = fs.readFileSync(target, 'utf8');
-  html = html.replace(/<source class="hero-mobile"[^>]*>/,
-    '<source class="hero-mobile" media="(max-width: 900px)" type="image/webp" srcset="images/asior-hero-wide.webp" width="1900" height="859">');
-  html = html.replace(/<source class="hero-desktop"[^>]*>/,
-    '<source class="hero-desktop" type="image/webp" srcset="images/asior-hero-wide.webp" width="1900" height="859">');
-  const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->',
-    '        <img src="images/asior-hero-wide.jpg" alt="Two Asior models wearing black pieces with purple leopard trim on a city street" width="1900" height="859" fetchpriority="high" decoding="async">\n');
+  const html = fs.readFileSync(target, 'utf8');
+
+  /* EXIF-verified only. Native 800x1200, three across on desktop and
+     look-02 alone on a phone, so nothing is upscaled at either width:
+     the section takes its height from the pictures rather than the
+     pictures being stretched to a section height. */
+  /* Third value is the vertical crop, per frame: each photograph puts
+     its subject somewhere different, and look-03 has a dark ceiling at
+     the top that a shared value drags into shot. */
+  const frames = [
+    ['look-01', 'Asior Holes Tee worn on a street in Texas', '30%'],
+    ['look-02', 'Asior Polo with leopard trim worn on outdoor steps', '34%'],
+    ['look-03', 'Two people in Asior tees and sweat shorts', '58%'],
+  ];
+  const block = frames.map(([file, alt, focus], i) =>
+    `        <picture class="hero-frame${i === 1 ? ' hero-frame--mobile' : ''}">\n`
+    + `          <source type="image/webp" srcset="images/${file}.webp" width="800" height="1200">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="800" height="1200"`
+    + ` style="object-position: center ${focus}"`
+    + ` ${i === 1 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">\n`
+    + '        </picture>').join('\n') + '\n';
+
+  const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
   if (next === null) throw new Error('index.html: HERO markers missing');
   if (next !== html) fs.writeFileSync(target, next);
-  return 1;
+  return frames.length;
 }
 
-/* [measured] The NEW ARRIVALS row.
+/* The NEW ARRIVALS row is gone, and so is its sync.
 
-   Genuinely newest: sorted by Shopify's createdAt, descending. That
-   makes the label a fact about the catalogue rather than a hand-picked
-   row described as new. Four, to fill exactly one row of the 4-column
-   grid. */
-function syncNewArrivals(products) {
-  const target = path.join(ROOT, 'index.html');
-  const html = fs.readFileSync(target, 'utf8');
-  const newest = products
-    .slice()
-    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
-    .slice(0, 4);
-  const grid = newest.map(p => shopCard(p, false, CARD_SIZES.row)).filter(Boolean).join('\n') + '\n';
-  const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
-  if (next === null) throw new Error('index.html: NEWGRID markers missing');
-  if (next !== html) fs.writeFileSync(target, next);
-  return newest.length;
-}
+   It sorted by Shopify's createdAt, which made the label honest but
+   the merchandising wrong: the newest records in this catalogue are
+   the $7.99 lanyard and the pendant, so the homepage opened its
+   account of a clothing collection with two accessories. It also sat
+   directly above the lineup and, with eleven products, repeated most
+   of it.
+
+   The lineup now carries the collection on its own, in the founder's
+   order from FALL_PRODUCTS. Restore this only alongside a real reason
+   for two rows -- enough catalogue that they would not overlap. */
 
 /* The homepage's lineup teaser: eight pieces, in merchandising order.
    Not the catalogue -- /shop.html is the catalogue. */
 function syncLineup(products) {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
+  /* Eight, in a plain four-up. The first card used to span 2x2 in
+     .shop-grid--featured, which with eight pieces left one empty cell
+     in the bottom row at every desktop width -- a hole in the grid
+     reads as a product that failed to load. A flat 4x2 fills exactly,
+     and the editorial weight sits in the hero and the campaign band
+     instead, where a photograph has room to carry it. */
   const rows = sortForMerchandising(products).slice(0, 8)
-    /* The first card spans 2x2 in .shop-grid--featured. */
-    .map((p, i) => shopCard(p, false, i === 0 ? CARD_SIZES.featured : CARD_SIZES.row))
+    .map(p => shopCard(p, false, CARD_SIZES.row))
     .filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
   if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
@@ -1532,10 +1699,29 @@ function syncBespokeJsonLd(products) {
     const html = fs.readFileSync(target, 'utf8');
     const p = products.find(x => x.handle === handle);
     const block = p
-      ? `<script type="application/ld+json">${productJsonLd(p, BASE + page)}</script>`
+      ? `<script type="application/ld+json" data-product-ld>${productJsonLd(p, BASE + page)}</script>`
       : '';
-    const next = replaceBetween(html, '<!-- JSONLD:START -->', '<!-- JSONLD:END -->', block + '\n');
+    let next = replaceBetween(html, '<!-- JSONLD:START -->', '<!-- JSONLD:END -->', block + '\n');
     if (next === null) throw new Error(`${page}: JSONLD markers missing`);
+
+    /* The title and description come from the catalog too, for the same
+       reason the markup does. This page builds its body client-side, so
+       its <title> was hand-written and had drifted: it read "Asior
+       Lanyard | Out Now" while the <h1> the page actually rendered read
+       "JAG Lanyard". A title that disagrees with its own heading is a
+       title search engines and customers both have to guess about.
+       Taking both from Shopify means they cannot drift again. */
+    if (p) {
+      const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+      const metaTitle = `${name} | Asior`;
+      const metaDesc = plainDescription(p.descriptionHtml, `${name} from Asior.`);
+      next = next
+        .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(metaTitle)}</title>`)
+        .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(metaDesc)}">`)
+        .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${esc(metaTitle)}">`)
+        .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${esc(metaDesc)}">`);
+    }
+
     if (next !== html) fs.writeFileSync(target, next);
     if (p) synced++;
   }
@@ -1737,9 +1923,8 @@ function syncSiteJsonLd() {
     }
     console.log(`✓ ${products.length} product pages -> /products/`);
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
-    console.log(`✓ homepage hero: ${syncHero() ? 'approved Asior duo campaign photo' : 'none'}`);
+    console.log(`✓ homepage hero: ${syncHero()} EXIF-verified frame(s)`);
     console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
-    console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
     console.log(`✓ archive.html listed ${syncArchive(products)} products`);

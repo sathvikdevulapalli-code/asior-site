@@ -63,7 +63,7 @@
      band. 1px gap so the seam reads as deliberate, not as a glitch. */
   .coll-banner--pair {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     /* An explicit row. Without it the row is auto-sized, each image
        lays out at its full 1281px height and the container just clips
        the top of it -- so object-position had nothing to move and both
@@ -255,6 +255,8 @@
     .coll-banner { height: auto; aspect-ratio: 3 / 2; min-height: 0; }
     .coll-banner img { height: 100%; object-fit: contain; }
     /* The pair keeps cropping on a phone; contain would letterbox it. */
+    /* Two across on a phone; four would be 97px each. */
+    .coll-banner--pair { grid-template-columns: 1fr 1fr; }
     .coll-banner--pair img { object-fit: cover; }
     .coll { padding: 0 15px 8vh; }
     .coll-head { padding-top: 34px; }

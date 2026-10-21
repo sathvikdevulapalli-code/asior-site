@@ -36,6 +36,24 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  .waitlist-frame {
+    margin: 0 0 clamp(28px, 5vh, 54px);
+    height: min(46vh, 420px);
+    overflow: hidden;
+  }
+
+  .waitlist-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 34%;
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .waitlist-frame { height: min(38vh, 300px); }
+  }
+
   .textpage {
     max-width: 560px;
     margin: 0 auto;
@@ -85,7 +103,7 @@
 
   .textpage-number {
     font-family: var(--font-mono);
-    font-size: 10.5px;
+    font-size: 11.5px;
     letter-spacing: 0.08em;
     color: var(--muted);
     margin-top: 30px;
@@ -148,17 +166,23 @@
 
   <main id="main">
 
+  <!-- The page asks for an email address; it should show what the
+       email will be about. Campaign frame, not decoration. -->
+  <figure class="waitlist-frame">
+    <picture>
+      <source type="image/webp" srcset="images/look-09.webp">
+      <img src="images/look-09.jpg" alt="Two models in Asior tees and sweat shorts under scaffolding"
+           width="800" height="1200" fetchpriority="high" decoding="async">
+    </picture>
+  </figure>
+
   <section class="textpage">
     <h1>Join the waitlist.</h1>
     <p class="textpage-lede">
       One email when the next drop goes live. Nothing else.
     </p>
 
-    <ul class="textpage-what">
-      <li><strong>You hear first.</strong> The email goes out when the pieces are on the site, not after.</li>
-      <li><strong>One email per drop.</strong> No weekly newsletter, no daily blasts.</li>
-      <li><strong>Leave whenever.</strong> Every email has an unsubscribe link.</li>
-    </ul>
+
 
     <div class="sms-signup sms-signup--page" data-waitlist>
       <p class="sms-signup-title">Join the waitlist.</p>

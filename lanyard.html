@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asior Lanyard | Out Now</title>
-<meta name="description" content="The Asior lanyard. Out now.">
+<title>JAG Lanyard | Asior</title>
+<meta name="description" content="JAG Lanyard from Asior.">
 <meta name="theme-color" content="#0E0E0D">
 <link rel="canonical" href="https://asiorclothing.com/lanyard.html">
 
@@ -12,8 +12,8 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Asior Lanyard | Out Now">
-<meta property="og:description" content="The Asior lanyard. Out now.">
+<meta property="og:title" content="JAG Lanyard | Asior">
+<meta property="og:description" content="JAG Lanyard from Asior.">
 <meta property="og:url" content="https://asiorclothing.com/lanyard.html">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
 <meta property="og:image:width" content="1200">
@@ -398,6 +398,10 @@
   </footer>
   <!-- FOOTER:END -->
 
+<!-- The verified-compare-at list lives here. Without it this page's
+     gate can only fail closed, so a price the founder has actually
+     verified would still never show. -->
+<script src="assets/launch-config.js"></script>
 <script src="assets/promo-config.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/product-details.js"></script>
@@ -591,7 +595,13 @@
       const v = currentVariant();
       const el = document.getElementById('lpPrice');
       if (!v) { el.textContent = ''; return; }
-      el.innerHTML = `${v.comparePrice && v.comparePrice > v.price ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
+      // Verified-only, the same rule the grid cards and the PDP use:
+      // Shopify's compare_at_price is not evidence of a former price.
+      const verifiedCompare = window.Asior && window.Asior.compareAtVerified
+        ? window.Asior.compareAtVerified(HANDLE)
+        : false;
+      const showCompare = verifiedCompare && v.comparePrice && v.comparePrice > v.price;
+      el.innerHTML = `${showCompare ? `<span class="compare">$${v.comparePrice}</span>` : ''}$${v.price}`;
     }
 
     function renderOpts() {

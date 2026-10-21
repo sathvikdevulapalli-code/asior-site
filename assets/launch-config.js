@@ -135,6 +135,24 @@ window.ASIOR_LAUNCH = {
   //     printf 'NEWCODE' | shasum -a 256
   EARLY_ACCESS_CODE_SHA: '619b5fd9238b418e3d33b6c478a99a4b285cfaee7c1b9c4eb7b74ae3f49f9e0e',
 
+  // Handles whose Shopify compare-at price has actually been checked
+  // against a price this store really charged. EMPTY MEANS SHOW NONE,
+  // and that is the correct state until someone verifies them.
+  //
+  // Shopify's compare_at_price is a free-text field. A value in it is
+  // not evidence of a former price: it can be left over from an import,
+  // typed as an aspiration, or copied from a supplier sheet. The site
+  // was rendering every one of them as "Was $40" with a strikethrough,
+  // which is a factual claim about this shop's own pricing history and
+  // the kind of claim the FTC's pricing guidance is about. Five
+  // renderers did it independently -- site.js's cards, fall-grid.js,
+  // the PDP, lanyard.html, and build.js's server-rendered cards -- so
+  // a handle has to clear this list to be struck through anywhere.
+  //
+  // To turn one on: confirm the product was genuinely offered at the
+  // compare-at price for a meaningful period, then add its handle.
+  VERIFIED_COMPARE_AT: [],
+
   // The Fall collection has no close date.
   //
   // This used to hold DROP_CLOSE_TIME, and every countdown on the site
