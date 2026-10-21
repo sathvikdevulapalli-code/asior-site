@@ -1608,12 +1608,11 @@
     /* data-choose marks a row whose buttons open quick view instead of
        adding, because the product has a second option still to pick.
        The click handlers on each page branch on it. */
-    /* The size row is off the grid card by design -- see quickAddRow()
-       in scripts/build.js for the reasoning. Both renderers have to
-       agree or the live render would put the chips back the moment the
-       Storefront fetch resolved. Pass sizeRow: true to opt a grid back
-       in; nothing does today. */
-    var quickAdd = (opts.sizeRow && p.sizes)
+    /* Size chips on the card. Both renderers have to agree: the build
+       writes this row into the HTML and this one has to rebuild it the
+       same way, or hydrating the grid would wipe the chips the server
+       just sent. */
+    var quickAdd = p.sizes
       ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '"'
         + (p.needsChoice ? ' data-choose="1"' : '') + '>'
         + p.sizes.map(function (s) {

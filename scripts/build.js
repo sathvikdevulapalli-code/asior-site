@@ -991,12 +991,11 @@ const ALL_COLLECTIONS = [
 const NAV_LINKS = [
   ['Shop all', '/shop.html'],
   ...CATEGORIES.map(c => [c.name, `/collections/${c.slug}.html`]),
-  /* Manufacturing is NOT here. It is a service offered to other
-     labels, and between Tops and Waitlist it read as another rail of
-     clothes -- a customer clicking it from a shopping nav lands on a
-     B2B enquiry page. It keeps its page, its footer link under
-     Customer service, and its enquiry form; it just stops competing
-     with the collection for the shopper's attention. */
+  /* Manufacturing stays in the main nav. It was moved to the footer
+     once on the grounds that a B2B service does not belong between
+     Tops and Accessories; it is a real part of what Asior offers and
+     people were looking for it there, so it is back. */
+  ['Manufacturing', '/manufacturing.html'],
   ['Waitlist', '/waitlist.html'],
 ];
 
@@ -1370,16 +1369,13 @@ const CARD_SIZES = {
    handlers bind to either and the live render swaps one for the other
    without the row moving.
 
-   NOT CALLED as of the creative-direction pass. A clothing grid is a
-   set of photographs, and eight products each trailing "S M L XL"
-   turned it into a spreadsheet -- the chips were the first thing the
-   eye landed on instead of the garment. Sizes moved to where the
-   decision is actually made: the quick view and the product page,
-   both inventory-aware, both able to show a sold-out size properly.
-   Kept rather than deleted because the markup contract above is the
-   hard part, and a future grid that wants a size row (a dedicated
-   restock page, say) should use this and not re-derive it. */
-function quickAddRow(p, name) {   // eslint-disable-line no-unused-vars
+   These were taken off the card in the creative-direction pass and
+   put straight back: buying a size from the grid is how this store
+   actually sells, and losing it cost more than the tidier grid was
+   worth. Server-rendered on purpose -- that is what stopped the
+   "SML sometimes doesn't load", because the row is in the HTML and
+   does not wait on a Storefront fetch that can be slow or fail. */
+function quickAddRow(p, name) {
   const opts = (p.options || []).filter(o => o.name !== 'Title');
   const sizeOpt = opts.filter(o => o.name === 'Size')[0];
   if (!sizeOpt) return '';
@@ -1484,6 +1480,7 @@ ${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}     
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
 ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
+        ${quickAddRow(p, name)}
       </div>`;
 }
 
