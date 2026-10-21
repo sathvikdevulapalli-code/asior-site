@@ -451,25 +451,65 @@
   .home-row:last-of-type { padding-bottom: 54px; }
 
   /* ---------- portrait-led campaign panel ------------------------- */
+  /* The campaign moment, full bleed.
+
+     This was a two-column grid with object-fit: contain, which meant
+     the photograph sat at its own small size inside a padded band and
+     the other two thirds of a 1440px screen were empty surface. The
+     one genuinely cinematic frame in the set was being shown at less
+     than a third of the width of the page.
+
+     It is now edge to edge with the type over it -- the only place on
+     the homepage besides the hero where an image is allowed to fill
+     the viewport. */
   .campaign-frame {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
-    align-items: center;
-    gap: clamp(28px, 6vw, 96px);
-    margin-top: 54px;
-    padding: clamp(36px, 6vw, 88px) var(--page-pad);
-    background: var(--surface);
+    position: relative;
+    display: block;
+    margin-top: 0;
+    padding: 0;
+    background: var(--bg);
+    height: min(78vh, 780px);
+    overflow: hidden;
+  }
+
+  .campaign-frame picture {
+    position: absolute;
+    inset: 0;
+    display: block;
   }
 
   .campaign-frame img {
     width: 100%;
-    height: auto;
-    max-height: 82vh;
-    object-fit: contain;
+    height: 100%;
+    object-fit: cover;
+    /* The couch frame reads across the middle of a tall file; this
+       keeps both figures and the shorts in a wide crop. */
+    object-position: center 42%;
     display: block;
   }
 
-  .campaign-copy { max-width: 430px; }
+  /* Dark at the foot, clear across the garments. Every stop
+     translucent -- an opaque one draws a hard line across the photo. */
+  .campaign-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to top,
+      rgba(14, 14, 13, .86) 0,
+      rgba(14, 14, 13, .55) 26%,
+      rgba(14, 14, 13, .08) 55%,
+      rgba(14, 14, 13, 0) 78%);
+  }
+
+  .campaign-copy {
+    position: absolute;
+    left: var(--page-pad);
+    right: var(--page-pad);
+    bottom: clamp(32px, 6vh, 72px);
+    z-index: 2;
+    max-width: 430px;
+  }
   .campaign-title {
     margin: 0;
     font-family: var(--font);
@@ -518,9 +558,14 @@
 
   /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
        30px side padding] ---------- */
+  /* Three shopping categories. Manufacturing used to sit here as a
+     fourth: it is a service for other labels, not a rail of clothes,
+     and putting it in a row captioned Tops / Bottoms / Accessories
+     asked the customer to read it as one. It keeps its page and its
+     footer link. */
   .tiles {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     padding: 54px 30px;
   }
@@ -597,11 +642,22 @@
       padding: 24px 20px 32px;
     }
     .campaign-frame img { max-height: none; max-width: 100%; width: auto; height: min(72vh, 760px); margin: auto; }
+    /* Taller and narrower on a phone: a 78vh band cropped to 390px
+       wide would cut both figures out of a frame whose subject reads
+       across it. 4:5 keeps the composition and still leaves room for
+       the line underneath. */
+    .campaign-frame { height: auto; aspect-ratio: 4 / 5; }
+    .campaign-copy { left: 16px; right: 16px; bottom: 28px; max-width: none; }
     .campaign-title { font-size: clamp(32px, 10vw, 48px); }
     .campaign-note { margin-top: 12px; }
     .btn-outline { margin-top: 20px; }
 
-    .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
+    /* Three categories in a two-up left Accessories alone on its own
+       row at half width, which reads as a missing fourth tile. One
+       column, edge to edge: each category gets a photograph big
+       enough to be worth looking at, which is the point of the row. */
+    .tiles { grid-template-columns: 1fr; gap: 2px; padding: 28px 0; }
+    .tile { aspect-ratio: 3 / 2; }
     .tile-label { bottom: 16px; font-size: 12px; }
   }
 
@@ -836,85 +892,16 @@
        never sees this section at all (see renderRecentlyViewed). -->
   <section class="shop-recent" id="shopRecent"></section>
 
-  <!-- [measured] NEW ARRIVALS: label left, "View all" right, then a
-       4-column row. Genuinely the newest pieces -- the build sorts by
-       Shopify's createdAt, so this is a fact about the catalogue and
-       not a hand-picked row labelled "new". -->
-  <section class="home-row" id="new">
-    <div class="row-head">
-      <h2 class="row-title">New arrivals</h2>
-      <a class="row-link" href="/collections/tops.html">View all</a>
-    </div>
-    <div class="shop-grid" id="newGrid">
-      <!-- NEWGRID:START -->
+  <!-- NEW ARRIVALS was here and is deliberately gone.
 
-      <div class="product in" data-handle="jag-lanyard">
-        <div class="product-frame">
-          <a class="product-link" href="/products/jag-lanyard.html" tabindex="-1" aria-hidden="true">
-            <div class="product-img" data-alt-src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_8186_800x.jpg.webp?v=1789045674"><img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_8185_1200x.jpg.webp?v=1789045774" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_8185_400x.jpg.webp?v=1789045774 400w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_8185_800x.jpg.webp?v=1789045774 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_8185_1200x.jpg.webp?v=1789045774 1200w" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" alt="Asior JAG Lanyard" width="919" height="1634" fetchpriority="high" decoding="async"></div>
-          </a>
-        </div>
-        <a class="product-peek btn btn--sm" data-peek="jag-lanyard" href="/products/jag-lanyard.html" aria-label="Choose a size and preview JAG Lanyard">Quick view</a>
-        <a class="product-link" href="/products/jag-lanyard.html">
-          <div class="product-title">JAG Lanyard</div>
-          <div class="product-price tnum">$7.99</div>
-        </a>
-      </div>
+       With eleven products in the catalogue, a four-up "new arrivals"
+       row sorted by createdAt and an eight-up merchandised lineup were
+       showing the same garments twice, one above the other. Worse, the
+       date sort put the $7.99 lanyard and the pendant first, so the
+       first thing the homepage said about the collection was an
+       accessory. One curated run of the collection replaces both, in
+       the founder's merchandising order, which leads with apparel. -->
 
-      <div class="product in" data-handle="helia-pendant">
-        <div class="product-frame">
-          <a class="product-link" href="/products/helia-pendant.html" tabindex="-1" aria-hidden="true">
-            <div class="product-img" data-alt-src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_8728_800x.png.webp?v=1788051982"><img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/sun-spiral-necklace-long-v_1200x.png.webp?v=1788051958" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/sun-spiral-necklace-long-v_400x.png.webp?v=1788051958 400w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/sun-spiral-necklace-long-v_800x.png.webp?v=1788051958 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/sun-spiral-necklace-long-v_1200x.png.webp?v=1788051958 1200w" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" alt="Asior Helia Pendant &amp; Chain, Silver" width="1000" height="1500" fetchpriority="high" decoding="async"></div>
-          </a>
-        </div>
-        <a class="product-peek btn btn--sm" data-peek="helia-pendant" href="/products/helia-pendant.html" aria-label="Choose a size and preview Helia Pendant &amp; Chain, Silver">Quick view</a>
-        <a class="product-link" href="/products/helia-pendant.html">
-          <div class="product-title">Helia Pendant &amp; Chain, Silver</div>
-          <div class="product-price tnum">$21.99</div>
-        </a>
-      </div>
-
-      <div class="product in" data-handle="jag-shorts">
-        <div class="product-frame">
-          <a class="product-link" href="/products/jag-shorts.html" tabindex="-1" aria-hidden="true">
-            <div class="product-img" data-alt-src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/41-DSCF7850_800x.jpg.webp?v=1784007481"><img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/30-DSCF7711_1200x.jpg.webp?v=1784007450" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/30-DSCF7711_400x.jpg.webp?v=1784007450 400w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/30-DSCF7711_800x.jpg.webp?v=1784007450 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/30-DSCF7711_1200x.jpg.webp?v=1784007450 1200w" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" alt="Asior JAG shorts" width="3509" height="6240" fetchpriority="high" decoding="async"></div>
-          </a>
-        </div>
-        <a class="product-peek btn btn--sm" data-peek="jag-shorts" href="/products/jag-shorts.html" aria-label="Choose a size and preview JAG shorts">Quick view</a>
-        <a class="product-link" href="/products/jag-shorts.html">
-          <div class="product-title">JAG shorts</div>
-          <div class="product-price tnum">$35.99</div>
-        </a>
-      </div>
-
-      <div class="product in" data-handle="asr-shorts">
-        <div class="product-frame">
-          <a class="product-link" href="/products/asr-shorts.html" tabindex="-1" aria-hidden="true">
-            <div class="product-img" data-alt-src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/30-OLI01742_800x.jpg.webp?v=1784005261"><img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01567_1200x.jpg.webp?v=1784507706" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01567_400x.jpg.webp?v=1784507706 400w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01567_800x.jpg.webp?v=1784507706 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/OLI01567_1200x.jpg.webp?v=1784507706 1200w" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px" alt="Asior ASR shorts" width="3180" height="4788" fetchpriority="high" decoding="async"></div>
-          </a>
-        </div>
-        <a class="product-peek btn btn--sm" data-peek="asr-shorts" href="/products/asr-shorts.html" aria-label="Choose a size and preview ASR shorts">Quick view</a>
-        <a class="product-link" href="/products/asr-shorts.html">
-          <div class="product-title">ASR shorts</div>
-          <div class="product-price tnum">$35.99</div>
-        </a>
-      </div>
-  <!-- NEWGRID:END -->
-    </div>
-  </section>
-
-  <!-- Editorial campaign panel keeps the portrait photograph intact. -->
-  <section class="campaign-frame" aria-label="Fall collection, worn">
-    <picture>
-      <source type="image/webp" srcset="images/look-13.webp">
-    <img src="images/look-13.jpg" alt="Asior Fall collection, worn" width="800" height="1200" loading="lazy" decoding="async">
-    </picture>
-    <div class="campaign-copy">
-      <h2 class="campaign-title">The Fall collection</h2>
-      <p class="campaign-note">Pieces made to carry your own point of view.</p>
-      <a class="btn-outline" href="#lineup">Shop now</a>
-    </div>
-  </section>
 
   <!-- [measured] The reference's second product row is BEST SELLERS.
        Ours is THE LINEUP, which the spec is explicit about: Asior has
@@ -930,7 +917,7 @@
       <h2 class="row-title">The lineup</h2>
       <a class="row-link" href="/shop.html">View all</a>
     </div>
-    <div class="shop-grid shop-grid--featured" id="lineupGrid">
+    <div class="shop-grid" id="lineupGrid">
       <!-- LINEUPGRID:START -->
 
       <div class="product in" data-handle="scripture-polo">
@@ -1040,25 +1027,34 @@
     </div>
   </section>
 
+  <!-- Editorial campaign panel keeps the portrait photograph intact. -->
+  <section class="campaign-frame" aria-label="Fall collection, worn">
+    <picture>
+      <source type="image/webp" srcset="images/look-03.webp">
+    <img src="images/look-03.jpg" alt="Two models in Asior tees and sweat shorts on a leather couch" width="800" height="1200" loading="lazy" decoding="async">
+    </picture>
+    <div class="campaign-copy">
+      <h2 class="campaign-title">The Fall collection</h2>
+      <p class="campaign-note">Pieces made to carry your own point of view.</p>
+      <a class="btn-outline" href="#lineup">Shop now</a>
+    </div>
+  </section>
+
   <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
        padding. The reference's fourth is BEST SELLERS; ours is
        MANUFACTURING, per the spec. -->
   <section class="tiles" aria-label="Categories">
     <a class="tile" href="/collections/tops.html">
-      <picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
       <span class="tile-label">Tops</span>
     </a>
     <a class="tile" href="/collections/bottoms.html">
-      <picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
       <span class="tile-label">Bottoms</span>
     </a>
     <a class="tile" href="/collections/accessories.html">
-      <picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
       <span class="tile-label">Accessories</span>
-    </a>
-    <a class="tile" href="/manufacturing.html">
-      <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Manufacturing</span>
     </a>
   </section>
 

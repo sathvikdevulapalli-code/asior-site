@@ -54,17 +54,36 @@
     max-width: 48ch;
   }
 
-  /* Two columns, editorial. Three made each frame small enough that
-     the clothes stopped being readable, which is the one thing a
-     lookbook has to do. */
+  /* Editorial pacing, not a contact sheet.
+
+     Two equal columns gave fifteen frames the same width and the same
+     top edge, which is the layout a gallery gets when nobody has
+     decided what matters. The clothes were readable but the page had
+     no rhythm: every look arrived with the same emphasis as the one
+     before it.
+
+     Twelve columns, and a four-frame cycle that alternates a wide
+     frame with a narrower one and drops the narrower one down the
+     page. The eye moves diagonally instead of in rows, and no two
+     consecutive looks are the same size.
+
+     Nothing is cropped to achieve it. Only the WIDTH varies; every
+     frame keeps its own 2:3 and sets its own height, so a hemline or
+     a logo is never cut to make a grid line up. */
   .gallery {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 40px 24px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+    gap: 34px 26px;
     padding: 0 40px;
   }
 
-  .look { margin: 0; }
+  .look { margin: 0; grid-column: span 6; }
+
+  .look:nth-child(4n + 1) { grid-column: span 7; }
+  .look:nth-child(4n + 2) { grid-column: span 5; margin-top: 16%; }
+  .look:nth-child(4n + 3) { grid-column: span 5; }
+  .look:nth-child(4n + 4) { grid-column: span 7; margin-top: 16%; }
 
   /* The frame is the photograph. No fixed aspect-ratio box: every
      look-* is 800x1200, so they already agree, and letting them set
@@ -101,9 +120,16 @@
        the width of the old strip. */
     .lookbook .rail-label,
     .look-intro { padding-left: 20px; padding-right: 20px; }
-    /* One column on a phone: a lookbook frame at half a phone
-       width is too small to read the garment in. */
+    /* One column on a phone: a lookbook frame at half a phone width
+       is too small to read the garment in. The desktop rhythm is
+       switched off rather than scaled down -- a 16% drop on a single
+       column is just an inconsistent gap. */
     .gallery { grid-template-columns: 1fr; gap: 28px; padding: 0 20px; }
+    .look,
+    .look:nth-child(4n + 1),
+    .look:nth-child(4n + 2),
+    .look:nth-child(4n + 3),
+    .look:nth-child(4n + 4) { grid-column: span 1; margin-top: 0; }
   }
 </style>
 

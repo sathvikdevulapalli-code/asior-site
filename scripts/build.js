@@ -991,7 +991,12 @@ const ALL_COLLECTIONS = [
 const NAV_LINKS = [
   ['Shop all', '/shop.html'],
   ...CATEGORIES.map(c => [c.name, `/collections/${c.slug}.html`]),
-  ['Manufacturing', '/manufacturing.html'],
+  /* Manufacturing is NOT here. It is a service offered to other
+     labels, and between Tops and Waitlist it read as another rail of
+     clothes -- a customer clicking it from a shopping nav lands on a
+     B2B enquiry page. It keeps its page, its footer link under
+     Customer service, and its enquiry form; it just stops competing
+     with the collection for the shopper's attention. */
   ['Waitlist', '/waitlist.html'],
 ];
 
@@ -1362,8 +1367,18 @@ const CARD_SIZES = {
 
    Same markup contract as productCard() in assets/site.js, so the
    handlers bind to either and the live render swaps one for the other
-   without the row moving. */
-function quickAddRow(p, name) {
+   without the row moving.
+
+   NOT CALLED as of the creative-direction pass. A clothing grid is a
+   set of photographs, and eight products each trailing "S M L XL"
+   turned it into a spreadsheet -- the chips were the first thing the
+   eye landed on instead of the garment. Sizes moved to where the
+   decision is actually made: the quick view and the product page,
+   both inventory-aware, both able to show a sold-out size properly.
+   Kept rather than deleted because the markup contract above is the
+   hard part, and a future grid that wants a size row (a dedicated
+   restock page, say) should use this and not re-derive it. */
+function quickAddRow(p, name) {   // eslint-disable-line no-unused-vars
   const opts = (p.options || []).filter(o => o.name !== 'Title');
   const sizeOpt = opts.filter(o => o.name === 'Size')[0];
   if (!sizeOpt) return '';
@@ -1468,7 +1483,6 @@ ${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}     
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
 ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
-        ${quickAddRow(p, name)}
       </div>`;
 }
 
@@ -1601,34 +1615,32 @@ function syncHero() {
   return frames.length;
 }
 
-/* [measured] The NEW ARRIVALS row.
+/* The NEW ARRIVALS row is gone, and so is its sync.
 
-   Genuinely newest: sorted by Shopify's createdAt, descending. That
-   makes the label a fact about the catalogue rather than a hand-picked
-   row described as new. Four, to fill exactly one row of the 4-column
-   grid. */
-function syncNewArrivals(products) {
-  const target = path.join(ROOT, 'index.html');
-  const html = fs.readFileSync(target, 'utf8');
-  const newest = products
-    .slice()
-    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
-    .slice(0, 4);
-  const grid = newest.map(p => shopCard(p, false, CARD_SIZES.row)).filter(Boolean).join('\n') + '\n';
-  const next = replaceBetween(html, '<!-- NEWGRID:START -->', '<!-- NEWGRID:END -->', grid);
-  if (next === null) throw new Error('index.html: NEWGRID markers missing');
-  if (next !== html) fs.writeFileSync(target, next);
-  return newest.length;
-}
+   It sorted by Shopify's createdAt, which made the label honest but
+   the merchandising wrong: the newest records in this catalogue are
+   the $7.99 lanyard and the pendant, so the homepage opened its
+   account of a clothing collection with two accessories. It also sat
+   directly above the lineup and, with eleven products, repeated most
+   of it.
+
+   The lineup now carries the collection on its own, in the founder's
+   order from FALL_PRODUCTS. Restore this only alongside a real reason
+   for two rows -- enough catalogue that they would not overlap. */
 
 /* The homepage's lineup teaser: eight pieces, in merchandising order.
    Not the catalogue -- /shop.html is the catalogue. */
 function syncLineup(products) {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
+  /* Eight, in a plain four-up. The first card used to span 2x2 in
+     .shop-grid--featured, which with eight pieces left one empty cell
+     in the bottom row at every desktop width -- a hole in the grid
+     reads as a product that failed to load. A flat 4x2 fills exactly,
+     and the editorial weight sits in the hero and the campaign band
+     instead, where a photograph has room to carry it. */
   const rows = sortForMerchandising(products).slice(0, 8)
-    /* The first card spans 2x2 in .shop-grid--featured. */
-    .map((p, i) => shopCard(p, false, i === 0 ? CARD_SIZES.featured : CARD_SIZES.row))
+    .map(p => shopCard(p, false, CARD_SIZES.row))
     .filter(Boolean).join('\n') + '\n';
   const next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
   if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
@@ -1913,7 +1925,6 @@ function syncSiteJsonLd() {
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ homepage hero: ${syncHero()} EXIF-verified frame(s)`);
     console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
-    console.log(`✓ new arrivals row: ${syncNewArrivals(products)} newest by createdAt`);
     console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
     console.log(`✓ archive.html listed ${syncArchive(products)} products`);

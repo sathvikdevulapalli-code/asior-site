@@ -99,22 +99,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'Anton';
-  src: url('../fonts/anton-latin.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Dancing Script';
-  src: url('../fonts/dancing-script-latin.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 /* Subset woff2, 15KB, against 141KB for the raw TrueType it replaces.
    This face used to draw one word per page (the wordmark); it now sets
    every product name, so it is on the catalogue's rendering path and
@@ -270,7 +254,7 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
    but never hidden behind a disclosure: consent has to be visible at
    the point of collection to count. */
 .consent {
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.55;
   color: var(--muted);
   max-width: 46ch;
@@ -452,7 +436,7 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
   min-height: 17px;
   margin: 2px 0 0;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   line-height: 1.5;
   color: var(--muted);
   opacity: 0;
@@ -695,7 +679,7 @@ html.cart-drawer-locked { overflow: hidden; }
   text-align: center;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 14px 0 0;
@@ -1221,7 +1205,7 @@ html.cart-drawer-locked { overflow: hidden; }
 }
 
 .mark-text {
-  font-family: 'Pinyon Script', 'Dancing Script', 'Brush Script MT', cursive;
+  font-family: 'Pinyon Script', 'Brush Script MT', cursive;
   font-weight: 400;
   font-size: 40px;
   letter-spacing: 0;
@@ -1422,8 +1406,20 @@ html.cart-drawer-locked { overflow: hidden; }
   max-width: 34ch;
 }
 
-.site-footer .social { display: flex; gap: 14px; margin-top: 16px; }
-.site-footer .social a { color: var(--muted); }
+/* The icons are 18px; the thing you tap is not. A bare 18x18 anchor
+   is under the 24px minimum target size and was measured as the
+   smallest control on the site -- padding gives it a 44px hit area
+   without changing what is drawn, and the negative margin keeps the
+   row sitting where it did. */
+.site-footer .social { display: flex; gap: 2px; margin-top: 16px; margin-left: -13px; }
+.site-footer .social a {
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
 .site-footer .social a:hover { color: var(--ink); }
 .site-footer .social svg { width: 18px; height: 18px; display: block; }
 
@@ -1701,7 +1697,7 @@ body {
 .footer-cols { text-align: center; }
 .footer-cols .flinks { list-style: none; padding-left: 0; }
 .footer-base { justify-content: center; text-align: center; }
-.site-footer .social { justify-content: center; }
+.site-footer .social { justify-content: center; margin-left: 0; }
 .sms-signup { text-align: center; }
 .sms-form { justify-content: center; }
 
@@ -1805,4 +1801,25 @@ body {
   border-color: var(--ink);
   background: var(--ink);
   color: var(--bg);
+}
+
+
+/* ===================================================================
+   TARGET SIZE
+
+   Standalone text links -- a "View all" beside a row heading, a
+   breadcrumb, the link out of an empty cart -- are controls, not words
+   inside a sentence, so the 24px minimum applies to them. Each was
+   measured at 15-16px tall. Padding is vertical only and paired with a
+   negative margin, so the hit area grows without moving the baseline
+   the layout was built around.
+   =================================================================== */
+.row-link,
+.cart-crumb a,
+.cart-empty a {
+  display: inline-block;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-top: -6px;
+  margin-bottom: -6px;
 }
