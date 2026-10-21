@@ -21,6 +21,17 @@
   var KLAVIYO_PUBLIC_KEY = 'QV7rBB';
   var KLAVIYO_EMAIL_LIST_ID = 'TFEDaD';
   var KLAVIYO_SMS_LIST_ID = 'UiFFMg';
+  /* "Fall Early Access" (double opt-in). Confirmed against the live
+     account on 2026-10-21, along with the flow hanging off it: a live
+     "Early Access" flow triggered by Added to List.
+
+     The waitlist form used to post to KLAVIYO_EMAIL_LIST_ID, whose
+     flow is "Email Welcome Series with Discount" -- so someone joining
+     a waitlist for early access was put in the general welcome series
+     and never entered the early-access flow that exists for them. A
+     form names its own list with data-klaviyo-list; everything else
+     keeps the general list. */
+  var KLAVIYO_EARLY_ACCESS_LIST_ID = 'TN58zR';
   var KLAVIYO_REVISION = '2024-10-15';
 
   // -----------------------------------------------------------------
@@ -650,9 +661,16 @@
         button.textContent = 'Sending';
 
         try {
-          await klaviyoSubscribe(email, null);
+          var listId = form.getAttribute('data-klaviyo-list') || KLAVIYO_EMAIL_LIST_ID;
+          klaviyoIdentify(email, {});
+          await klaviyoSubscribeToList(listId, { email: email });
           form.classList.add('is-done');
-          say('Thanks. Check your inbox if confirmation is needed.', false);
+          /* Both lists this form can reach are double opt-in except the
+             general one, so the wording has to be honest about what
+             happens next rather than implying it is finished. */
+          say(listId === KLAVIYO_EMAIL_LIST_ID
+            ? 'Thanks. Check your inbox if confirmation is needed.'
+            : 'Almost there. Check your inbox and confirm to finish joining.', false);
           input.value = '';
           var where = form.closest('[data-email-location]');
           klaviyoTrack('Email Signup', {
@@ -1648,7 +1666,7 @@
       + '<div class="product-frame">'
       + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html" tabindex="-1" aria-hidden="true">'
       + '<div class="product-img"' + alt + '>' + media + '</div></a>'
-      + badge + peek
+      + badge + peek + quickAdd
       + '</div>'
       + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html">'
       /* [measured] Title above the price, both left aligned, title
@@ -1658,7 +1676,7 @@
       + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
       + '<div class="product-price tnum">' + p.priceLabel + '</div>'
       + (p.isPreorder ? '<div class="product-state">Preorder</div>' : '')
-      + '</a>' + quickAdd + '</div>';
+      + '</a></div>';
   }
 
   /* The hover frame, wired once per grid container. Shared by the shop
@@ -1944,6 +1962,7 @@
     isReturningVisitor: isReturningVisitor,
     stockLabel: stockLabel,
     KLAVIYO_EMAIL_LIST_ID: KLAVIYO_EMAIL_LIST_ID,
+    KLAVIYO_EARLY_ACCESS_LIST_ID: KLAVIYO_EARLY_ACCESS_LIST_ID,
     KLAVIYO_SMS_LIST_ID: KLAVIYO_SMS_LIST_ID,
     toE164: toE164,
     klaviyoSubscribeSms: klaviyoSubscribeSms,
