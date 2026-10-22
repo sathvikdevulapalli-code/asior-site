@@ -127,12 +127,19 @@ window.ASIOR_SHIPPING = {
   // line. This is the US Economy rate below.
   FROM_PRICE: 4.90,
 
+  // Read out of Shopify on 2026-10-22: deliveryProfile -> Domestic ->
+  // methodDefinitions with their TOTAL_WEIGHT conditions. All four US
+  // methods are flat rate definitions, not carrier-calculated. The
+  // 5-70 lb Economy tier was missing from this card, so a customer
+  // with a heavy order was shown a price that did not apply to them.
+  //
   // The real rate card, for a shipping detail section. Transit times
   // stay attached to the rate they belong to — quoting the 3-4 day
   // Standard speed next to the $4.90 Economy price would advertise a
   // combination the customer cannot actually buy.
   RATES: [
     { zone: 'US', label: 'Economy (0-5 lb)', price: 4.90, transit: '5-8 business days' },
+    { zone: 'US', label: 'Economy (5-70 lb)', price: 19.90, transit: '5-8 business days' },
     { zone: 'US', label: 'Standard (0-1 lb)', price: 6.90, transit: '3-4 business days' },
     { zone: 'US', label: 'Standard (1-5 lb)', price: 9.90, transit: '3-4 business days' },
   ],
