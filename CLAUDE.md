@@ -149,7 +149,23 @@ and fails on a hit, so this list is enforced rather than remembered:
 
 **Type:** one face, Archivo. Nav and labels all caps at 0.08em tracking;
 product copy sentence case. Square corners, 1px rules instead of cards,
-photos edge to edge on mobile. No motion beyond an image fade-in.
+photos edge to edge on mobile.
+
+**Motion.** One effect, sitewide: a reveal on scroll. Anything with
+`data-reveal`, and every `.product` card, starts faded out and 18px
+down (10px for the full-bleed bands) and settles as it comes within a
+screen of the viewport, staggered by column across a grid row. The
+founder asked for this on 2026-10-22, against the previous rule of no
+motion beyond an image fade-in; that rule stands for everything else.
+Don't add a second kind of motion without asking.
+
+It lives in one place: `wireReveal()` in `assets/site.js` and the
+`.js-reveal` block in `assets/site.css`. The hidden state is applied
+only once a working `IntersectionObserver` exists, by putting
+`.js-reveal` on `<html>` from JS, so no-JS and reduced-motion visitors
+are never shown a blank page. Pages must not add `.in` to cards
+themselves — call `Asior.observeReveal(grid)` after a re-render
+instead, or the animation never plays.
 
 **Voice:** short, texted rather than written. Lowercase is fine in body
 copy. "nothing in here yet." not "Your cart is currently empty."

@@ -1468,9 +1468,13 @@ function shopCard(p, eager, sizes) {
       + '>';
   }
 
-  // .in is applied up front: .product starts at opacity 0 and is
-  // revealed by an IntersectionObserver, so without it these cards
-  // would be invisible to exactly the no-JS visitors they exist for.
+  // No .in here any more. It was the no-JS safety net -- a card began
+  // at opacity 0 and needed .in to be seen, so the build applied it up
+  // front or a visitor without JavaScript saw an empty grid. The
+  // reveal is inverted now: assets/site.css hides nothing until
+  // assets/site.js puts .js-reveal on <html>, so no-JS is safe without
+  // this, and baking .in in would mean every built card arrived
+  // already revealed and the animation never played.
   /* Hover frame, matching card()'s data-alt-src in shop.html. The two
      card implementations -- this server one and the client one -- have
      to stay in step; a visitor sees this markup until the live fetch
@@ -1500,7 +1504,7 @@ function shopCard(p, eager, sizes) {
     : `<a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Quick view of ${esc(name)}">Quick view</a>`;
 
   return `
-      <div class="product in" data-handle="${esc(p.handle)}">
+      <div class="product" data-handle="${esc(p.handle)}">
         <div class="product-frame">
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>

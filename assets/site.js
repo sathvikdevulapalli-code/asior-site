@@ -1933,6 +1933,9 @@
 
   // -----------------------------------------------------------------
   window.Asior = {
+    /* Re-run the scroll reveal over a grid a page has just
+       re-rendered, so new cards animate in instead of appearing. */
+    observeReveal: observeReveal,
     CARD_SIZES: CARD_SIZES,
     applyCardFocus: applyCardFocus,
     shopifyFetch: shopifyFetch,
@@ -2125,6 +2128,146 @@
   wireHeaderScrollState();
   wireShopSearch();
 
+  /* ---- reveal on scroll -----------------------------------------
+
+     One observer for the whole site: every .product in any grid, plus
+     anything marked data-reveal. Pages used to run their own copy of
+     this (index.html and shop.html each had one) and the collection
+     pages had none, so a card rendered on a category page would never
+     have been revealed at all.
+
+     The contract is inverted on purpose. .js-reveal goes on <html>
+     here, from the script that does the revealing, and the CSS hides
+     nothing without it. If this file fails to load or throws before
+     this line, the page renders fully visible rather than blank.
+
+     Three further ways a reveal-on-scroll leaves content stranded,
+     all closed here:
+
+       - an element taller than the viewport can never satisfy a
+         fractional threshold, so threshold is 0 and the margin is a
+         screen deep: things arrive already visible rather than fading
+         in under the reader.
+       - a browser with no IntersectionObserver observes nothing and
+         would leave every card at opacity 0. It reveals immediately
+         instead.
+       - grids re-render from the live catalogue after first paint, so
+         new cards appear that nobody is observing. A MutationObserver
+         picks those up, and a 2.5s failsafe reveals anything still
+         hidden whatever the reason.
+
+     Stagger is by position in the row, not by index in the batch: the
+     entries of one observer callback are not in document order, so
+     indexing them made the delay jump around the row. */
+  var revealObserver = null;
+  var REVEAL_SEL = '.product, [data-reveal]';
+
+  function revealNow(el) {
+    if (!el || el.classList.contains('in')) return;
+    var cols = 0;
+    var parent = el.parentElement;
+    if (parent) {
+      var cs = getComputedStyle(parent).gridTemplateColumns;
+      cols = cs && cs !== 'none' ? cs.split(' ').length : 0;
+    }
+    var step = 0;
+    if (cols > 1) {
+      var sibs = Array.prototype.indexOf.call(parent.children, el);
+      step = (sibs % cols) * 55;
+    }
+    if (step) setTimeout(function () { el.classList.add('in'); }, step);
+    else el.classList.add('in');
+  }
+
+  /* Measured a frame late, always. A grid re-rendered from the live
+     catalogue is measured by the MutationObserver in the same tick it
+     was written, before layout has run and before the lazy <img>
+     elements have reserved their height -- every card reports a top
+     near zero, every card looks like it is above the fold, and the
+     whole grid reveals at once with no animation at all. One frame is
+     enough for the aspect-ratio boxes to take their height. */
+  function observeReveal(root) {
+    requestAnimationFrame(function () {
+      try {
+        observeRevealNow(root);
+      } catch (err) {
+        /* Never leave the page hidden because measuring threw. */
+        revealEverything();
+      }
+    });
+  }
+
+  function observeRevealNow(root) {
+    var items = (root || document).querySelectorAll(REVEAL_SEL);
+    var fold = window.innerHeight + 200;
+    for (var i = 0; i < items.length; i++) {
+      var el = items[i];
+      if (el.classList.contains('in')) continue;
+      /* On, or just under, the first screen: show it now. Nothing
+         above the fold should wait to be scrolled into. */
+      if (!revealObserver || el.getBoundingClientRect().top < fold) {
+        revealNow(el);
+        continue;
+      }
+      revealObserver.observe(el);
+    }
+  }
+
+  function revealEverything() {
+    var all = document.querySelectorAll(REVEAL_SEL);
+    for (var i = 0; i < all.length; i++) all[i].classList.add('in');
+  }
+
+  function wireReveal() {
+    var reduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Nothing is hidden for a visitor who cannot see it come back. No
+       .js-reveal is added at all in these two cases, so the hidden
+       state never applies in the first place. */
+    if (reduced || !('IntersectionObserver' in window)) {
+      revealEverything();
+      return;
+    }
+
+    revealObserver = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (!entries[i].isIntersecting) continue;
+        revealNow(entries[i].target);
+        revealObserver.unobserve(entries[i].target);
+      }
+    }, { threshold: 0, rootMargin: '0px 0px 240px 0px' });
+
+    /* Only now, with a working observer in hand, does anything get
+       hidden. The order matters: if the line above had thrown, the
+       class would already be on <html> and the page would be a
+       catalogue of invisible products with nothing left to reveal it. */
+    document.documentElement.classList.add('js-reveal');
+
+    try {
+      observeReveal(document);
+    } catch (err) {
+      document.documentElement.classList.remove('js-reveal');
+      return;
+    }
+
+    if ('MutationObserver' in window) {
+      new MutationObserver(function (muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            if (added[j].nodeType === 1) observeReveal(added[j].parentNode || document);
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+
+    /* Last resort. Whatever went wrong -- an observer that never
+       fired, a container that was display:none when it was measured,
+       a re-render this missed -- nothing stays invisible. */
+    setTimeout(revealEverything, 2500);
+  }
+
   /* ---- the size row on a grid card ------------------------------
 
      The chips are rendered into .product-frame, over the bottom edge
@@ -2235,6 +2378,7 @@
   // Delegated at the document, so one call covers every grid on the
   // page and every grid a page renders later.
   wireCardSizeReveal();
+  wireReveal();
   // Renders "(0)" immediately so the header never shows a bare "Cart"
   // while the real count is still in flight.
   renderCartCount(0);
