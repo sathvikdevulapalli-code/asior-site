@@ -1626,11 +1626,10 @@
     /* data-choose marks a row whose buttons open quick view instead of
        adding, because the product has a second option still to pick.
        The click handlers on each page branch on it. */
-    /* Size chips on the card. Both renderers have to agree: the build
-       writes this row into the HTML and this one has to rebuild it the
-       same way, or hydrating the grid would wipe the chips the server
-       just sent. */
-    var quickAdd = p.sizes
+    /* No size row on the card -- see quickAddRow() in scripts/build.js.
+       Both renderers have to agree, or hydrating the grid would put
+       back the row the build deliberately left out. */
+    var quickAdd = false
       ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '"'
         + (p.needsChoice ? ' data-choose="1"' : '') + '>'
         + p.sizes.map(function (s) {
