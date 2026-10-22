@@ -1443,56 +1443,19 @@ html.cart-drawer-locked { overflow: hidden; }
 
 /* ---- quick add on the grid card ----
 
-   The sizes sit ON the photograph, at its foot, and are revealed by
-   hover or keyboard focus. Three things that buys:
+   Always visible, under the caption, where it was.
 
-   - No layout shift. The row is absolutely positioned inside the
-     frame, so revealing it cannot move the grid, which is what a row
-     that appears in flow underneath the caption would do.
-   - A clean grid at rest. Eight products each showing "S M L XL" read
-     as a stock list; the garment gets the card back.
-   - The same real buttons. These are the inventory-aware chips the
-     build renders into the HTML, not a decorative stand-in: a
-     sold-out size still says so, and a click still adds to the cart.
+   It spent one release as an overlay on the photograph revealed on
+   hover. That is a tidier grid at rest and a worse shop: a touch
+   screen has no hover at all, so half the traffic lost the fastest
+   way to buy, and on a desktop the sizes became information you had
+   to go looking for before you knew it was there. Four chips under a
+   product is not clutter, it is the answer to the first question
+   anyone asks about a garment.
 
-   Touch has no hover, so there it is hidden entirely and the quick
-   view -- which is always visible on touch and opens the same picker
-   in a dialog -- is the way to a size. Nothing on a phone shows every
-   size under every card. */
-.product .quick-add {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 8px;
-  z-index: 3;
-  margin: 0;
-  padding: 7px 6px;
-  justify-content: center;
-  gap: 6px;
-  background: rgba(14, 14, 13, 0.78);
-  opacity: 0;
-  transform: translateY(6px);
-  pointer-events: none;
-  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .product:hover .quick-add,
-  .product:focus-within .quick-add {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-}
-
-/* No hover to reveal it, so it is not there at all. */
-@media (hover: none) {
-  .product .quick-add { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .product .quick-add { transition: none; transform: none; }
-}
+   Server-rendered, so the row is in the HTML and never waits on a
+   Storefront fetch that can be slow or fail -- which is what "SML
+   sometimes doesn't load" was. */
 
 /* The quick view trigger follows the same rule. */
 .product-frame { position: relative; }
@@ -1823,6 +1786,9 @@ body {
    everything else. 32px also clears the 24px minimum for a touch
    target far more comfortably than 26px did. */
 .product .quick-add {
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
   min-height: 32px;
 }
 

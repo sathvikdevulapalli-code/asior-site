@@ -925,9 +925,8 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    threshold in Shopify, the spec says not to carry theirs across, and
    check-slop.js fails the build on "free shipping" anyway. */
 const ANNOUNCEMENTS = [
+  'Free shipping on US orders over $99',
   '10% off your first order. Code ASIORTEN',
-  'Ships from Texas in 1-2 business days',
-  'A point of view, worn your way.',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
@@ -1489,12 +1488,12 @@ function shopCard(p, eager, sizes) {
             <div class="product-img"${altAttr}>${media}</div>
           </a>
 ${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          <a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Choose a size and preview ${esc(name)}">Quick view</a>
-${quickAddRow(p, name)}        </div>
+        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
 ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
-      </div>`;
+${quickAddRow(p, name)}      </div>`;
 }
 
 function renderShopGrid(products) {
@@ -1610,8 +1609,8 @@ function syncHero() {
      srcset carries the 800w variant for phones and the 1600w for
      everything else, so a phone does not download a 1600px file to
      paint it 390px wide. */
-  const file = 'oli04281';
-  const alt = 'Two models in Asior tops and sweat shorts walking a downtown passage';
+  const file = 'oli-group';
+  const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
   const block =
     '        <picture class="hero-figure">\n'
     + `          <source type="image/webp" media="(max-width: 700px)" srcset="images/${file}-800.webp">\n`

@@ -39,7 +39,13 @@ const BANNED = [
   // The one discount that exists is ASIORTEN at 10%. Anything else is
   // a number this store cannot honour at checkout.
   [/\b5%\s*(off|discount)/i, 'only ASIORTEN (10%) exists'],
-  [/free shipping/i, 'no free-shipping rule exists in Shopify'],
+  /* "free shipping" was banned here because no such rate existed and
+     the phrase was pure slop. A real one does now: Domestic zone,
+     "Free shipping", $0.00, condition TOTAL_PRICE >= $99.00, active,
+     created 2026-10-22 and read back from the live delivery profile.
+     The guard that matters is ASIOR_SHIPPING.VERIFIED, which gates
+     every rendered mention. Re-add this line the day that rate is
+     removed from Shopify. */
   // Generator filenames, so an AI render cannot reach a page unnoticed.
   [/Firefly_|Midjourney|DALL-?E|StableDiffusion|GeminiFlash|nano-banana/i,
    'v13 §0: AI-generated imagery must not be rendered'],

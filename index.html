@@ -298,14 +298,18 @@
     object-position: center 42%;
   }
 
+  /* Black, not off-white. The stone panel was the brighter idea and
+     the wrong one: this is a near-black site and a full-height slab of
+     F0ECE4 beside the photograph made the hero look like it belonged
+     to a different brand. */
   .hero-copy {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     gap: 0;
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--bg);
+    color: var(--ink);
     padding: clamp(40px, 5vw, 92px);
     text-align: left;
   }
@@ -317,7 +321,7 @@
     font-weight: 500;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #4A4842;
+    color: var(--muted);
   }
 
   .hero-head {
@@ -327,7 +331,7 @@
     font-weight: 500;
     line-height: 1.04;
     letter-spacing: -0.03em;
-    color: var(--bg);
+    color: var(--ink);
   }
 
   .hero-sub {
@@ -335,7 +339,7 @@
     max-width: 30ch;
     font-size: 14px;
     line-height: 1.6;
-    color: #4A4842;
+    color: var(--muted);
   }
 
   .hero-cta {
@@ -345,10 +349,10 @@
     margin-top: clamp(26px, 4vh, 44px);
     min-height: 48px;
     padding: 0 34px;
-    border: 1px solid var(--bg);
+    border: 1px solid var(--ink);
     border-radius: var(--btn-radius);
-    background: var(--bg);
-    color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
     font-family: var(--font);
     font-size: 12px;
     font-weight: 500;
@@ -358,8 +362,8 @@
     transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
   }
 
-  .hero-cta:hover { background: transparent; color: var(--bg); }
-  .hero-cta:focus-visible { outline: 2px solid var(--bg); outline-offset: 3px; }
+  .hero-cta:hover { background: transparent; color: var(--ink); }
+  .hero-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 
   /* Quick-view photography stays on the clean, continuous surface. */
