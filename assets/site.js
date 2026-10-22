@@ -1666,7 +1666,7 @@
       + '<div class="product-frame">'
       + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html" tabindex="-1" aria-hidden="true">'
       + '<div class="product-img"' + alt + '>' + media + '</div></a>'
-      + badge + peek + quickAdd
+      + badge + peek
       + '</div>'
       + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html">'
       /* [measured] Title above the price, both left aligned, title
@@ -1676,7 +1676,7 @@
       + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
       + '<div class="product-price tnum">' + p.priceLabel + '</div>'
       + (p.isPreorder ? '<div class="product-state">Preorder</div>' : '')
-      + '</a></div>';
+      + '</a>' + quickAdd + '</div>';
   }
 
   /* The hover frame, wired once per grid container. Shared by the shop
@@ -1782,7 +1782,8 @@
       return 'Free shipping on every order, no minimum. Dispatched in ' + fulfil + region + '.';
     }
     if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
-      return 'Free shipping over $' + s.FREE_THRESHOLD + '. Dispatched in ' + fulfil + region + '.';
+      return 'Free US shipping over $' + s.FREE_THRESHOLD
+        + '. Under that, shipping is calculated at checkout from your address.';
     }
     if (typeof s.FROM_PRICE === 'number') {
       return 'Dispatched in ' + fulfil + '. Delivery time is extra. US shipping starts at $'
@@ -1815,6 +1816,19 @@
   function shippingDetailHTML() {
     var s = shippingConfig();
     var out = '<p>' + escapeHtml(shippingLine()) + '</p>';
+
+    /* No price list. US shipping is carrier-calculated now -- what it
+       costs depends on how far the parcel travels and what it weighs,
+       so there is no single number that is true for everyone, and a
+       table of four figures would be four prices most customers will
+       not be charged. Explain the method instead. */
+    if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
+      out += '<p>Orders of $' + s.FREE_THRESHOLD + ' or more ship free anywhere in the US.</p>';
+    }
+    out += '<p>Below that, the cost is worked out at checkout from your address and the '
+      + 'weight of the order. Someone across the country pays more than someone two '
+      + 'states over, because that is what it costs us to get it there \u2014 we are not '
+      + 'averaging it into one flat price for everyone.</p>';
 
     var rates = Array.isArray(s.RATES) ? s.RATES : [];
     if (rates.length) {

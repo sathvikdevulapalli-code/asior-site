@@ -112,13 +112,16 @@ window.ASIOR_PROMO = {
 window.ASIOR_SHIPPING = {
   // Free-shipping threshold in dollars, or 0 for free on every order.
   //
-  // null = THERE IS NO FREE SHIPPING. Free shipping was removed at
-  // checkout on Sep 21, 2026. It ran for roughly three days and is
-  // gone. Nothing on the site may claim it while this is null, and
-  // VERIFIED below is null too so the gate is shut from both sides.
-  // Do not set either back without confirming the rate actually
-  // exists in Shopify Settings -> Shipping and delivery first.
-  FREE_THRESHOLD: null,
+  // Free US shipping at $99 and over. This is real: Domestic zone,
+  // method "Free shipping", $0.00, condition TOTAL_PRICE >= $99.00,
+  // active. Created in Shopify on 2026-10-22 and read back from the
+  // live delivery profile to confirm before this was set.
+  //
+  // The rule still stands for whoever comes next: if that rate is
+  // ever removed from Shopify, set this back to null AND clear
+  // VERIFIED, because the pair of them is what lets the site say the
+  // words "free shipping" anywhere.
+  FREE_THRESHOLD: 99,
 
   // Fulfilment time — how long before it ships. NOT delivery time.
   FULFILMENT: '1-2 business days',
@@ -199,8 +202,10 @@ window.ASIOR_SHIPPING = {
   INTERNATIONAL_PHONE_REQUIRED: true,
   INTERNATIONAL_CHINA_RESIDENT_ID: true,
 
-  // Null = nothing about free shipping may render. See FREE_THRESHOLD.
-  VERIFIED: null,
+  // Confirmed against the live Shopify delivery profile, not from
+  // memory: the free-shipping method was created and then read back
+  // out of the Domestic zone on this date.
+  VERIFIED: { by: 'read from Shopify delivery profile', on: '2026-10-22' },
 
   /* ---------------------------------------------------------------
      RETURNS. Published on the storefront on 2026-10-11. Fit, order,
