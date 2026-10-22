@@ -123,26 +123,37 @@ window.ASIOR_SHIPPING = {
   // Fulfilment time — how long before it ships. NOT delivery time.
   FULFILMENT: '1-2 business days',
 
-  // Cheapest real rate a US customer can pay, used for the "from $X"
-  // line. This is the US Economy rate below.
-  FROM_PRICE: 4.90,
+  // null ON PURPOSE. US shipping is carrier-calculated now: Shopify
+  // asks USPS for a live rate at checkout and adds 15%. There is no
+  // fixed cheapest rate to quote any more, so the site must not name
+  // one -- a "from $4.90" line would be a price the customer cannot
+  // actually get. shippingLine() falls through to "calculated at
+  // checkout" when this is null.
+  FROM_PRICE: null,
 
-  // Read out of Shopify on 2026-10-22: deliveryProfile -> Domestic ->
-  // methodDefinitions with their TOTAL_WEIGHT conditions. All four US
-  // methods are flat rate definitions, not carrier-calculated. The
-  // 5-70 lb Economy tier was missing from this card, so a customer
-  // with a heavy order was shown a price that did not apply to them.
+  // EMPTY ON PURPOSE -- changed in Shopify on 2026-10-22.
   //
-  // The real rate card, for a shipping detail section. Transit times
-  // stay attached to the rate they belong to — quoting the 3-4 day
-  // Standard speed next to the $4.90 Economy price would advertise a
-  // combination the customer cannot actually buy.
-  RATES: [
-    { zone: 'US', label: 'Economy (0-5 lb)', price: 4.90, transit: '5-8 business days' },
-    { zone: 'US', label: 'Economy (5-70 lb)', price: 19.90, transit: '5-8 business days' },
-    { zone: 'US', label: 'Standard (0-1 lb)', price: 6.90, transit: '3-4 business days' },
-    { zone: 'US', label: 'Standard (1-5 lb)', price: 9.90, transit: '3-4 business days' },
-  ],
+  // The Domestic zone no longer prices by flat weight band. It now
+  // carries a USPS carrier-calculated method (+15%, no fixed fee),
+  // so the customer is charged whatever USPS quotes for their address
+  // and parcel on the day, plus the margin that absorbs a USPS rate
+  // rise.
+  //
+  // The four old flat rates are still there but renamed "(backup)"
+  // and repriced well above a typical USPS quote ($10.90 / $12.90 /
+  // $19.90 / $34.90). They exist so that a checkout can still
+  // complete if USPS fails to return a rate -- without them, a
+  // carrier outage would leave an order with no shipping option at
+  // all, which blocks the sale entirely. In normal operation USPS
+  // comes back cheaper and the customer takes it.
+  //
+  // A table of fixed prices would therefore be wrong on both counts,
+  // so there is no table: shippingDetailHTML() renders none when this
+  // is empty, and the line reads "calculated at checkout".
+  //
+  // Put rates back here ONLY if the Domestic zone goes back to flat
+  // pricing, and read them out of Shopify rather than from memory.
+  RATES: [],
 
   // International is live through Shopify Managed Markets, with
   // Global-e as merchant of record. Rates are carrier-calculated and
