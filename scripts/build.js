@@ -1382,13 +1382,18 @@ const CARD_SIZES = {
    handlers bind to either and the live render swaps one for the other
    without the row moving.
 
-   These were taken off the card in the creative-direction pass and
-   put straight back: buying a size from the grid is how this store
-   actually sells, and losing it cost more than the tidier grid was
-   worth. Server-rendered on purpose -- that is what stopped the
-   "SML sometimes doesn't load", because the row is in the HTML and
-   does not wait on a Storefront fetch that can be slow or fail. */
-function quickAddRow(p, name) {
+   NOT CALLED. The size row is off the grid card for good: it went
+   from always-on, to a hover overlay, and back, and none of the three
+   read the way a clothing grid should. The grid is photographs and
+   names now, and a size is chosen where there is room to show it
+   properly -- the quick view, or the product page -- both of which
+   are inventory-aware and can say "sold out" on the size itself.
+
+   Kept rather than deleted because the markup contract it shares with
+   productCard() in assets/site.js is the hard part, and anything that
+   ever wants a size row again should use this instead of re-deriving
+   it. */
+function quickAddRow(p, name) {   // eslint-disable-line no-unused-vars
   const opts = (p.options || []).filter(o => o.name !== 'Title');
   const sizeOpt = opts.filter(o => o.name === 'Size')[0];
   if (!sizeOpt) return '';
@@ -1493,7 +1498,7 @@ ${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}     
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
 ${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
-${quickAddRow(p, name)}      </div>`;
+      </div>`;
 }
 
 function renderShopGrid(products) {
@@ -1599,24 +1604,20 @@ function syncHero() {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
 
-  /* One photograph, at its own shape.
+  /* Full-bleed banner. One photograph, one link, no headline.
 
-     The campaign files are 2:3 portraits. The previous hero ran three
-     of them side by side to fill a wide band; this shows one, large,
-     in a split with the type beside it, which is what a portrait
-     wants. Nothing is stretched and nothing is cropped to a letterbox.
-
-     srcset carries the 800w variant for phones and the 1600w for
-     everything else, so a phone does not download a 1600px file to
-     paint it 390px wide. */
+     srcset runs to the native width of the file (1717px) rather than
+     stopping at the 1600 display variant, because this image is now
+     edge to edge and the browser should be allowed every pixel the
+     source actually has. It is never upscaled past that: there is no
+     2400w entry, since inventing one would only blur it. */
   const file = 'oli-group';
   const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
   const block =
     '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" media="(max-width: 700px)" srcset="images/${file}-800.webp">\n`
-    + `          <source type="image/webp" srcset="images/${file}.webp">\n`
-    + `          <source media="(max-width: 700px)" srcset="images/${file}-800.jpg">\n`
-    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400"`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w" sizes="100vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w" sizes="100vw">\n`
+    + `          <img src="images/${file}-full.jpg" alt="${esc(alt)}" width="1717" height="2576"`
     + ' fetchpriority="high" decoding="async">\n'
     + '        </picture>\n';
 

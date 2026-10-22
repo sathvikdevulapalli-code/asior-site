@@ -1441,21 +1441,18 @@ html.cart-drawer-locked { overflow: hidden; }
   .footer-cols { grid-template-columns: 1fr; gap: 26px; }
 }
 
-/* ---- quick add on the grid card ----
+/* ---- the grid card has no size row ----
 
-   Always visible, under the caption, where it was.
+   Tried three ways: always visible under the caption, an overlay on
+   the photograph revealed on hover, and visible again. The first and
+   third turn a rail of clothes into a stock list; the second hides
+   the control from every touch device, which is most of the traffic.
 
-   It spent one release as an overlay on the photograph revealed on
-   hover. That is a tidier grid at rest and a worse shop: a touch
-   screen has no hover at all, so half the traffic lost the fastest
-   way to buy, and on a desktop the sizes became information you had
-   to go looking for before you knew it was there. Four chips under a
-   product is not clutter, it is the answer to the first question
-   anyone asks about a garment.
-
-   Server-rendered, so the row is in the HTML and never waits on a
-   Storefront fetch that can be slow or fail -- which is what "SML
-   sometimes doesn't load" was. */
+   So the card is a photograph, a name and a price. A size is chosen
+   where there is room to do it properly -- the quick view on the
+   image, or the product page -- and both of those are inventory-aware
+   and can mark a sold-out size as sold out rather than just omitting
+   it. The chip styles below still serve the quick view picker. */
 
 /* The quick view trigger follows the same rule. */
 .product-frame { position: relative; }

@@ -256,295 +256,98 @@
     .product-peek { opacity: 1; transform: none; pointer-events: auto; }
   }
 
-  /* ---------- split editorial hero ----------
+  /* ---------- full-bleed campaign banner ----------
 
-     The campaign files are 2:3 portraits. Running one across a wide
-     screen means either stretching it or cropping a letterbox out of
-     the middle, and both waste the photograph. So the picture keeps
-     its own shape on the left and the type gets its own panel on the
-     right, in the off-white the palette already has -- the only place
-     on the site where that colour carries a whole block, which is what
-     makes the hero read as a campaign rather than a banner. */
+     One photograph edge to edge, a flat dark overlay across all of it
+     so the transparent header and the one link stay legible wherever
+     they land, and a single underlined text link near the foot. No
+     headline, no eyebrow, no button box.
+
+     The picture is 2:3 and the banner is wide, so object-fit: cover
+     crops it; object-position keeps the four figures and their full
+     outfits inside the crop rather than centring on the concrete. */
   .hero {
-    display: grid;
-    grid-template-columns: 58fr 42fr;
-    align-items: stretch;
-    background: var(--bg);
-    /* Bounded by the viewport, not by the file. A 2:3 image in a 58%
-       column is ~1250px tall at 1440 and pushed the headline and the
-       button below the fold -- the first screenful was sky and a
-       building. The column crops to this height instead, and
-       object-position keeps the figures in it. */
-    height: min(80vh, 800px);
-    min-height: 520px;
-    padding: 0;
-  }
-
-  .hero-art {
     position: relative;
+    display: block;
+    height: min(86vh, 905px);
+    min-height: 460px;
+    padding: 0;
     overflow: hidden;
     background: var(--surface);
   }
 
-  .hero-figure { display: block; height: 100%; }
+  .hero-art,
+  .hero-figure {
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
 
   .hero-figure img {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
-    /* Keeps both figures and the full outfits in frame when the column
-       is narrower than 2:3. */
-    object-position: center 42%;
+    object-position: center 26%;
   }
 
-  /* Black, not off-white. The stone panel was the brighter idea and
-     the wrong one: this is a near-black site and a full-height slab of
-     F0ECE4 beside the photograph made the hero look like it belonged
-     to a different brand. */
-  .hero-copy {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 0;
-    background: var(--bg);
-    color: var(--ink);
-    padding: clamp(40px, 5vw, 92px);
-    text-align: left;
-  }
+  /* A flat 20% black is what the reference banner uses, and measured
+     on THIS photograph it was not nearly enough: pale concrete and a
+     white drawstring sit directly behind the type, and the link came
+     out at 1.18:1 against white, the nav links at 1.8-2.2:1. Unreadable.
 
-  .hero-eyebrow {
-    margin: 0 0 clamp(18px, 3vh, 30px);
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .hero-head {
-    margin: 0;
-    font-family: var(--font);
-    font-size: clamp(34px, 3.6vw, 60px);
-    font-weight: 500;
-    line-height: 1.04;
-    letter-spacing: -0.03em;
-    color: var(--ink);
-  }
-
-  .hero-sub {
-    margin: clamp(16px, 2.4vh, 26px) 0 0;
-    max-width: 30ch;
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--muted);
-  }
-
-  .hero-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: clamp(26px, 4vh, 44px);
-    min-height: 48px;
-    padding: 0 34px;
-    border: 1px solid var(--ink);
-    border-radius: var(--btn-radius);
-    background: var(--ink);
-    color: var(--bg);
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
-  }
-
-  .hero-cta:hover { background: transparent; color: var(--ink); }
-  .hero-cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-
-
-  /* Quick-view photography stays on the clean, continuous surface. */
-  .peek { background: var(--surface); }
-  .peek::backdrop { background: rgba(0, 0, 0, .62); }
-  .peek-media { background: var(--surface); gap: 8px; }
-  .peek-shot, .peek-ph { background: var(--surface); }
-  .peek-shot img { object-fit: contain; object-position: center; }
-
-  @media (max-width: 760px) {
-    .peek { width: min(560px, calc(100vw - 24px)); height: min(84svh, 760px); }
-    .peek-in {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: minmax(180px, 40svh) minmax(0, 1fr);
-    }
-    .peek-media {
-      min-width: 0;
-      min-height: 0;
-      flex-direction: row;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-    }
-    .peek-media::-webkit-scrollbar { display: none; }
-    .peek-media > * { flex: 0 0 100%; min-width: 0; height: 100%; }
-    .peek-shot { aspect-ratio: auto; height: 100%; }
-    .peek-in .peek-buy { min-height: 0; padding: 18px 18px 20px; }
-  }
-
-  /* ---------- product rows [measured: section spacing 0] ---------- */
-  .home-row { padding: 16px var(--page-pad) 0; }
-
-  /* [measured] Label left 14px 400, "View all" right 12px 500 with
-     1px tracking; cards start 37px below the row. */
-  /* .row-head lives in assets/site.css, where it is centred. It was
-     redeclared here with justify-content: space-between, and a page's
-     own <style> loads after the shared sheet, so this copy won and the
-     section heads stayed split to opposite edges. */
-
-  .row-title {
-    margin: 0;
-    font-family: var(--font);
-    font-size: 14px;
-    font-weight: 400;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  .row-link {
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: var(--btn-ls);
-    text-transform: uppercase;
-    color: var(--ink);
-    text-decoration: none;
-  }
-
-  .row-link:hover { opacity: 0.6; }
-
-  .home-row + .home-row { padding-top: 54px; }
-  .home-row:last-of-type { padding-bottom: 54px; }
-
-  /* ---------- portrait-led campaign panel ------------------------- */
-  /* The campaign moment, full bleed.
-
-     This was a two-column grid with object-fit: contain, which meant
-     the photograph sat at its own small size inside a padded band and
-     the other two thirds of a 1440px screen were empty surface. The
-     one genuinely cinematic frame in the set was being shown at less
-     than a third of the width of the page.
-
-     It is now edge to edge with the type over it -- the only place on
-     the homepage besides the hero where an image is allowed to fill
-     the viewport. */
-  .campaign-frame {
-    position: relative;
-    display: block;
-    margin-top: 0;
-    padding: 0;
-    background: var(--bg);
-    height: min(78vh, 780px);
-    overflow: hidden;
-  }
-
-  .campaign-frame picture {
-    position: absolute;
-    inset: 0;
-    display: block;
-  }
-
-  .campaign-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    /* Both faces sit about a fifth of the way down this frame. At 34%
-       the band cut their heads off at the top edge. */
-    object-position: center 20%;
-    display: block;
-  }
-
-  /* Dark at the foot, clear across the garments. Every stop
-     translucent -- an opaque one draws a hard line across the photo. */
-  .campaign-frame::after {
+     So: a light flat wash for mood, plus a scrim at each end where
+     text actually sits -- the header at the top, the link at the
+     bottom. The middle of the frame, which is all four garments, keeps
+     a 12% wash and nothing more, so the photograph is not darkened to
+     solve a problem that only exists at its edges. Every stop is
+     translucent; an opaque one draws a line across the picture. */
+  .hero::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
+      linear-gradient(to bottom,
+        rgba(0, 0, 0, .70) 0,
+        rgba(0, 0, 0, .62) 20%,
+        rgba(0, 0, 0, .26) 31%,
+        rgba(0, 0, 0, 0) 42%),
       linear-gradient(to top,
-        rgba(14, 14, 13, .88) 0,
-        rgba(14, 14, 13, .58) 26%,
-        rgba(14, 14, 13, .10) 55%,
-        rgba(14, 14, 13, 0) 78%),
-      linear-gradient(to right,
-        rgba(14, 14, 13, .62) 0,
-        rgba(14, 14, 13, .22) 34%,
-        rgba(14, 14, 13, 0) 58%);
+        rgba(0, 0, 0, .72) 0,
+        rgba(0, 0, 0, .40) 14%,
+        rgba(0, 0, 0, 0) 32%),
+      rgba(0, 0, 0, 0.12);
   }
 
-  .campaign-copy {
+  .hero-cta {
     position: absolute;
-    left: var(--page-pad);
-    max-width: 30ch;
-    right: var(--page-pad);
-    bottom: clamp(32px, 6vh, 72px);
-    z-index: 2;
-    max-width: 430px;
-  }
-  .campaign-title {
-    margin: 0;
-    font-family: var(--font);
-    font-size: clamp(32px, 5vw, 68px);
-    font-weight: 500;
-    line-height: .98;
-    letter-spacing: -.04em;
-    text-wrap: balance;
-  }
-  .campaign-note {
-    margin: 18px 0 0;
-    max-width: 32ch;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--muted);
-  }
-
-  /* [measured] 116x34, 1px white border, transparent, 12px 500,
-     letter-spacing 1px, padding 7px 20px, square. */
-  .btn-outline {
-    position: static;
-    left: auto;
-    margin-top: 28px;
+    left: 50%;
+    bottom: clamp(38px, 7vh, 76px);
+    transform: translateX(-50%);
     z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 116px;
-    height: 34px;
-    padding: 7px 20px;
-    border: 1px solid var(--ink);
-    border-radius: var(--btn-radius);
-    background: var(--ink);
-    color: var(--bg);
+    min-height: 44px;
+    padding: 0 4px;
+    border: 0;
+    border-bottom: 1px solid #fff;
+    background: none;
+    color: #fff;
     font-family: var(--font);
     font-size: 12px;
     font-weight: 500;
-    letter-spacing: var(--btn-ls);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
-    transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, .45);
+    transition: opacity var(--dur) var(--ease-out);
   }
 
-  .btn-outline:hover { background: transparent; color: var(--ink); }
-  .btn-outline:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .hero-cta:hover { opacity: 0.72; }
+  .hero-cta:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
 
-  /* ---------- category tiles [measured: 4 x 454x600, ~10px gaps,
-       30px side padding] ---------- */
-  /* Four: the three shopping categories and Manufacturing, which is a
-     real part of what Asior offers and which people go looking for
-     here. */
   /* ---------- second editorial story ----------
      Mirror of the campaign band: copy left, picture right, and about
      two thirds the height, so the two editorial moments on the page
@@ -677,26 +480,37 @@
 
   .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
+  /* This class had no rule anywhere on the site -- it rendered as a
+   bare inline link, 17px tall, under the 24px minimum target. It
+   takes the banner's treatment: underlined white text on the
+   photograph, no button box. */
+  .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 22px;
+  padding: 0 2px;
+  border-bottom: 1px solid #fff;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, .45);
+  transition: opacity var(--dur) var(--ease-out);
+  }
+
+  .btn-outline:hover { opacity: 0.72; }
+  .btn-outline:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
+
   @media (max-width: 900px) {
-    /* Stacked, not squeezed. The split becomes photograph over panel,
-       so the type never sits across anyone's face and the picture gets
-       the full width of the screen. 4:5 keeps both figures and the
-       outfits in frame; a 2:3 at this width pushed the copy most of a
-       screen down. */
-    .hero {
-      grid-template-columns: 1fr;
-      aspect-ratio: auto;
-      height: auto;
-    }
-    .hero-art { aspect-ratio: 4 / 5; }
-    .hero-figure img { object-position: center 38%; }
-    .hero-copy {
-      padding: clamp(28px, 7vw, 44px) 20px clamp(34px, 8vw, 48px);
-      align-items: flex-start;
-    }
-    .hero-head { font-size: clamp(30px, 8.4vw, 42px); }
-    .hero-sub { max-width: 34ch; }
-    .hero-cta { align-self: stretch; }
+    /* Still one full-bleed photograph on a phone. 3:4 gives the four
+       figures room without the banner eating the whole screen. */
+    .hero { height: auto; aspect-ratio: 3 / 4; min-height: 0; }
+    .hero-figure img { object-position: center 40%; }
+    .hero-cta { bottom: 28px; }
 
     .home-row { padding: 16px 15px 0; }
     .home-row + .home-row { padding-top: 34px; }
@@ -717,7 +531,7 @@
     .campaign-frame { height: auto; aspect-ratio: 4 / 5; }
     .campaign-copy { left: 16px; right: 16px; bottom: 28px; max-width: none; }
     .campaign-title { font-size: clamp(32px, 10vw, 48px); }
-    .campaign-note { margin-top: 12px; }
+  .campaign-note { margin-top: 12px; }
     .btn-outline { margin-top: 20px; }
 
     /* Picture first on a phone -- the photograph is the hook, and a
@@ -900,13 +714,10 @@
   <script defer src="/assets/ads.js"></script>
   <!-- HEAD:END -->
 </head>
-<!-- Not .page--hero any more. That class pulls the header up onto
-     the image with white type; this hero puts an off-white panel
-     across the right-hand half, where white nav links would be
-     invisible. The header sits above the hero instead, solid and
-     legible, which is also what the compact-navigation-first structure
-     asks for. -->
-<body>
+<!-- .page--hero again: the banner is one full-bleed photograph with
+     a dark overlay across all of it, so white nav links sit on it
+     legibly and the header belongs on the image rather than above it. -->
+<body class="page--hero">
 
   <a class="skip-link" href="#main">Skip to content</a>
 
@@ -947,20 +758,11 @@
        visually hidden line here because the hero carried no heading of
        its own; it does, so a second one would be two h1s on one page. -->
   <section class="hero" aria-label="Asior Fall 2026 campaign">
-    <!-- Split editorial: the photograph keeps its own 2:3 on the left,
-         the type gets a stone panel of its own on the right. Written
-         by syncHero() in scripts/build.js. -->
     <div class="hero-art">
       <!-- HERO:START -->
       <!-- HERO:END -->
     </div>
-
-    <div class="hero-copy">
-      <p class="hero-eyebrow">Fall 2026</p>
-      <h1 class="hero-head">The collection,<br>worn in Texas.</h1>
-      <p class="hero-sub">Polos, tees and sweat shorts, cut in small runs.</p>
-      <a class="hero-cta" href="/shop.html">Shop the collection</a>
-    </div>
+    <a class="hero-cta" href="/shop.html">Shop Fall Collection</a>
   </section>
 
   <!-- Personalization from real browsing history. A first-time visitor
