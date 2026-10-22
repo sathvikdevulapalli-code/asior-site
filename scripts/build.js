@@ -1382,18 +1382,21 @@ const CARD_SIZES = {
    handlers bind to either and the live render swaps one for the other
    without the row moving.
 
-   NOT CALLED. The size row is off the grid card for good: it went
-   from always-on, to a hover overlay, and back, and none of the three
-   read the way a clothing grid should. The grid is photographs and
-   names now, and a size is chosen where there is room to show it
-   properly -- the quick view, or the product page -- both of which
-   are inventory-aware and can say "sold out" on the size itself.
+   The row is not in the card at rest. It lives inside .product-frame,
+   pinned to the bottom edge of the photograph, hidden until the
+   control on the image is clicked. Four tries got here: always on
+   under the caption (a wall of grey blocks under every tile), a hover
+   overlay (unreachable on a phone, and invisible until you happened
+   to point at it), always on again, and off the card entirely. On
+   click is the one that holds -- the grid stays photographs and names,
+   and the sizes are still on the tile, one tap away, where a shopper
+   who already knows their size never has to open the product page.
 
-   Kept rather than deleted because the markup contract it shares with
-   productCard() in assets/site.js is the hard part, and anything that
-   ever wants a size row again should use this instead of re-deriving
-   it. */
-function quickAddRow(p, name) {   // eslint-disable-line no-unused-vars
+   Only emitted for products that have a Size option. Everything else
+   -- the pendant, the lanyard, anything on a single Title variant --
+   keeps the quick view dialog on its control instead, which is where
+   a one-size add and the sold-out restock signup live. */
+function quickAddRow(p, name) {
   const opts = (p.options || []).filter(o => o.name !== 'Title');
   const sizeOpt = opts.filter(o => o.name === 'Size')[0];
   if (!sizeOpt) return '';
@@ -1482,18 +1485,28 @@ function shopCard(p, eager, sizes) {
   const altImg = all.find(im => im && im.url && im.url !== firstUrl && !isGeneratedImage(im));
   const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
 
-  /* The plus is a working link before JavaScript loads. Shop/home
-     intercept it for their quick-view dialog; collection pages fall
-     through to the full product page, where the complete gallery and
-     size selector work without JavaScript. */
+  /* Two jobs for one control, decided by whether the product has
+     sizes at all: reveal the size row on the tile, or open the quick
+     view dialog. Either way it is a working link to the product page
+     before JavaScript loads, so the no-JS path is the full gallery and
+     size selector rather than a dead button. */
+  /* A product with nothing left in any size gets the dialog instead.
+     Its row would be four dead chips and no way forward; the quick
+     view carries the restock signup, which is the only thing a
+     shopper can still do with it. */
+  const sizeRow = soldOut ? '' : quickAddRow(p, name);
+  const trigger = sizeRow
+    ? `<a class="product-peek btn btn--sm" data-sizes="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-expanded="false" aria-label="Choose a size for ${esc(name)}">Choose a size</a>`
+    : `<a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Quick view of ${esc(name)}">Quick view</a>`;
+
   return `
       <div class="product in" data-handle="${esc(p.handle)}">
         <div class="product-frame">
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
-${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          <a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Choose a size and preview ${esc(name)}">Quick view</a>
-        </div>
+${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          ${trigger}
+${sizeRow ? `          ${sizeRow}\n` : ''}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>

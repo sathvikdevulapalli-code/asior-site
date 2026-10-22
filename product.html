@@ -75,8 +75,32 @@
     align-items: start;
   }
 
-  /* [measured] Images stacked, ~20px apart, no thumbnails. */
-  .pd-gallery { display: grid; gap: 20px; }
+  /* The lead frame full width, the rest in pairs.
+
+     Stacked one per row, the gallery measured 3313px at 1440 -- three
+     full-column portraits, around three and a half screens of
+     scrolling to get past the photographs of a single garment, and the
+     related products and the restock form sat below all of it. Paired
+     from the second frame down, the same photographs take a little
+     over half that, and a pair of 2:3 frames side by side reads as a
+     spread rather than a queue.
+
+     The lead shot keeps the full column: it is the one view a shopper
+     actually studies, and the detail frames are what they flick
+     through. A frame left on its own at the end spans the column too,
+     rather than sitting in half a row with a hole beside it.
+
+     Phone widths replace this with the swipe row further down, which
+     is display:flex and therefore ignores both rules. */
+  .pd-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 20px;
+  }
+
+  .pd-shot:first-child,
+  .pd-shot:last-child:nth-child(even) { grid-column: 1 / -1; }
 
   /* The photograph fills its column.
 

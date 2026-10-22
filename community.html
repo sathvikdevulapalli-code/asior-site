@@ -62,10 +62,16 @@
      no rhythm: every look arrived with the same emphasis as the one
      before it.
 
-     Twelve columns, and a four-frame cycle that alternates a wide
-     frame with a narrower one and drops the narrower one down the
-     page. The eye moves diagonally instead of in rows, and no two
-     consecutive looks are the same size.
+     Twelve columns, and a six-frame cycle: a row of four, then a row
+     of two half-width frames. The emphasis alternates by the row
+     rather than the frame, so no two consecutive rows read alike.
+
+     Two across was the layout before, and 22 frames at two across is
+     15,009px at 1440 -- nearly seventeen screens of scrolling, which
+     is longer than anyone looks at a lookbook. This is 6,338px, and
+     every frame is still wide enough to read the garment in. The pair
+     row every sixth frame is what keeps it from flattening into a
+     contact sheet.
 
      Nothing is cropped to achieve it. Only the WIDTH varies; every
      frame keeps its own 2:3 and sets its own height, so a hemline or
@@ -74,16 +80,24 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: start;
-    gap: 34px 26px;
+    gap: 18px 14px;
     padding: 0 40px;
   }
 
-  .look { margin: 0; grid-column: span 6; }
+  .look { margin: 0; grid-column: span 3; }
 
-  .look:nth-child(4n + 1) { grid-column: span 7; }
-  .look:nth-child(4n + 2) { grid-column: span 5; margin-top: 16%; }
-  .look:nth-child(4n + 3) { grid-column: span 5; }
-  .look:nth-child(4n + 4) { grid-column: span 7; margin-top: 16%; }
+  /* The rhythm is by the ROW, not the frame: four across, then a pair
+     of half-width frames, repeating. Both compositions fill twelve
+     columns exactly, so no row is ever left part empty.
+
+     A single wide frame beside narrow ones was the version before
+     this, and it left a hole: a span-6 frame is half as tall again as
+     the span-3 frames sharing its row, and with align-items:start the
+     rest of that row was black. Offsetting frames down the page was
+     the version before that, and in a grid an offset is just added
+     height -- the 16% drops cost more scrolling than the frames. */
+  .look:nth-child(6n + 5),
+  .look:nth-child(6n + 6) { grid-column: span 6; }
 
   /* The frame is the photograph. No fixed aspect-ratio box: every
      look-* is 800x1200, so they already agree, and letting them set
@@ -120,16 +134,25 @@
        the width of the old strip. */
     .lookbook .rail-label,
     .look-intro { padding-left: 20px; padding-right: 20px; }
-    /* One column on a phone: a lookbook frame at half a phone width
-       is too small to read the garment in. The desktop rhythm is
-       switched off rather than scaled down -- a 16% drop on a single
-       column is just an inconsistent gap. */
-    .gallery { grid-template-columns: 1fr; gap: 28px; padding: 0 20px; }
+    /* Two across on a phone, with every fifth frame full width.
+
+       One column was the rule here, on the reasoning that half a phone
+       width is too small to read a garment in. True of every frame at
+       once, but it made the page 14,060px on a 390px phone -- sixteen
+       screens, and nobody reaches the bottom of that. Paired frames
+       with a full-width one every fifth keeps a readable frame coming
+       round every couple of swipes and halves the page.
+
+       The drop-down offsets come off: a margin inside a two-column
+       phone grid is just a ragged gap. */
+    .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; padding: 0 12px; }
     .look,
-    .look:nth-child(4n + 1),
-    .look:nth-child(4n + 2),
-    .look:nth-child(4n + 3),
-    .look:nth-child(4n + 4) { grid-column: span 1; margin-top: 0; }
+    .look:nth-child(6n + 5),
+    .look:nth-child(6n + 6) { grid-column: span 1; margin-top: 0; }
+    /* One full-width frame per five, so a readable frame comes round
+       every couple of swipes without the page going back to a single
+       column. */
+    .look:nth-child(5n + 1) { grid-column: span 2; }
   }
 </style>
 

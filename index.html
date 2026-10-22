@@ -349,6 +349,95 @@
   .hero-cta:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
 
   /* ---------- second editorial story ----------
+  /* ---------- campaign band ----------
+
+     This had NO rule outside the phone media query, so on every
+     desktop width the section was unstyled: a 1600x2400 portrait
+     rendered at its natural height -- 2519px measured at 1440, nearly
+     three screens of one photograph to scroll past -- and
+     .campaign-copy, which is written as an overlay with left/right/
+     bottom offsets, fell into normal flow underneath it because
+     nothing had made it absolute.
+
+     The band is a crop now, not the whole portrait: a fixed height,
+     the photograph covering it, and the copy back on top of the
+     picture where it belongs. 56vw of a portrait frame is a wide
+     landscape slice, which is what an editorial band is, and the
+     subject sits in the upper middle of this frame so the crop is
+     taken from there. */
+  .campaign-frame {
+    position: relative;
+    display: block;
+    height: min(72vh, 680px);
+    margin-top: 2px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .campaign-frame picture { display: block; height: 100%; }
+
+  .campaign-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+    display: block;
+  }
+
+  /* Same end-scrim as the hero, for the same reason: the copy sits
+     over the clothes and a flat overlay across the whole frame
+     greys out the garments to buy contrast it only needs at the
+     bottom edge. */
+  .campaign-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to top,
+      rgba(0, 0, 0, .74) 0,
+      rgba(0, 0, 0, .44) 16%,
+      rgba(0, 0, 0, 0) 40%);
+  }
+
+  .campaign-copy {
+    position: absolute;
+    left: clamp(20px, 3.4vw, 48px);
+    right: clamp(20px, 3.4vw, 48px);
+    bottom: clamp(26px, 3.4vw, 44px);
+    z-index: 2;
+    max-width: 44ch;
+    color: #fff;
+  }
+
+  .campaign-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: clamp(30px, 3.4vw, 52px);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+
+  .campaign-note {
+    margin: 10px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, .84);
+  }
+
+  .campaign-copy .btn-outline {
+    margin-top: 22px;
+    border-color: rgba(255, 255, 255, .62);
+    color: #fff;
+  }
+
+  .campaign-copy .btn-outline:hover {
+    border-color: #fff;
+    background: #fff;
+    color: var(--ink);
+  }
+
      Mirror of the campaign band: copy left, picture right, and about
      two thirds the height, so the two editorial moments on the page
      are composed differently and read as a sequence rather than a
@@ -517,22 +606,15 @@
     .home-row:last-of-type { padding-bottom: 34px; }
     .row-head { margin-bottom: 20px; }
 
-    .campaign-frame {
-      grid-template-columns: 1fr;
-      gap: 24px;
-      margin-top: 34px;
-      padding: 24px 20px 32px;
-    }
-    .campaign-frame img { max-height: none; max-width: 100%; width: auto; height: min(72vh, 760px); margin: auto; }
-    /* Taller and narrower on a phone: a 78vh band cropped to 390px
-       wide would cut both figures out of a frame whose subject reads
-       across it. 4:5 keeps the composition and still leaves room for
-       the line underneath. */
+    /* Taller and narrower on a phone: a wide landscape crop at 390px
+       would cut both figures out of a frame whose subject reads across
+       it. 4:5 keeps the composition and still leaves room for the line
+       underneath. The height is replaced, not removed -- aspect-ratio
+       alone loses to an explicit height. */
     .campaign-frame { height: auto; aspect-ratio: 4 / 5; }
     .campaign-copy { left: 16px; right: 16px; bottom: 28px; max-width: none; }
     .campaign-title { font-size: clamp(32px, 10vw, 48px); }
-  .campaign-note { margin-top: 12px; }
-    .btn-outline { margin-top: 20px; }
+    .campaign-note { margin-top: 12px; }
 
     /* Picture first on a phone -- the photograph is the hook, and a
        block of type above it would push it off the screen. */
