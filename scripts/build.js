@@ -750,7 +750,7 @@ function renderProductPage(template, p) {
      sold, which is true, and claims nothing about who sews them. Only
      a product whose Shopify description is empty ever sees it. */
   const desc = plainDescription(p.descriptionHtml,
-    `${name} from ASIOR. Streetwear from Texas.`);
+    `${name} from ASIOR.`);
   const lead = leadImage(p);
   const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
   const alt = lead && lead.altText ? lead.altText : name;
@@ -991,10 +991,9 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   What is deliberately NOT here is the reference's own first message,
-   "FREE U.S SHIPPING ON ORDERS OVER $100". Asior has no free-shipping
-   threshold in Shopify, the spec says not to carry theirs across, and
-   check-slop.js fails the build on "free shipping" anyway. */
+   Free shipping over $99 is a real Shopify rate (see CLAUDE.md,
+   Discounts), so it leads. The reference's own "$100" line is not
+   carried across. */
 const ANNOUNCEMENTS = [
   'Free shipping on US orders over $99',
   '10% off your first order. Code ASIORTEN',
@@ -1699,15 +1698,21 @@ function syncHero() {
      edge to edge and the browser should be allowed every pixel the
      source actually has. It is never upscaled past that: there is no
      2400w entry, since inventing one would only blur it. */
-  const file = 'oli-group';
-  const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
-  const block =
-    '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w" sizes="100vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w" sizes="100vw">\n`
-    + `          <img src="images/${file}-full.jpg" alt="${esc(alt)}" width="1717" height="2576"`
-    + ' fetchpriority="high" decoding="async">\n'
+  /* All four models, head to toe. The group shot is 2:3 and the four
+     figures span about half its height, so no wide banner crop can hold
+     them: at 1440 it would need ~1180px of height. Desktop is therefore
+     two square frames side by side, the group shot (cropped to keep all
+     four whole) and the polo pair. A phone gets the group shot alone. */
+  const pic = (file, alt, cls, extra) =>
+    `        <picture class="hero-figure ${cls}">\n`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w${extra ? `, images/${file}-full.webp ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w${extra ? `, images/${file}-full.jpg ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400"`
+    + (cls === 'hero-figure--main' ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">\n'
     + '        </picture>\n';
+  const block =
+    pic('oli-group', 'Four models in Asior tees, tanks and sweat shorts on concrete steps', 'hero-figure--main', 1717)
+    + pic('oli04281', 'Two models in black Asior polos and white sweat shorts', 'hero-figure--side', 0);
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
   if (next === null) throw new Error('index.html: HERO markers missing');

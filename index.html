@@ -273,27 +273,32 @@
        alone was most of the first screen and the clothes under it
        started below the fold. Shorter, and the grid is in view while
        the banner is still on it. */
-    height: min(68vh, 640px);
+    height: 56vw;
+    max-height: 860px;
     min-height: 420px;
     padding: 0;
     overflow: hidden;
     background: var(--surface);
   }
 
-  .hero-art,
-  .hero-figure {
-    display: block;
+  /* Two square frames on desktop: the four-model group shot and the
+     polo pair. Each object-position keeps every figure whole. */
+  .hero-art {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: minmax(0, 1fr);
     height: 100%;
     width: 100%;
   }
-
+  .hero-figure { display: block; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
   .hero-figure img {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
-    object-position: center 26%;
   }
+  .hero-figure--main img { object-position: center 35%; }
+  .hero-figure--side img { object-position: center 55%; }
 
   /* A flat 20% black is what the reference banner uses, and measured
      on THIS photograph it was not nearly enough: pale concrete and a
@@ -605,8 +610,10 @@
   @media (max-width: 900px) {
     /* Still one full-bleed photograph on a phone. 3:4 gives the four
        figures room without the banner eating the whole screen. */
-    .hero { height: auto; aspect-ratio: 3 / 4; min-height: 0; }
-    .hero-figure img { object-position: center 40%; }
+    .hero { height: auto; max-height: none; aspect-ratio: 4 / 5; min-height: 0; }
+    .hero-art { grid-template-columns: 1fr; }
+    .hero-figure--side { display: none; }
+    .hero-figure--main img { object-position: center 72%; }
     .hero-cta { bottom: 28px; }
 
     /* Edge to edge, like the banner above it and like every other
@@ -817,9 +824,8 @@
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
-      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
+      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header">
@@ -830,8 +836,8 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/collections/accessories.html">Accessories</a>
       <a href="/manufacturing.html">Manufacturing</a>
+      <a href="/waitlist.html">Waitlist</a>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
@@ -853,7 +859,17 @@
   <section class="hero" aria-label="Asior Fall 2026 campaign">
     <div class="hero-art">
       <!-- HERO:START -->
-      <!-- HERO:END -->
+        <picture class="hero-figure hero-figure--main">
+          <source type="image/webp" srcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w" sizes="(max-width: 900px) 100vw, 50vw">
+          <source srcset="images/oli-group-800.jpg 800w, images/oli-group.jpg 1600w, images/oli-group-full.jpg 1717w" sizes="(max-width: 900px) 100vw, 50vw">
+          <img src="images/oli-group.jpg" alt="Four models in Asior tees, tanks and sweat shorts on concrete steps" width="1600" height="2400" fetchpriority="high" decoding="async">
+        </picture>
+        <picture class="hero-figure hero-figure--side">
+          <source type="image/webp" srcset="images/oli04281-800.webp 800w, images/oli04281.webp 1600w" sizes="(max-width: 900px) 100vw, 50vw">
+          <source srcset="images/oli04281-800.jpg 800w, images/oli04281.jpg 1600w" sizes="(max-width: 900px) 100vw, 50vw">
+          <img src="images/oli04281.jpg" alt="Two models in black Asior polos and white sweat shorts" width="1600" height="2400" loading="lazy" decoding="async">
+        </picture>
+  <!-- HERO:END -->
     </div>
     <a class="hero-cta" href="/shop.html">Shop Fall Collection</a>
   </section>
