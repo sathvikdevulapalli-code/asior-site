@@ -913,17 +913,22 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
 /* ---- announcement bar [measured: 40px, black, white, 14px 400] -----
 
    The reference rotates three messages between page loads. Ours
-   rotates on a timer, and every line has to be true:
+   rotates on a timer, and every line here has to be true and verified
+   against assets/promo-config.js (window.ASIOR_SHIPPING), not stated
+   from memory:
 
-     1. the one live discount (CLAUDE.md: ASIORTEN is the only code
-        the site may mention),
-     2. the verified dispatch time from the shipping config,
-     3. the brand line.
+     1. the real free-shipping threshold, once one existed to claim
+        (see FREE_THRESHOLD's own comment -- $99, read back from the
+        live Shopify delivery profile on 2026-10-22),
+     2. the one live discount (CLAUDE.md: ASIORTEN is the only code
+        the site may mention).
 
-   What is deliberately NOT here is the reference's own first message,
-   "FREE U.S SHIPPING ON ORDERS OVER $100". Asior has no free-shipping
-   threshold in Shopify, the spec says not to carry theirs across, and
-   check-slop.js fails the build on "free shipping" anyway. */
+   This used to be three lines and also carried the verified dispatch
+   time and the brand line, with no free-shipping message at all --
+   Asior had no free-shipping threshold in Shopify then, and
+   check-slop.js fails the build on "free shipping" if it isn't real.
+   That changed on 2026-10-22, so the real threshold replaced the
+   lines that were just filler. */
 const ANNOUNCEMENTS = [
   'Free shipping on US orders over $99',
   '10% off your first order. Code ASIORTEN',
