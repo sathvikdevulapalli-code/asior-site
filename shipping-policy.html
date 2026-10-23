@@ -55,9 +55,8 @@
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
-      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
+      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header site-header--minimal">
@@ -67,22 +66,21 @@
   <div class="page-top-space" aria-hidden="true"></div>
   <main id="main" class="policy-doc">
     <h1 class="rail-label">Shipping Policy</h1>
-    <p class="policy-date">Updated October 11, 2026</p>
+    <p class="policy-date">Updated October 22, 2026</p>
 
     <h2>Dispatch</h2>
     <p>Orders are dispatched from Texas. Our current dispatch time is 1–2 business days. Dispatch time is the time before an order leaves us; it is separate from carrier transit time.</p>
 
     <h2>United States shipping</h2>
-    <p>Available rates depend on the packed order’s weight. The current US rate card is:</p>
-    <table>
-      <thead><tr><th scope="col">Service</th><th scope="col">Weight</th><th scope="col">Rate</th><th scope="col">Transit after dispatch</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">Economy</th><td>0–5 lb</td><td>$4.90</td><td>5–8 business days</td></tr>
-        <tr><th scope="row">Standard</th><td>0–1 lb</td><td>$6.90</td><td>3–4 business days</td></tr>
-        <tr><th scope="row">Standard</th><td>1–5 lb</td><td>$9.90</td><td>3–4 business days</td></tr>
-      </tbody>
-    </table>
-    <p>The available service and final shipping charge are shown at checkout before you pay.</p>
+    <!-- Matches assets/promo-config.js (window.ASIOR_SHIPPING), confirmed
+         against the live Shopify delivery profile on 2026-10-22: the
+         Domestic zone is carrier-calculated now (USPS quote + 15%), not
+         the old flat-rate card, and free shipping over $99 is a real,
+         verified rate. Keep this prose in sync with that file instead of
+         re-adding a fixed price table — a flat number here would again be
+         a price most customers can't actually get at checkout. -->
+    <p>Orders of $99 or more ship free within the US. Below that, the cost is calculated at checkout from your address and the weight of the order: shipping is carrier-calculated, not a flat rate, so what you pay depends on how far the parcel is travelling.</p>
+    <p>The available service, transit estimate, and final shipping charge are shown at checkout before you pay.</p>
 
     <h2>International shipping</h2>
     <p>We ship to international destinations offered at checkout. Available services, delivery estimates, and the full charge for your address are shown before payment. Some destinations may require a phone number, and orders to mainland China may require a Resident ID for customs.</p>
