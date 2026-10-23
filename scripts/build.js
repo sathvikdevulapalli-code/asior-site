@@ -120,9 +120,18 @@ async function fetchProducts() {
         # second photograph's URL as data-alt-src for the hover swap,
         # and it has to be the same sized rendition the client-side
         # card() uses, or the two cards disagree.
-        images(first: 4) { edges { node {
+        # width/height are what leadImage() measures the 2:3 tile crop
+        # against -- without them every alternate photograph measures as
+        # unknown and the better-fitting one can never be chosen. The
+        # w400/w1200 transforms are the srcset candidates, which the
+        # tile needs whether or not it is the featuredImage.
+        images(first: 8) { edges { node {
           url
-          w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
+          width
+          height
+          w400:  url(transform:{maxWidth:400,  preferredContentType:WEBP})
+          w800:  url(transform:{maxWidth:800,  preferredContentType:WEBP})
+          w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
         } } }
         # options and selectedOptions drive the prerendered size row;
         # the variant id is what its buttons add to the cart.
@@ -516,18 +525,80 @@ function isGeneratedImage(img) {
    because a product with no image at all converts worse than one with
    a flawed image, and the point is to stop a render being the FIRST
    thing shown rather than to hide the product. */
+/* How much of an image the 2:3 tile has to cut away. The tile is
+   object-fit: cover, so whichever dimension is proportionally longer
+   than the frame is the one that gets trimmed. */
+const TILE_RATIO = 2 / 3;
+function tileCrop(im) {
+  if (!im || !im.width || !im.height) return null;
+  const r = im.width / im.height;
+  return r < TILE_RATIO
+    ? 1 - (im.width / TILE_RATIO) / im.height   // taller than the frame: height is cut
+    : 1 - (im.height * TILE_RATIO) / im.width;  // wider: width is cut
+}
+
+/* The tile photograph.
+
+   The founder's order in Shopify decides which photograph represents a
+   product, and this does not second-guess it -- with two exceptions,
+   both of which are about what the shopper actually sees:
+
+     1. A generated render is never the tile. (Kova's featuredImage is
+        a Firefly file; see isGeneratedImage.)
+     2. If the chosen photograph would lose more than a tenth of itself
+        to the frame, and another real photograph of the same product
+        fits measurably better, the better-fitting one is used.
+
+   The second rule is the only consistency available before a product
+   shoot. Measured against the live catalogue on 2026-10-23, the lead
+   image loses 0% to 16.7% of itself depending on the product, because
+   the catalogue is shot at anything from 0.56 to 0.80. Four products
+   have a second photograph that fits the frame far better than the one
+   currently shown.
+
+   The threshold is deliberately high. Reshuffling which photograph
+   represents a garment is a merchandising decision, so this only steps
+   in where the crop is bad enough to be visible, and the build logs
+   every swap by name so they can be checked. */
+const TILE_CROP_LIMIT = 0.10;
+/* leadImage runs once per generated page per grid, so a single swap was
+   printing a dozen identical lines and burying everything else. */
+const _loggedOnce = new Set();
+function logOnce(line) {
+  if (_loggedOnce.has(line)) return;
+  _loggedOnce.add(line);
+  console.log(line);
+}
 function leadImage(p) {
   const all = ((p.images && p.images.edges) || []).map(e => e.node);
+  const real = all.filter(im => im && im.url && !isGeneratedImage(im));
   const featured = p.featuredImage;
-  if (featured && !isGeneratedImage(featured)) return featured;
-  const real = all.find(im => im && im.url && !isGeneratedImage(im));
-  if (real) {
-    if (featured) {
-      console.log(`  ${p.handle}: featuredImage is a generated render, promoting a real photograph`);
-    }
-    return real;
+
+  let chosen = featured && !isGeneratedImage(featured) ? featured : real[0];
+  if (!chosen) return featured || all[0] || null;
+  if (chosen !== featured && featured) {
+    logOnce(`  ${p.handle}: featuredImage is a generated render, promoting a real photograph`);
   }
-  return featured || all[0] || null;
+
+  const crop = tileCrop(chosen);
+  if (crop !== null && crop > TILE_CROP_LIMIT) {
+    let best = chosen, bestCrop = crop;
+    for (const im of real) {
+      const c = tileCrop(im);
+      if (c !== null && c < bestCrop) { best = im; bestCrop = c; }
+    }
+    /* By URL, not by object. featuredImage and the same photograph
+       inside images.edges are two different objects carrying one URL,
+       so identity reported a swap where nothing had changed -- the log
+       read "using OLI01282.jpg instead of OLI01282.jpg". */
+    if (best.url !== chosen.url && bestCrop < crop - 0.02) {
+      const name = u => String(u).split('/').pop().split('?')[0];
+      logOnce(`  ${p.handle}: tile would cut ${(crop * 100).toFixed(0)}% off `
+        + `${name(chosen.url)}; using ${name(best.url)} instead (${(bestCrop * 100).toFixed(0)}%)`);
+      return best;
+    }
+  }
+  return chosen;
 }
 
 /* ---- brand-level structured data ------------------------------------
