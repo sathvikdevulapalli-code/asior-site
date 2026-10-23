@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASIOR | Streetwear from Texas</title>
+<title>ASIOR | Fall 2026</title>
 <meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta name="theme-color" content="#0e0e0d">
 <link rel="canonical" href="https://asiorclothing.com/">
@@ -12,7 +12,7 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ASIOR | Streetwear from Texas">
+<meta property="og:title" content="ASIOR | Fall 2026">
 <meta property="og:description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
@@ -858,9 +858,6 @@
     <a class="hero-cta" href="/shop.html">Shop Fall Collection</a>
   </section>
 
-  <!-- Personalization from real browsing history. A first-time visitor
-       never sees this section at all (see renderRecentlyViewed). -->
-  <section class="shop-recent" id="shopRecent"></section>
 
   <!-- NEW ARRIVALS was here and is deliberately gone.
 
@@ -1014,26 +1011,6 @@
   <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
        padding. The reference's fourth is BEST SELLERS; ours is
        MANUFACTURING, per the spec. -->
-  <!-- Second editorial story, composed the other way round from the
-       campaign band above it so the page does not repeat itself: copy
-       on the left at rest, photograph on the right, and smaller. This
-       is the way into the lookbook. -->
-  <section class="story" data-reveal aria-label="The lookbook">
-    <div class="story-copy">
-      <p class="story-eyebrow">The lookbook</p>
-      <h2 class="story-head">Fifteen looks,<br>shot across Austin.</h2>
-      <p class="story-note">The whole collection on real people, in the places it was made for.</p>
-      <a class="story-link" href="/community.html">See the lookbook</a>
-    </div>
-    <figure class="story-figure">
-      <picture>
-        <source type="image/webp" media="(max-width: 700px)" srcset="images/oli04155-800.webp">
-        <source type="image/webp" srcset="images/oli04155.webp">
-        <source media="(max-width: 700px)" srcset="images/oli04155-800.jpg">
-        <img src="images/oli04155.jpg" alt="Two models in Asior polos and sweat shorts against a concrete wall" width="1600" height="2400" loading="lazy" decoding="async">
-      </picture>
-    </figure>
-  </section>
 
   <section class="tiles" aria-label="Categories">
     <a class="tile" data-reveal href="/collections/tops.html">
@@ -1053,6 +1030,44 @@
       <span class="tile-label">Manufacturing</span>
     </a>
   </section>
+
+  <!-- The lookbook teaser, and the last thing before the footer.
+
+       It used to sit between the campaign band and the category
+       tiles, which put two full-bleed editorial photographs back to
+       back with the clothes stranded above them. Order now runs
+       banner, products, campaign band, categories, lookbook: one
+       editorial moment, then the ways further in.
+
+       Its headline said "Fifteen looks" and the lookbook has 22
+       frames. A number on the page has to be a number that is true,
+       so it does not state one -- the count changes whenever a frame
+       is added, and nothing re-checks this line when it does.
+
+       Second editorial story, composed the other way round from the
+       campaign band above it so the page does not repeat itself: copy
+       on the left at rest, photograph on the right, and smaller. This
+       is the way into the lookbook. -->
+  <section class="story" data-reveal aria-label="The lookbook">
+    <div class="story-copy">
+      <p class="story-eyebrow">The lookbook</p>
+      <h2 class="story-head">The collection,<br>on real people.</h2>
+      <p class="story-note">The whole collection on real people, in the places it was made for.</p>
+      <a class="story-link" href="/community.html">See the lookbook</a>
+    </div>
+    <figure class="story-figure">
+      <picture>
+        <source type="image/webp" media="(max-width: 700px)" srcset="images/oli04155-800.webp">
+        <source type="image/webp" srcset="images/oli04155.webp">
+        <source media="(max-width: 700px)" srcset="images/oli04155-800.jpg">
+        <img src="images/oli04155.jpg" alt="Two models in Asior polos and sweat shorts against a concrete wall" width="1600" height="2400" loading="lazy" decoding="async">
+      </picture>
+    </figure>
+  </section>
+
+  <!-- Personalization from real browsing history. A first-time visitor
+       never sees this section at all (see renderRecentlyViewed). -->
+  <section class="shop-recent" id="shopRecent"></section>
 
   </main>
 

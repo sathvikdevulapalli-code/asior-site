@@ -822,7 +822,12 @@ html.cart-drawer-locked { overflow: hidden; }
      under half the gap between a picture and its own price. The
      caption is tight now and the separation lives here. The category
      pages widen the column gap to 24px -- see .coll-grid below. */
-  gap: 30px 6px;
+  /* Column gap 12px, matching the reference. The ROW gap stays wide:
+     the reference can run 12px both ways because its caption sits
+     tight under its own photograph and ours has to clear a caption
+     plus a price, and at 12px a price was nearer the next product's
+     picture than its own. 26px is the smallest that still groups. */
+  gap: 26px 12px;
 }
 
 .coll-head {
@@ -1038,7 +1043,7 @@ html.cart-drawer-locked { overflow: hidden; }
 @media (max-width: 900px) {
   /* Row gap carries the separation between one card and the next,
      now that the caption sits tight under its own photograph. */
-  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 10px; }
+  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 8px; }
   /* The .product-title and .product-price sizes that used to be here
      never applied: both are redeclared later in this file, outside any
      media query, and a later rule of equal specificity wins at every
@@ -1830,9 +1835,9 @@ body {
 .product-title {
   font-family: var(--font);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.3;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink);
   white-space: normal;
@@ -1997,6 +2002,79 @@ body {
   color: var(--bg);
 }
 
+
+/* ===================================================================
+   TOUCH TARGETS ON A PHONE
+
+   Measured at 390x844 with a touch pointer, every interactive element
+   on home, shop and a product page. The footer was the worst of it:
+   nine links per page at 17px tall, which is the line box of the text
+   and nothing else. The sticky buy bar's size buttons were 34px, on
+   the one control the whole page exists for.
+
+   44px is the target here, not the 24px WCAG floor the section below
+   works to. 24px is the minimum that passes; 44px is the size a thumb
+   actually hits.
+
+   One deliberate exception: the size chips on a grid card stay at
+   30px. Four of them plus their gaps have to fit a 175px card on a
+   390px phone, and 44px chips need 191px. They clear the 24px floor,
+   and the product page's own picker is full size.
+   =================================================================== */
+@media (max-width: 900px) {
+  /* Each footer link gets its own 44px row. The footer gets taller;
+     that is the cost of the links being hittable. */
+  .flinks a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* The support address is the one way to reach a person. */
+  .fsupport a {
+    display: inline-block;
+    padding: 12px 0;
+  }
+
+  /* The sticky bar is the buy control once the panel scrolls away. */
+  .pd-sticky-sizes .pd-size {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  /* Opens the filter drawer; it was 27px tall. */
+  .coll-filter { min-height: 44px; }
+
+  /* Reveals the size row on a card. 34px on touch, where it is the
+     only way in without opening the product page. */
+  .product .product-peek { width: 44px; height: 44px; }
+  .product .product-peek::before { width: 15px; height: 1.5px; }
+  .product .product-peek::after  { width: 1.5px; height: 15px; }
+
+  /* Name and price under a tile are one link to the product. */
+  .product > .product-link { padding: 4px 0 8px; }
+
+  /* Every text field: search, email, SMS, discount code. 37px before. */
+  .field,
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"] { min-height: 44px; }
+
+  /* The wordmark is the way back to the shop from anywhere. */
+  .site-header .mark {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* 11px is below what a phone should ask anyone to read. The currency
+     selector and the consent line were both at it. */
+  .curr-label,
+  .curr-sel,
+  .consent,
+  .sms-consent { font-size: 12px; }
+}
 
 /* ===================================================================
    TARGET SIZE

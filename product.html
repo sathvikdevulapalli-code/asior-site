@@ -426,11 +426,16 @@
     overflow-x: auto;
   }
 
+  /* 44px, not 34px. This bar is the buy control once the panel has
+     scrolled away, and on a phone it is the only one on screen. The
+     44px rule in assets/site.css could not reach it: this page's own
+     <style> is later in the document and wins at equal specificity,
+     so the size has to be corrected here. */
   .pd-sticky-sizes .pd-size {
-    min-width: 34px;
-    height: 34px;
+    min-width: 44px;
+    height: 44px;
     padding: 0 10px;
-    font-size: 12px;
+    font-size: 13px;
     flex-shrink: 0;
   }
 
@@ -797,6 +802,18 @@
       scroll-snap-align: start;
       aspect-ratio: 2 / 3;
     }
+
+    /* Every frame in the row is the same shape, the lead one included.
+
+       The 1000px block above gives the lead frame 4/3.6 so that on a
+       stacked gallery the buy box is not pushed a full portrait down
+       the page. In this row that backfires: the frames sit side by
+       side, the row is as tall as the TALLEST of them, and a lead
+       frame two thirds the height of its neighbours left ~360px of
+       dead black under the main product photograph -- and pushed Add
+       to Bag down by exactly that much, which is the opposite of what
+       the shorter frame was for. */
+    .pd-shot:first-child { aspect-ratio: 2 / 3; }
 
     .pd-panel { position: static; }
     .pd-panel-in { max-height: none; overflow: visible; }
@@ -1880,7 +1897,7 @@
       /* "Ships in 1-2 business days" is handling time, never delivery
          -- it reads off the same verified shipping config the cart and
          the shipping accordion use, so the three can never disagree. */
-      ['Ships', `In ${A.shippingConfig().FULFILMENT || '1-2 business days'} from Texas`],
+      ['Ships', `In ${A.shippingConfig().FULFILMENT || '1-2 business days'}`],
       /* Empty string while no return policy exists in Shopify. See
          returnsLine() and the note on RETURNS_POLICY_PUBLISHED. */
       ['Returns', A.returnsLine()],
