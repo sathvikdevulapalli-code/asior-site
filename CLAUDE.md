@@ -165,7 +165,10 @@ and fails on a hit, so this list is enforced rather than remembered:
 
 **Type:** one face, Archivo. Nav and labels all caps at 0.08em tracking;
 product copy sentence case. Square corners, 1px rules instead of cards,
-photos edge to edge on mobile.
+photos edge to edge on mobile. The homepage hero is one full-bleed
+photograph (the four-model group shot), not a split; the founder asked
+for that on 2026-10-24. Desktop header is one row from 1180px up: nav
+left, wordmark centred, market and bag right.
 
 **Motion.** One effect, sitewide: a reveal on scroll. Anything with
 `data-reveal`, and every `.product` card, starts faded out and 18px
@@ -173,7 +176,15 @@ down (10px for the full-bleed bands) and settles as it comes within a
 screen of the viewport, staggered by column across a grid row. The
 founder asked for this on 2026-10-22, against the previous rule of no
 motion beyond an image fade-in; that rule stands for everything else.
-Don't add a second kind of motion without asking.
+On 2026-10-24 the founder asked for more motion, "clean minimalistic",
+like the reference. Two more effects exist, and only these:
+- Homepage hero: the photograph settles from a 1.08 zoom over 2.6s on
+  load, and the one link rises in after it (`hero-settle`/`hero-rise`
+  in `index.html`).
+- Product cards, desktop pointers only: the photo eases to 1.035 on
+  hover over 1.1s while the second frame fades in (end of `site.css`).
+All three switch off under `prefers-reduced-motion`. Don't add a fourth
+without asking.
 
 It lives in one place: `wireReveal()` in `assets/site.js` and the
 `.js-reveal` block in `assets/site.css`. The hidden state is applied
