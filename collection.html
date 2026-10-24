@@ -90,10 +90,15 @@
     pointer-events: none;
   }
 
+  /* 20px either side, the same gutter shop.html uses, not the 40px
+     --page-pad. Every catalogue page is the same page with a
+     different filter on it, and at 1440 these two were 1360px and
+     1400px wide -- close enough that nobody would name it, far enough
+     that the grid shifted under you moving between them. */
   .coll {
     max-width: none;
     margin: 0;
-    padding: 0 var(--page-pad) 10vh;
+    padding: 0 20px 10vh;
   }
 
   /* [measured] Title row 60px under the banner. */
@@ -138,9 +143,12 @@
   .coll-filter svg { width: 14px; height: 14px; display: block; }
   .coll-filter:hover { opacity: 0.6; }
 
-  /* [measured] Grid starts ~48px under the title row; column gap 24px
-     on the category pages (the homepage rows use 6px). */
-  .coll-grid { margin-top: 48px; gap: 34px 24px; }
+  /* Only the space above the grid is set here. The gaps come from
+     .shop-grid in assets/site.css, which this element also carries:
+     the 34px/24px declared here were measured before the shared grid
+     existed and were quietly overriding it, so a category page ran
+     wider gaps than the shop for the same cards. */
+  .coll-grid { margin-top: 48px; }
 
   .coll-count {
     margin: 10px 0 0;
@@ -258,10 +266,12 @@
     /* Two across on a phone; four would be 97px each. */
     .coll-banner--pair { grid-template-columns: 1fr 1fr; }
     .coll-banner--pair img { object-fit: cover; }
-    .coll { padding: 0 15px 8vh; }
+    /* 16px, matching shop.html's phone gutter. 15px here put the
+       category grid 2px wider than the shop's for the same cards. */
+    .coll { padding: 0 16px 8vh; }
     .coll-head { padding-top: 34px; }
     .coll-title { font-size: 17px; }
-    .coll-grid { margin-top: 26px; gap: 22px 10px; }
+    .coll-grid { margin-top: 26px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -607,7 +617,10 @@
 
     grid.innerHTML = view.map(function (p, i) {
       /* Category grid is full-bleed, not the capped shop grid. */
-      return A.productCard(p, { eager: i < 4, peek: true, sizes: A.CARD_SIZES.row });
+      /* .grid, not .row: this page's grid is now pixel-identical to
+         shop.html's, so it declares the same slot. .row is the
+         homepage's full-bleed geometry, which has no page gutter. */
+      return A.productCard(p, { eager: i < 4, peek: true, sizes: A.CARD_SIZES.grid });
     }).join('');
 
     bindCollectionQuickAdd(grid);

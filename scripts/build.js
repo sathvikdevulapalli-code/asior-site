@@ -1431,8 +1431,15 @@ function sortForMerchandising(products) {
    render replaces this markup, and a mismatch would simply move the
    problem to after hydration. */
 const CARD_SIZES = {
-  // shop.html, whose grid is capped, so the slot stops growing at 1280
-  grid: '(max-width: 768px) 48vw, (max-width: 1279px) 23vw, 280px',
+  /* shop.html and the category pages: four across, 20px page gutter
+     either side, 12px between. The old value ended in a flat 280px
+     "because the grid is capped at 1280" -- it is not capped any
+     more, so above 1279px every tile declared 280px while rendering
+     341px at 1440 and 461px at 1920. Expressed as the real geometry
+     so it cannot go stale again:
+       (100vw - 2*20px gutter - 3*12px gap) / 4  =  (100vw - 76px) / 4
+     and on a phone, two across with the same gutter and an 8px gap. */
+  grid: '(max-width: 768px) calc((100vw - 40px) / 2), calc((100vw - 76px) / 4)',
   // homepage rows and the category pages, both full-bleed
   row: '(max-width: 768px) 48vw, 25vw',
   // the 2x2 first card in .shop-grid--featured

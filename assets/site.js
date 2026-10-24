@@ -1599,7 +1599,7 @@
      measured slot at every one of those widths.
      Must stay in step with CARD_SIZES in scripts/build.js. */
   var CARD_SIZES = {
-    grid: '(max-width: 768px) 48vw, (max-width: 1279px) 23vw, 280px',
+    grid: '(max-width: 768px) calc((100vw - 40px) / 2), calc((100vw - 76px) / 4)',
     row: '(max-width: 768px) 48vw, 25vw',
     featured: '(max-width: 768px) 97vw, 48vw',
   };
