@@ -1775,7 +1775,12 @@
               id: i === 0 ? 'pdMainImg' : '',
               eager: i === 0,
               alt: im.altText || product.name + (i ? ' view ' + (i + 1) : ''),
-              sizes: '(max-width: 900px) 100vw, 60vw',
+              /* The gallery column is what is left after the 642px
+                 buy panel, a 20px gap and the 40px page gutters, in a
+                 container capped at 1700px: 698px at 1440, which is
+                 48.5vw, not 60vw. Over-declaring made the browser
+                 fetch a larger candidate than it paints. */
+              sizes: '(max-width: 900px) 100vw, (max-width: 1700px) calc(100vw - 742px), 958px',
             })}
           </figure>`).join('')
       : `<div class="ph"><span>No image available</span></div>`;
@@ -2151,6 +2156,29 @@
       /* Every option, not just Size. On a Color + Size product a size
          alone does not name a variant, so the old check let the button
          enable with nothing addable behind it. */
+      /* Nothing left in any size is a different state from "you have
+         not picked one yet", and it was being handled as the latter:
+         the button stayed on its initial disabled "Add to bag" and the
+         restock block never opened, because the only call to
+         openBackInStock sits past the needsPick return and is further
+         guarded on a selected variant. A product with no size option
+         at all -- the lanyard, the pendant -- never has a selected
+         variant, so a sold-out one offered a dead grey button and no
+         way to ask for it back.
+
+         Checked before needsPick, because when everything is gone
+         there is nothing to pick. */
+      const allGone = product.variants.length > 0
+        && product.variants.every(x => !x.available);
+      if (allGone) {
+        btn.textContent = 'Sold out';
+        btn.disabled = true;
+        if (buyBtn) buyBtn.disabled = true;
+        if (stickyBtn) { stickyBtn.textContent = 'Sold out'; stickyBtn.disabled = true; }
+        openBackInStock(hasOptions ? selection.Size : '');
+        return;
+      }
+
       const needsPick = hasOptions && product.optionNames.some(n => !selection[n]);
       if (needsPick) {
         // Nothing chosen yet. The button keeps saying what it does and
@@ -2183,7 +2211,7 @@
       btn.disabled = sold;
       if (buyBtn) buyBtn.disabled = sold;
       if (stickyBtn) { stickyBtn.textContent = label; stickyBtn.disabled = sold; }
-      if (sold && v) openBackInStock(selection.Size);
+      if (sold) openBackInStock(v ? selection.Size : '');
     }
 
     // ---- back in stock ----
@@ -2528,14 +2556,41 @@
     const fallHandles = new Set(fallList.map(p => p.handle));
     const fallName = handle => { const f = fallList.find(p => p.handle === handle); return f ? f.name : null; };
 
-    const tiles = list => list.map(p => {
-      const media = p.featuredImage
-        ? A.imgTag(p.featuredImage, { alt: p.title, sizes: '(max-width: 640px) 50vw, 220px' })
-        : `<div class="ph"></div>`;
-      // Same rule as everywhere else on this page: the customer-facing
-      // Fall name overrides Shopify's own (sometimes internal) title.
-      const name = fallName(p.handle) || p.title;
-      return `<a class="rel-item" href="${productUrl(p.handle)}">${media}<div class="rel-name">${A.escapeHtml(name)}</div></a>`;
+    /* The same card the grid uses, not a local one.
+
+       This rail used to build its own .rel-item: photograph, name, and
+       no price. A shopper comparing it against the grid two clicks
+       earlier saw a different object for the same product, and the one
+       fact that decides whether they click -- what it costs -- was the
+       part left out.
+
+       A.normalizeProduct + A.productCard is the pair every other
+       catalogue surface uses (the collection pages, the homepage rows,
+       shop.html), so the rail now inherits the price, the sold-out
+       badge, the demoted-render rule and the size row for free, and
+       stays in step when any of those change.
+
+       The customer-facing Fall name still overrides Shopify's own,
+       which is the one thing normalizeProduct cannot know. */
+    /* The shared grid is four across. FALL_PRODUCTS holds four pieces
+       and one of them is the product being viewed, so this rail is
+       almost always three -- which left a quarter of the row empty.
+       The row is sized to what is in it, up to four. */
+    const relCols = n => (n > 0 && n < 4)
+      ? ` style="grid-template-columns: repeat(${n}, minmax(0, 1fr))"`
+      : '';
+
+    const tiles = list => list.map((p, i) => {
+      const card = A.normalizeProduct(p);
+      const override = fallName(p.handle);
+      if (override) card.name = override;
+      /* No size row in this rail. The row's buttons are wired per page
+         and this page has no quick-add handler, so they would render
+         as a control that does nothing. With no sizes the card's
+         control falls back to its plain link to the product page,
+         which is what a rail like this is for. */
+      card.sizes = [];
+      return A.productCard(card, { eager: false, peek: true, sizes: A.CARD_SIZES.row });
     }).join('');
 
     const priorViews = A.getViewed()
@@ -2553,11 +2608,11 @@
         ? `Since You Looked At ${A.escapeHtml(priorViews[0].title)}`
         : 'You Might Also Like';
       relHTML += `<section class="rel-section"><div class="rel-label">${label}</div>
-        <div class="rel-grid">${tiles(related)}</div></section>`;
+        <div class="rel-grid shop-grid"${relCols(related.length)}>${tiles(related)}</div></section>`;
     }
     if (priorViews.length) {
       relHTML += `<section class="rel-section"><div class="rel-label">Recently Viewed</div>
-        <div class="rel-grid">${tiles(priorViews.slice(0, 4))}</div></section>`;
+        <div class="rel-grid shop-grid"${relCols(Math.min(priorViews.length, 4))}>${tiles(priorViews.slice(0, 4))}</div></section>`;
     }
     /* The SMS signup now sits AFTER the related rail rather than
        directly under Add to Bag. Same form, same consent text, same
@@ -2565,6 +2620,13 @@
        what a shopper agrees to is different. */
     relHTML += A.smsSignupHTML();
     relRoot.innerHTML = relHTML;
+
+    /* These are .product cards now, and a .product starts hidden under
+       .js-reveal. The MutationObserver in assets/site.js would catch
+       them, but this is the explicit hand-off the rest of the site
+       uses after a re-render -- see CLAUDE.md. */
+    if (A.observeReveal) A.observeReveal(relRoot);
+    A.wireHoverSwap(relRoot);
 
     // Wired here rather than on page load like the footer's, because
     // this block is rendered with the product, after that pass.
