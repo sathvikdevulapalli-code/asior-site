@@ -1708,7 +1708,7 @@ function syncHero() {
     + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w${extra ? `, images/${file}-full.webp ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
     + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w${extra ? `, images/${file}-full.jpg ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
     + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400"`
-    + (cls === 'hero-figure--main' ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">\n'
+    + (cls === 'hero-figure--main' ? ' fetchpriority="high"' : '') + ' decoding="async">\n'
     + '        </picture>\n';
   const block =
     pic('oli-group', 'Four models in Asior tees, tanks and sweat shorts on concrete steps', 'hero-figure--main', 1717)

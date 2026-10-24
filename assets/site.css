@@ -2095,3 +2095,58 @@ body {
   margin-top: -6px;
   margin-bottom: -6px;
 }
+
+
+/* ===================================================================
+   REFERENCE PASS (2026-10-24) -- Withered Hills catalogue chrome.
+
+   Captions left-aligned under the photograph: name in bold caps, price
+   quiet under it. Catalogue title rows go back to a row -- title left,
+   search and filter right -- instead of a centred stack. Product copy
+   and policy pages are untouched.
+   =================================================================== */
+.product-title,
+.product-price,
+.product .price,
+.product-meta { text-align: left; }
+
+.product-title {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  line-height: 1.35;
+}
+
+.product-price,
+.product .price {
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.shop .coll-head,
+.arch .coll-head {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.shop .coll-title,
+.arch .coll-title {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.shop .coll-head .shop-search { margin: 0 0 0 auto; width: min(300px, 100%); }
+.shop .coll-head .coll-filter { margin: 0; }
+
+.shop-grid-heading { text-align: left; }
+
+@media (max-width: 640px) {
+  .shop .coll-head { flex-wrap: wrap; }
+  .shop .coll-head .shop-search { order: 3; flex: 1 0 100%; width: 100%; margin: 0; }
+}
