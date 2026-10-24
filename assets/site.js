@@ -1626,10 +1626,13 @@
     /* data-choose marks a row whose buttons open quick view instead of
        adding, because the product has a second option still to pick.
        The click handlers on each page branch on it. */
-    /* No size row on the card -- see quickAddRow() in scripts/build.js.
-       Both renderers have to agree, or hydrating the grid would put
-       back the row the build deliberately left out. */
-    var quickAdd = false
+    /* Must stay in step with quickAddRow() in scripts/build.js: the
+       live fetch replaces the built card with this one, and if the two
+       disagree the row appears or vanishes under the shopper. That
+       includes the sold-out rule -- a product with nothing left in any
+       size has no row and falls through to the quick view, which is
+       where the restock signup lives. */
+    var quickAdd = (!p.soldOut && p.sizes && p.sizes.length)
       ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '"'
         + (p.needsChoice ? ' data-choose="1"' : '') + '>'
         + p.sizes.map(function (s) {
@@ -1648,11 +1651,20 @@
       : '';
 
     /* The photograph and the caption are two links to the same page
-       rather than one wrapping both, because the quick view trigger has
-       to sit on the photograph and a <button> cannot legally live
-       inside an <a>. The frame is what positions it. */
+       rather than one wrapping both, because the control on the image
+       and the size row both have to sit on the photograph, and a
+       <button> cannot legally live inside an <a>. The frame is what
+       positions them.
+
+       One control, two jobs, decided by whether this product has sizes
+       at all: data-sizes reveals the row on the tile (wired here, in
+       wireCardSizeReveal), data-peek opens the page's quick view
+       dialog (wired per page). A product on a single Title variant has
+       no row to reveal, so it keeps the dialog. */
     var peek = opts.peek === false ? ''
-      : '<a class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '" href="/products/' + encodeURIComponent(p.handle) + '.html" aria-label="Choose a size and preview ' + escapeAttr(p.name) + '">Quick view</a>';
+      : quickAdd
+        ? '<a class="product-peek btn btn--sm" data-sizes="' + escapeAttr(p.handle) + '" href="/products/' + encodeURIComponent(p.handle) + '.html" aria-expanded="false" aria-label="Choose a size for ' + escapeAttr(p.name) + '">Choose a size</a>'
+        : '<a class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '" href="/products/' + encodeURIComponent(p.handle) + '.html" aria-label="Quick view of ' + escapeAttr(p.name) + '">Quick view</a>';
 
     /* [measured] A small black badge top-left on the image. The
        reference's reads "Notify Me" and opens a restock signup; ours
@@ -1665,7 +1677,7 @@
       + '<div class="product-frame">'
       + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html" tabindex="-1" aria-hidden="true">'
       + '<div class="product-img"' + alt + '>' + media + '</div></a>'
-      + badge + peek
+      + badge + peek + quickAdd
       + '</div>'
       + '<a class="product-link" href="/products/' + encodeURIComponent(p.handle) + '.html">'
       /* [measured] Title above the price, both left aligned, title
@@ -1675,7 +1687,7 @@
       + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
       + '<div class="product-price tnum">' + p.priceLabel + '</div>'
       + (p.isPreorder ? '<div class="product-state">Preorder</div>' : '')
-      + '</a>' + quickAdd + '</div>';
+      + '</a></div>';
   }
 
   /* The hover frame, wired once per grid container. Shared by the shop
@@ -1921,6 +1933,9 @@
 
   // -----------------------------------------------------------------
   window.Asior = {
+    /* Re-run the scroll reveal over a grid a page has just
+       re-rendered, so new cards animate in instead of appearing. */
+    observeReveal: observeReveal,
     CARD_SIZES: CARD_SIZES,
     applyCardFocus: applyCardFocus,
     shopifyFetch: shopifyFetch,
@@ -2113,6 +2128,219 @@
   wireHeaderScrollState();
   wireShopSearch();
 
+  /* ---- reveal on scroll -----------------------------------------
+
+     One observer for the whole site: every .product in any grid, plus
+     anything marked data-reveal. Pages used to run their own copy of
+     this (index.html and shop.html each had one) and the collection
+     pages had none, so a card rendered on a category page would never
+     have been revealed at all.
+
+     The contract is inverted on purpose. .js-reveal goes on <html>
+     here, from the script that does the revealing, and the CSS hides
+     nothing without it. If this file fails to load or throws before
+     this line, the page renders fully visible rather than blank.
+
+     Three further ways a reveal-on-scroll leaves content stranded,
+     all closed here:
+
+       - an element taller than the viewport can never satisfy a
+         fractional threshold, so threshold is 0 and the margin is a
+         screen deep: things arrive already visible rather than fading
+         in under the reader.
+       - a browser with no IntersectionObserver observes nothing and
+         would leave every card at opacity 0. It reveals immediately
+         instead.
+       - grids re-render from the live catalogue after first paint, so
+         new cards appear that nobody is observing. A MutationObserver
+         picks those up, and a 2.5s failsafe reveals anything still
+         hidden whatever the reason.
+
+     Stagger is by position in the row, not by index in the batch: the
+     entries of one observer callback are not in document order, so
+     indexing them made the delay jump around the row. */
+  var revealObserver = null;
+  var REVEAL_SEL = '.product, [data-reveal]';
+
+  function revealNow(el) {
+    if (!el || el.classList.contains('in')) return;
+    var cols = 0;
+    var parent = el.parentElement;
+    if (parent) {
+      var cs = getComputedStyle(parent).gridTemplateColumns;
+      cols = cs && cs !== 'none' ? cs.split(' ').length : 0;
+    }
+    var step = 0;
+    if (cols > 1) {
+      var sibs = Array.prototype.indexOf.call(parent.children, el);
+      step = (sibs % cols) * 55;
+    }
+    if (step) setTimeout(function () { el.classList.add('in'); }, step);
+    else el.classList.add('in');
+  }
+
+  /* Measured a frame late, always. A grid re-rendered from the live
+     catalogue is measured by the MutationObserver in the same tick it
+     was written, before layout has run and before the lazy <img>
+     elements have reserved their height -- every card reports a top
+     near zero, every card looks like it is above the fold, and the
+     whole grid reveals at once with no animation at all. One frame is
+     enough for the aspect-ratio boxes to take their height. */
+  function observeReveal(root) {
+    requestAnimationFrame(function () {
+      try {
+        observeRevealNow(root);
+      } catch (err) {
+        /* Never leave the page hidden because measuring threw. */
+        revealEverything();
+      }
+    });
+  }
+
+  function observeRevealNow(root) {
+    var items = (root || document).querySelectorAll(REVEAL_SEL);
+    var fold = window.innerHeight + 200;
+    for (var i = 0; i < items.length; i++) {
+      var el = items[i];
+      if (el.classList.contains('in')) continue;
+      /* On, or just under, the first screen: show it now. Nothing
+         above the fold should wait to be scrolled into. */
+      if (!revealObserver || el.getBoundingClientRect().top < fold) {
+        revealNow(el);
+        continue;
+      }
+      revealObserver.observe(el);
+    }
+  }
+
+  function revealEverything() {
+    var all = document.querySelectorAll(REVEAL_SEL);
+    for (var i = 0; i < all.length; i++) all[i].classList.add('in');
+  }
+
+  function wireReveal() {
+    var reduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Nothing is hidden for a visitor who cannot see it come back. No
+       .js-reveal is added at all in these two cases, so the hidden
+       state never applies in the first place. */
+    if (reduced || !('IntersectionObserver' in window)) {
+      revealEverything();
+      return;
+    }
+
+    revealObserver = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (!entries[i].isIntersecting) continue;
+        revealNow(entries[i].target);
+        revealObserver.unobserve(entries[i].target);
+      }
+    }, { threshold: 0, rootMargin: '0px 0px 240px 0px' });
+
+    /* Only now, with a working observer in hand, does anything get
+       hidden. The order matters: if the line above had thrown, the
+       class would already be on <html> and the page would be a
+       catalogue of invisible products with nothing left to reveal it. */
+    document.documentElement.classList.add('js-reveal');
+
+    try {
+      observeReveal(document);
+    } catch (err) {
+      document.documentElement.classList.remove('js-reveal');
+      return;
+    }
+
+    if ('MutationObserver' in window) {
+      new MutationObserver(function (muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            if (added[j].nodeType === 1) observeReveal(added[j].parentNode || document);
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+
+    /* Last resort. Whatever went wrong -- an observer that never
+       fired, a container that was display:none when it was measured,
+       a re-render this missed -- nothing stays invisible. */
+    setTimeout(revealEverything, 2500);
+  }
+
+  /* ---- the size row on a grid card ------------------------------
+
+     The chips are rendered into .product-frame, over the bottom edge
+     of the photograph, and are hidden there until the control on the
+     image is clicked. Delegated at the document so it covers the main
+     grid, the recently-viewed rail and every re-render the shop and
+     collection toolbars cause, on every page that renders a card.
+
+     Hidden with visibility, not opacity alone: an opacity-0 button is
+     still in the tab order, so a keyboard visitor would have tabbed
+     through four invisible size buttons per tile down the whole grid.
+
+     One row open at a time. Two open rows on neighbouring tiles read
+     as one wide tray spanning both, and the second tap is almost
+     always a correction of the first. */
+  function closeSizeRow(card) {
+    if (!card) return;
+    card.classList.remove('is-picking');
+    var t = card.querySelector('[data-sizes]');
+    if (t) t.setAttribute('aria-expanded', 'false');
+  }
+
+  function wireCardSizeReveal() {
+    /* Capture, not bubble. Each page binds its own add-to-cart handler
+       on the grid element, and a grid listener runs before a document
+       one: by the time this saw the click it had already replaced the
+       row's innerHTML with "added S. View cart", which detached the
+       button that was clicked. A detached node has no ancestors, so
+       the "is this click inside the open row?" test below failed and
+       the row closed over its own confirmation. Capture runs this
+       first, while the clicked chip is still in the card. */
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest) return;
+      var trigger = e.target.closest('[data-sizes]');
+      if (trigger) {
+        var card = trigger.closest('.product');
+        /* No card around it means no row to reveal, so the href does
+           its job and the shopper lands on the product page. */
+        if (!card) return;
+        e.preventDefault();
+        var opening = !card.classList.contains('is-picking');
+        var others = document.querySelectorAll('.product.is-picking');
+        for (var i = 0; i < others.length; i++) {
+          if (others[i] !== card) closeSizeRow(others[i]);
+        }
+        card.classList.toggle('is-picking', opening);
+        trigger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        if (opening) {
+          var first = card.querySelector('.quick-add .qa-size:not([disabled])');
+          if (first) first.focus();
+        }
+        return;
+      }
+      /* A click anywhere else puts the row away -- but not a click
+         inside it, which is the shopper adding to the cart, and not
+         one on the chips' own "added." confirmation. */
+      if (e.target.closest('.product.is-picking .quick-add')) return;
+      var open = document.querySelectorAll('.product.is-picking');
+      for (var j = 0; j < open.length; j++) closeSizeRow(open[j]);
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var card = document.querySelector('.product.is-picking');
+      if (!card) return;
+      var trigger = card.querySelector('[data-sizes]');
+      closeSizeRow(card);
+      /* Focus is inside the row that just closed, so it has to come
+         back to the control that opened it or it falls to the body. */
+      if (trigger) trigger.focus();
+    });
+  }
+
   /* Publish the fixed header's real height as --header-h, which
      .page-top-space uses to clear it.
 
@@ -2147,6 +2375,10 @@
   wireEmailSignup(document);
   wireNav();
   wireCartLinks();
+  // Delegated at the document, so one call covers every grid on the
+  // page and every grid a page renders later.
+  wireCardSizeReveal();
+  wireReveal();
   // Renders "(0)" immediately so the header never shows a bare "Cart"
   // while the real count is still in flight.
   renderCartCount(0);

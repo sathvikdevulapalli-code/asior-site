@@ -120,9 +120,18 @@ async function fetchProducts() {
         # second photograph's URL as data-alt-src for the hover swap,
         # and it has to be the same sized rendition the client-side
         # card() uses, or the two cards disagree.
-        images(first: 4) { edges { node {
+        # width/height are what leadImage() measures the 2:3 tile crop
+        # against -- without them every alternate photograph measures as
+        # unknown and the better-fitting one can never be chosen. The
+        # w400/w1200 transforms are the srcset candidates, which the
+        # tile needs whether or not it is the featuredImage.
+        images(first: 8) { edges { node {
           url
-          w800: url(transform:{maxWidth:800, preferredContentType:WEBP})
+          width
+          height
+          w400:  url(transform:{maxWidth:400,  preferredContentType:WEBP})
+          w800:  url(transform:{maxWidth:800,  preferredContentType:WEBP})
+          w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
         } } }
         # options and selectedOptions drive the prerendered size row;
         # the variant id is what its buttons add to the cart.
@@ -516,18 +525,80 @@ function isGeneratedImage(img) {
    because a product with no image at all converts worse than one with
    a flawed image, and the point is to stop a render being the FIRST
    thing shown rather than to hide the product. */
+/* How much of an image the 2:3 tile has to cut away. The tile is
+   object-fit: cover, so whichever dimension is proportionally longer
+   than the frame is the one that gets trimmed. */
+const TILE_RATIO = 2 / 3;
+function tileCrop(im) {
+  if (!im || !im.width || !im.height) return null;
+  const r = im.width / im.height;
+  return r < TILE_RATIO
+    ? 1 - (im.width / TILE_RATIO) / im.height   // taller than the frame: height is cut
+    : 1 - (im.height * TILE_RATIO) / im.width;  // wider: width is cut
+}
+
+/* The tile photograph.
+
+   The founder's order in Shopify decides which photograph represents a
+   product, and this does not second-guess it -- with two exceptions,
+   both of which are about what the shopper actually sees:
+
+     1. A generated render is never the tile. (Kova's featuredImage is
+        a Firefly file; see isGeneratedImage.)
+     2. If the chosen photograph would lose more than a tenth of itself
+        to the frame, and another real photograph of the same product
+        fits measurably better, the better-fitting one is used.
+
+   The second rule is the only consistency available before a product
+   shoot. Measured against the live catalogue on 2026-10-23, the lead
+   image loses 0% to 16.7% of itself depending on the product, because
+   the catalogue is shot at anything from 0.56 to 0.80. Four products
+   have a second photograph that fits the frame far better than the one
+   currently shown.
+
+   The threshold is deliberately high. Reshuffling which photograph
+   represents a garment is a merchandising decision, so this only steps
+   in where the crop is bad enough to be visible, and the build logs
+   every swap by name so they can be checked. */
+const TILE_CROP_LIMIT = 0.10;
+/* leadImage runs once per generated page per grid, so a single swap was
+   printing a dozen identical lines and burying everything else. */
+const _loggedOnce = new Set();
+function logOnce(line) {
+  if (_loggedOnce.has(line)) return;
+  _loggedOnce.add(line);
+  console.log(line);
+}
 function leadImage(p) {
   const all = ((p.images && p.images.edges) || []).map(e => e.node);
+  const real = all.filter(im => im && im.url && !isGeneratedImage(im));
   const featured = p.featuredImage;
-  if (featured && !isGeneratedImage(featured)) return featured;
-  const real = all.find(im => im && im.url && !isGeneratedImage(im));
-  if (real) {
-    if (featured) {
-      console.log(`  ${p.handle}: featuredImage is a generated render, promoting a real photograph`);
-    }
-    return real;
+
+  let chosen = featured && !isGeneratedImage(featured) ? featured : real[0];
+  if (!chosen) return featured || all[0] || null;
+  if (chosen !== featured && featured) {
+    logOnce(`  ${p.handle}: featuredImage is a generated render, promoting a real photograph`);
   }
-  return featured || all[0] || null;
+
+  const crop = tileCrop(chosen);
+  if (crop !== null && crop > TILE_CROP_LIMIT) {
+    let best = chosen, bestCrop = crop;
+    for (const im of real) {
+      const c = tileCrop(im);
+      if (c !== null && c < bestCrop) { best = im; bestCrop = c; }
+    }
+    /* By URL, not by object. featuredImage and the same photograph
+       inside images.edges are two different objects carrying one URL,
+       so identity reported a swap where nothing had changed -- the log
+       read "using OLI01282.jpg instead of OLI01282.jpg". */
+    if (best.url !== chosen.url && bestCrop < crop - 0.02) {
+      const name = u => String(u).split('/').pop().split('?')[0];
+      logOnce(`  ${p.handle}: tile would cut ${(crop * 100).toFixed(0)}% off `
+        + `${name(chosen.url)}; using ${name(best.url)} instead (${(bestCrop * 100).toFixed(0)}%)`);
+      return best;
+    }
+  }
+  return chosen;
 }
 
 /* ---- brand-level structured data ------------------------------------
@@ -679,7 +750,7 @@ function renderProductPage(template, p) {
      sold, which is true, and claims nothing about who sews them. Only
      a product whose Shopify description is empty ever sees it. */
   const desc = plainDescription(p.descriptionHtml,
-    `${name} from ASIOR. Streetwear from Texas.`);
+    `${name} from ASIOR.`);
   const lead = leadImage(p);
   const img = lead ? lead.url : `${BASE}/assets/og-default.jpg`;
   const alt = lead && lead.altText ? lead.altText : name;
@@ -920,10 +991,9 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   What is deliberately NOT here is the reference's own first message,
-   "FREE U.S SHIPPING ON ORDERS OVER $100". Asior has no free-shipping
-   threshold in Shopify, the spec says not to carry theirs across, and
-   check-slop.js fails the build on "free shipping" anyway. */
+   Free shipping over $99 is a real Shopify rate (see CLAUDE.md,
+   Discounts), so it leads. The reference's own "$100" line is not
+   carried across. */
 const ANNOUNCEMENTS = [
   'Free shipping on US orders over $99',
   '10% off your first order. Code ASIORTEN',
@@ -1382,18 +1452,21 @@ const CARD_SIZES = {
    handlers bind to either and the live render swaps one for the other
    without the row moving.
 
-   NOT CALLED. The size row is off the grid card for good: it went
-   from always-on, to a hover overlay, and back, and none of the three
-   read the way a clothing grid should. The grid is photographs and
-   names now, and a size is chosen where there is room to show it
-   properly -- the quick view, or the product page -- both of which
-   are inventory-aware and can say "sold out" on the size itself.
+   The row is not in the card at rest. It lives inside .product-frame,
+   pinned to the bottom edge of the photograph, hidden until the
+   control on the image is clicked. Four tries got here: always on
+   under the caption (a wall of grey blocks under every tile), a hover
+   overlay (unreachable on a phone, and invisible until you happened
+   to point at it), always on again, and off the card entirely. On
+   click is the one that holds -- the grid stays photographs and names,
+   and the sizes are still on the tile, one tap away, where a shopper
+   who already knows their size never has to open the product page.
 
-   Kept rather than deleted because the markup contract it shares with
-   productCard() in assets/site.js is the hard part, and anything that
-   ever wants a size row again should use this instead of re-deriving
-   it. */
-function quickAddRow(p, name) {   // eslint-disable-line no-unused-vars
+   Only emitted for products that have a Size option. Everything else
+   -- the pendant, the lanyard, anything on a single Title variant --
+   keeps the quick view dialog on its control instead, which is where
+   a one-size add and the sold-out restock signup live. */
+function quickAddRow(p, name) {
   const opts = (p.options || []).filter(o => o.name !== 'Title');
   const sizeOpt = opts.filter(o => o.name === 'Size')[0];
   if (!sizeOpt) return '';
@@ -1465,9 +1538,13 @@ function shopCard(p, eager, sizes) {
       + '>';
   }
 
-  // .in is applied up front: .product starts at opacity 0 and is
-  // revealed by an IntersectionObserver, so without it these cards
-  // would be invisible to exactly the no-JS visitors they exist for.
+  // No .in here any more. It was the no-JS safety net -- a card began
+  // at opacity 0 and needed .in to be seen, so the build applied it up
+  // front or a visitor without JavaScript saw an empty grid. The
+  // reveal is inverted now: assets/site.css hides nothing until
+  // assets/site.js puts .js-reveal on <html>, so no-JS is safe without
+  // this, and baking .in in would mean every built card arrived
+  // already revealed and the animation never played.
   /* Hover frame, matching card()'s data-alt-src in shop.html. The two
      card implementations -- this server one and the client one -- have
      to stay in step; a visitor sees this markup until the live fetch
@@ -1482,18 +1559,28 @@ function shopCard(p, eager, sizes) {
   const altImg = all.find(im => im && im.url && im.url !== firstUrl && !isGeneratedImage(im));
   const altAttr = altImg ? ` data-alt-src="${esc(altImg.w800 || altImg.url)}"` : '';
 
-  /* The plus is a working link before JavaScript loads. Shop/home
-     intercept it for their quick-view dialog; collection pages fall
-     through to the full product page, where the complete gallery and
-     size selector work without JavaScript. */
+  /* Two jobs for one control, decided by whether the product has
+     sizes at all: reveal the size row on the tile, or open the quick
+     view dialog. Either way it is a working link to the product page
+     before JavaScript loads, so the no-JS path is the full gallery and
+     size selector rather than a dead button. */
+  /* A product with nothing left in any size gets the dialog instead.
+     Its row would be four dead chips and no way forward; the quick
+     view carries the restock signup, which is the only thing a
+     shopper can still do with it. */
+  const sizeRow = soldOut ? '' : quickAddRow(p, name);
+  const trigger = sizeRow
+    ? `<a class="product-peek btn btn--sm" data-sizes="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-expanded="false" aria-label="Choose a size for ${esc(name)}">Choose a size</a>`
+    : `<a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Quick view of ${esc(name)}">Quick view</a>`;
+
   return `
-      <div class="product in" data-handle="${esc(p.handle)}">
+      <div class="product" data-handle="${esc(p.handle)}">
         <div class="product-frame">
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
-${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          <a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Choose a size and preview ${esc(name)}">Quick view</a>
-        </div>
+${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          ${trigger}
+${sizeRow ? `          ${sizeRow}\n` : ''}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
@@ -1611,15 +1698,21 @@ function syncHero() {
      edge to edge and the browser should be allowed every pixel the
      source actually has. It is never upscaled past that: there is no
      2400w entry, since inventing one would only blur it. */
-  const file = 'oli-group';
-  const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
-  const block =
-    '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w" sizes="100vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w" sizes="100vw">\n`
-    + `          <img src="images/${file}-full.jpg" alt="${esc(alt)}" width="1717" height="2576"`
-    + ' fetchpriority="high" decoding="async">\n'
+  /* All four models, head to toe. The group shot is 2:3 and the four
+     figures span about half its height, so no wide banner crop can hold
+     them: at 1440 it would need ~1180px of height. Desktop is therefore
+     two square frames side by side, the group shot (cropped to keep all
+     four whole) and the polo pair. A phone gets the group shot alone. */
+  const pic = (file, alt, cls, extra) =>
+    `        <picture class="hero-figure ${cls}">\n`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w${extra ? `, images/${file}-full.webp ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w${extra ? `, images/${file}-full.jpg ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400"`
+    + (cls === 'hero-figure--main' ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">\n'
     + '        </picture>\n';
+  const block =
+    pic('oli-group', 'Four models in Asior tees, tanks and sweat shorts on concrete steps', 'hero-figure--main', 1717)
+    + pic('oli04281', 'Two models in black Asior polos and white sweat shorts', 'hero-figure--side', 0);
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
   if (next === null) throw new Error('index.html: HERO markers missing');

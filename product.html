@@ -75,8 +75,32 @@
     align-items: start;
   }
 
-  /* [measured] Images stacked, ~20px apart, no thumbnails. */
-  .pd-gallery { display: grid; gap: 20px; }
+  /* The lead frame full width, the rest in pairs.
+
+     Stacked one per row, the gallery measured 3313px at 1440 -- three
+     full-column portraits, around three and a half screens of
+     scrolling to get past the photographs of a single garment, and the
+     related products and the restock form sat below all of it. Paired
+     from the second frame down, the same photographs take a little
+     over half that, and a pair of 2:3 frames side by side reads as a
+     spread rather than a queue.
+
+     The lead shot keeps the full column: it is the one view a shopper
+     actually studies, and the detail frames are what they flick
+     through. A frame left on its own at the end spans the column too,
+     rather than sitting in half a row with a hole beside it.
+
+     Phone widths replace this with the swipe row further down, which
+     is display:flex and therefore ignores both rules. */
+  .pd-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 20px;
+  }
+
+  .pd-shot:first-child,
+  .pd-shot:last-child:nth-child(even) { grid-column: 1 / -1; }
 
   /* The photograph fills its column.
 
@@ -402,11 +426,16 @@
     overflow-x: auto;
   }
 
+  /* 44px, not 34px. This bar is the buy control once the panel has
+     scrolled away, and on a phone it is the only one on screen. The
+     44px rule in assets/site.css could not reach it: this page's own
+     <style> is later in the document and wins at equal specificity,
+     so the size has to be corrected here. */
   .pd-sticky-sizes .pd-size {
-    min-width: 34px;
-    height: 34px;
+    min-width: 44px;
+    height: 44px;
     padding: 0 10px;
-    font-size: 12px;
+    font-size: 13px;
     flex-shrink: 0;
   }
 
@@ -774,6 +803,18 @@
       aspect-ratio: 2 / 3;
     }
 
+    /* Every frame in the row is the same shape, the lead one included.
+
+       The 1000px block above gives the lead frame 4/3.6 so that on a
+       stacked gallery the buy box is not pushed a full portrait down
+       the page. In this row that backfires: the frames sit side by
+       side, the row is as tall as the TALLEST of them, and a lead
+       frame two thirds the height of its neighbours left ~360px of
+       dead black under the main product photograph -- and pushed Add
+       to Bag down by exactly that much, which is the opposite of what
+       the shorter frame was for. */
+    .pd-shot:first-child { aspect-ratio: 2 / 3; }
+
     .pd-panel { position: static; }
     .pd-panel-in { max-height: none; overflow: visible; }
   }
@@ -1069,9 +1110,8 @@
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
-      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
+      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header">
@@ -1082,8 +1122,8 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/collections/accessories.html">Accessories</a>
       <a href="/manufacturing.html">Manufacturing</a>
+      <a href="/waitlist.html">Waitlist</a>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
@@ -1856,7 +1896,7 @@
       /* "Ships in 1-2 business days" is handling time, never delivery
          -- it reads off the same verified shipping config the cart and
          the shipping accordion use, so the three can never disagree. */
-      ['Ships', `In ${A.shippingConfig().FULFILMENT || '1-2 business days'} from Texas`],
+      ['Ships', `In ${A.shippingConfig().FULFILMENT || '1-2 business days'}`],
       /* Empty string while no return policy exists in Shopify. See
          returnsLine() and the note on RETURNS_POLICY_PUBLISHED. */
       ['Returns', A.returnsLine()],

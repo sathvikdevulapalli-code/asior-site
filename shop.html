@@ -614,9 +614,8 @@
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
-      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
+      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header">
@@ -627,8 +626,8 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/collections/accessories.html">Accessories</a>
       <a href="/manufacturing.html">Manufacturing</a>
+      <a href="/waitlist.html">Waitlist</a>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
@@ -1130,33 +1129,14 @@
     return A.wireHoverSwap(container);
   }
 
-  function revealOnScroll(container) {
-    const items = Array.from(container.querySelectorAll('.product'));
-    if (!items.length) return;
+  /* revealOnScroll lived here, and in index.html, and the collection
+     pages had no copy of it at all. assets/site.js owns the reveal for
+     the whole site now -- see wireReveal() there.
 
-    const reveal = (el, i) => setTimeout(() => el.classList.add('in'), (i % 4) * 60);
-
-    if (!('IntersectionObserver' in window)) {
-      items.forEach(reveal);
-      return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        if (!entry.isIntersecting) return;
-        reveal(entry.target, i);
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: 0, rootMargin: '300px 0px' });
-
-    const fold = window.innerHeight + 300;
-    items.forEach((p, i) => {
-      // Already on, or just below, the first screen: show it now.
-      if (p.getBoundingClientRect().top < fold) { reveal(p, i); return; }
-      observer.observe(p);
-    });
-  }
-
+     Both page copies also measured the grid in the same tick they
+     rewrote it, before layout had run, so every card reported a top
+     near zero, counted as above the fold and was revealed at once:
+     the animation they existed for never actually played. */
   /* The lineup row. The reference homepage carries no sort or filter
      controls -- browsing by category is what the collection pages and
      their FILTER drawer are for -- so this renders the catalogue in
@@ -1195,12 +1175,12 @@
     // pre-rendered page because the cards are already visible, but the
     // hover swap has to be bound either way.
     wireHoverSwap(grid);
-    if (WAS_PRERENDERED) {
-      // Swapping pre-rendered cards for live ones should be invisible.
-      grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
-    } else {
-      revealOnScroll(grid);
-    }
+    /* The new cards are unrevealed, like any other card: hand them to
+       the shared observer rather than switching them all on. Blanket
+       .in here was what stopped the grid animating at all -- the live
+       render lands within a few hundred ms of load, so every card was
+       revealed before it could ever be scrolled into. */
+    A.observeReveal(grid);
   }
 
   // Personalisation from real browsing history only — the pieces this
@@ -1229,7 +1209,6 @@
       <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3, A.CARD_SIZES.grid)).join('')}</div>`;
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
-    revealOnScroll(recentGrid);
     wireHoverSwap(recentGrid);
     section.classList.add('show');
     return new Set(seen.map(p => p.handle));

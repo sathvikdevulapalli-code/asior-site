@@ -815,9 +815,19 @@ html.cart-drawer-locked { overflow: hidden; }
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-items: start;
-  /* [measured] homepage: column gap 6px, row gap 12px. The category
+  /* [measured] homepage: column gap 6px. The row gap was 12px, which
+     was measured against a reference card whose caption sits tight
+     under its photograph; ours had 16px of margin inside the caption
+     as well, so the real gap between a price and the next picture was
+     under half the gap between a picture and its own price. The
+     caption is tight now and the separation lives here. The category
      pages widen the column gap to 24px -- see .coll-grid below. */
-  gap: 12px 6px;
+  /* Column gap 12px, matching the reference. The ROW gap stays wide:
+     the reference can run 12px both ways because its caption sits
+     tight under its own photograph and ours has to clear a caption
+     plus a price, and at 12px a price was nearer the next product's
+     picture than its own. 26px is the smallest that still groups. */
+  gap: 26px 12px;
 }
 
 .coll-head {
@@ -1031,13 +1041,71 @@ html.cart-drawer-locked { overflow: hidden; }
 /* [spec section 11] Two across on a phone, ~10px gap, 15px side
    padding; card titles drop to 12px. */
 @media (max-width: 900px) {
-  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; }
-  .product-title { font-size: 12px; line-height: 28px; }
-  .product-price { font-size: 12px; }
+  /* Row gap carries the separation between one card and the next,
+     now that the caption sits tight under its own photograph. */
+  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 8px; }
+  /* The .product-title and .product-price sizes that used to be here
+     never applied: both are redeclared later in this file, outside any
+     media query, and a later rule of equal specificity wins at every
+     width. They are set once, there. */
+}
+
+/* ---- reveal on scroll ---------------------------------------------
+
+   A photograph arrives rather than being already there: 18px up and a
+   fade, as the element comes within a screen of the viewport. The only
+   motion on the site besides the image cross-fade, and it answers the
+   reader's own scrolling rather than running on its own.
+
+   Everything here hangs off .js-reveal, which assets/site.js puts on
+   <html> at startup. Nothing is hidden until the script that reveals
+   it is running, so a visitor with no JavaScript, or one whose script
+   fails to parse, gets the page fully visible -- which is the failure
+   mode that matters, because the alternative is a catalogue of
+   invisible products.
+
+   .product carried this contract before and nothing implemented it:
+   two pages ran an IntersectionObserver adding .in to cards, and no
+   rule anywhere made a card without .in invisible. The observer was
+   doing nothing at all. .in is now what it always claimed to be, and
+   the shared observer in assets/site.js drives every grid rather than
+   the two pages that had their own. */
+.js-reveal .product,
+.js-reveal [data-reveal] {
+  --rise: 18px;
+  opacity: 0;
+  transform: translateY(var(--rise));
+  transition: opacity 620ms var(--ease-out), transform 620ms var(--ease-out);
+  will-change: opacity, transform;
+}
+
+/* The bands are whole screens of photograph; they rise half as far,
+   because 18px on a 640px band reads as the page settling rather than
+   as the band arriving.
+
+   The distance is a variable, not a transform. Declaring the shorter
+   rise as its own transform put it AFTER the .in rule at equal
+   specificity, so it won: the band faded in and then stayed parked
+   10px down the page for good. */
+.js-reveal .campaign-frame[data-reveal],
+.js-reveal .story[data-reveal],
+.js-reveal .tile[data-reveal] { --rise: 10px; }
+
+.js-reveal .product.in,
+.js-reveal [data-reveal].in {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .product { opacity: 1 !important; transform: none !important; }
+  .js-reveal .product,
+  .js-reveal [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
   .product-img .alt-shot { transition: none; }
 }
 
@@ -1441,20 +1509,21 @@ html.cart-drawer-locked { overflow: hidden; }
   .footer-cols { grid-template-columns: 1fr; gap: 26px; }
 }
 
-/* ---- the grid card has no size row ----
+/* ---- the size row, on click ----
 
-   Tried three ways: always visible under the caption, an overlay on
-   the photograph revealed on hover, and visible again. The first and
-   third turn a rail of clothes into a stock list; the second hides
-   the control from every touch device, which is most of the traffic.
+   The card at rest is a photograph, a name and a price. The sizes are
+   in the markup but out of sight, pinned to the bottom edge of the
+   photograph, and the control on the image brings them up.
 
-   So the card is a photograph, a name and a price. A size is chosen
-   where there is room to do it properly -- the quick view on the
-   image, or the product page -- and both of those are inventory-aware
-   and can mark a sold-out size as sold out rather than just omitting
-   it. The chip styles below still serve the quick view picker. */
+   Four arrangements got here: always visible under the caption, an
+   overlay revealed on hover, always visible again, and off the card
+   altogether. Always-on turns a rail of clothes into a stock list;
+   hover cannot be reached on a phone, which is most of the traffic;
+   off the card means a shopper who knows their size has to open the
+   product page to use it. On click is the one that holds.
 
-/* The quick view trigger follows the same rule. */
+   Absolutely positioned inside the frame, so a card with its row open
+   is exactly as tall as one without and the grid never reflows. */
 .product-frame { position: relative; }
 .product-peek {
   position: absolute;
@@ -1505,8 +1574,23 @@ html.cart-drawer-locked { overflow: hidden; }
   .product:focus-within .product-peek { opacity: 1; transform: none; pointer-events: auto; }
 }
 
+/* On touch the control cannot wait for a pointer, so it is on every
+   tile at once. Four filled circles down a phone grid is a lot of
+   furniture over the photography, so it is quieter here: smaller, and
+   the frame's own tint rather than a solid fill. */
 @media (hover: none), (pointer: coarse) {
-  .product .product-peek { opacity: 1; transform: none; pointer-events: auto; }
+  .product .product-peek {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    width: 34px;
+    height: 34px;
+    background: rgba(14, 14, 13, .55);
+    border-color: rgba(240, 236, 228, .5);
+    color: var(--ink);
+  }
+  .product .product-peek::before { width: 13px; height: 1.5px; }
+  .product .product-peek::after  { width: 1.5px; height: 13px; }
 }
 
 /* The brand column's secondary links sit under the support line. */
@@ -1750,15 +1834,20 @@ body {
    =================================================================== */
 .product-title {
   font-family: var(--font);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink);
   white-space: normal;
   overflow: visible;
-  margin-top: 12px;
+  /* The caption belongs to the photograph above it, not to the row
+     below. 12px over the name and 4px over the price put the two
+     lines in the middle of the gap, so the price read as loose from
+     its own product and close to the next one. Tight to its picture,
+     and the air goes into the grid's row gap instead. */
+  margin-top: 9px;
 }
 
 /* Lining figures, lighter and quieter than the name above it: the
@@ -1766,12 +1855,12 @@ body {
 .product-price,
 .product .price {
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 
@@ -1779,25 +1868,132 @@ body {
 
    They were 26px tall carrying 10px text with a 5px gap, which at card
    width collapsed into a row of grey blocks rather than reading as
-   buttons. Bigger, further apart, and centred under the caption with
-   everything else. 32px also clears the 24px minimum for a touch
-   target far more comfortably than 26px did. */
-.product .quick-add {
+   buttons. Bigger, further apart. 32px also clears the 24px minimum
+   for a touch target far more comfortably than 26px did.
+
+   The row sits on the photograph rather than under the caption, so it
+   carries its own background: the chips have to be legible over
+   whatever the picture happens to be behind them.
+
+   visibility, not opacity alone -- an opacity-0 button keeps its place
+   in the tab order, and a keyboard visitor would otherwise tab through
+   four invisible buttons per tile all the way down the grid. It is in
+   the transition with a delay so the row is still painted while it
+   fades out, and with none so it appears at once on the way in.
+
+   The selectors are .product-frame-scoped to beat the per-page
+   .quick-add rules in shop.html, index.html and collection.html,
+   which are later in the document than this sheet. */
+.product-frame .quick-add {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 7px;
-  margin-top: 12px;
-  min-height: 32px;
+  margin: 0;
+  padding: 14px 8px 12px;
+  min-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 140ms var(--ease-out), visibility 0s linear 140ms;
+}
+
+/* A solid bar across the bottom of the frame was the first version,
+   and it read as the photograph being cut off: 55px of the garment
+   replaced by a black strip, on the one page where the garment is the
+   whole point. The chips carry their own fill instead and sit over the
+   picture, with the same end-scrim the hero uses underneath them so
+   they stay legible when the bottom of a frame is bright. */
+.product-frame .quick-add::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 190%;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(0, 0, 0, .80) 0,
+    rgba(0, 0, 0, .52) 38%,
+    rgba(0, 0, 0, 0) 100%);
+}
+
+.product.is-picking .product-frame .quick-add {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 140ms var(--ease-out), visibility 0s;
+}
+
+/* The control stays up while its row is open, and the plus turns into
+   a close. One rule, both pointer kinds -- the hover and no-hover
+   blocks above each set their own opacity. */
+.product.is-picking .product-peek,
+.product.is-picking .product-peek:hover {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+/* Both bars turn the same way. Opposite signs rotate a perpendicular
+   pair into a parallel one -- the close control drew a single slash. */
+.product.is-picking .product-peek::before,
+.product.is-picking .product-peek::after { transform: rotate(45deg); }
+
+/* The row's own message states ("Adding...", "added. View cart") swap
+   into the same box, so they need to fill it rather than sit as a
+   stray line of text at one end. */
+.product-frame .quick-add .qa-msg {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
 }
 
 .product .qa-size {
-  min-width: 32px;
-  height: 32px;
+  min-width: 34px;
+  height: 34px;
   padding: 0 9px;
   font-family: var(--font);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.06em;
-  border-color: var(--size-border);
+  /* Solid, because these sit on a photograph now. A 1px outline over
+     an unknown picture is a chip you can see on some frames and not
+     on others. */
+  background: var(--bg);
+  border-color: rgba(240, 236, 228, .55);
+  color: var(--ink);
+}
+
+/* Four chips plus three gaps has to fit the card, and a phone card is
+   half the viewport: at 390px that is 175px of frame, where 34px chips
+   wrapped XL onto a second line. Sized off the card rather than the
+   viewport, so a narrow column at any width gets the tighter chip. */
+@media (max-width: 760px) {
+  .product-frame .quick-add { gap: 5px; padding: 12px 6px 10px; }
+  .product .qa-size {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* A 320px phone leaves a 143px card, which is 4px short of four 30px
+   chips. Tighter again rather than letting XL drop to its own line --
+   28px still clears the 24px minimum for a touch target. */
+@media (max-width: 340px) {
+  .product-frame .quick-add { gap: 4px; padding: 10px 4px 9px; }
+  .product .qa-size { min-width: 28px; height: 28px; padding: 0 4px; letter-spacing: 0; }
 }
 
 .product .qa-size:not(.unavailable):hover {
@@ -1806,6 +2002,79 @@ body {
   color: var(--bg);
 }
 
+
+/* ===================================================================
+   TOUCH TARGETS ON A PHONE
+
+   Measured at 390x844 with a touch pointer, every interactive element
+   on home, shop and a product page. The footer was the worst of it:
+   nine links per page at 17px tall, which is the line box of the text
+   and nothing else. The sticky buy bar's size buttons were 34px, on
+   the one control the whole page exists for.
+
+   44px is the target here, not the 24px WCAG floor the section below
+   works to. 24px is the minimum that passes; 44px is the size a thumb
+   actually hits.
+
+   One deliberate exception: the size chips on a grid card stay at
+   30px. Four of them plus their gaps have to fit a 175px card on a
+   390px phone, and 44px chips need 191px. They clear the 24px floor,
+   and the product page's own picker is full size.
+   =================================================================== */
+@media (max-width: 900px) {
+  /* Each footer link gets its own 44px row. The footer gets taller;
+     that is the cost of the links being hittable. */
+  .flinks a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* The support address is the one way to reach a person. */
+  .fsupport a {
+    display: inline-block;
+    padding: 12px 0;
+  }
+
+  /* The sticky bar is the buy control once the panel scrolls away. */
+  .pd-sticky-sizes .pd-size {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  /* Opens the filter drawer; it was 27px tall. */
+  .coll-filter { min-height: 44px; }
+
+  /* Reveals the size row on a card. 34px on touch, where it is the
+     only way in without opening the product page. */
+  .product .product-peek { width: 44px; height: 44px; }
+  .product .product-peek::before { width: 15px; height: 1.5px; }
+  .product .product-peek::after  { width: 1.5px; height: 15px; }
+
+  /* Name and price under a tile are one link to the product. */
+  .product > .product-link { padding: 4px 0 8px; }
+
+  /* Every text field: search, email, SMS, discount code. 37px before. */
+  .field,
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"] { min-height: 44px; }
+
+  /* The wordmark is the way back to the shop from anywhere. */
+  .site-header .mark {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* 11px is below what a phone should ask anyone to read. The currency
+     selector and the consent line were both at it. */
+  .curr-label,
+  .curr-sel,
+  .consent,
+  .sms-consent { font-size: 12px; }
+}
 
 /* ===================================================================
    TARGET SIZE

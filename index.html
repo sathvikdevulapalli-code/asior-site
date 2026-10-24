@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASIOR | Streetwear from Texas</title>
+<title>ASIOR | Fall 2026</title>
 <meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta name="theme-color" content="#0e0e0d">
 <link rel="canonical" href="https://asiorclothing.com/">
@@ -12,7 +12,7 @@
      real tags in the served HTML or a shared link renders as a bare URL. -->
 <meta property="og:site_name" content="Asior">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ASIOR | Streetwear from Texas">
+<meta property="og:title" content="ASIOR | Fall 2026">
 <meta property="og:description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
 <meta property="og:url" content="https://asiorclothing.com/">
 <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
@@ -269,27 +269,36 @@
   .hero {
     position: relative;
     display: block;
-    height: min(86vh, 905px);
-    min-height: 460px;
+    /* Was min(86vh, 905px): 774px at a 900px viewport, so the banner
+       alone was most of the first screen and the clothes under it
+       started below the fold. Shorter, and the grid is in view while
+       the banner is still on it. */
+    height: 56vw;
+    max-height: 860px;
+    min-height: 420px;
     padding: 0;
     overflow: hidden;
     background: var(--surface);
   }
 
-  .hero-art,
-  .hero-figure {
-    display: block;
+  /* Two square frames on desktop: the four-model group shot and the
+     polo pair. Each object-position keeps every figure whole. */
+  .hero-art {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: minmax(0, 1fr);
     height: 100%;
     width: 100%;
   }
-
+  .hero-figure { display: block; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
   .hero-figure img {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
-    object-position: center 26%;
   }
+  .hero-figure--main img { object-position: center 35%; }
+  .hero-figure--side img { object-position: center 55%; }
 
   /* A flat 20% black is what the reference banner uses, and measured
      on THIS photograph it was not nearly enough: pale concrete and a
@@ -313,10 +322,14 @@
         rgba(0, 0, 0, .62) 20%,
         rgba(0, 0, 0, .26) 31%,
         rgba(0, 0, 0, 0) 42%),
+      /* The bottom stop is the page background rather than black, so
+         the photograph dissolves into the grid under it instead of
+         ending on a hard edge against it. */
       linear-gradient(to top,
-        rgba(0, 0, 0, .72) 0,
-        rgba(0, 0, 0, .40) 14%,
-        rgba(0, 0, 0, 0) 32%),
+        var(--bg) 0,
+        rgba(14, 14, 13, .70) 4%,
+        rgba(14, 14, 13, .30) 13%,
+        rgba(0, 0, 0, 0) 30%),
       rgba(0, 0, 0, 0.12);
   }
 
@@ -349,6 +362,95 @@
   .hero-cta:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
 
   /* ---------- second editorial story ----------
+  /* ---------- campaign band ----------
+
+     This had NO rule outside the phone media query, so on every
+     desktop width the section was unstyled: a 1600x2400 portrait
+     rendered at its natural height -- 2519px measured at 1440, nearly
+     three screens of one photograph to scroll past -- and
+     .campaign-copy, which is written as an overlay with left/right/
+     bottom offsets, fell into normal flow underneath it because
+     nothing had made it absolute.
+
+     The band is a crop now, not the whole portrait: a fixed height,
+     the photograph covering it, and the copy back on top of the
+     picture where it belongs. 56vw of a portrait frame is a wide
+     landscape slice, which is what an editorial band is, and the
+     subject sits in the upper middle of this frame so the crop is
+     taken from there. */
+  .campaign-frame {
+    position: relative;
+    display: block;
+    height: min(72vh, 680px);
+    margin-top: 2px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .campaign-frame picture { display: block; height: 100%; }
+
+  .campaign-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+    display: block;
+  }
+
+  /* Same end-scrim as the hero, for the same reason: the copy sits
+     over the clothes and a flat overlay across the whole frame
+     greys out the garments to buy contrast it only needs at the
+     bottom edge. */
+  .campaign-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to top,
+      rgba(0, 0, 0, .74) 0,
+      rgba(0, 0, 0, .44) 16%,
+      rgba(0, 0, 0, 0) 40%);
+  }
+
+  .campaign-copy {
+    position: absolute;
+    left: clamp(20px, 3.4vw, 48px);
+    right: clamp(20px, 3.4vw, 48px);
+    bottom: clamp(26px, 3.4vw, 44px);
+    z-index: 2;
+    max-width: 44ch;
+    color: #fff;
+  }
+
+  .campaign-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: clamp(30px, 3.4vw, 52px);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+
+  .campaign-note {
+    margin: 10px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, .84);
+  }
+
+  .campaign-copy .btn-outline {
+    margin-top: 22px;
+    border-color: rgba(255, 255, 255, .62);
+    color: #fff;
+  }
+
+  .campaign-copy .btn-outline:hover {
+    border-color: #fff;
+    background: #fff;
+    color: var(--ink);
+  }
+
      Mirror of the campaign band: copy left, picture right, and about
      two thirds the height, so the two editorial moments on the page
      are composed differently and read as a sequence rather than a
@@ -508,31 +610,29 @@
   @media (max-width: 900px) {
     /* Still one full-bleed photograph on a phone. 3:4 gives the four
        figures room without the banner eating the whole screen. */
-    .hero { height: auto; aspect-ratio: 3 / 4; min-height: 0; }
-    .hero-figure img { object-position: center 40%; }
+    .hero { height: auto; max-height: none; aspect-ratio: 4 / 5; min-height: 0; }
+    .hero-art { grid-template-columns: 1fr; }
+    .hero-figure--side { display: none; }
+    .hero-figure--main img { object-position: center 72%; }
     .hero-cta { bottom: 28px; }
 
-    .home-row { padding: 16px 15px 0; }
+    /* Edge to edge, like the banner above it and like every other
+       photograph on a phone. The 15px inset left the grid floating in
+       a margin the banner did not have, so the two did not read as one
+       page. The row gap carries the separation. */
+    .home-row { padding: 0; }
     .home-row + .home-row { padding-top: 34px; }
     .home-row:last-of-type { padding-bottom: 34px; }
-    .row-head { margin-bottom: 20px; }
 
-    .campaign-frame {
-      grid-template-columns: 1fr;
-      gap: 24px;
-      margin-top: 34px;
-      padding: 24px 20px 32px;
-    }
-    .campaign-frame img { max-height: none; max-width: 100%; width: auto; height: min(72vh, 760px); margin: auto; }
-    /* Taller and narrower on a phone: a 78vh band cropped to 390px
-       wide would cut both figures out of a frame whose subject reads
-       across it. 4:5 keeps the composition and still leaves room for
-       the line underneath. */
+    /* Taller and narrower on a phone: a wide landscape crop at 390px
+       would cut both figures out of a frame whose subject reads across
+       it. 4:5 keeps the composition and still leaves room for the line
+       underneath. The height is replaced, not removed -- aspect-ratio
+       alone loses to an explicit height. */
     .campaign-frame { height: auto; aspect-ratio: 4 / 5; }
     .campaign-copy { left: 16px; right: 16px; bottom: 28px; max-width: none; }
     .campaign-title { font-size: clamp(32px, 10vw, 48px); }
-  .campaign-note { margin-top: 12px; }
-    .btn-outline { margin-top: 20px; }
+    .campaign-note { margin-top: 12px; }
 
     /* Picture first on a phone -- the photograph is the hook, and a
        block of type above it would push it off the screen. */
@@ -724,9 +824,8 @@
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
-      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
+      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header">
@@ -737,8 +836,8 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/collections/accessories.html">Accessories</a>
       <a href="/manufacturing.html">Manufacturing</a>
+      <a href="/waitlist.html">Waitlist</a>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
@@ -760,14 +859,21 @@
   <section class="hero" aria-label="Asior Fall 2026 campaign">
     <div class="hero-art">
       <!-- HERO:START -->
-      <!-- HERO:END -->
+        <picture class="hero-figure hero-figure--main">
+          <source type="image/webp" srcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w" sizes="(max-width: 900px) 100vw, 50vw">
+          <source srcset="images/oli-group-800.jpg 800w, images/oli-group.jpg 1600w, images/oli-group-full.jpg 1717w" sizes="(max-width: 900px) 100vw, 50vw">
+          <img src="images/oli-group.jpg" alt="Four models in Asior tees, tanks and sweat shorts on concrete steps" width="1600" height="2400" fetchpriority="high" decoding="async">
+        </picture>
+        <picture class="hero-figure hero-figure--side">
+          <source type="image/webp" srcset="images/oli04281-800.webp 800w, images/oli04281.webp 1600w" sizes="(max-width: 900px) 100vw, 50vw">
+          <source srcset="images/oli04281-800.jpg 800w, images/oli04281.jpg 1600w" sizes="(max-width: 900px) 100vw, 50vw">
+          <img src="images/oli04281.jpg" alt="Two models in black Asior polos and white sweat shorts" width="1600" height="2400" loading="lazy" decoding="async">
+        </picture>
+  <!-- HERO:END -->
     </div>
     <a class="hero-cta" href="/shop.html">Shop Fall Collection</a>
   </section>
 
-  <!-- Personalization from real browsing history. A first-time visitor
-       never sees this section at all (see renderRecentlyViewed). -->
-  <section class="shop-recent" id="shopRecent"></section>
 
   <!-- NEW ARRIVALS was here and is deliberately gone.
 
@@ -780,20 +886,19 @@
        the founder's merchandising order, which leads with apparel. -->
 
 
-  <!-- [measured] The reference's second product row is BEST SELLERS.
-       Ours is THE LINEUP, which the spec is explicit about: Asior has
-       no per-product sales data on the site, and a row ordered by
-       invented sales figures is the same class of mistake as an
-       invented stock count. Retitle it the moment real numbers exist. -->
-  <!-- The reference's second product row. Eight pieces here, not the
-       whole catalogue: the homepage is editorial and /shop.html is the
-       catalogue. Titled THE LINEUP rather than BEST SELLERS because
-       nobody has confirmed which pieces actually sell best. -->
-  <section class="home-row" id="lineup">
-    <div class="row-head">
-      <h2 class="row-title">The lineup</h2>
-      <a class="row-link" href="/shop.html">View all</a>
-    </div>
+  <!-- Eight pieces, not the whole catalogue: the homepage is editorial
+       and /shop.html is the catalogue.
+
+       No heading and no "View all" over it. It was titled THE LINEUP,
+       which names nothing a shopper cares about -- the reference row
+       it came from is BEST SELLERS, which Asior cannot honestly claim
+       without per-product sales data. A label that says nothing plus a
+       link that repeats what the nav already offers is 90px of chrome
+       between the banner and the clothes. The photographs run straight
+       out of the banner now.
+
+       The id stays: the campaign band's "Shop now" points at it. -->
+  <section class="home-row" id="lineup" aria-label="Fall collection">
     <div class="shop-grid" id="lineupGrid">
       <!-- LINEUPGRID:START -->
 
@@ -905,7 +1010,7 @@
   </section>
 
   <!-- Editorial campaign panel keeps the portrait photograph intact. -->
-  <section class="campaign-frame" aria-label="Fall collection, worn">
+  <section class="campaign-frame" data-reveal aria-label="Fall collection, worn">
     <picture>
       <source type="image/webp" media="(max-width: 700px)" srcset="images/oli04001-800.webp">
       <source type="image/webp" srcset="images/oli04001.webp">
@@ -922,14 +1027,47 @@
   <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
        padding. The reference's fourth is BEST SELLERS; ours is
        MANUFACTURING, per the spec. -->
-  <!-- Second editorial story, composed the other way round from the
+
+  <section class="tiles" aria-label="Categories">
+    <a class="tile" data-reveal href="/collections/tops.html">
+      <picture><source type="image/webp" srcset="images/oli04013-800.webp"><img src="images/oli04013-800.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Tops</span>
+    </a>
+    <a class="tile" data-reveal href="/collections/bottoms.html">
+      <picture><source type="image/webp" srcset="images/oli03931-800.webp"><img src="images/oli03931-800.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Bottoms</span>
+    </a>
+    <a class="tile" data-reveal href="/collections/accessories.html">
+      <picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Accessories</span>
+    </a>
+    <a class="tile" data-reveal href="/manufacturing.html">
+      <picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
+      <span class="tile-label">Manufacturing</span>
+    </a>
+  </section>
+
+  <!-- The lookbook teaser, and the last thing before the footer.
+
+       It used to sit between the campaign band and the category
+       tiles, which put two full-bleed editorial photographs back to
+       back with the clothes stranded above them. Order now runs
+       banner, products, campaign band, categories, lookbook: one
+       editorial moment, then the ways further in.
+
+       Its headline said "Fifteen looks" and the lookbook has 22
+       frames. A number on the page has to be a number that is true,
+       so it does not state one -- the count changes whenever a frame
+       is added, and nothing re-checks this line when it does.
+
+       Second editorial story, composed the other way round from the
        campaign band above it so the page does not repeat itself: copy
        on the left at rest, photograph on the right, and smaller. This
        is the way into the lookbook. -->
-  <section class="story" aria-label="The lookbook">
+  <section class="story" data-reveal aria-label="The lookbook">
     <div class="story-copy">
       <p class="story-eyebrow">The lookbook</p>
-      <h2 class="story-head">Fifteen looks,<br>shot across Austin.</h2>
+      <h2 class="story-head">The collection,<br>on real people.</h2>
       <p class="story-note">The whole collection on real people, in the places it was made for.</p>
       <a class="story-link" href="/community.html">See the lookbook</a>
     </div>
@@ -943,24 +1081,9 @@
     </figure>
   </section>
 
-  <section class="tiles" aria-label="Categories">
-    <a class="tile" href="/collections/tops.html">
-      <picture><source type="image/webp" srcset="images/oli04013-800.webp"><img src="images/oli04013-800.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Tops</span>
-    </a>
-    <a class="tile" href="/collections/bottoms.html">
-      <picture><source type="image/webp" srcset="images/oli03931-800.webp"><img src="images/oli03931-800.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Bottoms</span>
-    </a>
-    <a class="tile" href="/collections/accessories.html">
-      <picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Accessories</span>
-    </a>
-    <a class="tile" href="/manufacturing.html">
-      <picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="" width="800" height="1200" loading="lazy" decoding="async"></picture>
-      <span class="tile-label">Manufacturing</span>
-    </a>
-  </section>
+  <!-- Personalization from real browsing history. A first-time visitor
+       never sees this section at all (see renderRecentlyViewed). -->
+  <section class="shop-recent" id="shopRecent"></section>
 
   </main>
 
@@ -1238,33 +1361,14 @@
     return A.wireHoverSwap(container);
   }
 
-  function revealOnScroll(container) {
-    const items = Array.from(container.querySelectorAll('.product'));
-    if (!items.length) return;
+  /* revealOnScroll lived here, and in shop.html, and the collection
+     pages had no copy of it at all. assets/site.js owns the reveal for
+     the whole site now -- see wireReveal() there.
 
-    const reveal = (el, i) => setTimeout(() => el.classList.add('in'), (i % 4) * 60);
-
-    if (!('IntersectionObserver' in window)) {
-      items.forEach(reveal);
-      return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        if (!entry.isIntersecting) return;
-        reveal(entry.target, i);
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: 0, rootMargin: '300px 0px' });
-
-    const fold = window.innerHeight + 300;
-    items.forEach((p, i) => {
-      // Already on, or just below, the first screen: show it now.
-      if (p.getBoundingClientRect().top < fold) { reveal(p, i); return; }
-      observer.observe(p);
-    });
-  }
-
+     Both page copies also measured the grid in the same tick they
+     rewrote it, before layout had run, so every card reported a top
+     near zero, counted as above the fold and was revealed at once:
+     the animation they existed for never actually played. */
   /* The lineup row. The reference homepage carries no sort or filter
      controls -- browsing by category is what the collection pages and
      their FILTER drawer are for -- so this renders the catalogue in
@@ -1286,7 +1390,7 @@
     grid.innerHTML = view.map(p => card(p, false, A.CARD_SIZES.row)).join('');
     bindQuickAdd(grid);
     wireHoverSwap(grid);
-    grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+    A.observeReveal(grid);
   }
 
   function renderLineup(catalog) {
@@ -1299,7 +1403,7 @@
       card(p, false, i === 0 ? A.CARD_SIZES.featured : A.CARD_SIZES.row)).join('');
     bindQuickAdd(grid);
     wireHoverSwap(grid);
-    grid.querySelectorAll('.product').forEach(el => el.classList.add('in'));
+    A.observeReveal(grid);
   }
 
   // Personalisation from real browsing history only — the pieces this
@@ -1328,7 +1432,6 @@
       <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3, A.CARD_SIZES.row)).join('')}</div>`;
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);
-    revealOnScroll(recentGrid);
     wireHoverSwap(recentGrid);
     section.classList.add('show');
     return new Set(seen.map(p => p.handle));

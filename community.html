@@ -62,10 +62,16 @@
      no rhythm: every look arrived with the same emphasis as the one
      before it.
 
-     Twelve columns, and a four-frame cycle that alternates a wide
-     frame with a narrower one and drops the narrower one down the
-     page. The eye moves diagonally instead of in rows, and no two
-     consecutive looks are the same size.
+     Twelve columns, and a six-frame cycle: a row of four, then a row
+     of two half-width frames. The emphasis alternates by the row
+     rather than the frame, so no two consecutive rows read alike.
+
+     Two across was the layout before, and 22 frames at two across is
+     15,009px at 1440 -- nearly seventeen screens of scrolling, which
+     is longer than anyone looks at a lookbook. This is 6,338px, and
+     every frame is still wide enough to read the garment in. The pair
+     row every sixth frame is what keeps it from flattening into a
+     contact sheet.
 
      Nothing is cropped to achieve it. Only the WIDTH varies; every
      frame keeps its own 2:3 and sets its own height, so a hemline or
@@ -74,16 +80,24 @@
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: start;
-    gap: 34px 26px;
+    gap: 18px 14px;
     padding: 0 40px;
   }
 
-  .look { margin: 0; grid-column: span 6; }
+  .look { margin: 0; grid-column: span 3; }
 
-  .look:nth-child(4n + 1) { grid-column: span 7; }
-  .look:nth-child(4n + 2) { grid-column: span 5; margin-top: 16%; }
-  .look:nth-child(4n + 3) { grid-column: span 5; }
-  .look:nth-child(4n + 4) { grid-column: span 7; margin-top: 16%; }
+  /* The rhythm is by the ROW, not the frame: four across, then a pair
+     of half-width frames, repeating. Both compositions fill twelve
+     columns exactly, so no row is ever left part empty.
+
+     A single wide frame beside narrow ones was the version before
+     this, and it left a hole: a span-6 frame is half as tall again as
+     the span-3 frames sharing its row, and with align-items:start the
+     rest of that row was black. Offsetting frames down the page was
+     the version before that, and in a grid an offset is just added
+     height -- the 16% drops cost more scrolling than the frames. */
+  .look:nth-child(6n + 5),
+  .look:nth-child(6n + 6) { grid-column: span 6; }
 
   /* The frame is the photograph. No fixed aspect-ratio box: every
      look-* is 800x1200, so they already agree, and letting them set
@@ -120,16 +134,25 @@
        the width of the old strip. */
     .lookbook .rail-label,
     .look-intro { padding-left: 20px; padding-right: 20px; }
-    /* One column on a phone: a lookbook frame at half a phone width
-       is too small to read the garment in. The desktop rhythm is
-       switched off rather than scaled down -- a 16% drop on a single
-       column is just an inconsistent gap. */
-    .gallery { grid-template-columns: 1fr; gap: 28px; padding: 0 20px; }
+    /* Two across on a phone, with every fifth frame full width.
+
+       One column was the rule here, on the reasoning that half a phone
+       width is too small to read a garment in. True of every frame at
+       once, but it made the page 14,060px on a 390px phone -- sixteen
+       screens, and nobody reaches the bottom of that. Paired frames
+       with a full-width one every fifth keeps a readable frame coming
+       round every couple of swipes and halves the page.
+
+       The drop-down offsets come off: a margin inside a two-column
+       phone grid is just a ragged gap. */
+    .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; padding: 0 12px; }
     .look,
-    .look:nth-child(4n + 1),
-    .look:nth-child(4n + 2),
-    .look:nth-child(4n + 3),
-    .look:nth-child(4n + 4) { grid-column: span 1; margin-top: 0; }
+    .look:nth-child(6n + 5),
+    .look:nth-child(6n + 6) { grid-column: span 1; margin-top: 0; }
+    /* One full-width frame per five, so a readable frame comes round
+       every couple of swipes without the page going back to a single
+       column. */
+    .look:nth-child(5n + 1) { grid-column: span 2; }
   }
 </style>
 
@@ -155,9 +178,8 @@
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">10% off your first order. Code ASIORTEN</p>
-      <p class="announce-msg" aria-hidden="true">Ships from Texas in 1-2 business days</p>
-      <p class="announce-msg" aria-hidden="true">A point of view, worn your way.</p>
+      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header">
@@ -168,8 +190,8 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/collections/accessories.html">Accessories</a>
       <a href="/manufacturing.html">Manufacturing</a>
+      <a href="/waitlist.html">Waitlist</a>
     </nav>
 
     <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
@@ -198,84 +220,84 @@
        commented out until there is permissioned content to put in it. -->
   <section class="lookbook" id="look">
     <h1 class="rail-label">Lookbook</h1>
-    <p class="look-intro">Fall 2026, shot across Austin. The new campaign leads; everything below it is the collection as it was worn earlier in the season.</p>
+    <p class="look-intro">Fall 2026. The new campaign leads; everything below it is the collection as it was worn earlier in the season.</p>
     <div class="gallery">
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli04281-800.webp"><source type="image/webp" srcset="images/oli04281.webp"><source media="(max-width: 700px)" srcset="images/oli04281-800.jpg"><img src="images/oli04281.jpg" alt="Two models in Asior polos and sweat shorts walking a downtown passage" width="1600" height="2400" fetchpriority="high" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli04013-800.webp"><source type="image/webp" srcset="images/oli04013.webp"><source media="(max-width: 700px)" srcset="images/oli04013-800.jpg"><img src="images/oli04013.jpg" alt="Model in the Holes Tee under a tree, the leopard backing showing through" width="1600" height="2400" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli04001-800.webp"><source type="image/webp" srcset="images/oli04001.webp"><source media="(max-width: 700px)" srcset="images/oli04001-800.jpg"><img src="images/oli04001.jpg" alt="Two models in black tees and sweat shorts on concrete steps" width="1600" height="2400" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli03931-800.webp"><source type="image/webp" srcset="images/oli03931.webp"><source media="(max-width: 700px)" srcset="images/oli03931-800.jpg"><img src="images/oli03931.jpg" alt="Two models in Asior sweat shorts on concrete steps" width="1600" height="2400" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli04236-800.webp"><source type="image/webp" srcset="images/oli04236.webp"><source media="(max-width: 700px)" srcset="images/oli04236-800.jpg"><img src="images/oli04236.jpg" alt="Two models in Asior polos and sweat shorts against a stone wall" width="1600" height="2400" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli04155-800.webp"><source type="image/webp" srcset="images/oli04155.webp"><source media="(max-width: 700px)" srcset="images/oli04155-800.jpg"><img src="images/oli04155.jpg" alt="A pair in Asior polos and sweat shorts against a concrete wall" width="1600" height="2400" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" media="(max-width: 700px)" srcset="images/oli04252-800.webp"><source type="image/webp" srcset="images/oli04252.webp"><source media="(max-width: 700px)" srcset="images/oli04252-800.jpg"><img src="images/oli04252.jpg" alt="Two models in Asior polos and sweat shorts, downtown" width="1600" height="2400" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-01.webp"><img src="images/look-01.jpg" alt="Model in the Holes Tee against a wall of utility meters" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-02.webp"><img src="images/look-02.jpg" alt="Model wearing the Asior Polo seated on outdoor steps" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-03.webp"><img src="images/look-03.jpg" alt="Two models on a leather couch wearing black tees and light shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-04.webp"><img src="images/look-04.jpg" alt="Two models outside a brick building, one in the Holes Tee" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-05.webp"><img src="images/look-05.jpg" alt="Back of a black Asior tee showing the script logo" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-06.webp"><img src="images/look-06.jpg" alt="Light Asior shorts worn with white socks and sneakers on a kerb" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-07.webp"><img src="images/look-07.jpg" alt="Close view of the Holes Tee showing the distressed openings" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/holes-tee.html">Holes Tee</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-08.webp"><img src="images/look-08.jpg" alt="Model wearing the Asior Polo on a walkway above the street" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-09.webp"><img src="images/look-09.jpg" alt="Two models under a scaffold, one in light Asior shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-10.webp"><img src="images/look-10.jpg" alt="Model wearing the Asior Polo against a pale building" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-11.webp"><img src="images/look-11.jpg" alt="Two models in black tees and light shorts beside a parked car" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-12.webp"><img src="images/look-12.jpg" alt="Model leaning on a pole outside a storefront in a black tee and shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-13.webp"><img src="images/look-13.jpg" alt="Two models on a street corner, one in the Asior Polo and one in the Holes Tee" width="800" height="1200" loading="lazy" decoding="async"></picture>
         <p class="look-worn"><a href="/products/scripture-polo.html">Asior Polo</a> / <a href="/products/holes-tee.html">Holes Tee</a></p>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-14.webp"><img src="images/look-14.jpg" alt="Two models crossing a street in black tees and light shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
-      <figure class="look">
+      <figure class="look" data-reveal>
         <picture><source type="image/webp" srcset="images/look-15.webp"><img src="images/look-15.jpg" alt="Two models from behind in black tees and light shorts" width="800" height="1200" loading="lazy" decoding="async"></picture>
       </figure>
     </div>

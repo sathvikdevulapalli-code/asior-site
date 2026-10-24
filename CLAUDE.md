@@ -63,8 +63,15 @@ or this config file.
 
 One live code: **ASIORTEN, 10% off, once per customer, no expiry.** It is
 the only code the site may mention. Any other discount copy is a bug —
-including "5% off", a welcome-signup percentage, free shipping, or
-"subscriber pricing". None of those exist in Shopify.
+including "5% off", a welcome-signup percentage, or "subscriber
+pricing". None of those exist in Shopify.
+
+Free shipping over $99 is **not** in that list any more. It is a real
+Shopify rate: `Free shipping`, $0.00, condition `TOTAL_PRICE >= 99.00`,
+active in the Domestic zone, read back from the delivery profile on
+2026-10-23. `scripts/check-slop.js` used to fail on the phrase and no
+longer does. It is a shipping rate, not a discount code, so it does not
+make ASIORTEN any less the only code.
 
 Discount *amounts* are never computed here. Shopify rounds per line
 (3 x $42.99 at 10% is 3 x $4.29 = $12.87, not $12.897), so the figure
@@ -97,13 +104,22 @@ these. Nothing else is a source, and nothing may be written from memory.
 - Do **not** render `shopify.fabric` or the other `shopify.*` taxonomy
   values. Those are Shopify's auto-suggestions, not verified facts.
 
-**Shipping** (last checked in Shopify, 2026-10-05) lives in
-`assets/promo-config.js`:
-- Dispatch 1–2 business days. That is handling time, not delivery.
-- US rates: Economy $4.90 (0–5 lb), Standard $6.90 (0–1 lb) / $9.90
-  (1–5 lb). Transit: Economy 5–8 business days, Standard 3–4. Each
-  transit time belongs to its own rate and may not be quoted next to a
-  different one.
+**Shipping** (read back from the Shopify delivery profile 2026-10-23)
+lives in `assets/promo-config.js`:
+- US domestic is **live USPS carrier-calculated**, not a flat rate. The
+  shopper's real rate is computed at checkout from their address, with
+  a 15% handling adjustment on top. The site must therefore not quote a
+  single US price; it says shipping is calculated at checkout.
+- **Free shipping over $99**, active, condition `TOTAL_PRICE >= 99.00`.
+  This is the one shipping figure the site states outright.
+- The old flat rates still exist as `(backup)` methods behind USPS, now
+  $10.90/$19.90 Standard and $12.90/$34.90 Economy. They are a fallback
+  if the carrier API fails, not the advertised price. The $4.90 / $6.90
+  / $9.90 figures this file used to list are gone.
+- International: USPS, DHL Express, DHL eCommerce and FedEx, all
+  carrier-calculated and shown at checkout.
+- Dispatch 1–2 business days. That is handling time, not delivery, and
+  it is not currently stated on the site.
 - Sathvik confirmed US and international shipping on 2026-10-11. The
   public policy says international destinations and rates are shown at
   checkout; it does not claim a country count. The Shopify Admin policy
@@ -149,7 +165,23 @@ and fails on a hit, so this list is enforced rather than remembered:
 
 **Type:** one face, Archivo. Nav and labels all caps at 0.08em tracking;
 product copy sentence case. Square corners, 1px rules instead of cards,
-photos edge to edge on mobile. No motion beyond an image fade-in.
+photos edge to edge on mobile.
+
+**Motion.** One effect, sitewide: a reveal on scroll. Anything with
+`data-reveal`, and every `.product` card, starts faded out and 18px
+down (10px for the full-bleed bands) and settles as it comes within a
+screen of the viewport, staggered by column across a grid row. The
+founder asked for this on 2026-10-22, against the previous rule of no
+motion beyond an image fade-in; that rule stands for everything else.
+Don't add a second kind of motion without asking.
+
+It lives in one place: `wireReveal()` in `assets/site.js` and the
+`.js-reveal` block in `assets/site.css`. The hidden state is applied
+only once a working `IntersectionObserver` exists, by putting
+`.js-reveal` on `<html>` from JS, so no-JS and reduced-motion visitors
+are never shown a blank page. Pages must not add `.in` to cards
+themselves — call `Asior.observeReveal(grid)` after a re-render
+instead, or the animation never plays.
 
 **Voice:** short, texted rather than written. Lowercase is fine in body
 copy. "nothing in here yet." not "Your cart is currently empty."
