@@ -28,11 +28,33 @@
 <link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="assets/site.css">
 <link rel="preload" href="assets/site.js" as="script">
-<!-- LCP element. The hero is three frames on desktop and look-02 alone
-     on a phone, so look-02 is the LCP candidate at every width and is
-     the only one worth the preload: preloading all three would make the
-     phone fetch two images it never paints. -->
-<link rel="preload" as="image" type="image/webp" href="images/look-02.webp" fetchpriority="high">
+<!-- LCP element.
+
+     This preloaded images/look-02.webp, which has not been in the hero
+     since the hero became oli-group plus oli04281. look-02 is a
+     category tile most of the way down the page, so the preload was
+     fetching a non-LCP image at high priority, with no imagesrcset, in
+     competition with the two frames the browser actually paints.
+     Measured on a throttled 1.6Mbps connection before this change:
+     6120ms desktop, 5424ms mobile.
+
+     One preload per frame the viewport actually paints. The main frame
+     is the whole hero on a phone and the left half on desktop, so it
+     is unconditional; the side frame only exists above 900px, so it
+     carries the matching media query and a phone never fetches it.
+     imagesrcset/imagesizes repeat the <source> exactly -- without them
+     the preload picks a different candidate than the <picture> does
+     and the image is fetched twice. -->
+<link rel="preload" as="image" type="image/webp"
+      href="images/oli-group.webp"
+      imagesrcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w"
+      imagesizes="(max-width: 900px) 100vw, 50vw"
+      fetchpriority="high">
+<link rel="preload" as="image" type="image/webp" media="(min-width: 901px)"
+      href="images/oli04281.webp"
+      imagesrcset="images/oli04281-800.webp 800w, images/oli04281.webp 1600w"
+      imagesizes="50vw"
+      fetchpriority="high">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
      overrides) and the commerce flag. It no longer carries a drop-close
      date: the collection has no end date. -->
@@ -293,7 +315,10 @@
     height: 100%;
     width: 100%;
   }
-  .hero-figure { display: block; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
+  /* The frame carries the page's own surface colour, so the moment
+     before the photograph decodes is a dark panel rather than a flat
+     black hole the width of the screen. */
+  .hero-figure { display: block; height: 100%; min-width: 0; min-height: 0; overflow: hidden; background: var(--surface); }
   .hero-figure img {
     width: 100%;
     height: 100%;
