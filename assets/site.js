@@ -1833,13 +1833,12 @@
        so there is no single number that is true for everyone, and a
        table of four figures would be four prices most customers will
        not be charged. Explain the method instead. */
-    if (freeShippingActive() && s.FREE_THRESHOLD > 0) {
-      out += '<p>Orders of $' + s.FREE_THRESHOLD + ' or more ship free anywhere in the US.</p>';
-    }
-    out += '<p>Below that, the cost is worked out at checkout from your address and the '
-      + 'weight of the order. Someone across the country pays more than someone two '
-      + 'states over, because that is what it costs us to get it there \u2014 we are not '
-      + 'averaging it into one flat price for everyone.</p>';
+    /* shippingLine() above already states the free-shipping threshold;
+       repeating it here printed the same rule twice in a row. */
+    out += '<p>The cost comes from your address and the weight of the order. '
+      + 'Someone across the country pays more than someone two states over, '
+      + 'because that is what it costs us to get it there. We do not average '
+      + 'it into one flat price for everyone.</p>';
 
     var rates = Array.isArray(s.RATES) ? s.RATES : [];
     if (rates.length) {
