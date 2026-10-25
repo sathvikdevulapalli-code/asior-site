@@ -31,44 +31,60 @@
      site makes the photographs look cold.
      =================================================================== */
 
-  --bg: #0E0E0D;             /* was #ffffff */
-  --ink: #F0ECE4;            /* was #000000 */
-  --muted: #96928A;          /* was #666666. 5.3:1 on --bg */
+  /* ===================================================================
+     WITHERED HILLS UI, measured from their live site and adopted by the
+     founder on 2026-10-25. White page, black type, photographs doing
+     all the work.
 
-  /* The primary action inverts with everything else: off-white on
-     near-black for ADD TO BAG, CHECK OUT, JOIN. Square, never rounded. */
-  --accent: #F0ECE4;         /* was #000000 */
-  --accent-press: #DAD5CB;   /* was #1a1a1a */
-  --on-accent: #0E0E0D;      /* was #ffffff */
-  --alert: #F0ECE4;
+     This file used to invert a light theme into a near-black one, and
+     every "was #ffffff" comment below was that original value. The
+     inversion is reversed: the values are the reference's, not the old
+     ones restored, and anywhere a rule hardcoded a dark colour instead
+     of reading a token has been fixed rather than re-inverted.
+     =================================================================== */
 
-  --surface: #171716;        /* was #f7f7f7. behind product photos */
-  --surface-hi: #201F1D;     /* was #f1f1f1. hover on chrome */
-  --panel-bg: #1C1B19;       /* was #f4f4f4. inactive PDP tabs */
+  --bg: #FFFFFF;
+  --ink: #000000;
+  --muted: #666666;          /* 5.74:1 on white */
 
-  /* Hairlines on near-black. --line is decorative (section rules, card
-     edges); --field-line bounds anything you can type in or press and
-     so has to clear WCAG 1.4.11's 3:1, which #6E6A62 does on --bg. */
-  --line: #2A2926;           /* was #e6e6e6 */
-  --field-line: #6E6A62;     /* was #aeaeae */
-  --input-bg: #171716;       /* was #f2f2f2 */
-  --input-radius: 5px;       /* [theme var] --inputs-radius */
-  --size-border: #3A3835;    /* was #d1d5db. PDP size buttons */
+  /* The primary action is the inverse of the page: white on black for
+     ADD TO BAG, CHECKOUT, JOIN. Square, never rounded. */
+  --accent: #000000;
+  --accent-press: #1A1A1A;
+  --on-accent: #FFFFFF;
+  --alert: #000000;
 
-  --ink-dim: #CFCABF;       /* was #333333 */
-  --violet-edge: #3A3835;   /* was #d1d5db */    /* retained name: the disabled outline */
+  --surface: #F5F5F5;        /* behind product photographs */
+  --surface-hi: #EFEFEF;     /* hover on chrome */
+  --panel-bg: #F4F4F4;       /* inactive PDP tabs */
 
-  /* A lifted band rather than an inverted slab: a white bar across
-     the top of a near-black page is the loudest thing on the site. */
-  --announce-bg: #171716;   /* was #000000 */
-  --announce-text: #F0ECE4; /* was #ffffff */
+  /* --line is decorative (section rules, card edges). --field-line
+     bounds anything you can type in or press, so it has to clear WCAG
+     1.4.11's 3:1 against the page: #767676 is 4.54:1. */
+  --line: #E6E6E6;
+  --field-line: #767676;
+  --input-bg: #FFFFFF;
+  --input-radius: 0px;       /* square, per the reference */
+  /* 3.03:1 on white. The reference's size boxes are lighter than this,
+     but a control boundary below 3:1 is not a boundary. */
+  --size-border: #8E8E8E;
 
-  /* Inter Tight carries the interface; the script face belongs only to
-     the hand-drawn ASIOR signature. */
-  --font: 'Inter Tight', Arial, sans-serif;
-  --font-display: 'Inter Tight', Arial, sans-serif;
-  --font-body: 'Inter Tight', Arial, sans-serif;
-  --font-mono: 'Inter Tight', Arial, sans-serif;
+  --ink-dim: #333333;
+  --violet-edge: #D1D5DB;   /* retained name: the disabled outline */
+
+  /* Black bar, white caps, messages rotating one at a time. */
+  --announce-bg: #000000;
+  --announce-text: #FFFFFF;
+
+  /* No webfont for the interface. The reference runs the system
+     Helvetica stack and the page is faster for it; the only loaded
+     face left is Pinyon, which draws the Asior signature and nothing
+     else. */
+  --font: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  --font-body: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  --font-script: 'Pinyon Script', 'Brush Script MT', cursive;
   /* Kept for older component rules that set this optional axis. */
   --display-wide: normal;
 
@@ -91,13 +107,8 @@
   --ease-img: cubic-bezier(0, 0, .3, 1);
 }
 
-@font-face {
-  font-family: 'Inter Tight';
-  src: url('../fonts/inter-tight-var-latin.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-}
+/* Inter Tight is gone. The interface is the system Helvetica stack
+   now, so the only @font-face left is the signature. */
 
 /* Subset woff2, 15KB, against 141KB for the raw TrueType it replaces.
    This face used to draw one word per page (the wordmark); it now sets
@@ -933,7 +944,15 @@ html.cart-drawer-locked { overflow: hidden; }
    decoded yet. It is no longer reachable once one has. */
 .product-img {
   position: relative;
-  aspect-ratio: 2 / 3;
+  /* 4:5, per the founder's brief of 2026-10-25 adopting the reference's
+     tile. Worth recording what it costs, because it is measured and it
+     is not free: the catalogue is shot anywhere from 0.56 to 0.80, so
+     against 4:5 the polo, the holes tee, the crewneck and the pendant
+     lose about 17% of their height and the shorts and the lanyard
+     about 30%. The reference can use 4:5 because every one of their
+     tiles is a product-only shot framed for it. The real fix is the
+     product shoot; this is the founder's call in the meantime. */
+  aspect-ratio: 4 / 5;
   background: var(--surface);
   overflow: hidden;
 }
@@ -1527,7 +1546,10 @@ html.cart-drawer-locked { overflow: hidden; }
 .product-frame { position: relative; }
 .product-peek {
   position: absolute;
-  top: 12px;
+  /* Bottom-right of the photograph, per the reference. It was
+     top-right, where it collided with the SOLD OUT badge's corner on
+     any card carrying one. */
+  bottom: 12px;
   right: 12px;
   z-index: 2;
   width: 42px;
@@ -1585,8 +1607,8 @@ html.cart-drawer-locked { overflow: hidden; }
     pointer-events: auto;
     width: 34px;
     height: 34px;
-    background: rgba(14, 14, 13, .55);
-    border-color: rgba(240, 236, 228, .5);
+    background: rgba(255, 255, 255, .82);
+    border-color: rgba(0, 0, 0, .35);
     color: var(--ink);
   }
   .product .product-peek::before { width: 13px; height: 1.5px; }
@@ -1669,12 +1691,12 @@ body {
    curated (the homepage), never on the catalogue or a category page,
    where equal weighting is the honest presentation. */
 .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: span 2; }
-.shop-grid--featured .product:first-child .product-img { aspect-ratio: 2 / 3; }
+.shop-grid--featured .product:first-child .product-img { aspect-ratio: 4 / 5; }
 .shop-grid--featured .product:first-child .product-title { font-size: 16px; }
 
 @media (max-width: 900px) {
   .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: auto; }
-  .shop-grid--featured .product:first-child .product-img { aspect-ratio: 2 / 3; }
+  .shop-grid--featured .product:first-child .product-img { aspect-ratio: 4 / 5; }
   .shop-grid--featured .product:first-child .product-title { font-size: 13px; }
 }
 
@@ -1752,10 +1774,11 @@ body {
 .coll-head .coll-filter { margin: 0 auto; }
 
 /* Card captions under the photograph. */
+/* Left, under the photograph's left edge. */
 .product-title,
 .product-price,
 .product .price,
-.product-meta { text-align: center; }
+.product-meta { text-align: left; }
 
 /* The size row on a card centres with them. */
 
@@ -1835,9 +1858,11 @@ body {
 .product-title {
   font-family: var(--font);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.3;
-  letter-spacing: 0.06em;
+  /* 0.6px at 12px, as measured on the reference, rather than an em
+     value that would drift with the size. */
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--ink);
   white-space: normal;
@@ -1855,7 +1880,7 @@ body {
 .product-price,
 .product .price {
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
@@ -1933,6 +1958,15 @@ body {
 /* The control stays up while its row is open, and the plus turns into
    a close. One rule, both pointer kinds -- the hover and no-hover
    blocks above each set their own opacity. */
+/* While the size row is open the control moves back to the top-right.
+   At rest it sits bottom-right, which is exactly where the row opens,
+   so leaving it there would put the close button on top of the last
+   size chip. */
+.product.is-picking .product-peek {
+  bottom: auto;
+  top: 12px;
+}
+
 .product.is-picking .product-peek,
 .product.is-picking .product-peek:hover {
   opacity: 1;
@@ -1969,7 +2003,7 @@ body {
      an unknown picture is a chip you can see on some frames and not
      on others. */
   background: var(--bg);
-  border-color: rgba(240, 236, 228, .55);
+  border-color: rgba(0, 0, 0, .45);
   color: var(--ink);
 }
 
@@ -2110,19 +2144,15 @@ body {
 .product .price,
 .product-meta { text-align: left; }
 
-.product-title {
-  margin-top: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .06em;
-  line-height: 1.35;
-}
+/* These two were a second, later copy of rules that already exist
+   further up this file, and being later they won: the card kept
+   rendering at weight 600 and a 13px price however the canonical
+   block was edited. Only the properties that genuinely differ from
+   the canonical block stay here. */
+.product-title { margin-top: 10px; }
 
 .product-price,
-.product .price {
-  font-size: 13px;
-  margin-top: 3px;
-}
+.product .price { margin-top: 3px; }
 
 .shop .coll-head,
 .arch .coll-head {
@@ -2201,3 +2231,179 @@ body {
   .product-link:hover .product-img img,
   .product-frame:hover .product-img img { transform: none; }
 }
+
+/* ===================================================================
+   SEARCH PANEL
+
+   Opened by the icon in the header, on every page. A panel from the
+   top rather than a route, so a search never loses the page you were
+   on. 220ms, the same as the cart drawer; both are off under reduced
+   motion.
+   =================================================================== */
+.search-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.search-toggle svg { width: 19px; height: 19px; display: block; }
+.search-toggle:hover { opacity: .65; }
+
+.search-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, .34);
+}
+
+.search-panel[hidden] { display: none; }
+
+.search-panel-in {
+  background: var(--bg);
+  color: var(--ink);
+  padding: 26px var(--page-pad) 34px;
+  max-height: 86vh;
+  overflow-y: auto;
+  transform: translateY(-14px);
+  opacity: 0;
+  transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out);
+}
+
+.search-panel.is-open .search-panel-in { transform: none; opacity: 1; }
+
+.search-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.search-heading {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.search-close {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0 2px;
+}
+
+.search-close:hover { color: var(--ink); }
+
+.search-field { display: block; margin-top: 14px; }
+
+.search-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 1px solid var(--field-line);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 18px;
+}
+
+.search-field input::placeholder { color: var(--muted); }
+.search-field input:focus { outline: none; border-bottom-color: var(--ink); }
+
+.search-status {
+  margin: 12px 0 0;
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--muted);
+  min-height: 16px;
+}
+
+.search-results { margin-top: 18px; }
+.search-results:empty { margin-top: 0; }
+
+/* The page behind does not scroll while the panel is open. */
+html.search-open, html.search-open body { overflow: hidden; }
+
+@media (max-width: 640px) {
+  .search-panel-in { padding: 20px 16px 28px; max-height: 92vh; }
+  .search-field input { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-panel-in { transition: none; transform: none; opacity: 1; }
+}
+
+/* ---- free-shipping progress, cart drawer --------------------------
+   Drawn from the live Storefront subtotal against FREE_THRESHOLD in
+   assets/promo-config.js. No bar at all when the rate is inactive. */
+.cart-ship-bar {
+  padding: 14px 20px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.cart-ship-text {
+  margin: 0 0 9px;
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.cart-ship-track {
+  height: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.cart-ship-fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transition: width 220ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-ship-fill { transition: none; }
+}
+
+.cart-drawer-empty { padding: 34px 20px 40px; text-align: center; }
+.cart-drawer-empty p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.cart-drawer-shop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin-top: 18px;
+  padding: 0 28px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.cart-drawer-shop:hover { background: var(--accent-press); }
