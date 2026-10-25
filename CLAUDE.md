@@ -46,10 +46,10 @@ truth for the drop:
 - `FALL_PRODUCTS`: the real Fall pieces (handle + customer-facing name).
   Anything not in this array is not part of the Fall collection — don't
   add products back to it without the founder saying so.
-- `PUBLIC_LAUNCH_TIME`, `DROP_CLOSE_TIME`: the drop's open/close instants.
-  Every countdown on the site (banner, PDP buy box, etc.) reads
-  `DROP_CLOSE_TIME` and only this value — if the date changes, it only
-  changes here.
+- `PUBLIC_LAUNCH_TIME`: the instant the drop opened. There is no
+  `DROP_CLOSE_TIME` and no countdown anywhere on the site; the key was
+  removed when the collection stopped having an end date, and nothing
+  reads it.
 - `FALL_COMMERCE_READY`: whether the full Fall set is live for real
   purchase.
 - `EARLY_ACCESS_CODE_SHA`: SHA-256 of the early-access code, a marketing
@@ -160,35 +160,68 @@ and fails on a hit, so this list is enforced rather than remembered:
 - Ratings of any kind — stars, numeric averages, review counts.
 - AI-generated product or model images. Real photos only.
 
-**Palette:** near-black `#0E0E0D`, off-white `#F0ECE4`, one muted grey
-`#96928A`. No other colour except the product photographs themselves.
+**Palette:** white page, black type. `--bg #FFFFFF`, `--ink #000000`,
+`--muted #666666` (5.74:1), tiles on `--surface #F5F5F5`, hairlines
+`--line #E6E6E6`, control boundaries `--field-line #767676`. The
+primary action inverts: black fill, white caps, square. The
+announcement bar is black with white caps. No other colour except the
+product photographs themselves.
 
-**Type:** one face, Archivo. Nav and labels all caps at 0.08em tracking;
-product copy sentence case. Square corners, 1px rules instead of cards,
-photos edge to edge on mobile. The homepage hero is one full-bleed
+This replaced the near-black theme on 2026-10-25, at the founder's
+direction, to match the reference UI. Any rule that hardcodes a dark
+value instead of reading a token is a bug, not a style: that is what
+made the theme flip a day's work rather than a token change.
+
+**Type:** the system Helvetica stack, no webfont for the interface
+(`Helvetica, 'Helvetica Neue', Arial, sans-serif`). Body 14px/400. The
+only loaded face is Pinyon Script, and it draws the Asior signature
+and nothing else. Nav and labels all caps; product copy sentence case.
+Square corners (`--input-radius: 0`), 1px rules instead of cards,
+photos edge to edge on mobile.
+
+**The card.** One definition, used by every grid — home, shop,
+collection, archive, related, search. 4:5 image on `--surface`,
+`object-fit: cover`. Title 12px/700 uppercase at 0.6px tracking, one
+line with ellipsis; price 14px/400 under it; both left-aligned under
+the photograph's left edge. A `+` circle bottom-right of the image
+reveals the size row. Badges are small black boxes with white caps,
+top-left. Sold-out products stay in the grid with their badge.
+
+4:5 is the founder's call and it costs crop: the catalogue is shot
+from 0.56 to 0.80, so the polo, holes tee, crewneck and pendant lose
+about 17% of their height to the frame and the shorts and lanyard
+about 30%. The reference can use 4:5 because every one of their tiles
+is a product-only shot framed for it. A product-only shoot is the real
+fix.
+
+**The header.** One row at every width: nav left, Asior wordmark
+centred, market / search / cart right. Transparent with white text
+over a hero photograph, solid white with black text once scrolled or
+on any page without one. A search icon opens a panel from the top of
+the page — `wireSearch()` in `assets/site.js`, on every page, with the
+catalogue fetched on first open and never before.
+
+**The hero.** One full-bleed landscape photograph, close to the first
+screen's height, with a single CTA near the bottom. A scrim at the top
+for the header and a short one at the bottom for the CTA; no fade into
+the page, which washes out a photograph on white. The homepage hero is one full-bleed
 photograph (the four-model group shot), not a split; the founder asked
 for that on 2026-10-24. Desktop header is one row from 1180px up: nav
 left, wordmark centred, market and bag right.
 
-**Motion.** One effect, sitewide: a reveal on scroll. Anything with
-`data-reveal`, and every `.product` card, starts faded out and 18px
-down (10px for the full-bleed bands) and settles as it comes within a
-screen of the viewport, staggered by column across a grid row. The
-founder asked for this on 2026-10-22, against the previous rule of no
-motion beyond an image fade-in; that rule stands for everything else.
-On 2026-10-24 the founder asked for more motion, "clean minimalistic",
-like the reference. Two more effects exist, and only these:
-- Homepage hero: the photograph settles from a 1.08 zoom over 2.6s on
-  load, and the one link rises in after it (`hero-settle`/`hero-rise`
-  in `index.html`).
-- Product cards, desktop pointers only: the photo eases to 1.035 on
-  hover over 1.1s while the second frame fades in (end of `site.css`).
-All three switch off under `prefers-reduced-motion`. Don't add a fourth
-without asking.
+**Motion.** Four effects, and nothing else. All of them off under
+`prefers-reduced-motion`.
 
-It lives in one place: `wireReveal()` in `assets/site.js` and the
-`.js-reveal` block in `assets/site.css`. The hidden state is applied
-only once a working `IntersectionObserver` exists, by putting
+- Hero settle-zoom on load.
+- Reveal on scroll: anything with `data-reveal`, and every `.product`
+  card, starts faded out and 18px down (10px for the full-bleed bands)
+  and settles as it comes within a screen, staggered by column.
+- Card hover: the second photograph fades in with a slight zoom.
+- Drawer and panel slides at 220ms (cart drawer, search panel).
+
+The reveal lives in one place: `wireReveal()` in `assets/site.js` and
+the `.js-reveal` block in `assets/site.css`. The hidden state is
+applied only once a working `IntersectionObserver` exists, by putting
 `.js-reveal` on `<html>` from JS, so no-JS and reduced-motion visitors
 are never shown a blank page. Pages must not add `.in` to cards
 themselves — call `Asior.observeReveal(grid)` after a re-render
