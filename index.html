@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASIOR | Fall 2026</title>
 <meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
-<meta name="theme-color" content="#0e0e0d">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="canonical" href="https://asiorclothing.com/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -345,14 +345,16 @@
         rgba(0, 0, 0, .62) 20%,
         rgba(0, 0, 0, .26) 31%,
         rgba(0, 0, 0, 0) 42%),
-      /* The bottom stop is the page background rather than black, so
-         the photograph dissolves into the grid under it instead of
-         ending on a hard edge against it. */
+      /* The bottom fade is gone. It existed to dissolve the photograph
+         into a near-black page; fading a photograph into white washes
+         its lower third out instead, and the reference simply ends its
+         hero on a clean edge against the grid. A short scrim stays
+         only where the CTA sits, so the button has something to read
+         against whatever the picture happens to be there. */
       linear-gradient(to top,
-        var(--bg) 0,
-        rgba(14, 14, 13, .70) 4%,
-        rgba(14, 14, 13, .30) 13%,
-        rgba(0, 0, 0, 0) 30%),
+        rgba(0, 0, 0, .46) 0,
+        rgba(0, 0, 0, .22) 9%,
+        rgba(0, 0, 0, 0) 22%),
       rgba(0, 0, 0, 0.12);
   }
 
