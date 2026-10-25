@@ -1103,9 +1103,35 @@ ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).
       <!-- Static, not a picker. One market is enabled in Shopify, so a
            dropdown here would offer a choice that does not exist. -->
       <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <button type="button" class="search-toggle" id="searchToggle"
+              aria-expanded="false" aria-controls="searchPanel" aria-label="Search our store">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="9" cy="9" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+          <line x1="13.6" y1="13.6" x2="18" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></line>
+        </svg>
+      </button>
       ${CART_LINK}
     </div>
   </header>
+
+  <!-- Search, as a panel from the top of the page rather than its own
+       route. Markup ships with every page so it works the moment the
+       icon is pressed; assets/site.js fetches the catalogue the first
+       time it opens and nothing before that. -->
+  <div class="search-panel" id="searchPanel" hidden>
+    <div class="search-panel-in" role="dialog" aria-modal="true" aria-labelledby="searchHeading">
+      <div class="search-panel-head">
+        <h2 class="search-heading" id="searchHeading">Search our store</h2>
+        <button type="button" class="search-close" id="searchClose" aria-label="Close search">Close</button>
+      </div>
+      <label class="search-field">
+        <span class="sr-only">Search products</span>
+        <input type="search" id="searchInput" autocomplete="off" placeholder="What are you looking for?">
+      </label>
+      <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+      <div class="search-results shop-grid" id="searchResults"></div>
+    </div>
+  </div>
 `;
 
 /* Policy pages carry the bar and a bare header: they are linked from
@@ -1705,21 +1731,17 @@ function syncHero() {
      edge to edge and the browser should be allowed every pixel the
      source actually has. It is never upscaled past that: there is no
      2400w entry, since inventing one would only blur it. */
-  /* All four models, head to toe. The group shot is 2:3 and the four
-     figures span about half its height, so no wide banner crop can hold
-     them: at 1440 it would need ~1180px of height. Desktop is therefore
-     two square frames side by side, the group shot (cropped to keep all
-     four whole) and the polo pair. A phone gets the group shot alone. */
-  const pic = (file, alt, cls, extra) =>
-    `        <picture class="hero-figure ${cls}">\n`
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w${extra ? `, images/${file}-full.webp ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w${extra ? `, images/${file}-full.jpg ${extra}w` : ''}" sizes="(max-width: 900px) 100vw, 50vw">\n`
-    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400"`
-    + (cls === 'hero-figure--main' ? ' fetchpriority="high"' : '') + ' decoding="async">\n'
-    + '        </picture>\n';
+  /* One photograph, edge to edge, the way the reference does it: the
+     four-model group shot across the whole banner. The founder asked
+     for this over the two-frame split on 2026-10-24. */
+  const file = 'oli-group';
+  const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
   const block =
-    pic('oli-group', 'Four models in Asior tees, tanks and sweat shorts on concrete steps', 'hero-figure--main', 1717)
-    + pic('oli04281', 'Two models in black Asior polos and white sweat shorts', 'hero-figure--side', 0);
+    '        <picture class="hero-figure">\n'
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w" sizes="100vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w" sizes="100vw">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400" fetchpriority="high" decoding="async">\n`
+    + '        </picture>\n';
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
   if (next === null) throw new Error('index.html: HERO markers missing');

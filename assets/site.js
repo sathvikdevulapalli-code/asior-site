@@ -817,7 +817,12 @@
     var lines = (cart && cart.lines && cart.lines.edges) || [];
 
     if (!lines.length) {
-      body.innerHTML = '<p class="cart-drawer-empty">nothing in here yet.</p>';
+      /* A way out, not just a statement. An empty drawer with no link
+         made the close button the only thing to press. */
+      body.innerHTML = '<div class="cart-drawer-empty">'
+        + '<p>nothing in here yet.</p>'
+        + '<a class="cart-drawer-shop" href="/shop.html">Shop all</a>'
+        + '</div>';
       foot.innerHTML = '<a class="cart-drawer-secondary" href="/shop.html">Back to Shop All</a>';
       return;
     }
@@ -850,6 +855,37 @@
     }).join('');
 
     var sub = cart.cost && cart.cost.subtotalAmount;
+
+    /* Free-shipping progress, from the real Storefront subtotal
+       against the real FREE_THRESHOLD in promo-config.js. Both come
+       from Shopify; nothing here is estimated. freeShippingProgress
+       returns null when the rate is not active, and then no bar is
+       drawn at all rather than one showing a rule that does not
+       apply. */
+    var prog = freeShippingProgress(sub && sub.amount);
+    var bar = '';
+    if (prog) {
+      var threshold = shippingConfig().FREE_THRESHOLD;
+      var pct = prog.unlocked ? 100
+        : Math.max(0, Math.min(100, ((threshold - prog.away) / threshold) * 100));
+      bar = '<div class="cart-ship-bar' + (prog.unlocked ? ' is-unlocked' : '') + '">'
+        + '<p class="cart-ship-text">'
+        + (prog.unlocked
+            ? "You've got free shipping"
+            : "You're " + escapeHtml(money(prog.away, sub && sub.currencyCode)) + ' away from free shipping')
+        + '</p>'
+        + '<div class="cart-ship-track" role="progressbar" aria-valuemin="0" aria-valuemax="100"'
+        + ' aria-valuenow="' + Math.round(pct) + '"'
+        + ' aria-label="Progress towards free shipping">'
+        + '<span class="cart-ship-fill" style="width:' + pct.toFixed(1) + '%"></span>'
+        + '</div></div>';
+    }
+
+    var head = drawerEl.querySelector('.cart-drawer-head');
+    var existing = drawerEl.querySelector('.cart-ship-bar');
+    if (existing) existing.remove();
+    if (bar && head) head.insertAdjacentHTML('afterend', bar);
+
     foot.innerHTML =
       '<div class="cart-drawer-sub"><span>Subtotal</span>'
       + '<span class="tnum">' + money(sub && sub.amount, sub && sub.currencyCode) + '</span></div>'
@@ -2127,6 +2163,150 @@
   wireHeaderScrollState();
   wireShopSearch();
 
+  /* ---- search panel ---------------------------------------------
+
+     One panel, on every page, opened by the icon in the header. The
+     catalogue is fetched the first time it opens and cached for the
+     rest of the visit: a search box that nobody presses should cost
+     nothing.
+
+     Matching is over the customer-facing name, the Shopify title and
+     the handle, because the three differ (FALL_PRODUCTS overrides
+     names, and handles carry words the titles do not). Results are
+     the same productCard() every grid uses, so a result and a tile
+     are the same object.
+
+     No "popular searches". Anything offered there would be invented,
+     and CLAUDE.md is explicit that nothing on the site may be. */
+  /* The catalogue, normalised into card shape. Shared rather than
+     per-page: shop.html and the collection pages each had their own
+     copy of this query, and the search panel needs the same list on
+     every page including ones that have no grid at all. */
+  function fetchCatalog() {
+    return shopifyFetch('{ products(first: 50) { edges { node { ' + PRODUCT_CARD_FIELDS + ' } } } }')
+      .then(function (data) {
+        var edges = (data && data.products && data.products.edges) || [];
+        return edges.map(function (e) {
+          var card = normalizeProduct(e.node);
+          card.title = e.node.title;
+          return card;
+        });
+      });
+  }
+
+  var searchCatalog = null;
+  var searchFetching = false;
+  var searchLastFocus = null;
+
+  function searchPanelEls() {
+    return {
+      panel: document.getElementById('searchPanel'),
+      input: document.getElementById('searchInput'),
+      results: document.getElementById('searchResults'),
+      status: document.getElementById('searchStatus'),
+      toggle: document.getElementById('searchToggle'),
+    };
+  }
+
+  function renderSearch(term) {
+    var el = searchPanelEls();
+    if (!el.results) return;
+    var q = String(term || '').trim().toLowerCase();
+    if (!q) { el.results.innerHTML = ''; el.status.textContent = ''; return; }
+    if (!searchCatalog) { el.status.textContent = 'Loading the catalogue\u2026'; return; }
+    var hits = searchCatalog.filter(function (p) {
+      return (p.name + ' ' + (p.title || '') + ' ' + p.handle).toLowerCase().indexOf(q) > -1;
+    });
+    el.status.textContent = hits.length
+      ? hits.length + (hits.length === 1 ? ' product' : ' products')
+      : 'Nothing matches \u201c' + term.trim() + '\u201d.';
+    el.results.innerHTML = hits.slice(0, 12).map(function (p) {
+      /* No size row: the row's buttons are wired per page and this
+         panel is on every page, including ones with no quick-add
+         handler. The card falls back to its link. */
+      var card = Object.create(p); card.sizes = [];
+      return productCard(card, { eager: false, peek: true, sizes: CARD_SIZES.grid });
+    }).join('');
+    if (window.Asior && Asior.observeReveal) Asior.observeReveal(el.results);
+    wireHoverSwap(el.results);
+  }
+
+  function loadSearchCatalog() {
+    if (searchCatalog || searchFetching) return;
+    searchFetching = true;
+    fetchCatalog().then(function (list) {
+      searchCatalog = list;
+      searchFetching = false;
+      var el = searchPanelEls();
+      if (el.input && el.panel && !el.panel.hidden) renderSearch(el.input.value);
+    }).catch(function () {
+      searchFetching = false;
+      var el = searchPanelEls();
+      if (el.status) el.status.textContent = "Search isn't available right now.";
+    });
+  }
+
+  function openSearch() {
+    var el = searchPanelEls();
+    if (!el.panel) return;
+    searchLastFocus = document.activeElement;
+    el.panel.hidden = false;
+    /* The class lands on the next frame so the transition has a
+       start state to animate from. */
+    requestAnimationFrame(function () { el.panel.classList.add('is-open'); });
+    document.documentElement.classList.add('search-open');
+    if (el.toggle) el.toggle.setAttribute('aria-expanded', 'true');
+    loadSearchCatalog();
+    if (el.input) el.input.focus();
+  }
+
+  function closeSearch() {
+    var el = searchPanelEls();
+    if (!el.panel || el.panel.hidden) return;
+    el.panel.classList.remove('is-open');
+    document.documentElement.classList.remove('search-open');
+    if (el.toggle) el.toggle.setAttribute('aria-expanded', 'false');
+    var done = function () { el.panel.hidden = true; };
+    setTimeout(done, 220);
+    if (searchLastFocus && searchLastFocus.focus) searchLastFocus.focus();
+  }
+
+  function wireSearch() {
+    var el = searchPanelEls();
+    if (!el.panel || !el.toggle) return;
+    el.toggle.addEventListener('click', function () {
+      el.panel.hidden ? openSearch() : closeSearch();
+    });
+    var closeBtn = document.getElementById('searchClose');
+    if (closeBtn) closeBtn.addEventListener('click', closeSearch);
+
+    /* A click on the backdrop, but not inside the panel itself. */
+    el.panel.addEventListener('click', function (e) {
+      if (e.target === el.panel) closeSearch();
+    });
+
+    var t = null;
+    if (el.input) {
+      el.input.addEventListener('input', function () {
+        clearTimeout(t);
+        var v = el.input.value;
+        t = setTimeout(function () { renderSearch(v); }, 120);
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (el.panel.hidden) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeSearch(); return; }
+      if (e.key !== 'Tab') return;
+      /* Focus stays in the panel while it is open. */
+      var f = el.panel.querySelectorAll('a[href], button, input, [tabindex]:not([tabindex="-1"])');
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
+
   /* ---- reveal on scroll -----------------------------------------
 
      One observer for the whole site: every .product in any grid, plus
@@ -2377,6 +2557,7 @@
   // Delegated at the document, so one call covers every grid on the
   // page and every grid a page renders later.
   wireCardSizeReveal();
+  wireSearch();
   wireReveal();
   // Renders "(0)" immediately so the header never shows a bare "Cart"
   // while the real count is still in flight.

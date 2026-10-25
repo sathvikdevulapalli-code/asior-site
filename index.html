@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASIOR | Fall 2026</title>
 <meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
-<meta name="theme-color" content="#0e0e0d">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="canonical" href="https://asiorclothing.com/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -38,22 +38,14 @@
      Measured on a throttled 1.6Mbps connection before this change:
      6120ms desktop, 5424ms mobile.
 
-     One preload per frame the viewport actually paints. The main frame
-     is the whole hero on a phone and the left half on desktop, so it
-     is unconditional; the side frame only exists above 900px, so it
-     carries the matching media query and a phone never fetches it.
+     One preload for the one hero photograph, full width at every size.
      imagesrcset/imagesizes repeat the <source> exactly -- without them
      the preload picks a different candidate than the <picture> does
      and the image is fetched twice. -->
 <link rel="preload" as="image" type="image/webp"
       href="images/oli-group.webp"
       imagesrcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w"
-      imagesizes="(max-width: 900px) 100vw, 50vw"
-      fetchpriority="high">
-<link rel="preload" as="image" type="image/webp" media="(min-width: 901px)"
-      href="images/oli04281.webp"
-      imagesrcset="images/oli04281-800.webp 800w, images/oli04281.webp 1600w"
-      imagesizes="50vw"
+      imagesizes="100vw"
       fetchpriority="high">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
      overrides) and the commerce flag. It no longer carries a drop-close
@@ -298,23 +290,16 @@
        alone was most of the first screen and the clothes under it
        started below the fold. Shorter, and the grid is in view while
        the banner is still on it. */
-    height: 56vw;
-    max-height: 860px;
-    min-height: 420px;
+    /* Nearly the whole first screen, like the reference (860px of a
+       900px window at 1440). The announcement bar is the rest. */
+    height: min(calc(100svh - 40px), 920px);
+    min-height: 520px;
     padding: 0;
     overflow: hidden;
     background: var(--surface);
   }
 
-  /* Two square frames on desktop: the four-model group shot and the
-     polo pair. Each object-position keeps every figure whole. */
-  .hero-art {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: minmax(0, 1fr);
-    height: 100%;
-    width: 100%;
-  }
+  .hero-art { display: block; height: 100%; width: 100%; }
   /* The frame carries the page's own surface colour, so the moment
      before the photograph decodes is a dark panel rather than a flat
      black hole the width of the screen. */
@@ -325,8 +310,18 @@
     display: block;
     object-fit: cover;
   }
-  .hero-figure--main img { object-position: center 35%; }
-  .hero-figure--side img { object-position: center 55%; }
+  /* Faces and garments in frame, concrete and sky trimmed. */
+  .hero-figure img { object-position: center 30%; }
+
+  /* Motion: the photograph settles from a slight zoom as the page
+     opens, and the one link rises in after it. Slow and once. */
+  @keyframes hero-settle { from { transform: scale(1.08); } to { transform: scale(1); } }
+  @keyframes hero-rise { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  .hero-figure img { animation: hero-settle 2.6s cubic-bezier(.16, .7, .2, 1) both; will-change: transform; }
+  .hero-cta { animation: hero-rise .9s cubic-bezier(.2, .7, .2, 1) .6s both; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-figure img, .hero-cta { animation: none; }
+  }
 
   /* A flat 20% black is what the reference banner uses, and measured
      on THIS photograph it was not nearly enough: pale concrete and a
@@ -350,14 +345,16 @@
         rgba(0, 0, 0, .62) 20%,
         rgba(0, 0, 0, .26) 31%,
         rgba(0, 0, 0, 0) 42%),
-      /* The bottom stop is the page background rather than black, so
-         the photograph dissolves into the grid under it instead of
-         ending on a hard edge against it. */
+      /* The bottom fade is gone. It existed to dissolve the photograph
+         into a near-black page; fading a photograph into white washes
+         its lower third out instead, and the reference simply ends its
+         hero on a clean edge against the grid. A short scrim stays
+         only where the CTA sits, so the button has something to read
+         against whatever the picture happens to be there. */
       linear-gradient(to top,
-        var(--bg) 0,
-        rgba(14, 14, 13, .70) 4%,
-        rgba(14, 14, 13, .30) 13%,
-        rgba(0, 0, 0, 0) 30%),
+        rgba(0, 0, 0, .46) 0,
+        rgba(0, 0, 0, .22) 9%,
+        rgba(0, 0, 0, 0) 22%),
       rgba(0, 0, 0, 0.12);
   }
 
@@ -638,10 +635,11 @@
   @media (max-width: 900px) {
     /* Still one full-bleed photograph on a phone. 3:4 gives the four
        figures room without the banner eating the whole screen. */
-    .hero { height: auto; max-height: none; aspect-ratio: 4 / 5; min-height: 0; }
-    .hero-art { grid-template-columns: 1fr; }
-    .hero-figure--side { display: none; }
-    .hero-figure--main img { object-position: center 72%; }
+    /* Taller on a phone too: the whole 2:3 photograph, all four head
+       to toe, capped so it never runs past the first screen. */
+    .hero { height: min(calc(100svh - 40px), 150vw); max-height: none; aspect-ratio: auto; min-height: 0; }
+    .hero-figure img { object-position: center 50%; }
+    .hero-figure img { object-position: center 72%; }
     .hero-cta { bottom: 28px; }
 
     /* Edge to edge, like the banner above it and like every other
@@ -887,15 +885,10 @@
   <section class="hero" aria-label="Asior Fall 2026 campaign">
     <div class="hero-art">
       <!-- HERO:START -->
-        <picture class="hero-figure hero-figure--main">
-          <source type="image/webp" srcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w" sizes="(max-width: 900px) 100vw, 50vw">
-          <source srcset="images/oli-group-800.jpg 800w, images/oli-group.jpg 1600w, images/oli-group-full.jpg 1717w" sizes="(max-width: 900px) 100vw, 50vw">
+        <picture class="hero-figure">
+          <source type="image/webp" srcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w" sizes="100vw">
+          <source srcset="images/oli-group-800.jpg 800w, images/oli-group.jpg 1600w, images/oli-group-full.jpg 1717w" sizes="100vw">
           <img src="images/oli-group.jpg" alt="Four models in Asior tees, tanks and sweat shorts on concrete steps" width="1600" height="2400" fetchpriority="high" decoding="async">
-        </picture>
-        <picture class="hero-figure hero-figure--side">
-          <source type="image/webp" srcset="images/oli04281-800.webp 800w, images/oli04281.webp 1600w" sizes="(max-width: 900px) 100vw, 50vw">
-          <source srcset="images/oli04281-800.jpg 800w, images/oli04281.jpg 1600w" sizes="(max-width: 900px) 100vw, 50vw">
-          <img src="images/oli04281.jpg" alt="Two models in black Asior polos and white sweat shorts" width="1600" height="2400" decoding="async">
         </picture>
   <!-- HERO:END -->
     </div>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asior</title>
 <meta name="description" content="Asior makes limited-run streetwear in small batches.">
-<meta name="theme-color" content="#0E0E0D">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="canonical" href="https://asiorclothing.com/product.html">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -2614,11 +2614,12 @@
       relHTML += `<section class="rel-section"><div class="rel-label">Recently Viewed</div>
         <div class="rel-grid shop-grid"${relCols(Math.min(priorViews.length, 4))}>${tiles(priorViews.slice(0, 4))}</div></section>`;
     }
-    /* The SMS signup now sits AFTER the related rail rather than
-       directly under Add to Bag. Same form, same consent text, same
-       list -- only its position in the page changed, so nothing about
-       what a shopper agrees to is different. */
-    relHTML += A.smsSignupHTML();
+    /* No SMS block here any more. The footer carries one on every
+       page, so a product page was rendering the same form, the same
+       consent sentence and the same list twice on one screen. The
+       footer's is the one that stays -- it is on every page, so
+       removing this one takes nothing away from anybody. Consent
+       wording is untouched; only the duplicate placement is gone. */
     relRoot.innerHTML = relHTML;
 
     /* These are .product cards now, and a .product starts hidden under
