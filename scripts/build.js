@@ -1103,9 +1103,35 @@ ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).
       <!-- Static, not a picker. One market is enabled in Shopify, so a
            dropdown here would offer a choice that does not exist. -->
       <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <button type="button" class="search-toggle" id="searchToggle"
+              aria-expanded="false" aria-controls="searchPanel" aria-label="Search our store">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="9" cy="9" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+          <line x1="13.6" y1="13.6" x2="18" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></line>
+        </svg>
+      </button>
       ${CART_LINK}
     </div>
   </header>
+
+  <!-- Search, as a panel from the top of the page rather than its own
+       route. Markup ships with every page so it works the moment the
+       icon is pressed; assets/site.js fetches the catalogue the first
+       time it opens and nothing before that. -->
+  <div class="search-panel" id="searchPanel" hidden>
+    <div class="search-panel-in" role="dialog" aria-modal="true" aria-labelledby="searchHeading">
+      <div class="search-panel-head">
+        <h2 class="search-heading" id="searchHeading">Search our store</h2>
+        <button type="button" class="search-close" id="searchClose" aria-label="Close search">Close</button>
+      </div>
+      <label class="search-field">
+        <span class="sr-only">Search products</span>
+        <input type="search" id="searchInput" autocomplete="off" placeholder="What are you looking for?">
+      </label>
+      <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+      <div class="search-results shop-grid" id="searchResults"></div>
+    </div>
+  </div>
 `;
 
 /* Policy pages carry the bar and a bare header: they are linked from
