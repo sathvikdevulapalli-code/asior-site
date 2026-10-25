@@ -118,6 +118,38 @@ for (const file of pages(ROOT)) {
   }
 }
 
+/* ---- the hero preload has to name a hero image --------------------
+
+   index.html preloaded images/look-02.webp for months after the hero
+   stopped using it. The tag kept working -- the file still exists, it
+   is a category tile further down the page -- so nothing failed and
+   nothing noticed: the browser just fetched a non-LCP image at high
+   priority while the two frames it actually paints queued behind it.
+
+   A preload that names an image the hero does not reference is always
+   that mistake, so it fails the build rather than waiting to be
+   spotted again. */
+{
+  const home = path.join(ROOT, 'index.html');
+  if (fs.existsSync(home)) {
+    const html = fs.readFileSync(home, 'utf8');
+    const heroBlock = (html.match(/<!-- HERO:START -->([\s\S]*?)<!-- HERO:END -->/) || [])[1] || '';
+    const heroImages = new Set(
+      [...heroBlock.matchAll(/images\/([A-Za-z0-9._-]+)\.(?:jpg|jpeg|png|webp|avif)/gi)]
+        .map(m => m[1].replace(/\.[0-9a-f]{8}$/, '').replace(/-(?:800|full|\d+w)$/, '')));
+    for (const tag of html.match(/<link[^>]+rel="preload"[^>]*as="image"[^>]*>/gi) || []) {
+      const href = (tag.match(/href="images\/([A-Za-z0-9._-]+)\.(?:jpg|jpeg|png|webp|avif)"/i) || [])[1];
+      if (!href) continue;
+      const base = href.replace(/\.[0-9a-f]{8}$/, '').replace(/-(?:800|full|\d+w)$/, '');
+      if (heroImages.size && !heroImages.has(base)) {
+        console.error(`  index.html  preloads images/${href} as the LCP image, but the hero does not use it`);
+        console.error(`      hero frames are: ${[...heroImages].join(', ')}`);
+        hits++;
+      }
+    }
+  }
+}
+
 if (hits) {
   console.error(`\ncheck-slop: ${hits} banned item(s) in the built site.`);
   process.exit(1);

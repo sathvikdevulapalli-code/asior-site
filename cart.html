@@ -103,12 +103,19 @@
     .cart-layout { grid-template-columns: 1fr; gap: 28px; padding-top: 28px; }
   }
 
+  /* 9vh above and below put ~150px of nothing around a single line,
+     and the wrapper's own 10vh bottom padding sat under that again, so
+     an empty cart was most of a screen of black between the rule and
+     the footer. The line, the link, then the footer. */
   .cart-empty {
     text-align: center;
-    padding: 9vh 0;
+    padding: 44px 0 56px;
     color: var(--muted);
     font-size: 13px;
   }
+
+  /* An empty cart has nothing below it worth 10vh of clearance. */
+  .cart-wrap:has(.cart-empty) { padding-bottom: 24px; }
 
   .cart-empty a { text-decoration: underline; color: var(--ink); }
 
