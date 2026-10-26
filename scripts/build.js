@@ -994,10 +994,17 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    Free shipping over $75 is a real Shopify rate (see CLAUDE.md,
    Discounts), so it leads. The reference's own "$100" line is not
    carried across. */
+/* Three facts, each read back from Shopify: the automatic 2-piece
+   discount, the live free-shipping rate and the one discount code.
+
+   The code's message carries "one offer per order" because the 15% is
+   an automatic discount that does not combine with it. Two offers in
+   one rotation, with nothing said, reads as 25% off to anyone who adds
+   them up. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
   'Free shipping on US orders over $75',
-  '10% off your first order. Code ASIORTEN',
+  '10% off your first order. Code ASIORTEN. One offer per order',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">

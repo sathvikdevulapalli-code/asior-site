@@ -81,10 +81,58 @@ founder's direction to sell through the current stock:
 
 Neither is a code, so ASIORTEN is still the only code the site names.
 
+Where the 2-piece offer appears, and in what words. One helper,
+`multiBuyOfferLine(qty)` in `assets/site.js`, produces the only
+sentence: "Add any second piece for 15% off" below the minimum and
+"15% off applied at checkout" at or above it. It is used by the
+product page, under Add to bag, and by the cart drawer, under the
+free-shipping bar. The quantity is the real cart quantity, cached by
+`renderCartCount` and announced on the `asior:cartqty` event, never a
+count kept separately. At exactly one item the drawer also offers up
+to two real pieces to be the second one, labelled "Pair it with": live
+catalogue, live `quantityAvailable`, nothing drawn if either fetch
+fails, nothing drawn for a product whose size does not name one
+variant (it could not be added from the drawer), and adding goes
+through `addToShopifyCart` like every other add. No badge on any grid
+card. All of it is gated on `MULTI_BUY`.
+
+While that automatic discount is live, ASIORTEN steps aside rather than
+sitting beside it: the product page's trustline drops the code, the
+cart page's sentence says it does not combine with the 2-piece offer,
+and the announcement bar's code message carries "one offer per order".
+Two offers stated side by side with nothing said add up to 25% in a
+shopper's head.
+
 Discount *amounts* are never computed here. Shopify rounds per line
 (3 x $42.99 at 10% is 3 x $4.29 = $12.87, not $12.897), so the figure
 shown must come from the Storefront cart's `discountAllocations` /
 `discountCodes` or it will disagree with checkout.
+
+## Sold-out capture goes to the Email List
+
+There is **no back-in-stock flow in Klaviyo** on this account. 18 flows
+exist and none is on that trigger, checked 2026-10-26 — and the Fall
+pieces are not being restocked, so there is nothing for one to announce.
+The site used to post sold-out signups to
+`/client/back-in-stock-subscriptions/` and tell the shopper "we'll email
+you the moment it's back". Nothing could ever send that mail, so every
+one of those signups went nowhere.
+
+What a sold-out size or a sold-out product offers instead is **"get
+first access to the next drop"**, subscribing to the same **Email List**
+(`KLAVIYO_EMAIL_LIST_ID`, `TFEDaD`) the footer signup feeds. The Email
+Welcome Series flow on that list is live, so the signup is answered.
+`klaviyoNextDropSignup(email, meta)` in `assets/site.js` owns it; it is
+the only sold-out capture, on the product page and in quick view alike.
+Because it is the same list and the same real marketing consent as the
+footer, every form calling it carries the footer's consent sentence
+verbatim.
+
+Do not reintroduce back-in-stock wording — "email me when it's back",
+"notify me when this is back", a restock alert — unless a
+back-in-stock flow actually exists in Klaviyo and is Live. "Notify me"
+on a `NEXT_DROP` COMING card is a different thing and is fine: it goes
+to the early-access list and that mail does get sent.
 
 ## Data sources
 
@@ -124,11 +172,14 @@ lives in `assets/promo-config.js`:
 - The old flat rates still exist as `(backup)` methods behind USPS, now
   $10.90/$19.90 Standard and $12.90/$34.90 Economy. They are a fallback
   if the carrier API fails, not the advertised price. The $4.90 / $6.90
-  / $9.90 figures this file used to list are gone.
+  / $9.90 figures this file used to list are gone. `shipping-policy.html`
+  was still publishing that retired rate card as the live one until
+  2026-10-26; it now says the US charge is calculated at checkout and
+  states only the $75 threshold.
 - International: USPS, DHL Express, DHL eCommerce and FedEx, all
   carrier-calculated and shown at checkout.
-- Dispatch 1–2 business days. That is handling time, not delivery, and
-  it is not currently stated on the site.
+- Dispatch 1–2 business days. That is handling time, not delivery. It
+  is stated on `shipping-policy.html` and nowhere else.
 - Sathvik confirmed US and international shipping on 2026-10-11. The
   public policy says international destinations and rates are shown at
   checkout; it does not claim a country count. The Shopify Admin policy
@@ -169,17 +220,34 @@ and fails on a hit, so this list is enforced rather than remembered:
 - Ratings of any kind — stars, numeric averages, review counts.
 - AI-generated product or model images. Real photos only.
 
-**Palette:** white page, black type. `--bg #FFFFFF`, `--ink #000000`,
-`--muted #666666` (5.74:1), tiles on `--surface #F5F5F5`, hairlines
-`--line #E6E6E6`, control boundaries `--field-line #767676`. The
-primary action inverts: black fill, white caps, square. The
-announcement bar is black with white caps. No other colour except the
-product photographs themselves.
+**Palette:** black page, off-white type. `--bg #0B0B0C`,
+`--ink #E8E8EA`, `--muted #9A9AA0` (7.0:1), tiles on
+`--surface #161618`, chrome hover `--surface-hi #1E1E21`, inactive tabs
+`--panel-bg #141416`, hairlines `--line #26262A`, control boundaries
+`--field-line #6C6C73` (3.4:1). The primary action inverts: off-white
+fill, near-black caps, square. The announcement bar is `#141416` with
+off-white caps. No other colour except the product photographs
+themselves.
 
-This replaced the near-black theme on 2026-10-25, at the founder's
-direction, to match the reference UI. Any rule that hardcodes a dark
-value instead of reading a token is a bug, not a style: that is what
-made the theme flip a day's work rather than a token change.
+Black theme, founder's decision 2026-10-26. The white palette from
+2026-10-25 is retired. `scripts/check-slop.js` fails the build if
+`--bg` in `assets/site.css` is a light value (relative luminance
+0.1 or more), so a flip back to white cannot land by accident — if it
+is ever reversed on purpose, that guard changes in the same commit.
+Body text clears 4.5:1 on `#0B0B0C` and control boundaries clear 3:1.
+
+**Not pure white on pure black.** Helvetica at 14px blooms in that
+pairing, which is why the page is a near-black and the type an
+off-white, and why small text takes a weight step rather than more
+size.
+
+The site went white on 2026-10-25 to match the reference UI and back
+to black on 2026-10-26, both at the founder's direction. The
+reference's structure stays; its background does not. Any rule that
+hardcodes a colour instead of reading a token is a bug, not a style —
+that is what made each flip a day's work rather than a token change,
+and the leftovers that had to be hunted both times were
+`theme-color` metas, hero gradients and the card's touch control.
 
 **Type:** the system Helvetica stack, no webfont for the interface
 (`Helvetica, 'Helvetica Neue', Arial, sans-serif`). Body 14px/400. The
@@ -190,8 +258,10 @@ photos edge to edge on mobile.
 
 **The card.** One definition, used by every grid — home, shop,
 collection, archive, related, search. 4:5 image on `--surface`,
-`object-fit: cover`. Title 12px/700 uppercase at 0.6px tracking, one
-line with ellipsis; price 14px/400 under it; both left-aligned under
+`object-fit: cover`. Title 14px/500 at normal tracking and **not**
+uppercased in CSS — product names are already typed in caps where they
+belong in the Shopify data, and transforming here shouts the ones that
+are not. Price 14px/400 in `--muted` under it; both left-aligned under
 the photograph's left edge. A `+` circle bottom-right of the image
 reveals the size row. Badges are small black boxes with white caps,
 top-left. Sold-out products stay in the grid with their badge.
@@ -205,15 +275,24 @@ fix.
 
 **The header.** One row at every width: nav left, Asior wordmark
 centred, market / search / cart right. Transparent with white text
-over a hero photograph, solid white with black text once scrolled or
-on any page without one. A search icon opens a panel from the top of
+over a hero photograph, solid with off-white text once scrolled or on
+any page without one.
+
+The nav panel lives inside `<header>`, which is positioned and so
+opens its own stacking context: a panel `z-index` is scoped to the
+header, not the page. The scrim is appended to `<body>`, so it
+outranks the whole header unless `body.nav-open .site-header` lifts
+it. That is not a detail — getting it wrong made the mobile menu
+completely untappable, and nothing about it looks broken in a
+screenshot. A search icon opens a panel from the top of
 the page — `wireSearch()` in `assets/site.js`, on every page, with the
 catalogue fetched on first open and never before.
 
 **The hero.** One full-bleed landscape photograph, close to the first
 screen's height, with a single CTA near the bottom. A scrim at the top
-for the header and a short one at the bottom for the CTA; no fade into
-the page, which washes out a photograph on white. The homepage hero is one full-bleed
+for the header and a short one at the bottom for the CTA, and no fade
+into the page: on white it washed the photograph out, and on black it
+is not needed. The homepage hero is one full-bleed
 photograph (the four-model group shot), not a split; the founder asked
 for that on 2026-10-24. Desktop header is one row from 1180px up: nav
 left, wordmark centred, market and bag right.

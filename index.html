@@ -166,11 +166,11 @@
     margin: 0;
   }
 
-  .peek-price { font-family: var(--font-mono); font-size: 15px; color: var(--ink-dim); }
+  .peek-price { font-family: var(--font-mono); font-size: var(--t-base); color: var(--ink-dim); }
 
   .peek-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
@@ -193,7 +193,7 @@
     min-height: 1em;
   }
 
-  .peek-bis {
+  .peek-drop {
     border-top: 1px solid var(--line);
     padding-top: 14px;
     display: grid;
@@ -203,10 +203,10 @@
   /* An author `display` beats the UA's `[hidden] { display: none }`, so
      without this the capture was visible on every piece including the
      ones you can buy. */
-  .peek-bis[hidden] { display: none; }
+  .peek-drop[hidden] { display: none; }
 
-  .peek-bis-row { display: flex; gap: 8px; align-items: flex-end; }
-  .peek-bis-row .field { flex: 1 1 auto; min-width: 0; }
+  .peek-drop-row { display: flex; gap: 8px; align-items: flex-end; }
+  .peek-drop-row .field { flex: 1 1 auto; min-width: 0; }
 
   .peek-trust {
     list-style: none;
@@ -462,7 +462,7 @@
   .campaign-title {
     margin: 0;
     font-family: var(--font);
-    font-size: clamp(30px, 3.4vw, 52px);
+    font-size: var(--t-xl);
     font-weight: 500;
     line-height: 1.04;
     letter-spacing: -0.025em;
@@ -521,7 +521,7 @@
   .story-head {
     margin: 0;
     font-family: var(--font);
-    font-size: clamp(28px, 2.8vw, 44px);
+    font-size: var(--t-xl);
     font-weight: 500;
     line-height: 1.08;
     letter-spacing: -0.025em;
@@ -669,7 +669,6 @@
        alone loses to an explicit height. */
     .campaign-frame { height: auto; aspect-ratio: 4 / 5; }
     .campaign-copy { left: 16px; right: 16px; bottom: 28px; max-width: none; }
-    .campaign-title { font-size: clamp(32px, 10vw, 48px); }
     .campaign-note { margin-top: 12px; }
 
     /* Picture first on a phone -- the photograph is the hook, and a
@@ -677,7 +676,6 @@
     .story { grid-template-columns: 1fr; }
     .story-figure { order: -1; height: auto; aspect-ratio: 4 / 5; }
     .story-copy { padding: 30px 20px 36px; }
-    .story-head { font-size: clamp(26px, 7.2vw, 36px); }
     .story-link { align-self: stretch; justify-content: center; }
 
     .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
@@ -710,7 +708,7 @@
     background: none;
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.03em;
     cursor: pointer;
     border-radius: 0;
@@ -757,7 +755,7 @@
 
   .qa-msg {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.05em;
     color: var(--muted);
     align-self: center;
@@ -769,7 +767,7 @@
     display: none;
     padding: 6vh 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--t-sm);
   }
 
   .shop-empty.show { display: block; }
@@ -802,7 +800,7 @@
 
   @media (max-width: 640px) {
     header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
-    header .mark { font-size: 13px; }
+    header .mark { font-size: var(--t-sm); }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
        page used to redeclare for itself is gone -- it was also
@@ -869,7 +867,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
     </div>
   </div>
   <header class="site-header">
@@ -1693,7 +1691,7 @@
                  same information for a sighted shopper. */
               return `<button type="button" class="qa-size${v.availableForSale ? '' : ' unavailable'}"
                         data-variant-id="${A.escapeAttr(v.id)}" data-size="${A.escapeAttr(size)}"
-                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out \u2014 ask to be emailed when it is back`}"
+                        aria-label="${v.availableForSale ? `Size ${size}` : `Size ${size}, sold out \u2014 get first access to the next drop`}"
                         aria-pressed="false">${A.escapeHtml(size)}</button>`;
             }).join('')}
           </div>` : ''}
@@ -1702,20 +1700,23 @@
         <p class="peek-msg" id="peekMsg" role="status" aria-live="polite"></p>
 
         <!-- A sold-out piece was a dead end: the chips were disabled and
-             that was the end of the journey. The same back-in-stock
-             capture the product page offers now lives here, so a
-             stockout becomes a demand signal instead. It says nothing
-             about when -- we do not know, and a restock promise we
-             cannot keep is worse than none. -->
-        <div class="peek-bis" id="peekBis" ${allOut ? '' : 'hidden'}>
-          <div class="peek-label" id="peekBisLabel">Email me when it's back</div>
-          <div class="peek-bis-row">
-            <label class="sr-only" for="peekBisEmail">Email address</label>
-            <input class="field" type="email" id="peekBisEmail" name="email" placeholder="Email"
+             that was the end of the journey. The same capture the
+             product page offers now lives here, so a stockout becomes a
+             demand signal instead. It offers the next drop, not a
+             restock alert: there is no back-in-stock flow in Klaviyo to
+             send one, and these pieces are not being restocked. -->
+        <div class="peek-drop" id="peekDrop" ${allOut ? '' : 'hidden'}>
+          <div class="peek-label" id="peekDropLabel">Get first access to the next drop</div>
+          <div class="peek-drop-row">
+            <label class="sr-only" for="peekDropEmail">Email address</label>
+            <input class="field" type="email" id="peekDropEmail" name="email" placeholder="Email"
                    autocomplete="email" spellcheck="false" required>
-            <button type="button" class="btn btn--ghost btn--sm" id="peekBisBtn">Notify me</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="peekDropBtn">Get first access</button>
           </div>
-          <p class="peek-msg" id="peekBisMsg" role="status" aria-live="polite"></p>
+          <p class="peek-msg" id="peekDropMsg" role="status" aria-live="polite"></p>
+          <!-- Same list and the same real marketing consent as the
+               footer signup, so it carries the footer's sentence. -->
+          <p class="peek-msg">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
         </div>
         <!-- The same lines the product page states, read from the same
              helpers so neither sentence can say one thing here and
@@ -1782,48 +1783,49 @@
           picked = null;
           addBtn.disabled = true;
           msg.textContent = '';
-          openPeekBis(b.dataset.size, v);
+          openPeekDrop(b.dataset.size);
           return;
         }
 
         picked = v;
         addBtn.disabled = !picked;
         msg.textContent = '';
-        if (!allOut) document.getElementById('peekBis').hidden = true;
+        if (!allOut) document.getElementById('peekDrop').hidden = true;
         A.recordSizeChoice(b.dataset.size);
       });
     }
 
-    /* Back in stock. The variant matters -- Klaviyo subscribes against a
-       specific variant, so asking for a sold-out M has to send the M. */
-    let bisVariant = allOut ? (variants[0] || null) : null;
-    const bisBox = document.getElementById('peekBis');
+    /* Next drop. Only the size the shopper wanted matters now -- the
+       signup is a list subscribe, not a per-variant alert. */
+    let soldOutSize = null;
+    const bisBox = document.getElementById('peekDrop');
 
-    function openPeekBis(sizeLabel, variant) {
-      if (variant) bisVariant = variant;
-      document.getElementById('peekBisLabel').textContent =
-        sizeLabel ? `Sold out in ${sizeLabel}. Email me when it's back.` : "Email me when it's back";
-      document.getElementById('peekBisMsg').textContent = '';
+    function openPeekDrop(sizeLabel) {
+      soldOutSize = sizeLabel || null;
+      document.getElementById('peekDropLabel').textContent =
+        sizeLabel
+          ? `Sold out in ${sizeLabel}. Get first access to the next drop.`
+          : 'Get first access to the next drop';
+      document.getElementById('peekDropMsg').textContent = '';
       bisBox.hidden = false;
     }
 
-    document.getElementById('peekBisBtn').addEventListener('click', async () => {
-      const input = document.getElementById('peekBisEmail');
-      const bmsg = document.getElementById('peekBisMsg');
-      const btn = document.getElementById('peekBisBtn');
+    document.getElementById('peekDropBtn').addEventListener('click', async () => {
+      const input = document.getElementById('peekDropEmail');
+      const bmsg = document.getElementById('peekDropMsg');
+      const btn = document.getElementById('peekDropBtn');
       if (!input.checkValidity()) { input.reportValidity(); return; }
       btn.disabled = true;
       try {
-        await A.klaviyoBackInStock(input.value, bisVariant && bisVariant.id, {
-          product: product.title, handle: handle,
-          size: bisVariant ? (bisVariant.selectedOptions.find(o => o.name === 'Size') || {}).value || null : null,
-          source: 'quick_view',
+        await A.klaviyoNextDropSignup(input.value, {
+          product: product.title, handle: handle, size: soldOutSize,
+          source: 'quick_view_sold_out',
         });
-        bmsg.textContent = "You're on the list. We'll email you the moment it's back.";
+        bmsg.textContent = "You're on the list. We'll email you before the next drop.";
         input.style.display = 'none';
         btn.style.display = 'none';
       } catch (err) {
-        console.error('Quick view back-in-stock failed:', err);
+        console.error('Quick view next-drop signup failed:', err);
         bmsg.textContent = "That didn't go through. Try again in a moment.";
         btn.disabled = false;
       }
@@ -1831,7 +1833,7 @@
 
     // Sitewide "sold out" state opens the capture with no size named,
     // because no single size is the one that went.
-    if (allOut) openPeekBis(null, variants[0] || null);
+    if (allOut) openPeekDrop(null);
 
     addBtn.addEventListener('click', async () => {
       if (!picked || addBtn.disabled) return;

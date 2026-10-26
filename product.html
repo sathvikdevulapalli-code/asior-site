@@ -80,7 +80,7 @@
      Stacked one per row, the gallery measured 3313px at 1440 -- three
      full-column portraits, around three and a half screens of
      scrolling to get past the photographs of a single garment, and the
-     related products and the restock form sat below all of it. Paired
+     related products and the next-drop form sat below all of it. Paired
      from the second frame down, the same photographs take a little
      over half that, and a pair of 2:3 frames side by side reads as a
      spread rather than a queue.
@@ -177,7 +177,7 @@
 
   .pd-price {
     font-family: var(--font);
-    font-size: 15px;
+    font-size: var(--t-base);
     font-weight: 500;
     color: var(--ink);
     white-space: nowrap;
@@ -218,7 +218,7 @@
     text-align: left;
     margin-top: 20px;
     font-family: var(--font);
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.52px;
@@ -241,7 +241,7 @@
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font);
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 500;
     text-transform: uppercase;
     cursor: pointer;
@@ -258,7 +258,7 @@
   }
 
   /* A sold-out size stays visible and stays pressable -- it opens the
-     restock signup. Struck and dimmed, never hidden: CLAUDE.md, and
+     next-drop signup. Struck and dimmed, never hidden: CLAUDE.md, and
      the only honest proof that things sell. */
   .pd-size.unavailable {
     opacity: 0.45;
@@ -355,7 +355,7 @@
 
   .pd-tabpanel p { margin: 0 0 10px; }
   .pd-tabpanel p:last-child { margin-bottom: 0; }
-  .pd-tabpanel table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pd-tabpanel table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
   .pd-tabpanel th, .pd-tabpanel td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
 
   .pd-trustlines {
@@ -461,7 +461,7 @@
     min-width: 44px;
     height: 44px;
     padding: 0 10px;
-    font-size: 13px;
+    font-size: var(--t-sm);
     flex-shrink: 0;
   }
 
@@ -488,7 +488,7 @@
   }
 
   .pd-desc p, .pd-desc ul {
-    font-size: 13px;
+    font-size: var(--t-sm);
     line-height: 1.7;
     color: var(--ink);
   }
@@ -902,7 +902,7 @@
   .pd-spec dd {
     margin: 0;
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: var(--t-sm);
     line-height: 1.5;
     color: var(--ink);
   }
@@ -1053,10 +1053,23 @@
 
   .pd-measure-empty a { text-decoration: underline; }
 
-  /* ---------- back in stock ----------
-     Tapping a sold-out size used to do nothing at all. Now it turns a
-     dead end into a signup. */
-  .pd-bis {
+  /* The 2-piece offer line, directly under Add to bag. Muted, one
+     line, no box -- it is a fact about the order, not a banner. */
+  .pd-offer {
+    margin: 10px 0 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-offer:empty { display: none; }
+
+  /* ---------- next-drop signup ----------
+     Tapping a sold-out size used to do nothing at all, and then for a
+     while it offered a back-in-stock alert nothing could send. Now it
+     offers the one thing that is true: first word on the next drop. */
+  .pd-drop {
     margin-top: 16px;
     padding: 16px;
     border: 1px solid var(--line);
@@ -1064,9 +1077,9 @@
     display: none;
   }
 
-  .pd-bis.show { display: block; }
+  .pd-drop.show { display: block; }
 
-  .pd-bis-label {
+  .pd-drop-label {
     font-family: var(--font-mono);
     font-size: 11.5px;
     letter-spacing: 0.1em;
@@ -1075,10 +1088,10 @@
     margin-bottom: 12px;
   }
 
-  .pd-bis-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .pd-bis-row input { flex: 1; min-width: 150px; }
+  .pd-drop-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pd-drop-row input { flex: 1; min-width: 150px; }
 
-  .pd-bis-row button {
+  .pd-drop-row button {
     border: 1px solid var(--field-line);
     background: none;
     color: var(--ink);
@@ -1093,11 +1106,11 @@
                 color 200ms var(--ease-out), transform 160ms var(--ease-out);
   }
 
-  .pd-bis-row button:hover { border-color: var(--ink); background: var(--ink); color: var(--bg); }
-  .pd-bis-row button:active { transform: scale(0.97); }
-  .pd-bis-row button:disabled { opacity: 0.5; cursor: default; transform: none; }
+  .pd-drop-row button:hover { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+  .pd-drop-row button:active { transform: scale(0.97); }
+  .pd-drop-row button:disabled { opacity: 0.5; cursor: default; transform: none; }
 
-  .pd-bis-msg {
+  .pd-drop-msg {
     margin-top: 10px;
     font-size: 12px;
     color: var(--muted);
@@ -1143,7 +1156,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
     </div>
   </div>
   <header class="site-header">
@@ -1780,7 +1793,7 @@
        variant whose Size equalled undefined, found none, and reported
        Black sold out. Every value on both rows rendered unavailable,
        and because a click on an unavailable value opens the
-       back-in-stock form instead of selecting, the selection could
+       next-drop form instead of selecting, the selection could
        never be filled in and Add to bag never enabled. Kova and Ja-yu
        were unbuyable on the site for that reason. */
     const variantsMatching = sel => product.variants.filter(v =>
@@ -2033,17 +2046,26 @@
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
+            <!-- The 2-piece offer, under the control it applies to.
+                 Reads the cart quantity the header already has, so it
+                 costs no request, and renders nothing at all when
+                 ASIOR_OFFERS.MULTI_BUY is null. -->
+            <p class="pd-offer" id="pdOffer"></p>
             <p class="pd-stock-note" id="pdStockNote"></p>
 
-            <div class="pd-bis" id="pdBis">
-              <div class="pd-bis-label" id="pdBisLabel">Email me when this is back</div>
-              <div class="pd-bis-row">
-                <label class="sr-only" for="pdBisEmail">Email address</label>
-                <input class="field" type="email" id="pdBisEmail" name="email" placeholder="Email"
+            <div class="pd-drop" id="pdDrop">
+              <div class="pd-drop-label" id="pdDropLabel">Get first access to the next drop</div>
+              <div class="pd-drop-row">
+                <label class="sr-only" for="pdDropEmail">Email address</label>
+                <input class="field" type="email" id="pdDropEmail" name="email" placeholder="Email"
                        autocomplete="email" spellcheck="false" required>
-                <button type="button" id="pdBisBtn">Notify Me</button>
+                <button type="button" id="pdDropBtn">Get first access</button>
               </div>
-              <p class="pd-bis-msg" id="pdBisMsg" role="status" aria-live="polite"></p>
+              <p class="pd-drop-msg" id="pdDropMsg" role="status" aria-live="polite"></p>
+              <!-- Same list and same real marketing consent as the
+                   footer signup, so it carries the footer's sentence
+                   word for word. -->
+              <p class="pd-drop-msg">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
             </div>
 
             <ul class="pd-trustlines">
@@ -2210,10 +2232,10 @@
     // Shared by both the main size buttons and the sticky bar's —
     // whichever one a shopper actually taps, both stay in sync.
     function selectOption(option, value, wasUnavailable) {
-      if (wasUnavailable) { openBackInStock(value); return; }
+      if (wasUnavailable) { openNextDrop(value); return; }
       selection[option] = value;
       if (option === 'Size') A.recordSizeChoice(value);
-      hideBackInStock();
+      hideNextDrop();
       renderSizes(); renderPrice(); renderAddButton(); renderStockNote();
     }
 
@@ -2228,8 +2250,8 @@
       /* Nothing left in any size is a different state from "you have
          not picked one yet", and it was being handled as the latter:
          the button stayed on its initial disabled "Add to bag" and the
-         restock block never opened, because the only call to
-         openBackInStock sits past the needsPick return and is further
+         next-drop block never opened, because the only call to
+         openNextDrop sits past the needsPick return and is further
          guarded on a selected variant. A product with no size option
          at all -- the lanyard, the pendant -- never has a selected
          variant, so a sold-out one offered a dead grey button and no
@@ -2244,7 +2266,7 @@
         btn.disabled = true;
         if (buyBtn) buyBtn.disabled = true;
         if (stickyBtn) { stickyBtn.textContent = 'Sold out'; stickyBtn.disabled = true; }
-        openBackInStock(hasOptions ? selection.Size : '');
+        openNextDrop(hasOptions ? selection.Size : '');
         return;
       }
 
@@ -2280,37 +2302,39 @@
       btn.disabled = sold;
       if (buyBtn) buyBtn.disabled = sold;
       if (stickyBtn) { stickyBtn.textContent = label; stickyBtn.disabled = sold; }
-      if (sold) openBackInStock(v ? selection.Size : '');
+      if (sold) openNextDrop(v ? selection.Size : '');
     }
 
-    // ---- back in stock ----
-    function openBackInStock(sizeLabel) {
-      const box = document.getElementById('pdBis');
-      document.getElementById('pdBisLabel').textContent =
-        sizeLabel ? `Sold out in ${sizeLabel}. Email me when it's back.` : 'Email me when this is back';
+    // ---- next-drop signup ----
+    function openNextDrop(sizeLabel) {
+      const box = document.getElementById('pdDrop');
+      document.getElementById('pdDropLabel').textContent =
+        sizeLabel
+          ? `Sold out in ${sizeLabel}. Get first access to the next drop.`
+          : 'Get first access to the next drop';
       box.classList.add('show');
       box.dataset.size = sizeLabel || '';
     }
-    function hideBackInStock() {
-      const box = document.getElementById('pdBis');
+    function hideNextDrop() {
+      const box = document.getElementById('pdDrop');
       box.classList.remove('show');
-      document.getElementById('pdBisMsg').textContent = '';
+      document.getElementById('pdDropMsg').textContent = '';
     }
 
-    document.getElementById('pdBisBtn').addEventListener('click', async () => {
-      const input = document.getElementById('pdBisEmail');
-      const msg = document.getElementById('pdBisMsg');
-      const btn = document.getElementById('pdBisBtn');
-      const size = document.getElementById('pdBis').dataset.size;
+    document.getElementById('pdDropBtn').addEventListener('click', async () => {
+      const input = document.getElementById('pdDropEmail');
+      const msg = document.getElementById('pdDropMsg');
+      const btn = document.getElementById('pdDropBtn');
+      const size = document.getElementById('pdDrop').dataset.size;
       if (!input.checkValidity()) { input.reportValidity(); return; }
 
-      const wanted = product.variants.find(v => v.options.Size === size) || currentVariant();
       btn.disabled = true;
       try {
-        await A.klaviyoBackInStock(input.value, wanted && wanted.variantId, {
+        await A.klaviyoNextDropSignup(input.value, {
           product: product.name, handle: product.handle, size: size || null,
+          source: 'product_sold_out',
         });
-        msg.textContent = "You're on the list. We'll email you the moment it's back.";
+        msg.textContent = "You're on the list. We'll email you before the next drop.";
         input.style.display = 'none';
         btn.style.display = 'none';
       } catch (err) {
@@ -2392,6 +2416,20 @@
     // It no longer reads as something you get BY signing up, because
     // you don't: it is a standing public code, and saying otherwise
     // made a reward out of something anyone can already type in.
+    /* "Add any second piece for 15% off" until the cart holds two,
+       then "15% off applied at checkout". Both come from
+       A.multiBuyOfferLine, which reads ASIOR_OFFERS.MULTI_BUY and
+       returns nothing when there is no configured offer -- and the
+       quantity is the one the header already read from Shopify, not a
+       second count kept here. */
+    const offerEl = document.getElementById('pdOffer');
+    function renderOffer() {
+      if (!offerEl || !A.multiBuyOfferLine) return;
+      offerEl.textContent = A.multiBuyOfferLine(A.cartQuantity ? A.cartQuantity() : 0);
+    }
+    renderOffer();
+    document.addEventListener('asior:cartqty', renderOffer);
+
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {
       /* The free-shipping threshold next to the code, because the
@@ -2401,12 +2439,16 @@
          the live Shopify rate -- and freeShippingBadge() returns
          nothing at all if that rate is ever switched off. */
       const ship = A.freeShippingBadge ? A.freeShippingBadge() : '';
-      const multi = A.multiBuyBadge ? A.multiBuyBadge() : '';
+      /* The 2-piece offer has its own line under Add to bag now, so it
+         is not repeated here. ASIORTEN still steps aside while that
+         offer is live: the automatic discount does not combine with
+         it, and the two in one sentence would read as though they
+         stack. */
+      const multi = !!(A.multiBuyBadge && A.multiBuyBadge());
       const parts = [];
-      if (multi) parts.push(multi);
       if (ship) parts.push(ship.charAt(0).toUpperCase() + ship.slice(1));
       if (!multi) parts.push('Use code ASIORTEN for 10% off your first order');
-      propEl.textContent = parts.join('. ') + '.';
+      propEl.textContent = parts.length ? parts.join('. ') + '.' : '';
     }
 
     /* ---- quantity ----

@@ -54,7 +54,7 @@
     margin: 0;
     padding-top: 54px;
     font-family: var(--font);
-    font-size: 30px;
+    font-size: var(--t-lg);
     font-weight: 400;
     text-align: center;
     color: var(--ink);
@@ -111,7 +111,7 @@
     text-align: center;
     padding: 44px 0 56px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--t-sm);
   }
 
   /* An empty cart has nothing below it worth 10vh of clearance. */
@@ -163,7 +163,7 @@
   }
 
   .cart-item .name {
-    font-size: 13px;
+    font-size: var(--t-sm);
     letter-spacing: 0.03em;
   }
 
@@ -201,7 +201,7 @@
     border: 0;
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: var(--t-sm);
     line-height: 1;
     cursor: pointer;
   }
@@ -251,7 +251,7 @@
     border: none;
     color: var(--muted);
     font-family: var(--font-body);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
@@ -269,7 +269,7 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-size: 13px;
+    font-size: var(--t-sm);
   }
 
   .cart-summary .amount { font-family: var(--font-mono); font-size: 16px; }
@@ -292,7 +292,7 @@
     padding: 10px 12px;
     color: var(--ink);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--t-sm);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -362,7 +362,7 @@
      price we invented. */
   .cart-summary .was {
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: var(--t-sm);
     color: var(--muted);
     text-decoration: line-through;
     margin-right: 8px;
@@ -436,7 +436,7 @@
     border-bottom: 1px solid var(--field-line);
     padding: 8px 2px;
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 300;
     color: var(--ink);
     min-width: 150px;
@@ -533,7 +533,7 @@
   .checkout-btn:active { transform: scale(0.985); }
 
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header { padding: 20px; font-size: var(--t-xs); letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
@@ -599,7 +599,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
     </div>
   </div>
   <header class="site-header">
@@ -930,8 +930,15 @@
      close date does either — neither the collection nor the code has
      one. It is a standing public code, so it is not framed as a reward
      for signing up. */
+  /* While the automatic 2-piece discount is live, the code's sentence
+     has to say it is not an addition to it. ASIOR_OFFERS.MULTI_BUY is
+     the same source the rest of the site reads, so the clause
+     disappears by itself if that discount is ever ended. */
   function signupPropHTML() {
-    return 'Use code ASIORTEN for 10% off your first order.';
+    var A = window.Asior || {};
+    var multi = !!(A.multiBuyBadge && A.multiBuyBadge());
+    return 'Use code ASIORTEN for 10% off your first order.'
+      + (multi ? ' It does not combine with the 2 piece offer.' : '');
   }
 
   async function renderLive() {

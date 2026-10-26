@@ -100,6 +100,31 @@
   --font-script: 'Pinyon Script', 'Brush Script MT', cursive;
   --display-wide: normal;
 
+  /* ---- type scale ------------------------------------------------
+
+     Five text steps and two display steps, and nothing between them.
+     Measured across six pages before this existed: nine different
+     sizes were in use between 10px and 19px alone -- 10, 11, 12, 13,
+     14, 15, 16, 17, 19 -- which is what makes a page read as assembled
+     rather than designed. Near-duplicates a reader cannot tell apart
+     still cost the page its rhythm.
+
+       --t-xs    badges, consent lines, the market label
+       --t-sm    UI labels: buttons, filters, tabs
+       --t-base  body copy, product names and prices, controls
+       --t-md    sub-heads: product name, archive row, PDP price
+       --t-lg    page headings
+       --t-xl    the two display headings (story, campaign band)
+
+     The script wordmark is exempt: it is a different family at a
+     different optical size and does not belong to this scale. */
+  --t-xs: 11px;
+  --t-sm: 12px;
+  --t-base: 14px;
+  --t-md: 17px;
+  --t-lg: 27px;
+  --t-xl: clamp(30px, 3.4vw, 46px);
+
   /* Layout [measured / theme var] */
   --page-pad: 40px;          /* fluid container side padding at 1920 */
   --container: 1450px;       /* boxed pages: cart, contact, policies, footer */
@@ -262,7 +287,7 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
   border-bottom: 1px solid var(--field-line);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: var(--t-sm);
   padding: 10px 2px;
   transition: border-color 200ms var(--ease-out);
 }
@@ -291,7 +316,7 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
    Any button that isn't purely textual gets real press feedback. */
 .pressable { transition: transform 160ms var(--ease-out); }
 .pressable:active { transform: scale(0.97); }@media (max-width: 640px) {
-  header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+  header { padding: 20px; font-size: var(--t-xs); letter-spacing: 0.1em; }
   header .mark { font-size: 12px; }
 
   /* The scrolling link strip is replaced by a panel. Full viewport,
@@ -401,7 +426,7 @@ img { display: block; max-width: 100%; }/* At 360 the collection line filled the
 
 .sms-signup-title {
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: var(--t-base);
   letter-spacing: -0.01em;
   color: var(--ink);
   margin: 0 0 6px;
@@ -572,7 +597,7 @@ html.cart-drawer-locked { overflow: hidden; }
   background: none;
   border: 0;
   color: var(--ink);
-  font-size: 24px;
+  font-size: var(--t-lg);
   line-height: 1;
   cursor: pointer;
   padding: 0 4px;
@@ -584,7 +609,7 @@ html.cart-drawer-locked { overflow: hidden; }
 
 .cart-drawer-empty {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--muted);
   padding: 24px 0;
 }
@@ -612,12 +637,20 @@ html.cart-drawer-locked { overflow: hidden; }
 
 .cart-drawer-line-name {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--ink);
   margin-bottom: 3px;
 }
 
-.cart-drawer-line-variant,
+/* The size, as plain text. It used to share the stepper's rule below,
+   which drew a 1px box around the letter and put it next to the real
+   stepper looking like a control that does nothing. */
+.cart-drawer-line-variant {
+  font-size: var(--t-xs);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 /* Was the read-only text "Qty 1". A shopper who wanted two had to
    leave the drawer, go back to the product page and add it again. */
 .cart-drawer-line-qty {
@@ -639,7 +672,7 @@ html.cart-drawer-locked { overflow: hidden; }
   min-height: 30px;
   padding: 0;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--t-sm);
   line-height: 1;
   color: var(--ink);
   cursor: pointer;
@@ -811,7 +844,7 @@ html.cart-drawer-locked { overflow: hidden; }
 
 .btn--block { width: 100%; }
 .btn--lg { --btn-h: 56px; font-size: 12px; }
-.btn--sm { --btn-h: 32px; font-size: 10px; padding: 0 12px; letter-spacing: 0.12em; }
+.btn--sm { --btn-h: 32px; font-size: var(--t-xs); padding: 0 12px; letter-spacing: 0.12em; }
 
 /* Keyboard focus has to be visible on every one of these. The ring is
    --ink, which on the primary button is the same colour as its fill --
@@ -886,7 +919,7 @@ html.cart-drawer-locked { overflow: hidden; }
 
 @media (max-width: 900px) {
   .shop .coll-head { padding: 12px 0 18px; }
-  .shop .coll-title { font-size: 17px; }
+  .shop .coll-title { font-size: var(--t-md); }
 }
 
 @media (max-width: 640px) {
@@ -929,7 +962,7 @@ html.cart-drawer-locked { overflow: hidden; }
 .filter-title { font: 500 20px/1.2 var(--font); }
 .filter-close { border: 0; border-bottom: 1px solid currentColor; padding: 4px 0; background: none; color: var(--ink); font: 12px/1.3 var(--font); cursor: pointer; }
 .filter-group { min-width: 0; margin: 22px 0 0; padding: 0 0 18px; border: 0; border-bottom: 1px solid var(--line); }
-.filter-legend { margin-bottom: 12px; font-size: 13px; font-weight: 500; }
+.filter-legend { margin-bottom: 12px; font-size: var(--t-sm); font-weight: 500; }
 .filter-opt { display: flex; align-items: center; gap: 10px; min-height: 38px; font-size: 14px; cursor: pointer; }
 .filter-opt input { width: 16px; height: 16px; accent-color: var(--ink); }
 .filter-actions { padding-top: 20px; }
@@ -1035,7 +1068,7 @@ html.cart-drawer-locked { overflow: hidden; }
   padding-top: 14px;
   border-top: 1px solid var(--line);
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 500;
   letter-spacing: 0.1em;
   line-height: 1.4;
@@ -1364,7 +1397,7 @@ html.cart-drawer-locked { overflow: hidden; }
   border-radius: 999px;
   background: var(--ink);
   color: var(--bg);
-  font-size: 10px;
+  font-size: var(--t-xs);
   font-weight: 500;
   line-height: 17px;
   text-align: center;
@@ -1421,7 +1454,7 @@ html.cart-drawer-locked { overflow: hidden; }
     overflow-y: auto;
   }
   .nav-main.is-open { transform: translateX(0); }
-  .nav-main a { padding: 14px 0; font-size: 15px; width: 100%; }
+  .nav-main a { padding: 14px 0; font-size: var(--t-base); width: 100%; }
 
   .nav-close {
     display: block;
@@ -1708,7 +1741,7 @@ body {
 /* Long-form reading copy. Under 80 characters a line, per the design
    skill, and a touch more leading than the interface default. */
 .prose { max-width: 68ch; }
-.prose p { font-size: 15px; line-height: 1.65; margin: 0 0 16px; }
+.prose p { font-size: var(--t-base); line-height: 1.65; margin: 0 0 16px; }
 .prose p:last-child { margin-bottom: 0; }
 
 /* ---- curated rhythm ----
@@ -1719,12 +1752,12 @@ body {
    where equal weighting is the honest presentation. */
 .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: span 2; }
 .shop-grid--featured .product:first-child .product-img { aspect-ratio: 4 / 5; }
-.shop-grid--featured .product:first-child .product-title { font-size: 16px; }
+.shop-grid--featured .product:first-child .product-title { font-size: var(--t-md); }
 
 @media (max-width: 900px) {
   .shop-grid--featured .product:first-child { grid-column: span 2; grid-row: auto; }
   .shop-grid--featured .product:first-child .product-img { aspect-ratio: 4 / 5; }
-  .shop-grid--featured .product:first-child .product-title { font-size: 13px; }
+  .shop-grid--featured .product:first-child .product-title { font-size: var(--t-sm); }
 }
 
 /* The supplied leopard artwork is one brand signature, shown after the
@@ -2195,7 +2228,7 @@ body {
 .shop .coll-title,
 .arch .coll-title {
   text-align: left;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -2318,7 +2351,7 @@ body {
 .search-heading {
   margin: 0;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -2351,7 +2384,7 @@ body {
   background: none;
   color: var(--ink);
   font-family: var(--font);
-  font-size: 18px;
+  font-size: var(--t-md);
 }
 
 .search-field input::placeholder { color: var(--muted); }
@@ -2373,6 +2406,8 @@ html.search-open, html.search-open body { overflow: hidden; }
 
 @media (max-width: 640px) {
   .search-panel-in { padding: 20px 16px 28px; max-height: 92vh; }
+  /* 16px, not the scale: iOS zooms the page on focus for anything
+     under 16px in a text field, which throws the layout. */
   .search-field input { font-size: 16px; }
 }
 
@@ -2417,7 +2452,7 @@ html.search-open, html.search-open body { overflow: hidden; }
 }
 
 .cart-drawer-empty { padding: 34px 20px 40px; text-align: center; }
-.cart-drawer-empty p { margin: 0; color: var(--muted); font-size: 13px; }
+.cart-drawer-empty p { margin: 0; color: var(--muted); font-size: var(--t-sm); }
 
 .cart-drawer-shop {
   display: inline-flex;
@@ -2458,7 +2493,7 @@ html.search-open, html.search-open body { overflow: hidden; }
   background: var(--accent);
   color: var(--on-accent);
   font-family: var(--font);
-  font-size: 10px;
+  font-size: var(--t-xs);
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -2552,7 +2587,7 @@ html.search-open, html.search-open body { overflow: hidden; }
   background: var(--input-bg);
   color: var(--ink);
   font-family: var(--font);
-  font-size: 13px;
+  font-size: var(--t-sm);
 }
 
 .coming-notify button {
@@ -2587,4 +2622,149 @@ html.search-open, html.search-open body { overflow: hidden; }
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--ink);
+}
+
+/* ---- second-piece suggestions in the cart drawer -------------------
+   Drawn only at exactly one item, and only when ASIOR_OFFERS.MULTI_BUY
+   is configured. Tokens only: this block has to survive a palette
+   change without being touched. */
+.cart-suggests {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.cart-suggests-head {
+  font-size: var(--t-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.cart-suggest {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+}
+
+.cart-suggest-img {
+  flex: 0 0 auto;
+  display: block;
+  width: 56px;
+  height: 70px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.cart-suggest-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.cart-suggest-meta { flex: 1 1 auto; min-width: 0; }
+
+.cart-suggest-name {
+  display: block;
+  font-size: var(--t-sm);
+  color: var(--ink);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cart-suggest-name:hover { text-decoration: underline; }
+
+.cart-suggest-price {
+  font-size: var(--t-sm);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.cart-suggest-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cart-suggest-row[hidden] { display: none; }
+
+.cart-suggest-size {
+  appearance: none;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 6px;
+  background: none;
+  border: 1px solid var(--field-line);
+  border-radius: var(--input-radius);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+.cart-suggest-size:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.cart-suggest-size:disabled { opacity: .45; cursor: default; }
+/* The size this browser picked last time, marked and nothing more --
+   never preselected on a customer's behalf. */
+.cart-suggest-size.mine { border-color: var(--ink); }
+
+.cart-suggest-msg {
+  margin: 6px 0 0;
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+
+.cart-suggest-msg:empty { display: none; }
+
+/* The + that opens the size row, the same gesture as the grid card's.
+   Built from two rules so it can rotate into a close mark. */
+.cart-suggest-add {
+  flex: 0 0 auto;
+  position: relative;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--field-line);
+  border-radius: var(--input-radius);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease-out);
+}
+
+.cart-suggest-add::before,
+.cart-suggest-add::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.cart-suggest-add::before { width: 12px; height: 1.5px; }
+.cart-suggest-add::after  { width: 1.5px; height: 12px; }
+.cart-suggest-add:hover { background: var(--surface-hi); }
+
+/* The glyph turns, not the button: rotating the button turned its
+   1px border into a diamond. */
+.cart-suggest-add::before,
+.cart-suggest-add::after { transition: transform var(--dur) var(--ease-out); }
+.cart-suggest.is-picking .cart-suggest-add::before,
+.cart-suggest.is-picking .cart-suggest-add::after {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-suggest-add,
+  .cart-suggest-add::before,
+  .cart-suggest-add::after { transition: none; }
 }

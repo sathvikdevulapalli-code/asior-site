@@ -52,7 +52,7 @@
   }
 
   .fall-head { margin-bottom: 8px; }
-  .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: 13px; }
+  .fall-sub { margin: 8px 0 34px; max-width: 60ch; color: var(--muted); font-size: var(--t-sm); }
 
   .fall-grid {
     display: grid;
@@ -86,7 +86,7 @@
     background: rgba(11, 10, 8, 0.72);
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.05em;
     padding: 5px 8px;
     border-radius: 2px;
@@ -108,7 +108,7 @@
   }
   .placeholder-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.08em;
     text-transform: lowercase;
     color: var(--muted);
@@ -116,7 +116,7 @@
   .price-placeholder {
     margin-top: 4px;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.06em;
     text-transform: lowercase;
     color: var(--muted);
@@ -163,20 +163,20 @@
   .stock-note {
     margin-top: 4px;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.05em;
     text-transform: lowercase;
     color: var(--muted);
   }
 
-  .fall-empty { padding: 6vh 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
+  .fall-empty { padding: 6vh 0; color: var(--muted); font-size: var(--t-sm); max-width: 52ch; }
 
   @media (max-width: 900px) {
     .fall-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header { padding: 20px; font-size: var(--t-xs); letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
@@ -221,7 +221,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
     </div>
   </div>
   <header class="site-header">

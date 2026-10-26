@@ -41,8 +41,9 @@ const BANNED = [
   [/\b5%\s*(off|discount)/i, 'only ASIORTEN (10%) exists'],
   /* "free shipping" was banned here because no such rate existed and
      the phrase was pure slop. A real one does now: Domestic zone,
-     "Free shipping", $0.00, condition TOTAL_PRICE >= $99.00, active,
-     created 2026-10-22 and read back from the live delivery profile.
+     "Free shipping", $0.00, condition TOTAL_PRICE >= 75.00, active,
+     created 2026-10-22, lowered to $75 on 2026-10-26, read back from
+     the live delivery profile both times.
      The guard that matters is ASIOR_SHIPPING.VERIFIED, which gates
      every rendered mention. Re-add this line the day that rate is
      removed from Shopify. */
@@ -146,6 +147,40 @@ for (const file of pages(ROOT)) {
         console.error(`      hero frames are: ${[...heroImages].join(', ')}`);
         hits++;
       }
+    }
+  }
+}
+
+/* ---- the page stays dark ------------------------------------------
+
+   The palette has been flipped twice in two days -- white on
+   2026-10-25, black on 2026-10-26 -- and each time the thing that
+   made it a day's work rather than a token change was a rule
+   hardcoding a colour. The founder's standing decision is black.
+
+   This fails the build if --bg is ever a light value again. It reads
+   the token, converts it to relative luminance the same way the
+   contrast checks do, and refuses anything at or above 0.1 -- white
+   is 1.0, #0B0B0C is about 0.004, so the threshold is nowhere near
+   either and only trips on a genuine flip. */
+{
+  const css = fs.readFileSync(path.join(ROOT, 'assets', 'site.css'), 'utf8');
+  const m = css.match(/--bg:\s*#([0-9a-f]{6})\b/i);
+  if (!m) {
+    console.error('  assets/site.css  no --bg token found; the palette guard cannot run');
+    hits++;
+  } else {
+    const hex = m[1];
+    const chan = i => {
+      const v = parseInt(hex.slice(i * 2, i * 2 + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    const lum = 0.2126 * chan(0) + 0.7152 * chan(1) + 0.0722 * chan(2);
+    if (lum >= 0.1) {
+      console.error(`  assets/site.css  --bg is #${hex} (luminance ${lum.toFixed(3)}), which is a light page.`);
+      console.error('      The site is black by the founder\'s decision of 2026-10-26.');
+      console.error('      If that is being reversed on purpose, change this guard in the same commit.');
+      hits++;
     }
   }
 }

@@ -84,7 +84,7 @@
   .links-text { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 
   .links-label {
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -101,11 +101,11 @@
 
   /* Points right for a page on this site, up-and-out for one that
      leaves it. The only difference between the two rows. */
-  .links-arrow { flex: none; color: var(--muted); font-size: 13px; line-height: 1; }
+  .links-arrow { flex: none; color: var(--muted); font-size: var(--t-sm); line-height: 1; }
 
   @media (max-width: 600px) {
     .links { padding-top: 5vh; }
-    .links-mark { font-size: 30px; }
+    .links-mark { font-size: var(--t-lg); }
   }
 </style>
 <!-- HEAD:START -->

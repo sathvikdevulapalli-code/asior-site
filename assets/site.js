@@ -354,8 +354,17 @@
      rendered -- an empty cart says it is empty instead of showing
      nothing and leaving the visitor to guess. .show only changes its
      colour; it no longer controls whether the number exists. */
+  var lastCartQty = 0;
+
+  /* The cart's real quantity, as last read from Shopify. Every path
+     that changes the cart already funnels through renderCartCount --
+     add, update, remove and the page-load refresh -- so this is the
+     same number the header shows and costs no extra request. */
+  function cartQuantity() { return lastCartQty; }
+
   function renderCartCount(n) {
     var q = n > 0 ? n : 0;
+    lastCartQty = q;
     document.querySelectorAll('.cart-count').forEach(function (el) {
       el.textContent = String(q);
       // The icon alone says nothing, so the count rides on the link's
@@ -364,6 +373,12 @@
       if (link) link.setAttribute('aria-label', q === 1 ? 'Cart, 1 item' : 'Cart, ' + q + ' items');
       if (q > 0) el.classList.add('show'); else el.classList.remove('show');
     });
+    /* Anything that wants to say something different depending on
+       what is in the cart -- the product page's 2-piece line -- listens
+       for this rather than asking Shopify again. */
+    try {
+      document.dispatchEvent(new CustomEvent('asior:cartqty', { detail: { quantity: q } }));
+    } catch (err) { /* no CustomEvent constructor; the line just won't move */ }
   }
 
   async function refreshCartCount() {
@@ -791,6 +806,52 @@
         return;
       }
 
+      /* The suggestion's + opens its size row, the same gesture the
+         grid cards use. Kept here rather than borrowing the grid's
+         reveal, because that one hides .product until an
+         IntersectionObserver has seen it and a card inside a sliding
+         drawer would stay invisible. */
+      var sugToggle = e.target.closest('.cart-suggest-add');
+      if (sugToggle) {
+        var sug = sugToggle.closest('.cart-suggest');
+        var sugRow = sug && sug.querySelector('.cart-suggest-row');
+        if (!sugRow) return;
+        var opening = sugRow.hidden;
+        sugRow.hidden = !opening;
+        sug.classList.toggle('is-picking', opening);
+        sugToggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        if (opening) {
+          var firstSize = sugRow.querySelector('.cart-suggest-size');
+          if (firstSize) firstSize.focus();
+        }
+        return;
+      }
+
+      /* Adding one goes through addToShopifyCart, the same function
+         every other add on the site uses -- nothing about the cart
+         mutation or the checkout url is special here. */
+      var chip = e.target.closest('.cart-suggest-size');
+      if (chip) {
+        if (drawerBusy || chip.disabled) return;
+        var variantId = chip.getAttribute('data-variant-id');
+        if (!variantId) return;
+        var chipMsg = chip.closest('.cart-suggest').querySelector('.cart-suggest-msg');
+        drawerBusy = true;
+        chip.disabled = true;
+        if (chipMsg) chipMsg.textContent = 'adding\u2026';
+        try {
+          recordSizeChoice(chip.getAttribute('data-size'));
+          await addToShopifyCart(variantId, 1);
+          renderDrawer(await fetchCartForDrawer());
+        } catch (err) {
+          if (chipMsg) chipMsg.textContent = "that didn't go through. try again.";
+          chip.disabled = false;
+        } finally {
+          drawerBusy = false;
+        }
+        return;
+      }
+
       var step = e.target.closest('.cart-drawer-qty-up, .cart-drawer-qty-down');
       if (!step || drawerBusy) return;
       var lineId = step.getAttribute('data-line');
@@ -816,6 +877,119 @@
       if (e.key === 'Escape' && !drawerEl.hasAttribute('hidden')) closeCartDrawer();
     });
     return drawerEl;
+  }
+
+  /* ---- the second piece ----------------------------------------
+     "Add any second piece for 15% off" is a sentence that is easy to
+     read past. At exactly one item in the cart, the drawer offers two
+     real pieces that could be the second one.
+
+     Everything here is live Shopify data: the catalogue from the same
+     fetchCatalog() the search panel uses, the numbers from the same
+     fetchStock(). If either fails, or nothing qualifies, nothing is
+     drawn -- suggesting something that cannot be bought is worse than
+     suggesting nothing.
+
+     Only products whose single option is Size are offered, because a
+     suggestion has to be addable from inside the drawer. A Color +
+     Size product needs the choice the quick view gives it, and there
+     is no quick view in here. */
+  var suggestToken = 0;
+  /* The drawer opens and closes a lot. The catalogue does not change
+     between two of those, so it is fetched once per page. */
+  var suggestCatalog = null;
+
+  function suggestionCandidates(catalog, stock, inCart) {
+    var out = [];
+    for (var i = 0; i < catalog.length && out.length < 2; i++) {
+      var p = catalog[i];
+      if (!p || p.soldOut || p.needsChoice) continue;
+      if (!p.sizes || !p.sizes.length) continue;
+      if (inCart.indexOf(p.handle) !== -1) continue;
+      var entry = stock[p.handle];
+      var sellable = p.sizes.filter(function (s) {
+        if (!s.available) return false;
+        /* availableForSale is Shopify's own answer to "can this be
+           bought", and a quantity may only veto it where there is one
+           for that variant. The lanyard sits at -5 and is still
+           buyable, so a missing or negative number must never hide a
+           sellable size. */
+        if (!entry || !entry.known) return true;
+        var q = entry.byVariant[s.variantId];
+        return typeof q !== 'number' || q > 0;
+      });
+      if (!sellable.length) continue;
+      out.push({ product: p, sizes: sellable });
+    }
+    return out;
+  }
+
+  function suggestionHTML(pick) {
+    var p = pick.product;
+    var mine = preferredSize();
+    return '<div class="cart-suggest" data-handle="' + escapeAttr(p.handle) + '">'
+      + '<a class="cart-suggest-img" href="/products/' + encodeURIComponent(p.handle) + '.html"'
+      + ' tabindex="-1" aria-hidden="true">'
+      + (p.image ? imgTag(p.image, { alt: '', sizes: '80px' }) : '<span class="cart-drawer-ph"></span>')
+      + '</a>'
+      + '<div class="cart-suggest-meta">'
+      + '<a class="cart-suggest-name" href="/products/' + encodeURIComponent(p.handle) + '.html">'
+      + escapeHtml(p.name) + '</a>'
+      + '<div class="cart-suggest-price">' + p.priceLabel + '</div>'
+      + '<div class="cart-suggest-row" id="cart-suggest-row-' + escapeAttr(p.handle) + '" hidden>'
+      + pick.sizes.map(function (sz) {
+          return '<button type="button" class="cart-suggest-size' + (sz.size === mine ? ' mine' : '') + '"'
+            + ' data-variant-id="' + escapeAttr(sz.variantId) + '"'
+            + ' data-size="' + escapeAttr(sz.size) + '"'
+            + ' aria-label="Add size ' + escapeAttr(sz.size) + ' of ' + escapeAttr(p.name) + ' to cart">'
+            + escapeHtml(sz.size) + '</button>';
+        }).join('')
+      + '</div>'
+      + '<p class="cart-suggest-msg" role="status" aria-live="polite"></p>'
+      + '</div>'
+      + '<button type="button" class="cart-suggest-add" aria-expanded="false"'
+      + ' aria-controls="cart-suggest-row-' + escapeAttr(p.handle) + '"'
+      + ' aria-label="Choose a size for ' + escapeAttr(p.name) + '"></button>'
+      + '</div>';
+  }
+
+  function renderCartSuggestions(cart) {
+    /* Gated on the offer itself: with MULTI_BUY null there is no
+       reason to ask anyone for a second piece. */
+    var o = multiBuy();
+    if (!o || !cart || cart.totalQuantity !== 1) return;
+    var body = drawerEl && drawerEl.querySelector('[data-cart-body]');
+    if (!body) return;
+
+    var inCart = ((cart.lines && cart.lines.edges) || []).map(function (e) {
+      var m = e.node && e.node.merchandise;
+      return m && m.product && m.product.handle;
+    }).filter(Boolean);
+
+    // The drawer re-renders on every change; a response that lands
+    // after the next render belongs to a cart that no longer exists.
+    var token = ++suggestToken;
+    var catalogP = suggestCatalog
+      ? Promise.resolve(suggestCatalog)
+      : fetchCatalog().then(function (c) { suggestCatalog = c; return c; });
+    Promise.all([catalogP, fetchStock()]).then(function (res) {
+      if (token !== suggestToken) return;
+      var catalog = res[0];
+      var stock = res[1];
+      if (!catalog || !catalog.length || !stock) return;
+      var picks = suggestionCandidates(catalog, stock, inCart);
+      if (!picks.length) return;
+      var el = drawerEl.querySelector('[data-cart-body]');
+      if (!el) return;
+      el.insertAdjacentHTML('beforeend',
+        '<div class="cart-suggests">'
+        /* The offer is already stated once, right under the shipping
+           bar. This heading labels the list instead of saying it
+           again. */
+        + '<p class="cart-suggests-head">Pair it with</p>'
+        + picks.map(suggestionHTML).join('')
+        + '</div>');
+    }).catch(function () { /* no data, no suggestions */ });
   }
 
   function renderDrawer(cart) {
@@ -896,7 +1070,9 @@
        real Shopify automatic discount. One line, under the bar. */
     var qty = (cart.lines && cart.lines.edges || []).reduce(function (n, e) {
       return n + ((e.node && e.node.quantity) || 0); }, 0);
-    var mb = multiBuyLine(qty);
+    /* The same sentence the product page uses, so the offer is not
+       worded two ways in two places. */
+    var mb = multiBuyOfferLine(qty);
     if (mb) bar += '<p class="cart-multibuy">' + escapeHtml(mb) + '</p>';
 
     var head = drawerEl.querySelector('.cart-drawer-head');
@@ -916,6 +1092,8 @@
       + ' Discounts are applied there too.</p>'
       + '<a class="cart-drawer-checkout" href="' + escapeAttr(cart.checkoutUrl || '/cart.html') + '">Checkout</a>'
       + '<a class="cart-drawer-secondary" href="/cart.html">View cart</a>';
+
+    renderCartSuggestions(cart);
   }
 
   async function openCartDrawer(source) {
@@ -1225,45 +1403,33 @@
     } catch (err) { /* tracking must never block a real user action */ }
   }
 
-  /* Back-in-stock signup for a specific sold-out variant.
+  /* Sold-out capture goes to the normal email list, not a restock flow.
 
-     The dedicated Klaviyo endpoint needs the variant to exist in
-     Klaviyo's synced Shopify catalog, keyed as $shopify:::$default:::<id>.
-     If that sync isn't set up the call fails — so on failure we fall
-     back to subscribing them to the normal email list plus a "Back In
-     Stock Requested" event carrying the product and size. Either way the
-     signup is captured and nobody is silently dropped.
+     There is no back-in-stock flow in Klaviyo on this account -- 18
+     flows exist and none is on that trigger (checked 2026-10-26) -- and
+     the Fall pieces are not being restocked. So the old
+     /client/back-in-stock-subscriptions/ call took an address and
+     promised mail that nothing could ever send. Every "email me when
+     this is back" signup went nowhere.
 
-     Note for whoever runs Klaviyo: the flow message that sends these has
-     to be Live or Manual. Left in Draft, subscribers are accepted here
-     and then never messaged. */
-  async function klaviyoBackInStock(email, variantGid, meta) {
-    var numericId = String(variantGid || '').split('/').pop();
-    try {
-      var res = await fetch('https://a.klaviyo.com/client/back-in-stock-subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'revision': KLAVIYO_REVISION },
-        body: JSON.stringify({
-          data: {
-            type: 'back-in-stock-subscription',
-            attributes: {
-              channels: ['EMAIL'],
-              profile: { data: { type: 'profile', attributes: { email: email } } },
-            },
-            relationships: {
-              variant: { data: { type: 'catalog-variant', id: '$shopify:::$default:::' + numericId } },
-            },
-          },
-        }),
-      });
-      if (!res.ok) throw new Error('back-in-stock endpoint rejected');
-      await klaviyoTrack('Back In Stock Requested', meta, { email: email });
-      return 'subscribed';
-    } catch (err) {
-      await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email: email });
-      await klaviyoTrack('Back In Stock Requested', meta, { email: email });
-      return 'fallback';
-    }
+     What we can honestly offer a shopper who found a sold-out size is
+     first word on the next drop. That is the Email List the footer
+     signup already feeds (KLAVIYO_EMAIL_LIST_ID), and the Email
+     Welcome Series flow on it is live, so a signup here is actually
+     answered.
+
+     Same endpoint and same list as the footer means the same real
+     marketing consent, so every form calling this has to carry the
+     same consent sentence the footer does. */
+  async function klaviyoNextDropSignup(email, meta) {
+    // Stitches the onsite cookie to the address, same as every other
+    // signup path on the site.
+    klaviyoIdentify(email);
+    await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email: email });
+    // Which product and size sent them here is the useful part of the
+    // signal. klaviyoTrack swallows its own failures, so a tracking
+    // problem never fails a subscribe that already worked.
+    await klaviyoTrack('Next Drop Interest', meta, { email: email });
   }
 
   // -----------------------------------------------------------------
@@ -1927,13 +2093,21 @@
     var o = window.ASIOR_OFFERS && window.ASIOR_OFFERS.MULTI_BUY;
     return o && o.VERIFIED && o.MIN_QTY > 1 && o.PERCENT > 0 ? o : null;
   }
-  function multiBuyLine(qty) {
+  /* The offer, worded for the buy panel and the drawer alike: what to
+     do about it while the cart is short of the minimum, and
+     that it is already handled once the cart is there. One wording,
+     used everywhere, so the drawer and the product page cannot phrase
+     the same offer two ways. Returns '' when there is no configured
+     offer, so nothing renders. */
+  function multiBuyOfferLine(qty) {
     var o = multiBuy();
     if (!o) return '';
-    if (qty >= o.MIN_QTY) return o.PERCENT + '% off ' + o.MIN_QTY + '+ pieces, applied at checkout';
+    if ((qty || 0) >= o.MIN_QTY) return o.PERCENT + '% off applied at checkout';
+    if (o.MIN_QTY === 2) return 'Add any second piece for ' + o.PERCENT + '% off';
     var more = o.MIN_QTY - (qty || 0);
     return 'Add ' + more + ' more piece' + (more === 1 ? '' : 's') + ' for ' + o.PERCENT + '% off';
   }
+
   function multiBuyBadge() {
     var o = multiBuy();
     return o ? 'Any ' + o.MIN_QTY + ' pieces ' + o.PERCENT + '% off, applied at checkout' : '';
@@ -2041,7 +2215,8 @@
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
     multiBuyBadge: multiBuyBadge,
-    multiBuyLine: multiBuyLine,
+    multiBuyOfferLine: multiBuyOfferLine,
+    cartQuantity: cartQuantity,
     freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,
     imgTag: imgTag,
@@ -2063,7 +2238,7 @@
     klaviyoSubscribeToList: klaviyoSubscribeToList,
     klaviyoTrack: klaviyoTrack,
     trackCart: trackCart,
-    klaviyoBackInStock: klaviyoBackInStock,
+    klaviyoNextDropSignup: klaviyoNextDropSignup,
     dropState: dropState,
     launchDateLabel: launchDateLabel,
     getAnonId: getAnonId,
