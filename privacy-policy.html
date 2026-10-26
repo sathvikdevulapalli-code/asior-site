@@ -181,13 +181,19 @@
        nowhere else to go. The wordmark leads back to it and that's all. -->
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
+    <!-- Empty, and invisible, unless NEXT_DROP in launch-config.js has
+         a name and a real opensAt. assets/site.js fills it; nothing
+         here renders a placeholder, because a countdown with no date
+         behind it is the fake timer CLAUDE.md bans. -->
+    <p class="announce-drop" data-drop-countdown></p>
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
+      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
       <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
   <header class="site-header site-header--minimal">
-    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
+    <a class="mark" href="/" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
   </header>
   <!-- HEADER:END -->
 

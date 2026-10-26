@@ -991,11 +991,12 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   Free shipping over $99 is a real Shopify rate (see CLAUDE.md,
+   Free shipping over $75 is a real Shopify rate (see CLAUDE.md,
    Discounts), so it leads. The reference's own "$100" line is not
    carried across. */
 const ANNOUNCEMENTS = [
-  'Free shipping on US orders over $99',
+  'Any 2 pieces 15% off, applied at checkout',
+  'Free shipping on US orders over $75',
   '10% off your first order. Code ASIORTEN',
 ];
 

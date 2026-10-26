@@ -117,8 +117,14 @@
 
   <!-- HEADER:START -->
   <div class="announce" role="region" aria-label="Announcements">
+    <!-- Empty, and invisible, unless NEXT_DROP in launch-config.js has
+         a name and a real opensAt. assets/site.js fills it; nothing
+         here renders a placeholder, because a countdown with no date
+         behind it is the fake timer CLAUDE.md bans. -->
+    <p class="announce-drop" data-drop-countdown></p>
     <div class="announce-track" data-announce>
-      <p class="announce-msg is-on">Free shipping on US orders over $99</p>
+      <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
+      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
       <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
     </div>
   </div>
@@ -134,15 +140,41 @@
       <a href="/waitlist.html">Waitlist</a>
     </nav>
 
-    <a class="mark" href="/shop.html" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
+    <a class="mark" href="/" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
 
     <div class="header-right">
       <!-- Static, not a picker. One market is enabled in Shopify, so a
            dropdown here would offer a choice that does not exist. -->
       <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <button type="button" class="search-toggle" id="searchToggle"
+              aria-expanded="false" aria-controls="searchPanel" aria-label="Search our store">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="9" cy="9" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+          <line x1="13.6" y1="13.6" x2="18" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></line>
+        </svg>
+      </button>
       <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
     </div>
   </header>
+
+  <!-- Search, as a panel from the top of the page rather than its own
+       route. Markup ships with every page so it works the moment the
+       icon is pressed; assets/site.js fetches the catalogue the first
+       time it opens and nothing before that. -->
+  <div class="search-panel" id="searchPanel" hidden>
+    <div class="search-panel-in" role="dialog" aria-modal="true" aria-labelledby="searchHeading">
+      <div class="search-panel-head">
+        <h2 class="search-heading" id="searchHeading">Search our store</h2>
+        <button type="button" class="search-close" id="searchClose" aria-label="Close search">Close</button>
+      </div>
+      <label class="search-field">
+        <span class="sr-only">Search products</span>
+        <input type="search" id="searchInput" autocomplete="off" placeholder="What are you looking for?">
+      </label>
+      <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+      <div class="search-results shop-grid" id="searchResults"></div>
+    </div>
+  </div>
   <!-- HEADER:END -->
 
   <main id="main">

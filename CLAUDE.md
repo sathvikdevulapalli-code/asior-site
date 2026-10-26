@@ -66,12 +66,20 @@ the only code the site may mention. Any other discount copy is a bug —
 including "5% off", a welcome-signup percentage, or "subscriber
 pricing". None of those exist in Shopify.
 
-Free shipping over $99 is **not** in that list any more. It is a real
-Shopify rate: `Free shipping`, $0.00, condition `TOTAL_PRICE >= 99.00`,
-active in the Domestic zone, read back from the delivery profile on
-2026-10-23. `scripts/check-slop.js` used to fail on the phrase and no
-longer does. It is a shipping rate, not a discount code, so it does not
-make ASIORTEN any less the only code.
+Two more real offers exist, both set up in Shopify on 2026-10-26 at the
+founder's direction to sell through the current stock:
+
+- **Free US shipping at $75** (was $99). Domestic zone, `Free shipping`,
+  $0.00, condition `TOTAL_PRICE >= 75.00`. `FREE_THRESHOLD` in
+  `promo-config.js` mirrors it.
+- **Any 2 pieces 15% off**, a Shopify automatic discount
+  (`DiscountAutomaticNode/1570203828441`), 15% off the order at a
+  minimum quantity of 2, no code. It does not combine with ASIORTEN or
+  any other product/order discount, so never imply they stack.
+  `window.ASIOR_OFFERS.MULTI_BUY` in `promo-config.js` mirrors it; set it
+  to null the day the discount ends and every mention disappears.
+
+Neither is a code, so ASIORTEN is still the only code the site names.
 
 Discount *amounts* are never computed here. Shopify rounds per line
 (3 x $42.99 at 10% is 3 x $4.29 = $12.87, not $12.897), so the figure
@@ -110,7 +118,8 @@ lives in `assets/promo-config.js`:
   shopper's real rate is computed at checkout from their address, with
   a 15% handling adjustment on top. The site must therefore not quote a
   single US price; it says shipping is calculated at checkout.
-- **Free shipping over $99**, active, condition `TOTAL_PRICE >= 99.00`.
+- **Free shipping over $75**, active, condition `TOTAL_PRICE >= 75.00`
+  (lowered from $99 on 2026-10-26).
   This is the one shipping figure the site states outright.
 - The old flat rates still exist as `(backup)` methods behind USPS, now
   $10.90/$19.90 Standard and $12.90/$34.90 Economy. They are a fallback
