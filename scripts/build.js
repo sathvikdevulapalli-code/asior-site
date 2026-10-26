@@ -1000,6 +1000,11 @@ const ANNOUNCEMENTS = [
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
+    <!-- Empty, and invisible, unless NEXT_DROP in launch-config.js has
+         a name and a real opensAt. assets/site.js fills it; nothing
+         here renders a placeholder, because a countdown with no date
+         behind it is the fake timer CLAUDE.md bans. -->
+    <p class="announce-drop" data-drop-countdown></p>
     <div class="announce-track" data-announce>
 ${ANNOUNCEMENTS.map((m, i) =>
   `      <p class="announce-msg${i === 0 ? ' is-on' : ''}"${i === 0 ? '' : ' aria-hidden="true"'}>${esc(m)}</p>`).join('\n')}
@@ -1612,7 +1617,7 @@ function shopCard(p, eager, sizes) {
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
-${soldOut ? '          <span class="product-badge">Sold out</span>\n' : ''}          ${trigger}
+${soldOut ? '          <span class="product-badge product-badge--sold">Sold out</span>\n' : ''}          ${trigger}
 ${sizeRow ? `          ${sizeRow}\n` : ''}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>

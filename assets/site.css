@@ -2437,3 +2437,145 @@ html.search-open, html.search-open body { overflow: hidden; }
 }
 
 .cart-drawer-shop:hover { background: var(--accent-press); }
+
+/* ===================================================================
+   STOCK SIGNALS
+
+   Every number here is Shopify's own quantityAvailable, fetched live.
+   Nothing is computed, rounded up, or shown when the number is
+   unknown. CLAUDE.md bans invented stock and the FTC treats a false
+   low-stock message as a deceptive dark pattern, so "no data" renders
+   as nothing at all rather than as a safe-looking default.
+   =================================================================== */
+
+/* Badges stack down the top-left of the photograph. */
+.product-frame .product-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 4px 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* A product can be both new and low: the second sits under the first
+   rather than on top of it. */
+.product-frame .product-badge--new ~ .product-badge--low,
+.product-frame .product-badge--low ~ .product-badge--sold { top: 34px; }
+
+.product-badge--low {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* "N left" under a size chip on the card. data-left is only ever set
+   from a real positive count at or under the threshold. */
+.product .qa-size[data-left] { position: relative; }
+
+.product .qa-size[data-left]::after {
+  content: attr(data-left) " left";
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 3px);
+  transform: translateX(-50%);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.product-frame .quick-add { padding-bottom: 22px; }
+
+/* ---- the next drop ------------------------------------------------
+   All of this is inert until NEXT_DROP in launch-config.js is filled
+   in. :empty is what keeps the countdown slot from reserving space on
+   a page that has no drop to announce. */
+.announce-drop {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--announce-text);
+}
+
+.announce-drop:empty { display: none; }
+
+.hero-drop {
+  margin-top: 14px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.hero-drop:empty { display: none; }
+
+.product-badge--coming {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* A COMING card is deliberately not a buyable one: no price, no size
+   row, no add button. A date and a way to be told. */
+.product--coming .product-img { opacity: .82; }
+
+.coming-notify {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.coming-notify input {
+  flex: 1 1 120px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--field-line);
+  border-radius: 0;
+  background: var(--input-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13px;
+}
+
+.coming-notify button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.coming-notify button:disabled { opacity: .55; cursor: default; }
+.coming-notify.is-done input, .coming-notify.is-done button { display: none; }
+
+.coming-msg {
+  flex: 1 0 100%;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.coming-msg:empty { display: none; }

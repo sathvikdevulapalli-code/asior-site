@@ -903,7 +903,8 @@
       // Subtotal only. Shipping and any discount are Shopify's to
       // calculate at checkout, and a number we invent here would be one
       // we cannot charge.
-      + '<p class="cart-drawer-note">Shipping and discounts are calculated at checkout.</p>'
+      + '<p class="cart-drawer-note">US shipping is calculated from your address at checkout.'
+      + ' Discounts are applied there too.</p>'
       + '<a class="cart-drawer-checkout" href="' + escapeAttr(cart.checkoutUrl || '/cart.html') + '">Checkout</a>'
       + '<a class="cart-drawer-secondary" href="/cart.html">View cart</a>';
   }
@@ -1718,7 +1719,7 @@
        says "Sold out", because the spec is explicit that the Notify Me
        wording may only be used if it opens a working restock signup,
        and the grid card does not have one. The product page does. */
-    var badge = p.soldOut ? '<span class="product-badge">Sold out</span>' : '';
+    var badge = p.soldOut ? '<span class="product-badge product-badge--sold">Sold out</span>' : '';
 
     return '\n      <div class="product" data-handle="' + escapeAttr(p.handle) + '">'
       + '<div class="product-frame">'
@@ -1979,6 +1980,17 @@
 
   // -----------------------------------------------------------------
   window.Asior = {
+    wireHeroCta: wireHeroCta,
+    dropState: dropState,
+    dropConfig: dropConfig,
+    comingCard: comingCard,
+    wireComingNotify: wireComingNotify,
+    wireDropCountdown: wireDropCountdown,
+    fetchStock: fetchStock,
+    decorateStock: decorateStock,
+    sizeStockLabel: sizeStockLabel,
+    lowStockBadge: lowStockBadge,
+    isNewHandle: isNewHandle,
     /* Re-run the scroll reveal over a grid a page has just
        re-rendered, so new cards animate in instead of appearing. */
     observeReveal: observeReveal,
@@ -2173,6 +2185,286 @@
 
   wireHeaderScrollState();
   wireShopSearch();
+
+  /* ---- the next drop ----------------------------------------------
+
+     Everything here is driven by NEXT_DROP in launch-config.js and
+     renders NOTHING until the founder fills it in. That is the whole
+     design: a countdown with no real date behind it is the fake-timer
+     dark pattern CLAUDE.md bans and the FTC treats as deceptive, so
+     the empty state has to be silence rather than a placeholder.
+
+     dropState() is the single source of truth:
+       null        no drop configured, or the config is incomplete
+       'upcoming'  opensAt is in the future
+       'open'      opensAt has passed
+
+     At opensAt the page switches itself over on the next tick -- no
+     deploy, no edit, nothing for anyone to remember to do. */
+  function dropConfig() {
+    var d = (window.ASIOR_LAUNCH || {}).NEXT_DROP;
+    if (!d || !d.name || !d.opensAt) return null;
+    var t = Date.parse(d.opensAt);
+    if (isNaN(t)) return null;
+    return { name: d.name, at: t, handles: Array.isArray(d.handles) ? d.handles : [] };
+  }
+
+  function dropState() {
+    var d = dropConfig();
+    if (!d) return null;
+    return Date.now() < d.at ? 'upcoming' : 'open';
+  }
+
+  function dropCountdownText(at) {
+    var ms = at - Date.now();
+    if (ms <= 0) return '';
+    var s = Math.floor(ms / 1000);
+    var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
+    var m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if (d > 0) return d + 'd ' + h + 'h';
+    if (h > 0) return h + 'h ' + m + 'm';
+    return m + 'm ' + sec + 's';
+  }
+
+  /* One ticker, shared by every countdown element on the page. Stops
+     itself the moment the drop opens and re-renders what is on screen
+     so a visitor who sat on the page through the opening sees it
+     switch rather than a dead zero. */
+  var dropTimer = null;
+  function wireDropCountdown() {
+    var cfg = dropConfig();
+    var slots = document.querySelectorAll('[data-drop-countdown]');
+    if (!cfg || !slots.length) return;
+
+    var tick = function () {
+      var text = dropCountdownText(cfg.at);
+      if (!text) {
+        clearInterval(dropTimer);
+        dropTimer = null;
+        for (var i = 0; i < slots.length; i++) slots[i].textContent = '';
+        document.documentElement.classList.remove('drop-upcoming');
+        /* Re-render any grid that was showing COMING cards. */
+        var grids = document.querySelectorAll('[data-drop-grid]');
+        for (var g = 0; g < grids.length; g++) {
+          grids[g].dispatchEvent(new CustomEvent('drop:open', { bubbles: true }));
+        }
+        return;
+      }
+      for (var j = 0; j < slots.length; j++) {
+        slots[j].textContent = cfg.name + ' drops in ' + text;
+      }
+    };
+
+    document.documentElement.classList.add('drop-upcoming');
+    tick();
+    if (dropState() === 'upcoming') dropTimer = setInterval(tick, 1000);
+  }
+
+  /* A product in the drop, before it opens. Not a buyable card: no
+     price, no size row, no add. A date and a way to be told. */
+  function comingCard(p, at) {
+    var when = new Date(at);
+    var date = when.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return '\n      <div class="product product--coming" data-handle="' + escapeAttr(p.handle) + '">'
+      + '<div class="product-frame">'
+      + '<div class="product-img">' + (p.image ? imgTag(p.image, { alt: 'Asior ' + p.name, sizes: CARD_SIZES.grid }) : '')
+      + '</div>'
+      + '<span class="product-badge product-badge--coming">Coming ' + escapeHtml(date) + '</span>'
+      + '</div>'
+      + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
+      + '<form class="coming-notify" data-handle="' + escapeAttr(p.handle) + '">'
+      + '<label class="sr-only" for="notify-' + escapeAttr(p.handle) + '">Email me when '
+      + escapeHtml(p.name) + ' drops</label>'
+      + '<input type="email" id="notify-' + escapeAttr(p.handle) + '" required placeholder="Email address">'
+      + '<button type="submit">Notify me</button>'
+      + '<span class="coming-msg" role="status" aria-live="polite"></span>'
+      + '</form>'
+      + '</div>';
+  }
+
+  /* Notify Me on a COMING card goes to the existing early-access list.
+     No new list and no new flow: CLAUDE.md forbids both, and the list
+     already exists for exactly this. */
+  function wireComingNotify(root) {
+    var forms = (root || document).querySelectorAll('.coming-notify');
+    for (var i = 0; i < forms.length; i++) {
+      (function (form) {
+        if (form.dataset.wired) return;
+        form.dataset.wired = '1';
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var input = form.querySelector('input[type="email"]');
+          var msg = form.querySelector('.coming-msg');
+          if (!input.checkValidity()) { input.reportValidity(); return; }
+          var btn = form.querySelector('button');
+          btn.disabled = true;
+          try {
+            await klaviyoIdentify(input.value, {});
+            await klaviyoSubscribeToList(KLAVIYO_EARLY_ACCESS_LIST_ID, { email: input.value });
+            msg.textContent = "you're on the list.";
+            form.classList.add('is-done');
+          } catch (err) {
+            msg.textContent = "that didn't go through. try again.";
+            btn.disabled = false;
+          }
+        });
+      })(forms[i]);
+    }
+  }
+
+  /* The homepage CTA follows what there is to do.
+
+     Normally it sends you to the shop. When a drop is configured and
+     has not opened, the useful action is to be told when it does. And
+     when there is no drop AND most of the collection is gone, the shop
+     is mostly sold-out cards, so early access is the honest ask.
+
+     "Most of the collection" is measured from live availableForSale,
+     not guessed: two thirds or more of products unbuyable. With no
+     stock data it leaves the CTA alone. */
+  function wireHeroCta() {
+    var cta = document.querySelector('[data-hero-cta]');
+    if (!cta) return;
+    var state = dropState();
+    if (state === 'upcoming') {
+      cta.textContent = 'Get early access';
+      cta.setAttribute('href', '/waitlist.html');
+      return;
+    }
+    if (state === 'open') return;
+    fetchStock().then(function (stock) {
+      if (!stock) return;
+      var handles = Object.keys(stock);
+      if (handles.length < 4) return;
+      var gone = 0;
+      for (var i = 0; i < handles.length; i++) {
+        var e = stock[handles[i]];
+        if (e.known && e.total === 0) gone++;
+      }
+      if (gone / handles.length >= 0.66) {
+        cta.textContent = 'Get early access';
+        cta.setAttribute('href', '/waitlist.html');
+      }
+    });
+  }
+
+  /* ---- live per-size stock ----------------------------------------
+
+     Real quantityAvailable, fetched in its OWN request rather than
+     added to PRODUCT_CARD_FIELDS. That is deliberate and the comment
+     on PRODUCT_CARD_FIELDS says why: mixing quantityAvailable into the
+     catalogue query broke live images and pricing across browsers
+     earlier this launch. product.html already fetches quantities
+     separately for the same reason; this is the shared version.
+
+     Everything below fails silent. If the Storefront token cannot read
+     quantityAvailable, or the request fails, or a product comes back
+     without numbers, no stock line and no LOW STOCK badge is drawn.
+     Showing nothing is correct; guessing is not. */
+  var LOW_SIZE = 3;      // "N left" on a size at or under this
+  var LOW_TOTAL = 5;     // LOW STOCK badge at or under this, in total
+
+  var stockCache = null;
+  var stockPending = null;
+
+  function fetchStock() {
+    if (stockCache) return Promise.resolve(stockCache);
+    if (stockPending) return stockPending;
+    stockPending = shopifyFetch(
+      '{ products(first: 50) { edges { node { handle variants(first: 40) {'
+      + ' edges { node { id quantityAvailable availableForSale } } } } } } }'
+    ).then(function (data) {
+      var out = {};
+      var edges = (data && data.products && data.products.edges) || [];
+      for (var i = 0; i < edges.length; i++) {
+        var n = edges[i].node;
+        var byVariant = {};
+        var total = 0;
+        var known = false;
+        var ve = (n.variants && n.variants.edges) || [];
+        for (var j = 0; j < ve.length; j++) {
+          var v = ve[j].node;
+          var q = v.quantityAvailable;
+          if (typeof q === 'number') {
+            known = true;
+            byVariant[v.id] = q;
+            /* Negative quantities exist: an oversold item reads below
+               zero and would drag a total down past products that
+               genuinely have stock. Floor each variant at zero for the
+               total, and never render a negative as a count. */
+            total += Math.max(0, q);
+          }
+        }
+        out[n.handle] = { byVariant: byVariant, total: total, known: known };
+      }
+      stockCache = out;
+      stockPending = null;
+      return out;
+    }).catch(function () {
+      stockPending = null;
+      return null;
+    });
+    return stockPending;
+  }
+
+  /* The label for one size, or '' when there is nothing honest to say.
+     Only a positive count at or under the threshold earns a line. */
+  function sizeStockLabel(qty) {
+    if (typeof qty !== 'number' || qty <= 0 || qty > LOW_SIZE) return '';
+    return qty + ' left';
+  }
+
+  /* LOW STOCK is about the product as a whole, and only while it can
+     still be bought. Sold out is a different badge and the card
+     already draws it from availableForSale, which is the only field
+     that says whether a thing is purchasable -- quantity does not.
+     The lanyard proves the difference: it sits at -5 with
+     availableForSale true, so a quantity rule would mark a buyable
+     product SOLD OUT. */
+  function lowStockBadge(entry, soldOut) {
+    if (!entry || !entry.known || soldOut) return false;
+    return entry.total > 0 && entry.total <= LOW_TOTAL;
+  }
+
+  function isNewHandle(handle) {
+    var cfg = window.ASIOR_LAUNCH || {};
+    var list = cfg.NEW_HANDLES;
+    return Array.isArray(list) && list.indexOf(handle) !== -1;
+  }
+
+  /* Decorates whatever cards are on the page once the numbers land.
+     Called after a grid renders; safe to call repeatedly. */
+  function decorateStock(root) {
+    var cards = (root || document).querySelectorAll('.product[data-handle]');
+    if (!cards.length) return;
+    fetchStock().then(function (stock) {
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var handle = card.getAttribute('data-handle');
+        var entry = stock && stock[handle];
+        var soldOut = !!card.querySelector('.product-badge--sold');
+
+        if (isNewHandle(handle) && !card.querySelector('.product-badge--new')) {
+          card.querySelector('.product-frame').insertAdjacentHTML('afterbegin',
+            '<span class="product-badge product-badge--new">New</span>');
+        }
+        if (lowStockBadge(entry, soldOut) && !card.querySelector('.product-badge--low')) {
+          card.querySelector('.product-frame').insertAdjacentHTML('afterbegin',
+            '<span class="product-badge product-badge--low">Low stock</span>');
+        }
+        if (!entry || !entry.known) continue;
+        /* "N left" on the quick-add size chips. */
+        var chips = card.querySelectorAll('.quick-add .qa-size[data-variant-id]');
+        for (var j = 0; j < chips.length; j++) {
+          var q = entry.byVariant[chips[j].getAttribute('data-variant-id')];
+          var label = sizeStockLabel(q);
+          if (!label) continue;
+          chips[j].setAttribute('data-left', q);
+          chips[j].title = chips[j].getAttribute('data-size') + ': ' + label;
+        }
+      }
+    });
+  }
 
   /* ---- search panel ---------------------------------------------
 
@@ -2388,6 +2680,11 @@
   }
 
   function observeRevealNow(root) {
+    /* Every grid on the site funnels through here after it renders,
+       which makes it the one place that reliably sees new cards. The
+       stock pass rides along rather than each page remembering to
+       call it. */
+    try { decorateStock(root); } catch (err) { /* never block the reveal */ }
     var items = (root || document).querySelectorAll(REVEAL_SEL);
     var fold = window.innerHeight + 200;
     for (var i = 0; i < items.length; i++) {
@@ -2569,6 +2866,8 @@
   // page and every grid a page renders later.
   wireCardSizeReveal();
   wireSearch();
+  wireDropCountdown();
+  wireHeroCta();
   wireReveal();
   // Renders "(0)" immediately so the header never shows a bare "Cart"
   // while the real count is still in flight.
