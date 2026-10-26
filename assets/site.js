@@ -892,8 +892,17 @@
         + '</div></div>';
     }
 
+    /* The 2-piece offer, from ASIOR_OFFERS.MULTI_BUY, which mirrors a
+       real Shopify automatic discount. One line, under the bar. */
+    var qty = (cart.lines && cart.lines.edges || []).reduce(function (n, e) {
+      return n + ((e.node && e.node.quantity) || 0); }, 0);
+    var mb = multiBuyLine(qty);
+    if (mb) bar += '<p class="cart-multibuy">' + escapeHtml(mb) + '</p>';
+
     var head = drawerEl.querySelector('.cart-drawer-head');
     var existing = drawerEl.querySelector('.cart-ship-bar');
+    var existingMb = drawerEl.querySelector('.cart-multibuy');
+    if (existingMb) existingMb.remove();
     if (existing) existing.remove();
     if (bar && head) head.insertAdjacentHTML('afterend', bar);
 
@@ -1912,6 +1921,24 @@
 
   /* Short badge for the announcement bar and shop grid. Null when
      there's nothing verified to claim. */
+  /* ASIOR_OFFERS.MULTI_BUY: a real Shopify automatic discount. Null
+     when it is not configured, so nothing renders. */
+  function multiBuy() {
+    var o = window.ASIOR_OFFERS && window.ASIOR_OFFERS.MULTI_BUY;
+    return o && o.VERIFIED && o.MIN_QTY > 1 && o.PERCENT > 0 ? o : null;
+  }
+  function multiBuyLine(qty) {
+    var o = multiBuy();
+    if (!o) return '';
+    if (qty >= o.MIN_QTY) return o.PERCENT + '% off ' + o.MIN_QTY + '+ pieces, applied at checkout';
+    var more = o.MIN_QTY - (qty || 0);
+    return 'Add ' + more + ' more piece' + (more === 1 ? '' : 's') + ' for ' + o.PERCENT + '% off';
+  }
+  function multiBuyBadge() {
+    var o = multiBuy();
+    return o ? 'Any ' + o.MIN_QTY + ' pieces ' + o.PERCENT + '% off, applied at checkout' : '';
+  }
+
   function freeShippingBadge() {
     var s = shippingConfig();
     if (!freeShippingActive()) return null;
@@ -2013,6 +2040,8 @@
     internationalLine: internationalLine,
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
+    multiBuyBadge: multiBuyBadge,
+    multiBuyLine: multiBuyLine,
     freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,
     imgTag: imgTag,

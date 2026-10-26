@@ -2579,3 +2579,12 @@ html.search-open, html.search-open body { overflow: hidden; }
 }
 
 .coming-msg:empty { display: none; }
+
+/* The 2-piece offer line in the cart drawer, under the shipping bar. */
+.cart-multibuy {
+  margin: 8px 20px 0;
+  font-size: 12px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}

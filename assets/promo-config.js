@@ -112,16 +112,17 @@ window.ASIOR_PROMO = {
 window.ASIOR_SHIPPING = {
   // Free-shipping threshold in dollars, or 0 for free on every order.
   //
-  // Free US shipping at $99 and over. This is real: Domestic zone,
-  // method "Free shipping", $0.00, condition TOTAL_PRICE >= $99.00,
-  // active. Created in Shopify on 2026-10-22 and read back from the
-  // live delivery profile to confirm before this was set.
+  // Free US shipping at $75 and over. This is real: Domestic zone,
+  // method "Free shipping", $0.00, condition TOTAL_PRICE >= $75.00,
+  // active. Created at $99 on 2026-10-22, lowered to $75 on 2026-10-26
+  // at the founder's direction so any two pieces qualify, and read back
+  // from the live delivery profile after the change.
   //
   // The rule still stands for whoever comes next: if that rate is
   // ever removed from Shopify, set this back to null AND clear
   // VERIFIED, because the pair of them is what lets the site say the
   // words "free shipping" anywhere.
-  FREE_THRESHOLD: 99,
+  FREE_THRESHOLD: 75,
 
   // Fulfilment time — how long before it ships. NOT delivery time.
   FULFILMENT: '1-2 business days',
@@ -205,7 +206,7 @@ window.ASIOR_SHIPPING = {
   // Confirmed against the live Shopify delivery profile, not from
   // memory: the free-shipping method was created and then read back
   // out of the Domestic zone on this date.
-  VERIFIED: { by: 'read from Shopify delivery profile', on: '2026-10-22' },
+  VERIFIED: { by: 'read from Shopify delivery profile', on: '2026-10-26' },
 
   /* ---------------------------------------------------------------
      RETURNS. Published on the storefront on 2026-10-11. Fit, order,
@@ -282,4 +283,23 @@ window.ASIOR_ANALYTICS = {
    =================================================================== */
 window.ASIOR_CARD_FOCUS = {
   // 'some-handle': '50% 30%',
+};
+
+/* ===================================================================
+   Standing offers that Shopify applies on its own, with no code.
+
+   MULTI_BUY is a real automatic discount: "Any 2 pieces 15% off",
+   gid://shopify/DiscountAutomaticNode/1570203828441, 15% off the whole
+   order at a minimum quantity of 2, created 2026-10-26 at the founder's
+   direction. It does not combine with ASIORTEN or any other product or
+   order discount, so the site never implies the two stack. If that
+   discount is ended in Shopify, set MULTI_BUY to null and every mention
+   on the site disappears.
+   =================================================================== */
+window.ASIOR_OFFERS = {
+  MULTI_BUY: {
+    MIN_QTY: 2,
+    PERCENT: 15,
+    VERIFIED: { by: 'created and read back in Shopify Admin', on: '2026-10-26' },
+  },
 };
