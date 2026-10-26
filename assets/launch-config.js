@@ -151,6 +151,44 @@ window.ASIOR_LAUNCH = {
   //
   // To turn one on: confirm the product was genuinely offered at the
   // compare-at price for a meaningful period, then add its handle.
+  /* ---- NEW badge ------------------------------------------------
+
+     Handles the founder wants badged NEW, one drop at a time. EMPTY
+     BY DEFAULT and empty means no badge anywhere.
+
+     This is a list rather than a date rule because there is no date
+     that works: every Active product's createdAt predates
+     PUBLIC_LAUNCH_TIME (the newest is 2026-08-30 against a 2026-09-10
+     launch), so a "created inside the drop window" rule would badge
+     nothing, and publishedAt would badge pieces that are months old.
+     The founder knows what is new; the data does not.
+
+     Add handles here when a drop lands, clear it when it stops being
+     new. Anything not in this array gets no badge. */
+  NEW_HANDLES: [],
+
+  /* ---- the next drop --------------------------------------------
+
+     EMPTY BY DEFAULT, and while it is empty NONE of the drop UI
+     renders: no countdown, no COMING cards, no timer. That is the
+     point. A countdown to a date nobody has set is the fake-urgency
+     dark pattern the FTC treats as deceptive, and CLAUDE.md bans it.
+
+       name     what the capsule is called, shown in the countdown
+       opensAt  ISO 8601 with an offset, e.g. '2026-11-14T19:00:00-06:00'
+       handles  the Shopify handles in the drop
+
+     Fill all three and the site does the rest by itself:
+       - a countdown to opensAt in the announcement bar and under the
+         homepage hero
+       - those handles render as COMING cards with a Notify Me field
+         instead of buyable cards
+       - at opensAt everything switches to normal buyable cards with no
+         deploy and no edit
+
+     Clear it back to the empty shape when the drop has landed. */
+  NEXT_DROP: { name: '', opensAt: '', handles: [] },
+
   VERIFIED_COMPARE_AT: [],
 
   // The Fall collection has no close date.

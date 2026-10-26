@@ -904,7 +904,10 @@
         </picture>
   <!-- HERO:END -->
     </div>
-    <a class="hero-cta" href="/shop.html">Shop Fall Collection</a>
+    <a class="hero-cta" href="/shop.html" data-hero-cta>Shop Fall Collection</a>
+    <!-- Both empty unless NEXT_DROP is configured. See wireDropCountdown()
+         and wireHeroCta() in assets/site.js. -->
+    <p class="hero-drop" data-drop-countdown></p>
   </section>
 
 
@@ -932,7 +935,7 @@
 
        The id stays: the campaign band's "Shop now" points at it. -->
   <section class="home-row" id="lineup" aria-label="Fall collection">
-    <div class="shop-grid" id="lineupGrid">
+    <div class="shop-grid" id="lineupGrid" data-drop-grid>
       <!-- LINEUPGRID:START -->
 
       <div class="product in" data-handle="scripture-polo">
@@ -1432,8 +1435,22 @@
     const shownInRecent = renderRecentlyViewed(catalog);
     const view = catalog.filter(p => !shownInRecent.has(p.handle)).slice(0, 8);
     /* First card spans 2x2 in .shop-grid--featured. */
+    /* While a drop is upcoming, its handles render as COMING cards
+       instead of buyable ones. Everything else on the grid is
+       unaffected, and when the clock passes opensAt the drop:open
+       event below re-renders this grid with no deploy. */
+    const dropCfg = A.dropConfig && A.dropConfig();
+    const coming = (A.dropState && A.dropState() === 'upcoming' && dropCfg)
+      ? new Set(dropCfg.handles) : new Set();
     grid.innerHTML = view.map((p, i) =>
-      card(p, false, i === 0 ? A.CARD_SIZES.featured : A.CARD_SIZES.row)).join('');
+      coming.has(p.handle)
+        ? A.comingCard(p, dropCfg.at)
+        : card(p, false, i === 0 ? A.CARD_SIZES.featured : A.CARD_SIZES.row)).join('');
+    if (A.wireComingNotify) A.wireComingNotify(grid);
+    if (!grid.dataset.dropBound) {
+      grid.dataset.dropBound = '1';
+      grid.addEventListener('drop:open', () => renderLineup(catalog));
+    }
     bindQuickAdd(grid);
     wireHoverSwap(grid);
     A.observeReveal(grid);

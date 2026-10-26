@@ -191,6 +191,29 @@
 
   /* [measured] 13px/500 uppercase, 0.52px tracking, ~20px under the
      title. */
+  /* The real count under a size box. data-left is only ever written
+     from a positive quantityAvailable at or under three, for a box
+     that names exactly one variant. */
+  .pd-size[data-left] { position: relative; }
+
+  .pd-size[data-left]::after {
+    content: attr(data-left) " left";
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 4px);
+    transform: translateX(-50%);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    text-transform: none;
+    white-space: nowrap;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* Room for the counts under the row. */
+  .pd-size-row:has(.pd-size[data-left]) { margin-bottom: 14px; }
+
   .pd-sizelabel {
     text-align: left;
     margin-top: 20px;
@@ -2088,8 +2111,22 @@
         const row = values.map(val => {
           const sel = selection[name] === val;
           const avail = valueAvailable(name, val);
+          /* The real count for this box, when this option alone names
+             exactly one variant. On a Color + Size product a size
+             spans several colours, so no single number is true of the
+             box and none is shown -- a count that is right for black
+             and wrong for white is worse than no count. */
+          const owning = product.variants.filter(v => v.options[name] === val);
+          const left = owning.length === 1 && typeof owning[0].stockCount === 'number'
+            ? owning[0].stockCount : null;
+          const showLeft = avail && left !== null && left > 0 && left <= 3;
+          const label = showLeft
+            ? `${val}, ${left} left`
+            : (!avail ? `${val}, sold out` : val);
           return `<button type="button" class="pd-size${sel ? ' selected' : ''}${!avail ? ' unavailable' : ''}"
                     data-option="${A.escapeAttr(name)}" data-value="${A.escapeAttr(val)}"
+                    ${showLeft ? `data-left="${left}"` : ''}
+                    aria-label="${A.escapeAttr(label)}"
                     aria-pressed="${sel}">${A.escapeHtml(val)}</button>`;
         }).join('');
         return `<div class="pd-size-group"><div class="pd-size-row">${row}</div></div>`;
@@ -2325,7 +2362,17 @@
     // made a reward out of something anyone can already type in.
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {
-      propEl.textContent = 'Use code ASIORTEN for 10% off your first order.';
+      /* The free-shipping threshold next to the code, because the
+         shipping number is the one that surprises people at checkout:
+         US rates are carrier-calculated and only appear there. Both
+         figures are real -- ASIORTEN is the one live code and $99 is
+         the live Shopify rate -- and freeShippingBadge() returns
+         nothing at all if that rate is ever switched off. */
+      const ship = A.freeShippingBadge ? A.freeShippingBadge() : '';
+      propEl.textContent = ship
+        ? ship.charAt(0).toUpperCase() + ship.slice(1)
+          + '. Use code ASIORTEN for 10% off your first order.'
+        : 'Use code ASIORTEN for 10% off your first order.';
     }
 
     /* ---- quantity ----
