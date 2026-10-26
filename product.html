@@ -1053,6 +1053,18 @@
 
   .pd-measure-empty a { text-decoration: underline; }
 
+  /* The 2-piece offer line, directly under Add to bag. Muted, one
+     line, no box -- it is a fact about the order, not a banner. */
+  .pd-offer {
+    margin: 10px 0 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pd-offer:empty { display: none; }
+
   /* ---------- next-drop signup ----------
      Tapping a sold-out size used to do nothing at all, and then for a
      while it offered a back-in-stock alert nothing could send. Now it
@@ -1144,7 +1156,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
     </div>
   </div>
   <header class="site-header">
@@ -2034,6 +2046,11 @@
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
+            <!-- The 2-piece offer, under the control it applies to.
+                 Reads the cart quantity the header already has, so it
+                 costs no request, and renders nothing at all when
+                 ASIOR_OFFERS.MULTI_BUY is null. -->
+            <p class="pd-offer" id="pdOffer"></p>
             <p class="pd-stock-note" id="pdStockNote"></p>
 
             <div class="pd-drop" id="pdDrop">
@@ -2399,6 +2416,20 @@
     // It no longer reads as something you get BY signing up, because
     // you don't: it is a standing public code, and saying otherwise
     // made a reward out of something anyone can already type in.
+    /* "Add any second piece for 15% off" until the cart holds two,
+       then "15% off applied at checkout". Both come from
+       A.multiBuyOfferLine, which reads ASIOR_OFFERS.MULTI_BUY and
+       returns nothing when there is no configured offer -- and the
+       quantity is the one the header already read from Shopify, not a
+       second count kept here. */
+    const offerEl = document.getElementById('pdOffer');
+    function renderOffer() {
+      if (!offerEl || !A.multiBuyOfferLine) return;
+      offerEl.textContent = A.multiBuyOfferLine(A.cartQuantity ? A.cartQuantity() : 0);
+    }
+    renderOffer();
+    document.addEventListener('asior:cartqty', renderOffer);
+
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {
       /* The free-shipping threshold next to the code, because the
@@ -2408,12 +2439,16 @@
          the live Shopify rate -- and freeShippingBadge() returns
          nothing at all if that rate is ever switched off. */
       const ship = A.freeShippingBadge ? A.freeShippingBadge() : '';
-      const multi = A.multiBuyBadge ? A.multiBuyBadge() : '';
+      /* The 2-piece offer has its own line under Add to bag now, so it
+         is not repeated here. ASIORTEN still steps aside while that
+         offer is live: the automatic discount does not combine with
+         it, and the two in one sentence would read as though they
+         stack. */
+      const multi = !!(A.multiBuyBadge && A.multiBuyBadge());
       const parts = [];
-      if (multi) parts.push(multi);
       if (ship) parts.push(ship.charAt(0).toUpperCase() + ship.slice(1));
       if (!multi) parts.push('Use code ASIORTEN for 10% off your first order');
-      propEl.textContent = parts.join('. ') + '.';
+      propEl.textContent = parts.length ? parts.join('. ') + '.' : '';
     }
 
     /* ---- quantity ----

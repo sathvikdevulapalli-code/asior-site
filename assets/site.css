@@ -2615,3 +2615,138 @@ html.search-open, html.search-open body { overflow: hidden; }
   text-transform: uppercase;
   color: var(--ink);
 }
+
+/* ---- second-piece suggestions in the cart drawer -------------------
+   Drawn only at exactly one item, and only when ASIOR_OFFERS.MULTI_BUY
+   is configured. Tokens only: this block has to survive a palette
+   change without being touched. */
+.cart-suggests {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.cart-suggests-head {
+  font-size: var(--t-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.cart-suggest {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+}
+
+.cart-suggest-img {
+  flex: 0 0 auto;
+  display: block;
+  width: 56px;
+  height: 70px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.cart-suggest-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.cart-suggest-meta { flex: 1 1 auto; min-width: 0; }
+
+.cart-suggest-name {
+  display: block;
+  font-size: var(--t-sm);
+  color: var(--ink);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cart-suggest-name:hover { text-decoration: underline; }
+
+.cart-suggest-price {
+  font-size: var(--t-sm);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.cart-suggest-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cart-suggest-row[hidden] { display: none; }
+
+.cart-suggest-size {
+  appearance: none;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 6px;
+  background: none;
+  border: 1px solid var(--field-line);
+  border-radius: var(--input-radius);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+.cart-suggest-size:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.cart-suggest-size:disabled { opacity: .45; cursor: default; }
+/* The size this browser picked last time, marked and nothing more --
+   never preselected on a customer's behalf. */
+.cart-suggest-size.mine { border-color: var(--ink); }
+
+.cart-suggest-msg {
+  margin: 6px 0 0;
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+
+.cart-suggest-msg:empty { display: none; }
+
+/* The + that opens the size row, the same gesture as the grid card's.
+   Built from two rules so it can rotate into a close mark. */
+.cart-suggest-add {
+  flex: 0 0 auto;
+  position: relative;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--field-line);
+  border-radius: var(--input-radius);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+
+.cart-suggest-add::before,
+.cart-suggest-add::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.cart-suggest-add::before { width: 12px; height: 1.5px; }
+.cart-suggest-add::after  { width: 1.5px; height: 12px; }
+.cart-suggest-add:hover { background: var(--surface-hi); }
+.cart-suggest.is-picking .cart-suggest-add { transform: rotate(45deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-suggest-add { transition: none; }
+}

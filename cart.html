@@ -599,7 +599,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
     </div>
   </div>
   <header class="site-header">
@@ -930,8 +930,15 @@
      close date does either — neither the collection nor the code has
      one. It is a standing public code, so it is not framed as a reward
      for signing up. */
+  /* While the automatic 2-piece discount is live, the code's sentence
+     has to say it is not an addition to it. ASIOR_OFFERS.MULTI_BUY is
+     the same source the rest of the site reads, so the clause
+     disappears by itself if that discount is ever ended. */
   function signupPropHTML() {
-    return 'Use code ASIORTEN for 10% off your first order.';
+    var A = window.Asior || {};
+    var multi = !!(A.multiBuyBadge && A.multiBuyBadge());
+    return 'Use code ASIORTEN for 10% off your first order.'
+      + (multi ? ' It does not combine with the 2 piece offer.' : '');
   }
 
   async function renderLive() {
