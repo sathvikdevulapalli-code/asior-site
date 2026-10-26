@@ -895,6 +895,9 @@
      Size product needs the choice the quick view gives it, and there
      is no quick view in here. */
   var suggestToken = 0;
+  /* The drawer opens and closes a lot. The catalogue does not change
+     between two of those, so it is fetched once per page. */
+  var suggestCatalog = null;
 
   function suggestionCandidates(catalog, stock, inCart) {
     var out = [];
@@ -933,7 +936,7 @@
       + '<a class="cart-suggest-name" href="/products/' + encodeURIComponent(p.handle) + '.html">'
       + escapeHtml(p.name) + '</a>'
       + '<div class="cart-suggest-price">' + p.priceLabel + '</div>'
-      + '<div class="cart-suggest-row" hidden>'
+      + '<div class="cart-suggest-row" id="cart-suggest-row-' + escapeAttr(p.handle) + '" hidden>'
       + pick.sizes.map(function (sz) {
           return '<button type="button" class="cart-suggest-size' + (sz.size === mine ? ' mine' : '') + '"'
             + ' data-variant-id="' + escapeAttr(sz.variantId) + '"'
@@ -945,6 +948,7 @@
       + '<p class="cart-suggest-msg" role="status" aria-live="polite"></p>'
       + '</div>'
       + '<button type="button" class="cart-suggest-add" aria-expanded="false"'
+      + ' aria-controls="cart-suggest-row-' + escapeAttr(p.handle) + '"'
       + ' aria-label="Choose a size for ' + escapeAttr(p.name) + '"></button>'
       + '</div>';
   }
@@ -965,7 +969,10 @@
     // The drawer re-renders on every change; a response that lands
     // after the next render belongs to a cart that no longer exists.
     var token = ++suggestToken;
-    Promise.all([fetchCatalog(), fetchStock()]).then(function (res) {
+    var catalogP = suggestCatalog
+      ? Promise.resolve(suggestCatalog)
+      : fetchCatalog().then(function (c) { suggestCatalog = c; return c; });
+    Promise.all([catalogP, fetchStock()]).then(function (res) {
       if (token !== suggestToken) return;
       var catalog = res[0];
       var stock = res[1];
