@@ -37,55 +37,67 @@
      all the work.
 
      This file used to invert a light theme into a near-black one, and
-     every "was #ffffff" comment below was that original value. The
+     the comments below are archaeology from that cycle. The
      inversion is reversed: the values are the reference's, not the old
      ones restored, and anywhere a rule hardcoded a dark colour instead
      of reading a token has been fixed rather than re-inverted.
      =================================================================== */
 
-  --bg: #FFFFFF;
-  --ink: #000000;
-  --muted: #666666;          /* 5.74:1 on white */
+  /* ===================================================================
+     BLACK, to the founder's brief of 2026-10-26. This reverses the
+     white UI shipped on 2026-10-25 — a deliberate reversal, not a
+     regression: the reference's structure stays, its background does
+     not.
 
-  /* The primary action is the inverse of the page: white on black for
-     ADD TO BAG, CHECKOUT, JOIN. Square, never rounded. */
-  --accent: #000000;
-  --accent-press: #1A1A1A;
-  --on-accent: #FFFFFF;
-  --alert: #000000;
+     Not pure white on pure black. Helvetica at 14px blooms in that
+     pairing, so the page is a near-black and the type an off-white,
+     and small text takes one weight step up rather than more size.
+     =================================================================== */
 
-  --surface: #F5F5F5;        /* behind product photographs */
-  --surface-hi: #EFEFEF;     /* hover on chrome */
-  --panel-bg: #F4F4F4;       /* inactive PDP tabs */
+  --bg: #0B0B0C;
+  --ink: #E8E8EA;
+  --muted: #9A9AA0;          /* 7.0:1 on --bg */
+
+  /* The primary action inverts with the page: near-black on off-white
+     for ADD TO BAG, CHECKOUT, JOIN. Square, never rounded. */
+  --accent: #E8E8EA;
+  --accent-press: #CFCFD4;
+  --on-accent: #0B0B0C;
+  --alert: #E8E8EA;
+
+  /* Secondary surfaces are grey, not black, so a card, a tab panel, a
+     field and the drawer separate from the page instead of dissolving
+     into it. */
+  --surface: #161618;        /* behind product photographs */
+  --surface-hi: #1E1E21;     /* hover on chrome */
+  --panel-bg: #141416;       /* inactive PDP tabs */
 
   /* --line is decorative (section rules, card edges). --field-line
      bounds anything you can type in or press, so it has to clear WCAG
-     1.4.11's 3:1 against the page: #767676 is 4.54:1. */
-  --line: #E6E6E6;
-  --field-line: #767676;
-  --input-bg: #FFFFFF;
-  --input-radius: 0px;       /* square, per the reference */
-  /* 3.03:1 on white. The reference's size boxes are lighter than this,
-     but a control boundary below 3:1 is not a boundary. */
-  --size-border: #8E8E8E;
+     1.4.11's 3:1 against the page: #6C6C73 is 3.4:1 on --bg. */
+  --line: #26262A;
+  --field-line: #6C6C73;
+  --input-bg: #161618;
+  --input-radius: 0px;
+  --size-border: #4A4A51;
 
-  --ink-dim: #333333;
-  --violet-edge: #D1D5DB;   /* retained name: the disabled outline */
+  --ink-dim: #C2C2C8;
+  --violet-edge: #3A3A40;   /* retained name: the disabled outline */
 
-  /* Black bar, white caps, messages rotating one at a time. */
-  --announce-bg: #000000;
-  --announce-text: #FFFFFF;
+  /* The bar is the page's own near-black with a hairline under it. An
+     inverted white slab across the top of a black page is the loudest
+     thing on the site. */
+  --announce-bg: #141416;
+  --announce-text: #E8E8EA;
 
-  /* No webfont for the interface. The reference runs the system
-     Helvetica stack and the page is faster for it; the only loaded
-     face left is Pinyon, which draws the Asior signature and nothing
-     else. */
+  /* No webfont for the interface: the reference loads none, and the
+     system Helvetica stack is what it sets. The only loaded face is
+     Pinyon, which draws the Asior signature and nothing else. */
   --font: Helvetica, 'Helvetica Neue', Arial, sans-serif;
   --font-display: Helvetica, 'Helvetica Neue', Arial, sans-serif;
   --font-body: Helvetica, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: Helvetica, 'Helvetica Neue', Arial, sans-serif;
   --font-script: 'Pinyon Script', 'Brush Script MT', cursive;
-  /* Kept for older component rules that set this optional axis. */
   --display-wide: normal;
 
   /* Layout [measured / theme var] */
@@ -801,14 +813,16 @@ html.cart-drawer-locked { overflow: hidden; }
 .btn--lg { --btn-h: 56px; font-size: 12px; }
 .btn--sm { --btn-h: 32px; font-size: 10px; padding: 0 12px; letter-spacing: 0.12em; }
 
-/* Keyboard focus has to be visible on every one of these, including
-   the violet fill, where an ink outline would vanish. */
+/* Keyboard focus has to be visible on every one of these. The ring is
+   --ink, which on the primary button is the same colour as its fill --
+   the 2px offset is what saves it: the ring lands on the page behind
+   the button, not on the button. Do not remove the offset. */
 .btn:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.btn--primary:focus-visible { outline-color: var(--ink); }@media (max-width: 640px) {
+@media (max-width: 640px) {
   .business-links { flex-direction: column; gap: 6px; text-align: center; }
 }
 
@@ -1433,6 +1447,19 @@ html.cart-drawer-locked { overflow: hidden; }
     transition: opacity var(--dur) var(--ease-out);
   }
   .nav-scrim.is-open { opacity: 1; pointer-events: auto; }
+
+  /* The nav panel lives inside <header>, which is positioned with
+     z-index 50 and so creates its own stacking context: the panel's
+     z-index 70 is scoped to the header, not to the page. The scrim is
+     appended to <body> at z-index 65, which beats the header's 50 at
+     the root -- so the scrim painted over the whole header, swallowed
+     every click meant for a nav link, and the mobile menu could not
+     be used at all. Not "after a category has been selected": from
+     the first tap.
+
+     The header outranks the scrim while the panel is open. body.nav-open
+     is already set by wireNav(), so no new hook is needed. */
+  body.nav-open .site-header { z-index: 80; }
 }
 
 /* ---- footer [measured: white, 1px top rule, boxed 1450, 4 columns] ---- */
@@ -1607,8 +1634,8 @@ html.cart-drawer-locked { overflow: hidden; }
     pointer-events: auto;
     width: 34px;
     height: 34px;
-    background: rgba(255, 255, 255, .82);
-    border-color: rgba(0, 0, 0, .35);
+    background: rgba(11, 11, 12, .78);
+    border-color: rgba(232, 232, 234, .45);
     color: var(--ink);
   }
   .product .product-peek::before { width: 13px; height: 1.5px; }
@@ -1857,13 +1884,16 @@ body {
    =================================================================== */
 .product-title {
   font-family: var(--font);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.3;
-  /* 0.6px at 12px, as measured on the reference, rather than an em
-     value that would drift with the size. */
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  /* 14px/500, normal tracking, and NOT uppercased in CSS. Product
+     names are already typed in caps where they belong in the Shopify
+     data; transforming here shouts the ones that are not, and it is
+     the transform that made "Ja-yu Blossom Tee" read as JA-YU BLOSSOM
+     TEE when the founder writes it in sentence case. */
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--ink);
   white-space: normal;
   overflow: visible;
@@ -2003,7 +2033,7 @@ body {
      an unknown picture is a chip you can see on some frames and not
      on others. */
   background: var(--bg);
-  border-color: rgba(0, 0, 0, .45);
+  border-color: rgba(232, 232, 234, .5);
   color: var(--ink);
 }
 

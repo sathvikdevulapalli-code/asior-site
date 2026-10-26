@@ -739,8 +739,15 @@
       '    id checkoutUrl totalQuantity' +
       '    cost { subtotalAmount { amount currencyCode } }' +
       '    lines(first: 50) { edges { node { id quantity merchandise {' +
+      /* featuredImage as well as the variant's own image. Measured
+         against the live catalogue on 2026-10-26: all but three
+         variants in the shop have image: null, because the photograph
+         is attached to the product, not the variant. This asked only
+         for the variant's, so nearly every line rendered the grey
+         placeholder. cart.html had the same query and the same bug --
+         it is not drawer-specific. */
       '      ... on ProductVariant { title price { amount currencyCode }' +
-      '        image { url } product { title handle } } } } } }' +
+      '        image { url } product { title handle featuredImage { url } } } } } } }' +
       '  }' +
       '}', { id: id });
     return data.cart || null;
@@ -835,9 +842,13 @@
       var variant = m.title && m.title !== 'Default Title' ? m.title : '';
       var unit = parseFloat((m.price && m.price.amount) || 0) || 0;
       return '<div class="cart-drawer-line">'
-        + (m.image && m.image.url
-            ? '<img src="' + escapeAttr(m.image.url) + '" alt="" width="60" height="80" loading="lazy" decoding="async">'
-            : '<div class="cart-drawer-ph"></div>')
+        + (function () {
+            var src = (m.image && m.image.url)
+              || (m.product && m.product.featuredImage && m.product.featuredImage.url);
+            return src
+              ? '<img src="' + escapeAttr(src) + '" alt="" width="60" height="80" loading="lazy" decoding="async">'
+              : '<div class="cart-drawer-ph"></div>';
+          })()
         + '<div class="cart-drawer-line-meta">'
         + '  <div class="cart-drawer-line-name">' + escapeHtml(name) + '</div>'
         + (variant ? '<div class="cart-drawer-line-variant">' + escapeHtml(variant) + '</div>' : '')

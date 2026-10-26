@@ -1097,7 +1097,7 @@ const HEADER_FULL = `${ANNOUNCE_BAR}  <header class="site-header">
 ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).join('\n')}
     </nav>
 
-    <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
+    <a class="mark" href="/" aria-label="Asior, home">${WORDMARK}</a>
 
     <div class="header-right">
       <!-- Static, not a picker. One market is enabled in Shopify, so a
@@ -1137,7 +1137,7 @@ ${NAV_LINKS.map(([label, href]) => `      <a href="${href}">${esc(label)}</a>`).
 /* Policy pages carry the bar and a bare header: they are linked from
    consent copy and read on their own. */
 const HEADER_MINIMAL = `${ANNOUNCE_BAR}  <header class="site-header site-header--minimal">
-    <a class="mark" href="/shop.html" aria-label="Asior, home">${WORDMARK}</a>
+    <a class="mark" href="/" aria-label="Asior, home">${WORDMARK}</a>
   </header>
 `;
 
