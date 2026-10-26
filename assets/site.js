@@ -976,7 +976,10 @@
       if (!el) return;
       el.insertAdjacentHTML('beforeend',
         '<div class="cart-suggests">'
-        + '<p class="cart-suggests-head">Add any second piece for ' + o.PERCENT + '% off</p>'
+        /* The offer is already stated once, right under the shipping
+           bar. This heading labels the list instead of saying it
+           again. */
+        + '<p class="cart-suggests-head">Pair it with</p>'
         + picks.map(suggestionHTML).join('')
         + '</div>');
     }).catch(function () { /* no data, no suggestions */ });
@@ -1060,7 +1063,9 @@
        real Shopify automatic discount. One line, under the bar. */
     var qty = (cart.lines && cart.lines.edges || []).reduce(function (n, e) {
       return n + ((e.node && e.node.quantity) || 0); }, 0);
-    var mb = multiBuyLine(qty);
+    /* The same sentence the product page uses, so the offer is not
+       worded two ways in two places. */
+    var mb = multiBuyOfferLine(qty);
     if (mb) bar += '<p class="cart-multibuy">' + escapeHtml(mb) + '</p>';
 
     var head = drawerEl.querySelector('.cart-drawer-head');
@@ -2081,17 +2086,12 @@
     var o = window.ASIOR_OFFERS && window.ASIOR_OFFERS.MULTI_BUY;
     return o && o.VERIFIED && o.MIN_QTY > 1 && o.PERCENT > 0 ? o : null;
   }
-  function multiBuyLine(qty) {
-    var o = multiBuy();
-    if (!o) return '';
-    if (qty >= o.MIN_QTY) return o.PERCENT + '% off ' + o.MIN_QTY + '+ pieces, applied at checkout';
-    var more = o.MIN_QTY - (qty || 0);
-    return 'Add ' + more + ' more piece' + (more === 1 ? '' : 's') + ' for ' + o.PERCENT + '% off';
-  }
-  /* The same offer, worded for the buy panel: what to do about it
-     while the cart is still short of the minimum, and that it is
-     already handled once the cart is there. Returns '' when there is
-     no configured offer, so nothing renders. */
+  /* The offer, worded for the buy panel and the drawer alike: what to
+     do about it while the cart is short of the minimum, and
+     that it is already handled once the cart is there. One wording,
+     used everywhere, so the drawer and the product page cannot phrase
+     the same offer two ways. Returns '' when there is no configured
+     offer, so nothing renders. */
   function multiBuyOfferLine(qty) {
     var o = multiBuy();
     if (!o) return '';
@@ -2208,7 +2208,6 @@
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
     multiBuyBadge: multiBuyBadge,
-    multiBuyLine: multiBuyLine,
     multiBuyOfferLine: multiBuyOfferLine,
     cartQuantity: cartQuantity,
     freeShippingProgress: freeShippingProgress,

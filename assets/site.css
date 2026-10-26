@@ -642,7 +642,15 @@ html.cart-drawer-locked { overflow: hidden; }
   margin-bottom: 3px;
 }
 
-.cart-drawer-line-variant,
+/* The size, as plain text. It used to share the stepper's rule below,
+   which drew a 1px box around the letter and put it next to the real
+   stepper looking like a control that does nothing. */
+.cart-drawer-line-variant {
+  font-size: var(--t-xs);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 /* Was the read-only text "Qty 1". A shopper who wanted two had to
    leave the drawer, go back to the product page and add it again. */
 .cart-drawer-line-qty {
@@ -2729,7 +2737,7 @@ html.search-open, html.search-open body { overflow: hidden; }
   border: 1px solid var(--field-line);
   border-radius: var(--input-radius);
   cursor: pointer;
-  transition: transform var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+  transition: background var(--dur) var(--ease-out);
 }
 
 .cart-suggest-add::before,
@@ -2745,8 +2753,18 @@ html.search-open, html.search-open body { overflow: hidden; }
 .cart-suggest-add::before { width: 12px; height: 1.5px; }
 .cart-suggest-add::after  { width: 1.5px; height: 12px; }
 .cart-suggest-add:hover { background: var(--surface-hi); }
-.cart-suggest.is-picking .cart-suggest-add { transform: rotate(45deg); }
+
+/* The glyph turns, not the button: rotating the button turned its
+   1px border into a diamond. */
+.cart-suggest-add::before,
+.cart-suggest-add::after { transition: transform var(--dur) var(--ease-out); }
+.cart-suggest.is-picking .cart-suggest-add::before,
+.cart-suggest.is-picking .cart-suggest-add::after {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .cart-suggest-add { transition: none; }
+  .cart-suggest-add,
+  .cart-suggest-add::before,
+  .cart-suggest-add::after { transition: none; }
 }
