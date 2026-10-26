@@ -81,6 +81,28 @@ founder's direction to sell through the current stock:
 
 Neither is a code, so ASIORTEN is still the only code the site names.
 
+Where the 2-piece offer appears, and in what words. One helper,
+`multiBuyOfferLine(qty)` in `assets/site.js`, produces the only
+sentence: "Add any second piece for 15% off" below the minimum and
+"15% off applied at checkout" at or above it. It is used by the
+product page, under Add to bag, and by the cart drawer, under the
+free-shipping bar. The quantity is the real cart quantity, cached by
+`renderCartCount` and announced on the `asior:cartqty` event, never a
+count kept separately. At exactly one item the drawer also offers up
+to two real pieces to be the second one, labelled "Pair it with": live
+catalogue, live `quantityAvailable`, nothing drawn if either fetch
+fails, nothing drawn for a product whose size does not name one
+variant (it could not be added from the drawer), and adding goes
+through `addToShopifyCart` like every other add. No badge on any grid
+card. All of it is gated on `MULTI_BUY`.
+
+While that automatic discount is live, ASIORTEN steps aside rather than
+sitting beside it: the product page's trustline drops the code, the
+cart page's sentence says it does not combine with the 2-piece offer,
+and the announcement bar's code message carries "one offer per order".
+Two offers stated side by side with nothing said add up to 25% in a
+shopper's head.
+
 Discount *amounts* are never computed here. Shopify rounds per line
 (3 x $42.99 at 10% is 3 x $4.29 = $12.87, not $12.897), so the figure
 shown must come from the Storefront cart's `discountAllocations` /
@@ -150,11 +172,14 @@ lives in `assets/promo-config.js`:
 - The old flat rates still exist as `(backup)` methods behind USPS, now
   $10.90/$19.90 Standard and $12.90/$34.90 Economy. They are a fallback
   if the carrier API fails, not the advertised price. The $4.90 / $6.90
-  / $9.90 figures this file used to list are gone.
+  / $9.90 figures this file used to list are gone. `shipping-policy.html`
+  was still publishing that retired rate card as the live one until
+  2026-10-26; it now says the US charge is calculated at checkout and
+  states only the $75 threshold.
 - International: USPS, DHL Express, DHL eCommerce and FedEx, all
   carrier-calculated and shown at checkout.
-- Dispatch 1–2 business days. That is handling time, not delivery, and
-  it is not currently stated on the site.
+- Dispatch 1–2 business days. That is handling time, not delivery. It
+  is stated on `shipping-policy.html` and nowhere else.
 - Sathvik confirmed US and international shipping on 2026-10-11. The
   public policy says international destinations and rates are shown at
   checkout; it does not claim a country count. The Shopify Admin policy
