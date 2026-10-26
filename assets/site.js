@@ -1010,7 +1010,7 @@
 
     body.innerHTML = lines.map(function (e) {
       var l = e.node, m = l.merchandise || {};
-      var name = (m.product && m.product.title) || '';
+      var name = displayName(m.product && m.product.handle, m.product && m.product.title);
       // "Default Title" is Shopify's placeholder for a product with no
       // options; showing it would read as a size nobody chose.
       var variant = m.title && m.title !== 'Default Title' ? m.title : '';
@@ -1714,6 +1714,17 @@
      that the shop ever charged it, so a handle has to be on the
      verified list in launch-config.js. Fails closed: a missing or
      malformed list shows no compare-at anywhere. */
+  /* A product's displayed name. Shopify's title, unless DISPLAY_NAMES
+     in launch-config.js corrects its case -- see the comment there.
+     Handle unknown or map missing: Shopify's title, unchanged. */
+  function displayName(handle, title) {
+    var clean = String(title == null ? '' : title).replace(/\s*\[preorder\]\s*/i, '').trim();
+    var cfg = window.ASIOR_LAUNCH || {};
+    var map = cfg.DISPLAY_NAMES;
+    if (!map || !handle) return clean;
+    return Object.prototype.hasOwnProperty.call(map, handle) ? map[handle] : clean;
+  }
+
   function compareAtVerified(handle) {
     var cfg = window.ASIOR_LAUNCH || {};
     var list = cfg.VERIFIED_COMPARE_AT;
@@ -1762,7 +1773,7 @@
            syncNewArrivals() does in the build, instead of reordering
            into merchandising order when it re-renders. */
         createdAt: node.createdAt || '',
-        name: node.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+        name: displayName(node.handle, node.title),
         image: lead,
         altImage: orderImages(all).filter(function (im) { return im.url !== firstUrl; })[0] || null,
         isPreorder: /\[preorder\]/i.test(node.title),
@@ -2215,6 +2226,7 @@
     internationalCheckoutNote: internationalCheckoutNote,
     freeShippingBadge: freeShippingBadge,
     multiBuyBadge: multiBuyBadge,
+    displayName: displayName,
     multiBuyOfferLine: multiBuyOfferLine,
     cartQuantity: cartQuantity,
     freeShippingProgress: freeShippingProgress,

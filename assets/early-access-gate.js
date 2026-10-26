@@ -7,7 +7,7 @@
    Was loaded synchronously in <head>, immediately after
    assets/launch-config.js, on every protected storefront page (shop,
    product, cart, fall-collection) — before any of that page's own
-   content or Shopify fetches ran. A visitor who hadn't entered ASIOR8
+   content or Shopify fetches ran. A visitor who had not entered the code
    and wasn't past the public launch instant was sent back to the
    Early Access entry on index.html before the page ever rendered.
 
@@ -40,7 +40,7 @@
   if (Date.now() >= liveAt) return;
 
   // Same flag the homepage's Early Access gate writes on a correct
-  // ASIOR8 entry — read back here so access, once granted, persists
+  // Code entry — read back here so access, once granted, persists
   // across every protected page without re-entering the code.
   var granted = false;
   try { granted = localStorage.getItem('asior_early_access') === '1'; } catch (err) { /* storage blocked: treat as not granted */ }

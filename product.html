@@ -214,6 +214,14 @@
   /* Room for the counts under the row. */
   .pd-size-row:has(.pd-size[data-left]) { margin-bottom: 14px; }
 
+  .pd-sizehint {
+    margin: 8px 0 0;
+    font-size: var(--t-sm);
+    color: var(--muted);
+  }
+
+  .pd-sizehint[hidden] { display: none; }
+
   .pd-sizelabel {
     text-align: left;
     margin-top: 20px;
@@ -2030,7 +2038,15 @@
 
             ${hasOptions ? `
               <div class="pd-sizelabel" id="pdSizeLabel">Size:</div>
-              <div class="pd-sizes" id="pdSizes"></div>` : ''}
+              <div class="pd-sizes" id="pdSizes"></div>
+              <!-- The instruction the disabled button cannot give.
+                   Relabelling Add to bag as "Select a Size" was tried
+                   and reverted: it turned the one control that buys
+                   the product into a dead grey box, which was the
+                   clearest complaint this page had. The button keeps
+                   saying what it does; the instruction lives here, and
+                   the button points at it for screen readers. -->
+              <p class="pd-sizehint" id="pdSizeHint" hidden>Select a size to add to bag</p>` : ''}
             ${setSizingNote(product)}
 
             <div class="pd-actions">
@@ -2271,6 +2287,21 @@
       }
 
       const needsPick = hasOptions && product.optionNames.some(n => !selection[n]);
+      /* One place decides whether the instruction is showing, so it
+         can never be left up after a size is chosen or missing while
+         the button is disabled for want of one. */
+      const hint = document.getElementById('pdSizeHint');
+      if (hint) {
+        hint.hidden = !needsPick;
+        hint.textContent = product.optionNames.length > 1
+          ? 'Choose ' + product.optionNames.map(n => n.toLowerCase()).join(' and ') + ' to add to bag'
+          : 'Select a size to add to bag';
+      }
+      [btn, stickyBtn].forEach(b => {
+        if (!b) return;
+        if (needsPick) b.setAttribute('aria-describedby', 'pdSizeHint');
+        else b.removeAttribute('aria-describedby');
+      });
       if (needsPick) {
         // Nothing chosen yet. The button keeps saying what it does and
         // is simply disabled: it used to relabel itself "Select a Size",

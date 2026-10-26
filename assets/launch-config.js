@@ -167,6 +167,27 @@ window.ASIOR_LAUNCH = {
      new. Anything not in this array gets no badge. */
   NEW_HANDLES: [],
 
+  /* ---- display names ---------------------------------------------
+
+     A product's name on the site is its Shopify title. Two of them are
+     typed in a different case from the rest of the catalogue --
+     "JAG shorts" and "ASR shorts" against "JAG Sweats", "JAG Crewneck"
+     and "Holes Tee" -- so a grid row reads as though two cards were
+     typed by someone else.
+
+     The real fix is the title in Shopify Admin, which this repo must
+     never write to. Until someone makes that edit, this map overrides
+     the displayed name and nothing else: the handle, the variant IDs,
+     search, the cart and checkout all keep Shopify's own title.
+
+     Keyed by handle, and deliberately tiny. Do not use it to rename a
+     product, only to correct how an existing name is cased. Delete an
+     entry the day Shopify's own title matches it. */
+  DISPLAY_NAMES: {
+    'jag-shorts': 'JAG Shorts',
+    'asr-shorts': 'ASR Shorts',
+  },
+
   /* ---- the next drop --------------------------------------------
 
      EMPTY BY DEFAULT, and while it is empty NONE of the drop UI
