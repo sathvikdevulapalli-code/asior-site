@@ -169,17 +169,27 @@ and fails on a hit, so this list is enforced rather than remembered:
 - Ratings of any kind — stars, numeric averages, review counts.
 - AI-generated product or model images. Real photos only.
 
-**Palette:** white page, black type. `--bg #FFFFFF`, `--ink #000000`,
-`--muted #666666` (5.74:1), tiles on `--surface #F5F5F5`, hairlines
-`--line #E6E6E6`, control boundaries `--field-line #767676`. The
-primary action inverts: black fill, white caps, square. The
-announcement bar is black with white caps. No other colour except the
-product photographs themselves.
+**Palette:** black page, off-white type. `--bg #0B0B0C`,
+`--ink #E8E8EA`, `--muted #9A9AA0` (7.0:1), tiles on
+`--surface #161618`, chrome hover `--surface-hi #1E1E21`, inactive tabs
+`--panel-bg #141416`, hairlines `--line #26262A`, control boundaries
+`--field-line #6C6C73` (3.4:1). The primary action inverts: off-white
+fill, near-black caps, square. The announcement bar is `#141416` with
+off-white caps. No other colour except the product photographs
+themselves.
 
-This replaced the near-black theme on 2026-10-25, at the founder's
-direction, to match the reference UI. Any rule that hardcodes a dark
-value instead of reading a token is a bug, not a style: that is what
-made the theme flip a day's work rather than a token change.
+**Not pure white on pure black.** Helvetica at 14px blooms in that
+pairing, which is why the page is a near-black and the type an
+off-white, and why small text takes a weight step rather than more
+size.
+
+The site went white on 2026-10-25 to match the reference UI and back
+to black on 2026-10-26, both at the founder's direction. The
+reference's structure stays; its background does not. Any rule that
+hardcodes a colour instead of reading a token is a bug, not a style —
+that is what made each flip a day's work rather than a token change,
+and the leftovers that had to be hunted both times were
+`theme-color` metas, hero gradients and the card's touch control.
 
 **Type:** the system Helvetica stack, no webfont for the interface
 (`Helvetica, 'Helvetica Neue', Arial, sans-serif`). Body 14px/400. The
@@ -190,8 +200,10 @@ photos edge to edge on mobile.
 
 **The card.** One definition, used by every grid — home, shop,
 collection, archive, related, search. 4:5 image on `--surface`,
-`object-fit: cover`. Title 12px/700 uppercase at 0.6px tracking, one
-line with ellipsis; price 14px/400 under it; both left-aligned under
+`object-fit: cover`. Title 14px/500 at normal tracking and **not**
+uppercased in CSS — product names are already typed in caps where they
+belong in the Shopify data, and transforming here shouts the ones that
+are not. Price 14px/400 in `--muted` under it; both left-aligned under
 the photograph's left edge. A `+` circle bottom-right of the image
 reveals the size row. Badges are small black boxes with white caps,
 top-left. Sold-out products stay in the grid with their badge.
@@ -205,15 +217,24 @@ fix.
 
 **The header.** One row at every width: nav left, Asior wordmark
 centred, market / search / cart right. Transparent with white text
-over a hero photograph, solid white with black text once scrolled or
-on any page without one. A search icon opens a panel from the top of
+over a hero photograph, solid with off-white text once scrolled or on
+any page without one.
+
+The nav panel lives inside `<header>`, which is positioned and so
+opens its own stacking context: a panel `z-index` is scoped to the
+header, not the page. The scrim is appended to `<body>`, so it
+outranks the whole header unless `body.nav-open .site-header` lifts
+it. That is not a detail — getting it wrong made the mobile menu
+completely untappable, and nothing about it looks broken in a
+screenshot. A search icon opens a panel from the top of
 the page — `wireSearch()` in `assets/site.js`, on every page, with the
 catalogue fetched on first open and never before.
 
 **The hero.** One full-bleed landscape photograph, close to the first
 screen's height, with a single CTA near the bottom. A scrim at the top
-for the header and a short one at the bottom for the CTA; no fade into
-the page, which washes out a photograph on white. The homepage hero is one full-bleed
+for the header and a short one at the bottom for the CTA, and no fade
+into the page: on white it washed the photograph out, and on black it
+is not needed. The homepage hero is one full-bleed
 photograph (the four-model group shot), not a split; the founder asked
 for that on 2026-10-24. Desktop header is one row from 1180px up: nav
 left, wordmark centred, market and bag right.

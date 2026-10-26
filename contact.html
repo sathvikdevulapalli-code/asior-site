@@ -66,7 +66,7 @@
   .contact-intro {
     margin: 0 0 24px;
     font-family: var(--font);
-    font-size: 13px;
+    font-size: var(--t-sm);
     line-height: 1.6;
     color: var(--muted);
     max-width: 62ch;
@@ -183,7 +183,7 @@
   .contact-confirm {
     display: none;
     margin-top: 4vh;
-    font-size: 13px;
+    font-size: var(--t-sm);
     letter-spacing: 0.05em;
     color: var(--muted);
   }
@@ -191,7 +191,7 @@
   .contact-confirm.show { display: block; }
 
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header { padding: 20px; font-size: var(--t-xs); letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
