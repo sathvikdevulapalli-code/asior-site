@@ -64,13 +64,21 @@
   /* [measured] Gallery left, info column 642px right, ~20px apart.
      The reference runs the gallery from x=25 and the panel from x=963
      at 1920; proportionally that is the gallery taking what is left of
-     a 642px fixed column, which is what this does at any width. */
+     a 642px column.
+
+     Fixed at 642 it only held that proportion at the width it was
+     measured at. At 1440, the commoner desktop, 642px of panel left
+     the photographs 52% of the row -- the panel creeping towards half
+     the page while the garment lost it. Measured at 1440 on
+     2026-10-26. The column scales with the viewport instead and tops
+     out at the measured 642, so 1920 is unchanged and 1440 gets the
+     same roughly 60/40 split the reference has. */
   .pd {
     max-width: 1700px;
     margin: 0 auto;
     padding: 24px var(--page-pad) 12vh;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 642px;
+    grid-template-columns: minmax(0, 1fr) clamp(440px, 37.5vw, 642px);
     gap: 20px;
     align-items: start;
   }
@@ -754,7 +762,7 @@
     margin: 0 auto;
     padding: 24px var(--page-pad) 12vh;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 642px;
+    grid-template-columns: minmax(0, 1fr) clamp(440px, 37.5vw, 642px);
     gap: 20px;
     align-items: start;
   }
