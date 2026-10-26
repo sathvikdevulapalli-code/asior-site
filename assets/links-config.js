@@ -21,9 +21,19 @@ window.ASIOR_LINKS = {
      arrives on /links from a creator's post with their own utm_content,
      that attribution is the one worth keeping, and stamping ours over
      it would reassign the credit to ourselves. */
+  /* Instagram's in-app browser drops the referrer, so link-in-bio
+     traffic lands in Shopify as "direct" -- 136 of 180 sessions over
+     60 days. These parameters are the only way that traffic is
+     attributable at all.
+
+     source is the platform, campaign is the placement. It was
+     source=linkinbio with no campaign, which named the placement
+     twice and the platform never, so Instagram still never appeared
+     in the reports. */
   DEFAULT_UTM: {
-    utm_source: 'linkinbio',
+    utm_source: 'instagram',
     utm_medium: 'social',
+    utm_campaign: 'linkinbio',
   },
 
   LINKS: [
