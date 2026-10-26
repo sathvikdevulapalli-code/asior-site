@@ -93,7 +93,7 @@
   .mfg-step .step-title {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 15px;
+    font-size: var(--t-base);
     margin-bottom: 8px;
   }
 
@@ -239,7 +239,7 @@
   .mfg-confirm {
     display: none;
     margin-top: 4vh;
-    font-size: 13px;
+    font-size: var(--t-sm);
     letter-spacing: 0.05em;
     color: var(--muted);
     line-height: 1.7;
@@ -252,7 +252,7 @@
   }
 
   @media (max-width: 640px) {
-    header { padding: 20px; font-size: 10px; letter-spacing: 0.1em; }
+    header { padding: 20px; font-size: var(--t-xs); letter-spacing: 0.1em; }
     header .mark { font-size: 12px; }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this

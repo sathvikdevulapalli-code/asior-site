@@ -180,11 +180,11 @@
     margin: 0;
   }
 
-  .peek-price { font-family: var(--font-mono); font-size: 15px; color: var(--ink-dim); }
+  .peek-price { font-family: var(--font-mono); font-size: var(--t-base); color: var(--ink-dim); }
 
   .peek-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
@@ -473,7 +473,7 @@
     background: none;
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.03em;
     cursor: pointer;
     border-radius: 0;
@@ -520,7 +520,7 @@
 
   .qa-msg {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.05em;
     color: var(--muted);
     align-self: center;
@@ -532,7 +532,7 @@
     display: none;
     padding: 6vh 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--t-sm);
   }
 
   .shop-empty.show { display: block; }
@@ -565,7 +565,7 @@
 
   @media (max-width: 640px) {
     header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
-    header .mark { font-size: 13px; }
+    header .mark { font-size: var(--t-sm); }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
        page used to redeclare for itself is gone -- it was also

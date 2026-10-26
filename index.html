@@ -166,11 +166,11 @@
     margin: 0;
   }
 
-  .peek-price { font-family: var(--font-mono); font-size: 15px; color: var(--ink-dim); }
+  .peek-price { font-family: var(--font-mono); font-size: var(--t-base); color: var(--ink-dim); }
 
   .peek-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
@@ -462,7 +462,7 @@
   .campaign-title {
     margin: 0;
     font-family: var(--font);
-    font-size: clamp(30px, 3.4vw, 52px);
+    font-size: var(--t-xl);
     font-weight: 500;
     line-height: 1.04;
     letter-spacing: -0.025em;
@@ -521,7 +521,7 @@
   .story-head {
     margin: 0;
     font-family: var(--font);
-    font-size: clamp(28px, 2.8vw, 44px);
+    font-size: var(--t-xl);
     font-weight: 500;
     line-height: 1.08;
     letter-spacing: -0.025em;
@@ -669,7 +669,6 @@
        alone loses to an explicit height. */
     .campaign-frame { height: auto; aspect-ratio: 4 / 5; }
     .campaign-copy { left: 16px; right: 16px; bottom: 28px; max-width: none; }
-    .campaign-title { font-size: clamp(32px, 10vw, 48px); }
     .campaign-note { margin-top: 12px; }
 
     /* Picture first on a phone -- the photograph is the hook, and a
@@ -677,7 +676,6 @@
     .story { grid-template-columns: 1fr; }
     .story-figure { order: -1; height: auto; aspect-ratio: 4 / 5; }
     .story-copy { padding: 30px 20px 36px; }
-    .story-head { font-size: clamp(26px, 7.2vw, 36px); }
     .story-link { align-self: stretch; justify-content: center; }
 
     .tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 34px 15px; }
@@ -710,7 +708,7 @@
     background: none;
     color: var(--ink);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.03em;
     cursor: pointer;
     border-radius: 0;
@@ -757,7 +755,7 @@
 
   .qa-msg {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--t-xs);
     letter-spacing: 0.05em;
     color: var(--muted);
     align-self: center;
@@ -769,7 +767,7 @@
     display: none;
     padding: 6vh 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--t-sm);
   }
 
   .shop-empty.show { display: block; }
@@ -802,7 +800,7 @@
 
   @media (max-width: 640px) {
     header { padding: 14px 16px; font-size: 9.5px; letter-spacing: 0.1em; }
-    header .mark { font-size: 13px; }
+    header .mark { font-size: var(--t-sm); }
     /* The phone nav is a full-screen panel now, defined once in
        assets/site.css. The horizontally scrolling link strip this
        page used to redeclare for itself is gone -- it was also
