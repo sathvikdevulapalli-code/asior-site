@@ -1225,45 +1225,33 @@
     } catch (err) { /* tracking must never block a real user action */ }
   }
 
-  /* Back-in-stock signup for a specific sold-out variant.
+  /* Sold-out capture goes to the normal email list, not a restock flow.
 
-     The dedicated Klaviyo endpoint needs the variant to exist in
-     Klaviyo's synced Shopify catalog, keyed as $shopify:::$default:::<id>.
-     If that sync isn't set up the call fails — so on failure we fall
-     back to subscribing them to the normal email list plus a "Back In
-     Stock Requested" event carrying the product and size. Either way the
-     signup is captured and nobody is silently dropped.
+     There is no back-in-stock flow in Klaviyo on this account -- 18
+     flows exist and none is on that trigger (checked 2026-10-26) -- and
+     the Fall pieces are not being restocked. So the old
+     /client/back-in-stock-subscriptions/ call took an address and
+     promised mail that nothing could ever send. Every "email me when
+     this is back" signup went nowhere.
 
-     Note for whoever runs Klaviyo: the flow message that sends these has
-     to be Live or Manual. Left in Draft, subscribers are accepted here
-     and then never messaged. */
-  async function klaviyoBackInStock(email, variantGid, meta) {
-    var numericId = String(variantGid || '').split('/').pop();
-    try {
-      var res = await fetch('https://a.klaviyo.com/client/back-in-stock-subscriptions/?company_id=' + KLAVIYO_PUBLIC_KEY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'revision': KLAVIYO_REVISION },
-        body: JSON.stringify({
-          data: {
-            type: 'back-in-stock-subscription',
-            attributes: {
-              channels: ['EMAIL'],
-              profile: { data: { type: 'profile', attributes: { email: email } } },
-            },
-            relationships: {
-              variant: { data: { type: 'catalog-variant', id: '$shopify:::$default:::' + numericId } },
-            },
-          },
-        }),
-      });
-      if (!res.ok) throw new Error('back-in-stock endpoint rejected');
-      await klaviyoTrack('Back In Stock Requested', meta, { email: email });
-      return 'subscribed';
-    } catch (err) {
-      await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email: email });
-      await klaviyoTrack('Back In Stock Requested', meta, { email: email });
-      return 'fallback';
-    }
+     What we can honestly offer a shopper who found a sold-out size is
+     first word on the next drop. That is the Email List the footer
+     signup already feeds (KLAVIYO_EMAIL_LIST_ID), and the Email
+     Welcome Series flow on it is live, so a signup here is actually
+     answered.
+
+     Same endpoint and same list as the footer means the same real
+     marketing consent, so every form calling this has to carry the
+     same consent sentence the footer does. */
+  async function klaviyoNextDropSignup(email, meta) {
+    // Stitches the onsite cookie to the address, same as every other
+    // signup path on the site.
+    klaviyoIdentify(email);
+    await klaviyoSubscribeToList(KLAVIYO_EMAIL_LIST_ID, { email: email });
+    // Which product and size sent them here is the useful part of the
+    // signal. klaviyoTrack swallows its own failures, so a tracking
+    // problem never fails a subscribe that already worked.
+    await klaviyoTrack('Next Drop Interest', meta, { email: email });
   }
 
   // -----------------------------------------------------------------
@@ -2063,7 +2051,7 @@
     klaviyoSubscribeToList: klaviyoSubscribeToList,
     klaviyoTrack: klaviyoTrack,
     trackCart: trackCart,
-    klaviyoBackInStock: klaviyoBackInStock,
+    klaviyoNextDropSignup: klaviyoNextDropSignup,
     dropState: dropState,
     launchDateLabel: launchDateLabel,
     getAnonId: getAnonId,

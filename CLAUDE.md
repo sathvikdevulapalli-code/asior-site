@@ -86,6 +86,32 @@ Discount *amounts* are never computed here. Shopify rounds per line
 shown must come from the Storefront cart's `discountAllocations` /
 `discountCodes` or it will disagree with checkout.
 
+## Sold-out capture goes to the Email List
+
+There is **no back-in-stock flow in Klaviyo** on this account. 18 flows
+exist and none is on that trigger, checked 2026-10-26 — and the Fall
+pieces are not being restocked, so there is nothing for one to announce.
+The site used to post sold-out signups to
+`/client/back-in-stock-subscriptions/` and tell the shopper "we'll email
+you the moment it's back". Nothing could ever send that mail, so every
+one of those signups went nowhere.
+
+What a sold-out size or a sold-out product offers instead is **"get
+first access to the next drop"**, subscribing to the same **Email List**
+(`KLAVIYO_EMAIL_LIST_ID`, `TFEDaD`) the footer signup feeds. The Email
+Welcome Series flow on that list is live, so the signup is answered.
+`klaviyoNextDropSignup(email, meta)` in `assets/site.js` owns it; it is
+the only sold-out capture, on the product page and in quick view alike.
+Because it is the same list and the same real marketing consent as the
+footer, every form calling it carries the footer's consent sentence
+verbatim.
+
+Do not reintroduce back-in-stock wording — "email me when it's back",
+"notify me when this is back", a restock alert — unless a
+back-in-stock flow actually exists in Klaviyo and is Live. "Notify me"
+on a `NEXT_DROP` COMING card is a different thing and is fine: it goes
+to the early-access list and that mail does get sent.
+
 ## Data sources
 
 Everything the site states about a product or an order comes from one of
@@ -177,6 +203,13 @@ and fails on a hit, so this list is enforced rather than remembered:
 fill, near-black caps, square. The announcement bar is `#141416` with
 off-white caps. No other colour except the product photographs
 themselves.
+
+Black theme, founder's decision 2026-10-26. The white palette from
+2026-10-25 is retired. `scripts/check-slop.js` fails the build if
+`--bg` in `assets/site.css` is a light value (relative luminance
+0.1 or more), so a flip back to white cannot land by accident — if it
+is ever reversed on purpose, that guard changes in the same commit.
+Body text clears 4.5:1 on `#0B0B0C` and control boundaries clear 3:1.
 
 **Not pure white on pure black.** Helvetica at 14px blooms in that
 pairing, which is why the page is a near-black and the type an
