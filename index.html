@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASIOR | Fall 2026</title>
 <meta name="description" content="After hours. In good company. Meet the ASIOR Fall 2026 collection.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#0B0B0C">
 <link rel="canonical" href="https://asiorclothing.com/">
 
 <!-- Open Graph. Social crawlers never run JavaScript, so these have to be
@@ -318,6 +318,18 @@
   @keyframes hero-settle { from { transform: scale(1.08); } to { transform: scale(1); } }
   @keyframes hero-rise { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
   .hero-figure img { animation: hero-settle 2.6s cubic-bezier(.16, .7, .2, 1) both; will-change: transform; }
+  /* The grid is its own section, not a continuation of the banner.
+     It had no base rule at all, so at desktop widths the first row of
+     photographs started at the pixel the hero ended and the two read
+     as one block. The reference separates them with space and nothing
+     else -- no rule, no heading. */
+  .home-row {
+    padding: clamp(40px, 5.5vw, 76px) 20px 0;
+  }
+
+  .home-row + .home-row { padding-top: clamp(48px, 6vw, 86px); }
+  .home-row:last-of-type { padding-bottom: clamp(48px, 6vw, 86px); }
+
   .hero-cta { animation: hero-rise .9s cubic-bezier(.2, .7, .2, 1) .6s both; }
   @media (prefers-reduced-motion: reduce) {
     .hero-figure img, .hero-cta { animation: none; }
