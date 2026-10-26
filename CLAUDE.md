@@ -227,6 +227,42 @@ are never shown a blank page. Pages must not add `.in` to cards
 themselves — call `Asior.observeReveal(grid)` after a re-render
 instead, or the animation never plays.
 
+**Stock signals.** Every number is Shopify's own `quantityAvailable`,
+fetched live in its own request — never added to `PRODUCT_CARD_FIELDS`,
+because mixing it into the catalogue query broke live images and
+pricing across browsers earlier this launch. `fetchStock()` in
+`assets/site.js` owns it, and everything fails silent: no data means
+no line and no badge, never a safe-looking default.
+
+- "N left" on a size at 3 or fewer, on the product page's size boxes
+  and on the card's size row. Only where one option names exactly one
+  variant: on a Color + Size product a size spans several colours, so
+  no single count is true of the box and none is shown.
+- "Only N left in {size}" under the price at 3 or fewer.
+- `LOW STOCK` badge when a product's total is 5 or fewer and it is
+  still buyable. `SOLD OUT` comes from `availableForSale`, never from
+  quantity: the JAG Lanyard sits at −5 with `availableForSale: true`,
+  so a quantity rule would mark a buyable product sold out.
+
+**`NEW_HANDLES`** in `launch-config.js` — handles the founder wants
+badged NEW, empty by default, empty means no badge. A list rather than
+a date rule because no date works: every Active product's `createdAt`
+predates `PUBLIC_LAUNCH_TIME`.
+
+**`NEXT_DROP`** in `launch-config.js` — `{ name, opensAt, handles }`,
+empty by default. While it is empty **none of the drop UI renders**: no
+countdown, no COMING cards, no timer. A countdown with no real date is
+the fake-urgency dark pattern this file bans and the FTC treats as
+deceptive. Fill all three and the site does the rest by itself: a
+countdown in the announcement bar and under the hero, those handles as
+COMING cards with a Notify Me field wired to the existing early-access
+list, and an automatic switch to normal buyable cards at `opensAt`
+with no deploy. Clear it back to the empty shape afterwards.
+
+**The homepage CTA follows what there is to do.** Shop normally; "Get
+early access" when a drop is configured and unopened, or when live
+`availableForSale` says two thirds or more of the catalogue is gone.
+
 **Voice:** short, texted rather than written. Lowercase is fine in body
 copy. "nothing in here yet." not "Your cart is currently empty."
 
