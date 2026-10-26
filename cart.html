@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cart | Asior</title>
 <meta name="description" content="Your Asior cart.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#0B0B0C">
 <link rel="canonical" href="https://asiorclothing.com/cart.html">
 <!-- No search value, and the cart renders a different page per session. -->
 <meta name="robots" content="noindex, follow">
@@ -862,7 +862,7 @@
                     title
                     price { amount currencyCode }
                     image { url }
-                    product { title }
+                    product { title featuredImage { url } }
                   }
                 }
               }
@@ -914,7 +914,13 @@
 
     const rows = cart.lines.edges.map(({ node }) => {
       const v = node.merchandise;
-      const media = v.image ? `<img src="${v.image.url}" alt="${v.product.title}" width="${v.image.width || 300}" height="${v.image.height || 400}" loading="lazy" decoding="async">` : `<div class="ph"></div>`;
+      /* The variant's image, then the product's. Measured against the
+         live catalogue on 2026-10-26, all but three variants in the
+         shop have image: null -- the photograph hangs off the product
+         -- so this rendered the empty placeholder for nearly every
+         line, exactly like the drawer did. */
+      const lineImg = v.image || (v.product && v.product.featuredImage);
+      const media = lineImg ? `<img src="${lineImg.url}" alt="${v.product.title}" width="${lineImg.width || 300}" height="${lineImg.height || 400}" loading="lazy" decoding="async">` : `<div class="ph"></div>`;
       // "Default Title" is Shopify's placeholder for a product with no
       // options; printing it would read as a size nobody chose.
       const variant = v.title && v.title !== 'Default Title' ? v.title : '';
