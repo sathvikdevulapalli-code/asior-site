@@ -4,10 +4,63 @@ Things that need a decision or a Shopify Admin edit. Nothing here can be
 done from this repo: product copy, prices and policies live in Shopify,
 and this codebase never writes to Shopify Admin or Klaviyo.
 
-Everything below was read back from the live store on 2026-10-26. Each
-item says what is true now, so none of it has to be taken on trust.
+Everything below was read back from the live store, on 2026-10-26
+unless an item says otherwise. Each item says what is true now, so none
+of it has to be taken on trust.
 
 ---
+
+## 0. Six product photos to upload (Ayush, 2026-10-27)
+
+The banner is done in this repo. The six **product** photos cannot be:
+product images live in Shopify, and this codebase never writes to
+Shopify Admin. They need uploading by hand, with the
+alt text below set on each media item — the site reads `altText` from
+Shopify and falls back to the product name, so it is not something the
+repo can supply.
+
+Upload the **originals**, not compressed copies. The site requests
+resized WebP variants from Shopify's CDN (`w400`/`w800`/`w1200`), so
+compressing before upload only loses quality. That is the opposite of
+the banner, which is served from this repo and so was compressed here.
+
+Shopify appends new media to the end, which is what "don't remove or
+reorder the existing photos" asks for, so no reordering is needed.
+
+| Product | File | Alt text to set |
+|---|---|---|
+| Asior Polo | `asior-polo-stone-wall.jpg` | Two models against a stone wall in the black Asior polo |
+| Asior Polo | `asior-polo-steps.jpg` | Two models on concrete steps in the black Asior polo and black Asior shorts |
+| JAG Set | `jag-set-crewneck-sweats.jpg` | Model in the grey Asior crewneck and matching sweatpants |
+| Holes Tee | `holes-tee-trees.jpg` | Model in the black Asior holes tee, leopard pattern showing through |
+| JAG Shorts | `jag-shorts-steps.jpg` | Two models on concrete steps in grey Asior shorts with a leopard side stripe |
+| ASR Shorts | `asr-shorts-steps.jpg` | Two models on concrete steps in black Asior shorts with a tonal leopard print |
+
+**Two things worth knowing before you upload.**
+
+*Ayush's numbering does not match the order the photos were attached.*
+The email asks for "photo 5" as the banner and describes it as the two
+models on concrete steps in grey shorts — but the fifth attachment is
+the stone-wall polo shot. Every photo was matched by its description
+instead, which is unambiguous, and the product list cross-checks it:
+item 5 says JAG Shorts gets the same photo as the banner, and that is
+the grey-shorts shot. The descriptions and the cross-reference agree,
+so the number is the part that is wrong. Worth a reply to Ayush before
+anyone works from those numbers again.
+
+*The Holes Tee photo disagrees with its Shopify description.* The
+description reads "Distressed print across the body". The photograph
+shows actual cut-out holes with a leopard-patterned layer visible
+through them, which is not a print. This is the open question from the
+earlier audit, and the photo answers it — but confirm the construction
+before rewriting the description, and fix it at the same time as the
+other description defects below.
+
+A smaller one: the JAG Set and JAG Crewneck currently lead with
+hash-named PNGs rather than shoot photography, so the new crewneck
+photo will sit behind one in the grid tile. Making it the tile means
+reordering, which Ayush asked not to do — so it is left alone. Say the
+word if you want it promoted.
 
 ## 1. The JAG Set is now the worse deal
 

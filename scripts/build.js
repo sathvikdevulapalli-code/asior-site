@@ -1768,16 +1768,22 @@ function syncHero() {
      edge to edge and the browser should be allowed every pixel the
      source actually has. It is never upscaled past that: there is no
      2400w entry, since inventing one would only blur it. */
-  /* One photograph, edge to edge, the way the reference does it: the
-     four-model group shot across the whole banner. The founder asked
-     for this over the two-frame split on 2026-10-24. */
-  const file = 'oli-group';
-  const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
+  /* One photograph, edge to edge, the way the reference does it. The
+     founder asked for a single full-frame banner over the two-frame
+     split on 2026-10-24; the photograph in it changed on 2026-10-27,
+     at Ayush's request, to the two-model shorts shot.
+
+     The source is 1536px wide, so the srcset stops there. There is no
+     1600w or 1717w entry the way the previous file had: those were
+     that file's real widths, and inventing one here would only
+     upscale and blur. */
+  const file = 'shorts-duo';
+  const alt = 'Two models on concrete steps in black tanks and grey Asior sweat shorts';
   const block =
     '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w" sizes="100vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w" sizes="100vw">\n`
-    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400" fetchpriority="high" decoding="async">\n`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1536w" sizes="100vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1536w" sizes="100vw">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1536" height="2304" fetchpriority="high" decoding="async">\n`
     + '        </picture>\n';
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);

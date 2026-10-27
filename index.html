@@ -30,21 +30,22 @@
 <link rel="preload" href="assets/site.js" as="script">
 <!-- LCP element.
 
-     This preloaded images/look-02.webp, which has not been in the hero
-     since the hero became oli-group plus oli04281. look-02 is a
-     category tile most of the way down the page, so the preload was
-     fetching a non-LCP image at high priority, with no imagesrcset, in
-     competition with the two frames the browser actually paints.
-     Measured on a throttled 1.6Mbps connection before this change:
-     6120ms desktop, 5424ms mobile.
+     This once preloaded images/look-02.webp, a category tile most of
+     the way down the page, long after the hero stopped using it: a
+     non-LCP image fetched at high priority, with no imagesrcset, in
+     competition with the frame the browser actually paints. Measured
+     on a throttled 1.6Mbps connection before that was fixed: 6120ms
+     desktop, 5424ms mobile. check-slop now fails the build if this
+     tag names an image the hero does not reference.
 
      One preload for the one hero photograph, full width at every size.
-     imagesrcset/imagesizes repeat the <source> exactly -- without them
-     the preload picks a different candidate than the <picture> does
-     and the image is fetched twice. -->
+     imagesrcset/imagesizes repeat the <source> in syncHero() exactly
+     -- without them the preload picks a different candidate than the
+     <picture> does and the image is fetched twice. Change them in the
+     same commit as the hero, or the two disagree. -->
 <link rel="preload" as="image" type="image/webp"
-      href="images/oli-group.webp"
-      imagesrcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w"
+      href="images/shorts-duo.webp"
+      imagesrcset="images/shorts-duo-800.webp 800w, images/shorts-duo.webp 1536w"
       imagesizes="100vw"
       fetchpriority="high">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
@@ -310,8 +311,20 @@
     display: block;
     object-fit: cover;
   }
-  /* Faces and garments in frame, concrete and sky trimmed. */
-  .hero-figure img { object-position: center 30%; }
+  /* Both faces and the shorts in frame, concrete trimmed.
+
+     Re-measured for the shorts photograph on 2026-10-27. The frame is
+     2:3 and the banner is a landscape band, so cover shows about 40%
+     of the picture's height at 1440 and 32% at 1920 -- the crop is
+     the whole design decision, not a detail.
+
+     Measured against the source: 30% clipped the top of the standing
+     model's hair, and 38% cut her head off outright while bringing
+     the hem of the shorts in. 22% is the lowest value that keeps both
+     heads whole, and it still carries both faces and the Asior script
+     and leopard stripe on the shorts. Ayush's brief put the heads
+     first, so the hem is what gives. */
+  .hero-figure img { object-position: center 22%; }
 
   /* Motion: the photograph settles from a slight zoom as the page
      opens, and the one link rises in after it. Slow and once. */
@@ -949,7 +962,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
   <header class="site-header">
@@ -960,7 +973,6 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/manufacturing.html">Manufacturing</a>
       <a href="/waitlist.html">Waitlist</a>
     </nav>
 
@@ -1010,9 +1022,9 @@
     <div class="hero-art">
       <!-- HERO:START -->
         <picture class="hero-figure">
-          <source type="image/webp" srcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w" sizes="100vw">
-          <source srcset="images/oli-group-800.jpg 800w, images/oli-group.jpg 1600w, images/oli-group-full.jpg 1717w" sizes="100vw">
-          <img src="images/oli-group.jpg" alt="Four models in Asior tees, tanks and sweat shorts on concrete steps" width="1600" height="2400" fetchpriority="high" decoding="async">
+          <source type="image/webp" srcset="images/shorts-duo-800.webp 800w, images/shorts-duo.webp 1536w" sizes="100vw">
+          <source srcset="images/shorts-duo-800.jpg 800w, images/shorts-duo.jpg 1536w" sizes="100vw">
+          <img src="images/shorts-duo.jpg" alt="Two models on concrete steps in black tanks and grey Asior sweat shorts" width="1536" height="2304" fetchpriority="high" decoding="async">
         </picture>
   <!-- HERO:END -->
     </div>
