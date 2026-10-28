@@ -151,6 +151,50 @@ for (const file of pages(ROOT)) {
   }
 }
 
+/* ---- every image a page asks for has to exist ---------------------
+
+   lanyard.html carried the .jpg path and derived the WebP sibling with
+   a string replace. That was fine until the build began content-hashing
+   images: the hasher only rewrites paths it can see, so the jpg became
+   lanyard-01.<hash>.jpg and the derived sibling became
+   lanyard-01.<hash>.webp, which nothing ever wrote. All three gallery
+   photographs 404'd on a product page, and a <picture> does not fall
+   back to its <img> when the chosen <source> fails -- so the page
+   showed three empty boxes and no test noticed.
+
+   Any reference to a local image that is not on disk is that mistake,
+   so it fails the build. */
+{
+  const pages = [];
+  const pushHtml = dir => {
+    if (!fs.existsSync(dir)) return;
+    for (const f of fs.readdirSync(dir)) {
+      if (f.endsWith('.html')) pages.push(path.join(dir, f));
+    }
+  };
+  pushHtml(ROOT);
+  pushHtml(path.join(ROOT, 'products'));
+  pushHtml(path.join(ROOT, 'collections'));
+
+  const missing = new Map();
+  for (const page of pages) {
+    const html = fs.readFileSync(page, 'utf8');
+    for (const m of html.matchAll(/(images|assets)\/([A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp|avif|svg|ico))/gi)) {
+      const rel = `${m[1]}/${m[2]}`;
+      if (fs.existsSync(path.join(ROOT, rel))) continue;
+      if (!missing.has(rel)) missing.set(rel, new Set());
+      missing.get(rel).add(path.relative(ROOT, page));
+    }
+  }
+  for (const [rel, where] of missing) {
+    const pagesList = [...where].slice(0, 3).join(', ');
+    const more = where.size > 3 ? ` (+${where.size - 3} more)` : '';
+    console.error(`  ${rel}  is referenced but not on disk -- it will 404`);
+    console.error(`      referenced by: ${pagesList}${more}`);
+    hits++;
+  }
+}
+
 /* ---- the page stays dark ------------------------------------------
 
    The palette has been flipped twice in two days -- white on
