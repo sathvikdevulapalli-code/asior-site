@@ -2306,6 +2306,8 @@
     var input = document.getElementById('shopSearch');
     var grid = document.getElementById('shopGrid');
     var status = document.getElementById('shopSearchStatus');
+    var searchEmpty = document.getElementById('shopSearchEmpty');
+    var clearSearch = document.getElementById('shopSearchClear');
     if (!input || !grid) return;
 
     /* Queried per keystroke, not captured once. shop.html replaces the
@@ -2317,6 +2319,9 @@
       var cards = Array.prototype.slice.call(grid.querySelectorAll('.product'));
       var headings = Array.prototype.slice.call(grid.querySelectorAll('.shop-grid-heading'));
       var query = input.value.trim().toLocaleLowerCase();
+      grid.querySelectorAll('.grid-editorial').forEach(function (tile) {
+        tile.hidden = !!query;
+      });
       var shown = 0;
       cards.forEach(function (card) {
         var title = card.querySelector('.product-title');
@@ -2336,9 +2341,15 @@
       if (status) status.textContent = query
         ? shown + ' product' + (shown === 1 ? '' : 's')
         : '';
+      if (searchEmpty) searchEmpty.hidden = !query || shown > 0;
     }
 
     input.addEventListener('input', apply);
+    if (clearSearch) clearSearch.addEventListener('click', function () {
+      input.value = '';
+      apply();
+      input.focus();
+    });
 
     /* ?q= seeds the field and runs once, so a search is linkable and
        the WebSite SearchAction in the home page's structured data
