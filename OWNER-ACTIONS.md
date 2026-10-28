@@ -10,6 +10,28 @@ of it has to be taken on trust.
 
 ---
 
+## 00. Kill THIRTY before the ads run (2026-10-28)
+
+Read back from the live store today. Seven discounts are ACTIVE:
+
+| Code | Off | Risk |
+|---|---|---|
+| **THIRTY** | **30%** | **a dictionary word anyone can guess** |
+| ASIORTEN | 10% | intended, the only code the site names |
+| AFFILIATE x2 | 5% | random 8-character codes, not guessable |
+| SIGNUP x2 | 5% | random 8-character codes, not guessable |
+| Any 2 pieces 15% off | 15% | automatic, intended |
+
+**THIRTY is the one that matters.** It is a plain English word, active,
+30% off, and nothing stops a visitor typing it into the checkout. Send
+paid traffic at the store with that live and some of it will find it.
+The AFFILIATE and SIGNUP codes are random strings like `JDHF4DCC`, so
+they only leak if someone shares them — lower priority, same fix.
+
+None of these is named anywhere on the site; this is purely a Shopify
+Admin cleanup. The site has no way to stop a code being typed at
+checkout, so it cannot be fixed from this repo.
+
 ## 0. Six product photos to upload (Ayush, 2026-10-27)
 
 The banner is done in this repo. The six **product** photos cannot be:
@@ -200,3 +222,31 @@ exist:
 The first two are fixed. The third is not, so the card hover swap is
 under-exercised for those four products in local testing — it works in
 production, where the second image exists.
+
+---
+
+## Ad landing URLs (2026-10-28)
+
+Stock read from Shopify today. Best-stocked, every size buyable:
+
+| Product | Units | URL |
+|---|---|---|
+| ASIOR Polo | 14 | `https://asiorclothing.com/products/scripture-polo.html?utm_source=meta&utm_medium=paid&utm_campaign=fall-sellout&utm_content=scripture-polo` |
+| Holes Tee | 10 | `https://asiorclothing.com/products/holes-tee.html?utm_source=meta&utm_medium=paid&utm_campaign=fall-sellout&utm_content=holes-tee` |
+| JAG Sweats | 10 | `https://asiorclothing.com/products/jaguar-sweats.html?utm_source=meta&utm_medium=paid&utm_campaign=fall-sellout&utm_content=jaguar-sweats` |
+
+Home and shop:
+
+- `https://asiorclothing.com/?utm_source=meta&utm_medium=paid&utm_campaign=fall-sellout&utm_content=home`
+- `https://asiorclothing.com/shop.html?utm_source=meta&utm_medium=paid&utm_campaign=fall-sellout&utm_content=shop`
+
+Note: JAG Sweats is not in the Fall collection, so under a
+`fall-sellout` campaign the honest Fall alternatives are ASR Shorts (9)
+and JAG Shorts (9). The Helia Pendant has the most units of anything
+(15) but it is an accessory, not a piece to lead an ad with.
+
+These UTMs survive the whole way: they are captured first-touch on
+landing and written onto the Shopify cart as attributes, so they appear
+on the order. Verified end to end against a mocked Storefront API on
+2026-10-28 — `cartCreate` carried
+`utm_source=instagram, utm_medium=paid, utm_campaign=fall-sellout`.
