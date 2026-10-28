@@ -300,14 +300,14 @@ window.ASIOR_ANALYTICS = {
    Lanyard all lead with shoot or product photography. Kova's Firefly
    render is demoted automatically by isGeneratedImage().
 
-   The two that are wrong cannot be fixed from here: JAG Crewneck and
-   JAG Set have NO photograph in Shopify at all, only hash-named PNG
-   renders (1024x1536 and 1415x2048). They need a real photo uploaded
-   -- see OWNER-ACTIONS.md. When the new shoot photos land, naming one
-   here is a one-line change.
+   JAG Set got a real photograph on 2026-10-28 and is named below.
+   JAG Crewneck still has only a hash-named PNG render (1024x1536):
+   it needs its own photo uploaded in Shopify.
    =================================================================== */
 window.ASIOR_CARD_IMAGE = {
-  // 'jag-set-1': 'jag-set-crewneck-sweats',
+  // Real photo uploaded to Shopify 2026-10-28 (Ayush's crewneck + sweats
+  // shot). Leads the grid instead of the hash-named PNG render.
+  'jag-set-1': 'jag-set-crewneck-sweats',
 };
 
 window.ASIOR_CARD_FOCUS = {

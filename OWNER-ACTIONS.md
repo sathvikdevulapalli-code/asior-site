@@ -63,7 +63,13 @@ None of these is named anywhere on the site; this is purely a Shopify
 Admin cleanup. The site has no way to stop a code being typed at
 checkout, so it cannot be fixed from this repo.
 
-## 0. Six product photos to upload (Ayush, 2026-10-27)
+## 0. Six product photos to upload (Ayush, 2026-10-27) -- DONE 2026-10-28
+
+Uploaded to Shopify on 2026-10-28 with the alt text below, appended after
+the existing media. Five are the photographer's 2400x3600 Pixieset
+originals (OLI04212, OLI04094, OLI04013, OLI03931, OLI04001); the JAG Set
+shot is not in the gallery, so it is Ayush's 1170x1560 copy. The
+remaining note below about the Holes Tee description still stands.
 
 The banner is done in this repo. The six **product** photos cannot be:
 product images live in Shopify, and this codebase never writes to
