@@ -74,8 +74,13 @@ founder's direction to sell through the current stock:
   `promo-config.js` mirrors it.
 - **Any 2 pieces 15% off**, a Shopify automatic discount
   (`DiscountAutomaticNode/1570203828441`), 15% off the order at a
-  minimum quantity of 2, no code. It does not combine with ASIORTEN or
-  any other product/order discount, so never imply they stack.
+  minimum quantity of 2, no code. Read back from the discount node on
+  2026-10-26: `minimumRequirement` is a **quantity** of 2 (units in the
+  cart, not distinct line items) and `combinesWith` is
+  `{ orderDiscounts: false, productDiscounts: false, shippingDiscounts:
+  true }`. So it does **not** stack with ASIORTEN, and it **does** stack
+  with free shipping. Never imply it stacks with the code; never imply
+  taking it costs the free shipping either.
   `window.ASIOR_OFFERS.MULTI_BUY` in `promo-config.js` mirrors it; set it
   to null the day the discount ends and every mention disappears.
 
@@ -97,11 +102,12 @@ through `addToShopifyCart` like every other add. No badge on any grid
 card. All of it is gated on `MULTI_BUY`.
 
 While that automatic discount is live, ASIORTEN steps aside rather than
-sitting beside it: the product page's trustline drops the code, the
-cart page's sentence says it does not combine with the 2-piece offer,
-and the announcement bar's code message carries "one offer per order".
-Two offers stated side by side with nothing said add up to 25% in a
-shopper's head.
+sitting beside it: the product page's trustline drops the code, and the
+cart page and the announcement bar both say the code does not combine
+with the 2-piece offer. Two offers stated side by side with nothing
+said add up to 25% in a shopper's head. The wording names the 2-piece
+offer specifically and does not say "one offer per order", which was
+the earlier phrasing and is wrong: free shipping stacks with both.
 
 Discount *amounts* are never computed here. Shopify rounds per line
 (3 x $42.99 at 10% is 3 x $4.29 = $12.87, not $12.897), so the figure

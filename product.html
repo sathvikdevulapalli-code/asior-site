@@ -64,13 +64,21 @@
   /* [measured] Gallery left, info column 642px right, ~20px apart.
      The reference runs the gallery from x=25 and the panel from x=963
      at 1920; proportionally that is the gallery taking what is left of
-     a 642px fixed column, which is what this does at any width. */
+     a 642px column.
+
+     Fixed at 642 it only held that proportion at the width it was
+     measured at. At 1440, the commoner desktop, 642px of panel left
+     the photographs 52% of the row -- the panel creeping towards half
+     the page while the garment lost it. Measured at 1440 on
+     2026-10-26. The column scales with the viewport instead and tops
+     out at the measured 642, so 1920 is unchanged and 1440 gets the
+     same roughly 60/40 split the reference has. */
   .pd {
     max-width: 1700px;
     margin: 0 auto;
     padding: 24px var(--page-pad) 12vh;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 642px;
+    grid-template-columns: minmax(0, 1fr) clamp(440px, 37.5vw, 642px);
     gap: 20px;
     align-items: start;
   }
@@ -213,6 +221,14 @@
 
   /* Room for the counts under the row. */
   .pd-size-row:has(.pd-size[data-left]) { margin-bottom: 14px; }
+
+  .pd-sizehint {
+    margin: 8px 0 0;
+    font-size: var(--t-sm);
+    color: var(--muted);
+  }
+
+  .pd-sizehint[hidden] { display: none; }
 
   .pd-sizelabel {
     text-align: left;
@@ -746,7 +762,7 @@
     margin: 0 auto;
     padding: 24px var(--page-pad) 12vh;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 642px;
+    grid-template-columns: minmax(0, 1fr) clamp(440px, 37.5vw, 642px);
     gap: 20px;
     align-items: start;
   }
@@ -1156,7 +1172,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
   <header class="site-header">
@@ -1167,7 +1183,6 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/manufacturing.html">Manufacturing</a>
       <a href="/waitlist.html">Waitlist</a>
     </nav>
 
@@ -2030,7 +2045,15 @@
 
             ${hasOptions ? `
               <div class="pd-sizelabel" id="pdSizeLabel">Size:</div>
-              <div class="pd-sizes" id="pdSizes"></div>` : ''}
+              <div class="pd-sizes" id="pdSizes"></div>
+              <!-- The instruction the disabled button cannot give.
+                   Relabelling Add to bag as "Select a Size" was tried
+                   and reverted: it turned the one control that buys
+                   the product into a dead grey box, which was the
+                   clearest complaint this page had. The button keeps
+                   saying what it does; the instruction lives here, and
+                   the button points at it for screen readers. -->
+              <p class="pd-sizehint" id="pdSizeHint" hidden>Select a size to add to bag</p>` : ''}
             ${setSizingNote(product)}
 
             <div class="pd-actions">
@@ -2271,6 +2294,21 @@
       }
 
       const needsPick = hasOptions && product.optionNames.some(n => !selection[n]);
+      /* One place decides whether the instruction is showing, so it
+         can never be left up after a size is chosen or missing while
+         the button is disabled for want of one. */
+      const hint = document.getElementById('pdSizeHint');
+      if (hint) {
+        hint.hidden = !needsPick;
+        hint.textContent = product.optionNames.length > 1
+          ? 'Choose ' + product.optionNames.map(n => n.toLowerCase()).join(' and ') + ' to add to bag'
+          : 'Select a size to add to bag';
+      }
+      [btn, stickyBtn].forEach(b => {
+        if (!b) return;
+        if (needsPick) b.setAttribute('aria-describedby', 'pdSizeHint');
+        else b.removeAttribute('aria-describedby');
+      });
       if (needsPick) {
         // Nothing chosen yet. The button keeps saying what it does and
         // is simply disabled: it used to relabel itself "Select a Size",

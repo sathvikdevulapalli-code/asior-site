@@ -30,21 +30,22 @@
 <link rel="preload" href="assets/site.js" as="script">
 <!-- LCP element.
 
-     This preloaded images/look-02.webp, which has not been in the hero
-     since the hero became oli-group plus oli04281. look-02 is a
-     category tile most of the way down the page, so the preload was
-     fetching a non-LCP image at high priority, with no imagesrcset, in
-     competition with the two frames the browser actually paints.
-     Measured on a throttled 1.6Mbps connection before this change:
-     6120ms desktop, 5424ms mobile.
+     This once preloaded images/look-02.webp, a category tile most of
+     the way down the page, long after the hero stopped using it: a
+     non-LCP image fetched at high priority, with no imagesrcset, in
+     competition with the frame the browser actually paints. Measured
+     on a throttled 1.6Mbps connection before that was fixed: 6120ms
+     desktop, 5424ms mobile. check-slop now fails the build if this
+     tag names an image the hero does not reference.
 
      One preload for the one hero photograph, full width at every size.
-     imagesrcset/imagesizes repeat the <source> exactly -- without them
-     the preload picks a different candidate than the <picture> does
-     and the image is fetched twice. -->
+     imagesrcset/imagesizes repeat the <source> in syncHero() exactly
+     -- without them the preload picks a different candidate than the
+     <picture> does and the image is fetched twice. Change them in the
+     same commit as the hero, or the two disagree. -->
 <link rel="preload" as="image" type="image/webp"
-      href="images/oli-group.webp"
-      imagesrcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w"
+      href="images/shorts-duo.webp"
+      imagesrcset="images/shorts-duo-800.webp 800w, images/shorts-duo.webp 1536w"
       imagesizes="100vw"
       fetchpriority="high">
 <!-- launch-config.js still carries FALL_PRODUCTS (customer-facing name
@@ -310,8 +311,20 @@
     display: block;
     object-fit: cover;
   }
-  /* Faces and garments in frame, concrete and sky trimmed. */
-  .hero-figure img { object-position: center 30%; }
+  /* Both faces and the shorts in frame, concrete trimmed.
+
+     Re-measured for the shorts photograph on 2026-10-27. The frame is
+     2:3 and the banner is a landscape band, so cover shows about 40%
+     of the picture's height at 1440 and 32% at 1920 -- the crop is
+     the whole design decision, not a detail.
+
+     Measured against the source: 30% clipped the top of the standing
+     model's hair, and 38% cut her head off outright while bringing
+     the hem of the shorts in. 22% is the lowest value that keeps both
+     heads whole, and it still carries both faces and the Asior script
+     and leopard stripe on the shorts. Ayush's brief put the heads
+     first, so the hem is what gives. */
+  .hero-figure img { object-position: center 22%; }
 
   /* Motion: the photograph settles from a slight zoom as the page
      opens, and the one link rises in after it. Slow and once. */
@@ -322,12 +335,94 @@
      It had no base rule at all, so at desktop widths the first row of
      photographs started at the pixel the hero ended and the two read
      as one block. The reference separates them with space and nothing
-     else -- no rule, no heading. */
+     else -- no rule, no heading. That held while the homepage was one
+     undifferentiated run of products; it stopped holding the moment
+     the page had to say which row is the Fall collection and which is
+     everything else, so each row now carries one small label. */
   .home-row {
     padding: clamp(40px, 5.5vw, 76px) 20px 0;
   }
 
   .home-row + .home-row { padding-top: clamp(48px, 6vw, 86px); }
+
+  /* A quiet band, not a hero. One rule above and below, the name, one
+     line, one link. Tokens only. */
+  .ync {
+    padding: clamp(44px, 5vw, 72px) 20px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ync-copy {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .ync-eyebrow {
+    margin: 0 0 10px;
+    font-size: var(--t-sm);
+    font-weight: 500;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .ync-note {
+    margin: 0 0 18px;
+    font-size: var(--t-base);
+    color: var(--muted);
+  }
+
+  .ync-link {
+    /* inline-flex, not inline-block: min-height on an inline-block
+       grows the box downwards and leaves the label sitting high in
+       it. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    min-height: 44px;
+    border: 1px solid var(--field-line);
+    color: var(--ink);
+    font-size: var(--t-sm);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .ync-link:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+  /* A row says what it is, in the same quiet label the rest of the
+     interface uses. Tokens only, so this survives a palette change. */
+  .home-row-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .home-row-title {
+    margin: 0;
+    font-size: var(--t-sm);
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .home-row-link {
+    font-size: var(--t-xs);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+  }
+
+  .home-row-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
   .home-row:last-of-type { padding-bottom: clamp(48px, 6vw, 86px); }
 
   .hero-cta { animation: hero-rise .9s cubic-bezier(.2, .7, .2, 1) .6s both; }
@@ -867,7 +962,7 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. One offer per order</p>
+      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
   <header class="site-header">
@@ -878,7 +973,6 @@
       <a href="/shop.html">Shop all</a>
       <a href="/collections/tops.html">Tops</a>
       <a href="/collections/bottoms.html">Bottoms</a>
-      <a href="/manufacturing.html">Manufacturing</a>
       <a href="/waitlist.html">Waitlist</a>
     </nav>
 
@@ -928,9 +1022,9 @@
     <div class="hero-art">
       <!-- HERO:START -->
         <picture class="hero-figure">
-          <source type="image/webp" srcset="images/oli-group-800.webp 800w, images/oli-group.webp 1600w, images/oli-group-full.webp 1717w" sizes="100vw">
-          <source srcset="images/oli-group-800.jpg 800w, images/oli-group.jpg 1600w, images/oli-group-full.jpg 1717w" sizes="100vw">
-          <img src="images/oli-group.jpg" alt="Four models in Asior tees, tanks and sweat shorts on concrete steps" width="1600" height="2400" fetchpriority="high" decoding="async">
+          <source type="image/webp" srcset="images/shorts-duo-800.webp 800w, images/shorts-duo.webp 1536w" sizes="100vw">
+          <source srcset="images/shorts-duo-800.jpg 800w, images/shorts-duo.jpg 1536w" sizes="100vw">
+          <img src="images/shorts-duo.jpg" alt="Two models on concrete steps in black tanks and grey Asior sweat shorts" width="1536" height="2304" fetchpriority="high" decoding="async">
         </picture>
   <!-- HERO:END -->
     </div>
@@ -965,6 +1059,15 @@
 
        The id stays: the campaign band's "Shop now" points at it. -->
   <section class="home-row" id="lineup" aria-label="Fall collection">
+    <!-- The heading is visible now. The row was labelled Fall for
+         screen readers only, while showing eight mixed products -- so
+         nothing on screen said what the row was, and what it held was
+         not Fall anyway. Both are fixed: FALL_PRODUCTS decides the
+         contents, and the heading says so out loud. -->
+    <div class="home-row-head">
+      <h2 class="home-row-title">Fall collection</h2>
+      <a class="home-row-link" href="/collections/fall-collection.html">View all</a>
+    </div>
     <div class="shop-grid" id="lineupGrid" data-drop-grid>
       <!-- LINEUPGRID:START -->
 
@@ -1090,6 +1193,19 @@
     </div>
   </section>
 
+  <!-- Everything that is not Fall, under a heading that says so. These
+       cards used to sit inside the Fall row above. -->
+  <section class="home-row" id="everything" aria-label="More from Asior">
+    <div class="home-row-head">
+      <h2 class="home-row-title">More from Asior</h2>
+      <a class="home-row-link" href="/shop.html">Shop all</a>
+    </div>
+    <div class="shop-grid">
+      <!-- RESTGRID:START -->
+      <!-- RESTGRID:END -->
+    </div>
+  </section>
+
   <!-- [measured] Four category tiles, 454x600, ~10px gaps, 30px side
        padding. The reference's fourth is BEST SELLERS; ours is
        MANUFACTURING, per the spec. -->
@@ -1130,6 +1246,29 @@
        campaign band above it so the page does not repeat itself: copy
        on the left at rest, photograph on the right, and smaller. This
        is the way into the lookbook. -->
+  <!-- YNC.
+
+       The only fact this repo holds about YNC is its name. There is no
+       date, no product list, no price and no description of what it is
+       anywhere in the codebase or the Shopify catalogue, so this band
+       states the name, points at the waitlist that already exists, and
+       claims nothing else. Do not add a date, a countdown or a
+       description here without the founder supplying one -- a
+       countdown with no real date behind it is the fake-urgency
+       pattern CLAUDE.md bans.
+
+       It is a band, not a tile: the Accessories category tile below
+       stays where it is, because the homepage tiles are one of the
+       three ways Accessories is still reachable after it left the
+       nav. -->
+  <section class="ync" data-reveal aria-label="YNC">
+    <div class="ync-copy">
+      <p class="ync-eyebrow">YNC</p>
+      <p class="ync-note">Join the list for YNC updates.</p>
+      <a class="ync-link" href="/waitlist.html">Join the waitlist</a>
+    </div>
+  </section>
+
   <section class="story" data-reveal aria-label="The lookbook">
     <div class="story-copy">
       <p class="story-eyebrow">The lookbook</p>
@@ -1459,12 +1598,30 @@
     A.observeReveal(grid);
   }
 
+  /* Two rows, and each holds what its heading says.
+
+     This used to take the first eight of the catalogue into a row
+     labelled "Fall collection", which is how JAG Sweats, the
+     Crewneck, Kova and Ja-yu ended up inside a Fall-labelled region.
+     FALL_PRODUCTS decides the Fall row; everything else goes in the
+     row below it. The build renders exactly the same split, so the
+     pre-rendered page and this one cannot disagree.
+
+     The Fall row is never thinned by personalisation: a collection
+     that quietly drops a piece because you looked at it is not the
+     collection. Recently-viewed de-duplication applies to the second
+     row only. */
   function renderLineup(catalog) {
     const grid = document.getElementById('lineupGrid');
     if (!grid || !catalog.length) return;
     const shownInRecent = renderRecentlyViewed(catalog);
-    const view = catalog.filter(p => !shownInRecent.has(p.handle)).slice(0, 8);
-    /* First card spans 2x2 in .shop-grid--featured. */
+
+    const fallOrder = ((window.ASIOR_LAUNCH || {}).FALL_PRODUCTS || []).map(p => p.handle);
+    const byHandle = new Map(catalog.map(p => [p.handle, p]));
+    const fall = fallOrder.map(h => byHandle.get(h)).filter(Boolean);
+    const fallSet = new Set(fall.map(p => p.handle));
+    const rest = catalog.filter(p => !fallSet.has(p.handle) && !shownInRecent.has(p.handle));
+
     /* While a drop is upcoming, its handles render as COMING cards
        instead of buyable ones. Everything else on the grid is
        unaffected, and when the clock passes opensAt the drop:open
@@ -1472,18 +1629,25 @@
     const dropCfg = A.dropConfig && A.dropConfig();
     const coming = (A.dropState && A.dropState() === 'upcoming' && dropCfg)
       ? new Set(dropCfg.handles) : new Set();
-    grid.innerHTML = view.map((p, i) =>
-      coming.has(p.handle)
-        ? A.comingCard(p, dropCfg.at)
-        : card(p, false, i === 0 ? A.CARD_SIZES.featured : A.CARD_SIZES.row)).join('');
-    if (A.wireComingNotify) A.wireComingNotify(grid);
-    if (!grid.dataset.dropBound) {
-      grid.dataset.dropBound = '1';
-      grid.addEventListener('drop:open', () => renderLineup(catalog));
+    const draw = p => coming.has(p.handle)
+      ? A.comingCard(p, dropCfg.at)
+      : card(p, false, A.CARD_SIZES.row);
+
+    grid.innerHTML = fall.map(draw).join('');
+    const restGrid = document.querySelector('#everything .shop-grid');
+    if (restGrid) restGrid.innerHTML = rest.map(draw).join('');
+
+    for (const g of [grid, restGrid]) {
+      if (!g) continue;
+      if (A.wireComingNotify) A.wireComingNotify(g);
+      if (!g.dataset.dropBound) {
+        g.dataset.dropBound = '1';
+        g.addEventListener('drop:open', () => renderLineup(catalog));
+      }
+      bindQuickAdd(g);
+      wireHoverSwap(g);
+      A.observeReveal(g);
     }
-    bindQuickAdd(grid);
-    wireHoverSwap(grid);
-    A.observeReveal(grid);
   }
 
   // Personalisation from real browsing history only — the pieces this

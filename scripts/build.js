@@ -442,7 +442,7 @@ function plainDescription(html, fallback, limit = 160) {
    catalog responds, so nothing here has to be interactive, and there is
    deliberately no buy button: it could not work. */
 function prerenderedPdp(p) {
-  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const name = displayName(p);
   const variants = p.variants.edges.map(e => e.node);
   const prices = variants.map(v => parseFloat(v.price.amount)).filter(n => !isNaN(n));
   const currency = variants[0] ? variants[0].price.currencyCode : 'USD';
@@ -711,7 +711,7 @@ function productJsonLd(p, url) {
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: p.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
+    name: displayName(p),
     /* Real photographs only. This array is what Google renders in a
        rich result or in Shopping, so a generated render listed here is
        an AI image shown as the product in search -- the same rule as
@@ -738,7 +738,7 @@ function productJsonLd(p, url) {
 /* Turn product.html into a per-product page. Relative URLs are rewritten
    to root-absolute because these live one directory down. */
 function renderProductPage(template, p) {
-  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const name = displayName(p);
   const url = `${BASE}/products/${p.handle}.html`;
   // Where search engines should send people for this product. Same as
   // url for everything except the handles in BESPOKE_PAGES.
@@ -790,8 +790,7 @@ function renderProductPage(template, p) {
     + `<script type="application/ld+json">${breadcrumbJsonLd([
         { name: 'Home', path: '/' },
         { name: 'Shop all', path: '/shop.html' },
-        { name: p.title.replace(/\s*\[preorder\]\s*/i, '').trim(),
-          path: canonical.replace(BASE, '') },
+        { name: displayName(p), path: canonical.replace(BASE, '') },
       ])}</script>\n`
     + '<script src="/assets/site.js"></script>');
 
@@ -997,14 +996,18 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
 /* Three facts, each read back from Shopify: the automatic 2-piece
    discount, the live free-shipping rate and the one discount code.
 
-   The code's message carries "one offer per order" because the 15% is
-   an automatic discount that does not combine with it. Two offers in
-   one rotation, with nothing said, reads as 25% off to anyone who adds
-   them up. */
+   The code's message says what does not combine, and says it exactly.
+   Read back from the discount node on 2026-10-26, "Any 2 pieces 15%
+   off" has combinesWith { orderDiscounts: false, productDiscounts:
+   false, shippingDiscounts: TRUE }. So it does not stack with
+   ASIORTEN, and it does stack with free shipping. An earlier wording
+   here said "one offer per order", which is wrong in the second half:
+   it reads as though taking the 15% costs you the free shipping. Name
+   the offer that actually conflicts instead. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
   'Free shipping on US orders over $75',
-  '10% off your first order. Code ASIORTEN. One offer per order',
+  '10% off your first order. Code ASIORTEN. Not with the 2-piece offer',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
@@ -1087,11 +1090,17 @@ const NAV_LINKS = [
      linking to it. */
   ...CATEGORIES.filter(c => c.slug !== 'accessories')
     .map(c => [c.name, `/collections/${c.slug}.html`]),
-  /* Manufacturing stays in the main nav. It was moved to the footer
-     once on the grounds that a B2B service does not belong between
-     Tops and Accessories; it is a real part of what Asior offers and
-     people were looking for it there, so it is back. */
-  ['Manufacturing', '/manufacturing.html'],
+  /* Manufacturing is NOT in the main nav, at the founder's direction
+     on 2026-10-26: the header is where someone decides what to buy,
+     and a B2B inquiry service is not one of the choices.
+
+     This reverses an earlier call in the other direction, recorded
+     here so the reasoning is not lost: it had been put back on the
+     grounds that people were looking for it in the header. Nothing is
+     removed -- the page, its inbound links and its sitemap entry are
+     untouched, and it keeps its footer link and its homepage category
+     tile. If the inquiries drop off, that earlier reasoning is the
+     argument for putting it back. */
   ['Waitlist', '/waitlist.html'],
 ];
 
@@ -1438,6 +1447,21 @@ function fallHandles() {
   return [...block[1].matchAll(/handle:\s*'([^']+)'/g)].map(m => m[1]);
 }
 
+/* The displayed name for a product: Shopify's title, unless
+   DISPLAY_NAMES in launch-config.js corrects its case. Mirrors
+   displayName() in assets/site.js -- the pre-rendered card and the
+   live-rendered one must not disagree about what a product is called.
+   See the comment on DISPLAY_NAMES for why this exists and when to
+   delete an entry. */
+const DISPLAY_NAMES = LAUNCH.DISPLAY_NAMES || {};
+
+function displayName(p) {
+  const clean = String(p.title || '').replace(/\s*\[preorder\]\s*/i, '').trim();
+  return Object.prototype.hasOwnProperty.call(DISPLAY_NAMES, p.handle)
+    ? DISPLAY_NAMES[p.handle]
+    : clean;
+}
+
 function sortForMerchandising(products) {
   const order = fallHandles();
   const byHandle = new Map(products.map(p => [p.handle, p]));
@@ -1565,7 +1589,7 @@ function shopCard(p, eager, sizes) {
     ? `${compare ? `<span class="compare"><span class="sr-only">Was </span>$${compare}</span><span class="sale-price"><span class="sr-only">Now </span>$${min}</span>` : `$${min}`}`
     : `From $${min}`;
 
-  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const name = displayName(p);
   const isPreorder = /\[preorder\]/i.test(p.title);
   const soldOut = variants.length > 0 && variants.every(v => !v.availableForSale);
 
@@ -1668,7 +1692,7 @@ function renderShopGrid(products) {
 function archiveRow(p, i) {
   const variants = p.variants.edges.map(e => e.node);
   if (!variants.length) return '';
-  const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+  const name = displayName(p);
   const soldOut = variants.every(v => !v.availableForSale);
   /* No 01 / 02 / 03 markers. An archive is a set, not a sequence: the
      position of a piece in the list tells the reader nothing, so the
@@ -1744,16 +1768,22 @@ function syncHero() {
      edge to edge and the browser should be allowed every pixel the
      source actually has. It is never upscaled past that: there is no
      2400w entry, since inventing one would only blur it. */
-  /* One photograph, edge to edge, the way the reference does it: the
-     four-model group shot across the whole banner. The founder asked
-     for this over the two-frame split on 2026-10-24. */
-  const file = 'oli-group';
-  const alt = 'Four models in Asior tees, tanks and sweat shorts on concrete steps';
+  /* One photograph, edge to edge, the way the reference does it. The
+     founder asked for a single full-frame banner over the two-frame
+     split on 2026-10-24; the photograph in it changed on 2026-10-27,
+     at Ayush's request, to the two-model shorts shot.
+
+     The source is 1536px wide, so the srcset stops there. There is no
+     1600w or 1717w entry the way the previous file had: those were
+     that file's real widths, and inventing one here would only
+     upscale and blur. */
+  const file = 'shorts-duo';
+  const alt = 'Two models on concrete steps in black tanks and grey Asior sweat shorts';
   const block =
     '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w" sizes="100vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w" sizes="100vw">\n`
-    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400" fetchpriority="high" decoding="async">\n`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1536w" sizes="100vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1536w" sizes="100vw">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1536" height="2304" fetchpriority="high" decoding="async">\n`
     + '        </picture>\n';
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
@@ -1777,22 +1807,39 @@ function syncHero() {
 
 /* The homepage's lineup teaser: eight pieces, in merchandising order.
    Not the catalogue -- /shop.html is the catalogue. */
+/* The Fall row on the homepage holds the Fall collection and nothing
+   else.
+
+   It used to take the first eight products of the merchandising sort
+   under a section labelled "Fall collection", which put JAG Sweats,
+   the JAG Crewneck, Kova and Ja-yu inside a Fall-labelled region none
+   of them belongs to. FALL_PRODUCTS is the source of truth for what
+   the Fall collection is -- four pieces -- so that is what this
+   renders. Everything else keeps its place on the homepage, in a
+   section that says what it actually is. */
 function syncLineup(products) {
   const target = path.join(ROOT, 'index.html');
   const html = fs.readFileSync(target, 'utf8');
-  /* Eight, in a plain four-up. The first card used to span 2x2 in
-     .shop-grid--featured, which with eight pieces left one empty cell
-     in the bottom row at every desktop width -- a hole in the grid
-     reads as a product that failed to load. A flat 4x2 fills exactly,
-     and the editorial weight sits in the hero and the campaign band
-     instead, where a photograph has room to carry it. */
-  const rows = sortForMerchandising(products).slice(0, 8)
-    .map(p => shopCard(p, false, CARD_SIZES.row))
+  const order = fallHandles();
+  const byHandle = new Map(products.map(p => [p.handle, p]));
+  const fall = order.map(h => byHandle.get(h)).filter(Boolean);
+  const rows = fall.map(p => shopCard(p, false, CARD_SIZES.row))
     .filter(Boolean).join('\n') + '\n';
-  const next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
+  let next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
   if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
+
+  /* The rest of the catalogue, under its own honest heading. Nothing
+     is hidden by narrowing the Fall row -- these are the same cards,
+     one section further down, no longer claiming to be Fall. */
+  const fallSet = new Set(fall.map(p => p.handle));
+  const rest = sortForMerchandising(products).filter(p => !fallSet.has(p.handle));
+  const restRows = rest.map(p => shopCard(p, false, CARD_SIZES.row))
+    .filter(Boolean).join('\n') + '\n';
+  next = replaceBetween(next, '<!-- RESTGRID:START -->', '<!-- RESTGRID:END -->', restRows);
+  if (next === null) throw new Error('index.html: RESTGRID markers missing');
+
   if (next !== html) fs.writeFileSync(target, next);
-  return Math.min(8, products.length);
+  return fall.length + rest.length;
 }
 
 function syncShopGrid(products) {
@@ -1801,7 +1848,7 @@ function syncShopGrid(products) {
   const grid = replaceBetween(html, '<!-- SHOPGRID:START -->', '<!-- SHOPGRID:END -->', renderShopGrid(products));
   if (grid === null) throw new Error('shop.html: SHOPGRID markers missing');
   const suggestions = sortForMerchandising(products)
-    .map(p => `          <option value="${esc(p.title.replace(/\s*\[preorder\]\s*/i, '').trim())}"></option>`)
+    .map(p => `          <option value="${esc(displayName(p))}"></option>`)
     .join('\n');
   const next = replaceBetween(grid, '<!-- SHOPSEARCH:START -->', '<!-- SHOPSEARCH:END -->',
     suggestions ? '\n' + suggestions + '\n        ' : '\n        ');
@@ -1859,7 +1906,7 @@ function syncBespokeJsonLd(products) {
        title search engines and customers both have to guess about.
        Taking both from Shopify means they cannot drift again. */
     if (p) {
-      const name = p.title.replace(/\s*\[preorder\]\s*/i, '').trim();
+      const name = displayName(p);
       const metaTitle = `${name} | Asior`;
       const metaDesc = plainDescription(p.descriptionHtml, `${name} from Asior.`);
       next = next
@@ -2072,7 +2119,7 @@ function syncSiteJsonLd() {
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ homepage hero: ${syncHero()} campaign frame`);
     console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
-    console.log(`✓ homepage lineup teaser: ${syncLineup(products)} pieces`);
+    console.log(`✓ homepage: ${syncLineup(products)} pieces across the Fall row and the rest`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
     console.log(`✓ archive.html listed ${syncArchive(products)} products`);
 
