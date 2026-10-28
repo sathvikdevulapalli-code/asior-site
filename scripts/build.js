@@ -132,6 +132,13 @@ async function fetchProducts() {
           w400:  url(transform:{maxWidth:400,  preferredContentType:WEBP})
           w800:  url(transform:{maxWidth:800,  preferredContentType:WEBP})
           w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
+          # w2000, because these are the product page's gallery frames,
+          # not just card thumbnails. The lead frame is painted about
+          # 800 CSS px wide at 1440, so a retina laptop wants ~1600 and
+          # w1200 was the largest candidate on offer. Most of these
+          # originals are 4000x6000 in Shopify, so the pixels exist --
+          # they were simply never asked for.
+          w2000: url(transform:{maxWidth:2000, preferredContentType:WEBP})
         } } }
         # options and selectedOptions drive the prerendered size row;
         # the variant id is what its buttons add to the cart.

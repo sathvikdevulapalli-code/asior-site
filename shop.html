@@ -1220,6 +1220,11 @@
        .in here was what stopped the grid animating at all -- the live
        render lands within a few hundred ms of load, so every card was
        revealed before it could ever be scrolled into. */
+    /* Eleven products in four columns leaves a hole in the last row.
+       One editorial tile fills it; it renders only when the row is
+       actually short, so it disappears by itself if the catalogue
+       grows. */
+    if (A.fillGridRow) A.fillGridRow(grid);
     A.observeReveal(grid);
   }
 

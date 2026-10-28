@@ -2768,3 +2768,37 @@ html.search-open, html.search-open body { overflow: hidden; }
   .cart-suggest-add::before,
   .cart-suggest-add::after { transition: none; }
 }
+
+/* ---- the editorial tile that fills a short last row ----------------
+   Same 4:5 frame and column as a product card so the grid rhythm
+   holds, but deliberately not a product: no price, no size row, no +.
+   Tokens only. */
+.grid-editorial {
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.grid-editorial-frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.grid-editorial-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--dur-image, .65s) var(--ease-out);
+}
+
+.grid-editorial:hover .grid-editorial-frame img { transform: scale(1.03); }
+
+.grid-editorial .product-title { margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-editorial-frame img { transition: none; }
+  .grid-editorial:hover .grid-editorial-frame img { transform: none; }
+}

@@ -2227,6 +2227,7 @@
     freeShippingBadge: freeShippingBadge,
     multiBuyBadge: multiBuyBadge,
     displayName: displayName,
+    fillGridRow: fillGridRow,
     multiBuyOfferLine: multiBuyOfferLine,
     cartQuantity: cartQuantity,
     freeShippingProgress: freeShippingProgress,
@@ -2991,6 +2992,53 @@
     card.classList.remove('is-picking');
     var t = card.querySelector('[data-sizes]');
     if (t) t.setAttribute('aria-expanded', 'false');
+  }
+
+  /* ---- the odd card out ------------------------------------------
+
+     Eleven products in a four-column grid leaves one empty cell in the
+     last row, which reads as a product that failed to load rather than
+     as the end of the catalogue. One editorial tile fills it and sends
+     the visitor to the lookbook.
+
+     The column count is read from the grid's own computed
+     grid-template-columns rather than assumed, so this follows the
+     breakpoints instead of duplicating them: at two columns 11 + 1 =
+     12 and the rows come out even there too. It renders only when the
+     last row is actually short, so a twelfth product makes it
+     disappear on its own.
+
+     It is deliberately not a .product: no price, no size row, no +.
+     A tile that looked buyable and was not would be worse than the
+     gap. */
+  function fillGridRow(grid, opts) {
+    if (!grid) return;
+    opts = opts || {};
+    var existing = grid.querySelector('.grid-editorial');
+    if (existing) existing.remove();
+    var cards = grid.querySelectorAll('.product').length;
+    if (!cards) return;
+    var cols = 1;
+    try {
+      var tpl = getComputedStyle(grid).gridTemplateColumns || '';
+      cols = tpl.split(' ').filter(Boolean).length || 1;
+    } catch (err) { return; }
+    if (cols < 2) return;                   // a single column is never short
+    if (cards % cols === 0) return;         // the last row is already full
+
+    var img = opts.image || 'images/oli04281-800.webp';
+    var jpg = opts.jpg || 'images/oli04281-800.jpg';
+    var alt = opts.alt || 'Two models in Asior polos and sweat shorts walking a downtown passage';
+    grid.insertAdjacentHTML('beforeend',
+      '<a class="grid-editorial" href="/community.html" aria-label="The lookbook">'
+      + '<div class="grid-editorial-frame">'
+      + '<picture>'
+      + '<source type="image/webp" srcset="' + escapeAttr(img) + '">'
+      + '<img src="' + escapeAttr(jpg) + '" alt="' + escapeAttr(alt) + '"'
+      + ' width="800" height="1200" loading="lazy" decoding="async">'
+      + '</picture></div>'
+      + '<div class="product-title">The lookbook</div>'
+      + '</a>');
   }
 
   function wireCardSizeReveal() {
