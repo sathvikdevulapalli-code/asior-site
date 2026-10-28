@@ -281,6 +281,35 @@ window.ASIOR_ANALYTICS = {
    the card and seeing the crop go wrong -- a value guessed without
    seeing the photograph is worse than the default.
    =================================================================== */
+/* ===================================================================
+   WHICH SHOPIFY IMAGE LEADS A GRID TILE
+
+   By default a card shows Shopify's featured image, or the first real
+   photograph when that one is a generated render. That is usually
+   right, and where it is not, the fix belongs in Shopify's own media
+   order -- this map is the override for when it cannot be.
+
+   Key: the product handle. Value: a substring of the image filename to
+   prefer, or a zero-based index into the product's images. The first
+   image whose URL contains the substring wins; a generated render is
+   never chosen, whatever this says.
+
+   EMPTY ON PURPOSE. Every lead was checked against the live catalogue
+   on 2026-10-28 and the ones that can be real photographs already are:
+   the Polo, Holes Tee, both shorts, JAG Sweats, Ja-yu, Kova and the
+   Lanyard all lead with shoot or product photography. Kova's Firefly
+   render is demoted automatically by isGeneratedImage().
+
+   The two that are wrong cannot be fixed from here: JAG Crewneck and
+   JAG Set have NO photograph in Shopify at all, only hash-named PNG
+   renders (1024x1536 and 1415x2048). They need a real photo uploaded
+   -- see OWNER-ACTIONS.md. When the new shoot photos land, naming one
+   here is a one-line change.
+   =================================================================== */
+window.ASIOR_CARD_IMAGE = {
+  // 'jag-set-1': 'jag-set-crewneck-sweats',
+};
+
 window.ASIOR_CARD_FOCUS = {
   // 'some-handle': '50% 30%',
 };

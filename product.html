@@ -1864,12 +1864,26 @@
               id: i === 0 ? 'pdMainImg' : '',
               eager: i === 0,
               alt: im.altText || product.name + (i ? ' view ' + (i + 1) : ''),
-              /* The gallery column is what is left after the 642px
-                 buy panel, a 20px gap and the 40px page gutters, in a
-                 container capped at 1700px: 698px at 1440, which is
-                 48.5vw, not 60vw. Over-declaring made the browser
-                 fetch a larger candidate than it paints. */
-              sizes: '(max-width: 900px) 100vw, (max-width: 1700px) calc(100vw - 742px), 958px',
+              /* The gallery column is what is left after the buy
+                 panel, a 20px gap and the 40px page gutters, in a
+                 container capped at 1700px.
+
+                 This said calc(100vw - 742px), which assumed a fixed
+                 642px panel. The panel became
+                 clamp(440px, 37.5vw, 642px) when the gallery was held
+                 at 60% of the row, and this string was not updated
+                 with it -- so at 1440 it declared 698px for a column
+                 actually painted at 800px, and the browser duly chose
+                 a candidate too small for it. Under-declaring is the
+                 same bug as over-declaring, pointed the other way.
+
+                 Each clause mirrors one band of the clamp:
+                   <=900      the gallery is the whole screen
+                   <=1173     panel pinned at 440
+                   <=1712     panel tracking 37.5vw, so 62.5vw - 100px
+                   above      container capped at 1700, panel at 642 */
+              sizes: '(max-width: 900px) 100vw, (max-width: 1173px) calc(100vw - 540px), '
+                   + '(max-width: 1712px) calc(62.5vw - 100px), 958px',
             })}
           </figure>`).join('')
       : `<div class="ph"><span>No image available</span></div>`;

@@ -132,6 +132,13 @@ async function fetchProducts() {
           w400:  url(transform:{maxWidth:400,  preferredContentType:WEBP})
           w800:  url(transform:{maxWidth:800,  preferredContentType:WEBP})
           w1200: url(transform:{maxWidth:1200, preferredContentType:WEBP})
+          # w2000, because these are the product page's gallery frames,
+          # not just card thumbnails. The lead frame is painted about
+          # 800 CSS px wide at 1440, so a retina laptop wants ~1600 and
+          # w1200 was the largest candidate on offer. Most of these
+          # originals are 4000x6000 in Shopify, so the pixels exist --
+          # they were simply never asked for.
+          w2000: url(transform:{maxWidth:2000, preferredContentType:WEBP})
         } } }
         # options and selectedOptions drive the prerendered size row;
         # the variant id is what its buttons add to the cart.
@@ -575,10 +582,31 @@ function logOnce(line) {
   _loggedOnce.add(line);
   console.log(line);
 }
+/* Mirrors leadImage() in assets/site.js, including the
+   ASIOR_CARD_IMAGE override -- the pre-rendered card and the
+   live-rendered one must not disagree about which photograph leads. */
+const CARD_IMAGE = (() => {
+  try {
+    const src = fs.readFileSync(path.join(ROOT, 'assets', 'promo-config.js'), 'utf8');
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(src, sandbox);
+    return sandbox.window.ASIOR_CARD_IMAGE || {};
+  } catch (err) { return {}; }
+})();
+
 function leadImage(p) {
   const all = ((p.images && p.images.edges) || []).map(e => e.node);
   const real = all.filter(im => im && im.url && !isGeneratedImage(im));
   const featured = p.featuredImage;
+
+  const pick = CARD_IMAGE[p.handle];
+  if (pick != null) {
+    const want = typeof pick === 'number'
+      ? all[pick]
+      : all.find(im => im && im.url && im.url.includes(pick));
+    if (want && !isGeneratedImage(want)) return want;
+  }
 
   let chosen = featured && !isGeneratedImage(featured) ? featured : real[0];
   if (!chosen) return featured || all[0] || null;
