@@ -1810,16 +1810,15 @@ function syncHero() {
      split on 2026-10-24; the photograph in it changed on 2026-10-27,
      at Ayush's request, to the two-model shorts shot.
 
-     The source is 1536px wide, so the srcset stops there. There is no
-     1600w or 1717w entry the way the previous file had: those were
-     that file's real widths, and inventing one here would only
-     upscale and blur. */
+     It is Pixieset frame OLI03931. The emailed copy was 1536px wide;
+     the photographer's high-resolution download is 2400x3600, added
+     2026-10-28 as the 2400w candidate. Nothing is upscaled. */
   const file = 'shorts-duo';
   const alt = 'Two models on concrete steps in black tanks and grey Asior sweat shorts';
   const block =
     '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1536w" sizes="100vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1536w" sizes="100vw">\n`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1536w, images/${file}-2400.webp 2400w" sizes="100vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1536w, images/${file}-2400.jpg 2400w" sizes="100vw">\n`
     + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1536" height="2304" fetchpriority="high" decoding="async">\n`
     + '        </picture>\n';
 
