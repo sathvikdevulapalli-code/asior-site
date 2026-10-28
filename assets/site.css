@@ -901,6 +901,10 @@ html.cart-drawer-locked { overflow: hidden; }
 .shop-search input { width: 100%; }
 .shop-search-status { min-width: 0; color: var(--muted); font-size: 11px; }
 .shop-search-status:empty { display: none; }
+.shop-search-empty { padding: 36px 0; text-align: center; }
+.shop-search-empty[hidden] { display: none; }
+.shop .grid-editorial[hidden] { display: none; }
+.shop-search-empty p { margin-bottom: 20px; }
 .coll-filter {
   display: inline-flex;
   align-items: center;
