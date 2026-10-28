@@ -10,6 +10,37 @@ of it has to be taken on trust.
 
 ---
 
+## 000. Higher-resolution originals (2026-10-28)
+
+The full-bleed photographs cannot be made sharp on a retina laptop from
+what is in the repo. Measured as served file pixels over device pixels,
+where 1.0 is exactly sharp:
+
+| | source in repo | 390 @3x | 1024 @2x | 1440 @2x | 1920 @1x |
+|---|---|---|---|---|---|
+| Hero (shorts duo) | **1536px** | 1.31 | 0.75 | 0.53 | 0.80 |
+| Campaign band | 1717px | 1.37 | 0.84 | 0.60 | 0.89 |
+| Story band | 1717px | 1.37 | 0.84 | 0.60 | 0.89 |
+
+Phones are fine. Everything from a 1024 retina screen up is soft, and
+no amount of markup fixes it: the pixels are not in the files.
+Upscaling is banned and would not help anyway.
+
+**What is needed:** a 4000px-wide export of three photographs —
+
+1. the hero (two models on the steps, the one sent by email as
+   1536x2304)
+2. `OLI04001` (the campaign band)
+3. `OLI04155` (the story band)
+
+Pixieset originals are 4000x6000, so these exist; the copies in
+`images/originals/` are only 1717x2576. Drop the full-size files in and
+the variants regenerate from them.
+
+Note the hero is the *weakest* image on the site at 1536px, below even
+the 1717px originals, because it came in as an email attachment rather
+than from the shoot.
+
 ## 00. Kill THIRTY before the ads run (2026-10-28)
 
 Read back from the live store today. Seven discounts are ACTIVE:

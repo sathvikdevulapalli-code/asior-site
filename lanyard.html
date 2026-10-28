@@ -240,7 +240,24 @@
   .not-found a { text-decoration: underline; }
 
   /* Same fix as product.html/shop.html/cart.html: #lp-root started
-     empty with nothing shown while the fetch was in flight. */
+     empty with nothing shown while the fetch was in flight.
+
+     It also reserves the height the loaded gallery takes, because it
+     did not: the footer and the leopard band sat near the top of the
+     page until the fetch returned and then dropped by most of a
+     screen. Measured at 320px: CLS 0.291, where anything above 0.1 is
+     a bad score, on a page a paid click can land on.
+
+     The loading line lives INSIDE this box now rather than beside it,
+     so hiding it cannot shift anything either. The reserve is a little
+     over the real height (1425px at 320, 1530 at 390, 846 at 768, 918
+     above) so the footer never has to move up; the slack is a few
+     pixels of black. */
+  #lp-root { min-height: calc(180vw + 860px); }
+
+  @media (min-width: 701px)  { #lp-root { min-height: 860px; } }
+  @media (min-width: 1024px) { #lp-root { min-height: 930px; } }
+
   .lp-loading {
     min-height: 40vh; display: flex; align-items: center; justify-content: center;
     color: var(--muted); font-family: var(--font-mono); font-size: 11px;
@@ -340,8 +357,7 @@
   <!-- HEADER:END -->
 
 <main id="main">
-  <div class="lp-loading" id="lpLoading">Loading…</div>
-  <div id="lp-root"></div>
+  <div id="lp-root"><div class="lp-loading" id="lpLoading">Loading…</div></div>
 </main>
 
 <!-- FOOTER:START -->
