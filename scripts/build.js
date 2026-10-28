@@ -582,10 +582,31 @@ function logOnce(line) {
   _loggedOnce.add(line);
   console.log(line);
 }
+/* Mirrors leadImage() in assets/site.js, including the
+   ASIOR_CARD_IMAGE override -- the pre-rendered card and the
+   live-rendered one must not disagree about which photograph leads. */
+const CARD_IMAGE = (() => {
+  try {
+    const src = fs.readFileSync(path.join(ROOT, 'assets', 'promo-config.js'), 'utf8');
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(src, sandbox);
+    return sandbox.window.ASIOR_CARD_IMAGE || {};
+  } catch (err) { return {}; }
+})();
+
 function leadImage(p) {
   const all = ((p.images && p.images.edges) || []).map(e => e.node);
   const real = all.filter(im => im && im.url && !isGeneratedImage(im));
   const featured = p.featuredImage;
+
+  const pick = CARD_IMAGE[p.handle];
+  if (pick != null) {
+    const want = typeof pick === 'number'
+      ? all[pick]
+      : all.find(im => im && im.url && im.url.includes(pick));
+    if (want && !isGeneratedImage(want)) return want;
+  }
 
   let chosen = featured && !isGeneratedImage(featured) ? featured : real[0];
   if (!chosen) return featured || all[0] || null;

@@ -1659,8 +1659,17 @@
      a product with no image at all is worse than one with a flawed
      image, and the point is to stop a render being FIRST, not to hide
      the product. */
-  function leadImage(featured, images) {
+  function leadImage(featured, images, handle) {
     var all = (images || []).filter(function (im) { return im && im.url; });
+    /* An explicit choice from ASIOR_CARD_IMAGE wins, as long as it is
+       not a generated render -- see the comment on that map. */
+    var pick = (window.ASIOR_CARD_IMAGE || {})[handle];
+    if (pick != null) {
+      var want = typeof pick === 'number'
+        ? all[pick]
+        : all.filter(function (im) { return im.url.indexOf(pick) !== -1; })[0];
+      if (want && !isGeneratedImage(want)) return want;
+    }
     if (featured && !isGeneratedImage(featured)) return featured;
     var real = all.filter(function (im) { return !isGeneratedImage(im); })[0];
     if (real) return real;
@@ -1764,7 +1773,7 @@
       /* leadImage, not featuredImage: a generated render is never the
          grid tile, and the alt frame has to clear the same bar or the
          hover swap does the demotion in reverse. */
-      var lead = leadImage(node.featuredImage, all);
+      var lead = leadImage(node.featuredImage, all, node.handle);
       var firstUrl = lead && lead.url;
 
       return {
