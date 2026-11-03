@@ -1810,16 +1810,25 @@ function syncHero() {
      split on 2026-10-24; the photograph in it changed on 2026-10-27,
      at Ayush's request, to the two-model shorts shot.
 
-     It is Pixieset frame OLI03931. The emailed copy was 1536px wide;
-     the photographer's high-resolution download is 2400x3600, added
-     2026-10-28 as the 2400w candidate. Nothing is upscaled. */
-  const file = 'shorts-duo';
-  const alt = 'Two models on concrete steps in black tanks and grey Asior sweat shorts';
+     The frame changed again on 2026-11-03, with ads already running,
+     because the banner was not selling a garment. The shorts-duo crop
+     in a wide band was mostly concrete wall, one pair of shorts and a
+     black tank that is not an Asior product at all. OLI04155 puts both
+     models in the Asior Polo with the script and the panther legible,
+     their faces in frame, and the sweat shorts under them: two real
+     products, and the Polo is both the best-stocked piece and the one
+     the ads point at.
+
+     It keeps the 2400x3600 high-resolution download, so nothing is
+     given up on sharpness to get there, and nothing is upscaled.
+     shorts-duo moves down to the story band, which it suits. */
+  const file = 'oli04155';
+  const alt = 'Two models in Asior polos and sweat shorts against a concrete wall';
   const block =
     '        <picture class="hero-figure">\n'
-    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1536w, images/${file}-2400.webp 2400w" sizes="100vw">\n`
-    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1536w, images/${file}-2400.jpg 2400w" sizes="100vw">\n`
-    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1536" height="2304" fetchpriority="high" decoding="async">\n`
+    + `          <source type="image/webp" srcset="images/${file}-800.webp 800w, images/${file}.webp 1600w, images/${file}-full.webp 1717w, images/${file}-2400.webp 2400w" sizes="100vw">\n`
+    + `          <source srcset="images/${file}-800.jpg 800w, images/${file}.jpg 1600w, images/${file}-full.jpg 1717w, images/${file}-2400.jpg 2400w" sizes="100vw">\n`
+    + `          <img src="images/${file}.jpg" alt="${esc(alt)}" width="1600" height="2400" fetchpriority="high" decoding="async">\n`
     + '        </picture>\n';
 
   const next = replaceBetween(html, '<!-- HERO:START -->', '<!-- HERO:END -->', block);
