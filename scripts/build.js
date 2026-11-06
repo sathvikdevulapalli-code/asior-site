@@ -1414,11 +1414,12 @@ const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" 
   <script defer src="/assets/ads.js"></script>
 `;
 
-/* Every page gets the shared head, including the two that carry no
-   shared header/footer: lanyard.html is a standalone product page, and
-   index.html is a 301 stub that a visitor can still briefly land on.
-   Onsite tracking has to be sitewide or the profile stitching has
-   holes in it. */
+/* Every page gets the shared head -- the tracking and ad scripts above
+   -- regardless of whether it also takes the shared visible header via
+   SHARED_MARKUP_PAGES below (lanyard.html and index.html both do, same
+   as any other page, now that index.html is the real homepage rather
+   than a redirect stub). Onsite tracking has to be sitewide or the
+   profile stitching has holes in it. */
 const HEAD_PAGES = [
   'shop.html', 'product.html', 'cart.html', 'community.html', 'contact.html',
   'manufacturing.html', 'account.html', 'privacy-policy.html',
