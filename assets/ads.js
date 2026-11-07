@@ -17,6 +17,8 @@
   'use strict';
 
   var cfg = window.ASIOR_ADS || {};
+  var started = false;
+  var lastView = null;
 
   /* Four independent gates, all of which must pass. Any one of them
      failing means this file is inert — which is its default state. */
@@ -24,11 +26,14 @@
     if (!cfg.ENABLED) return false;
     if (!cfg.VERIFIED) return false;              // nobody has checked it
     if (!cfg.META_PIXEL_ID && !cfg.TIKTOK_PIXEL_ID) return false;
+    if (navigator.globalPrivacyControl === true) return false;
     if (cfg.REQUIRE_CONSENT && window.ASIOR_CONSENT !== true) return false;
     return true;
   }
 
-  if (!allowed()) return;
+  function start() {
+    if (started || !allowed()) return;
+    started = true;
 
   // ---- Meta ---------------------------------------------------------
   if (cfg.META_PIXEL_ID) {
@@ -47,6 +52,7 @@
         s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
       })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
       window.fbq('init', String(cfg.META_PIXEL_ID));
+      window.fbq('set', 'autoConfig', false, String(cfg.META_PIXEL_ID));
       window.fbq('track', 'PageView');
     } catch (err) { /* never block the page */ }
   }
@@ -76,10 +82,13 @@
       })(window, document, 'ttq');
     } catch (err) { /* never block the page */ }
   }
+  }
 
   /* One send, fanned out to whichever pixels are configured. Event
      names differ between the two platforms, so both are passed in. */
   function send(metaEvent, tiktokEvent, props) {
+    if (!allowed()) return;
+    start();
     try { if (window.fbq && cfg.META_PIXEL_ID) window.fbq('track', metaEvent, props || {}); } catch (err) {}
     try { if (window.ttq && cfg.TIKTOK_PIXEL_ID) window.ttq.track(tiktokEvent, props || {}); } catch (err) {}
   }
@@ -92,6 +101,7 @@
   window.AsiorAds = {
     viewContent: function (item) {
       if (!item) return;
+      lastView = item;
       send('ViewContent', 'ViewContent', {
         content_ids: [item.handle], content_type: 'product',
         content_name: item.name, value: item.price, currency: item.currency || 'USD',
@@ -112,4 +122,61 @@
       });
     },
   };
+
+  // No advertising SDK or event is sent before an affirmative choice.
+  // Store only the choice and its date; never email, phone, or cart data.
+  var choiceKey = 'asior_ad_consent_v1';
+  var panel;
+  function applyChoice(yes) {
+    var previouslyAllowed = window.ASIOR_CONSENT === true;
+    window.ASIOR_CONSENT = yes === true && navigator.globalPrivacyControl !== true;
+    try {
+      if (window.fbq) window.fbq('consent', window.ASIOR_CONSENT ? 'grant' : 'revoke');
+    } catch (err) {}
+    if (window.ASIOR_CONSENT) {
+      start();
+      if (lastView && !previouslyAllowed) window.AsiorAds.viewContent(lastView);
+    }
+  }
+  function saveChoice(yes) {
+    try { localStorage.setItem(choiceKey, JSON.stringify({ allow: yes, at: Date.now() })); } catch (err) {}
+    applyChoice(yes);
+    if (panel) panel.hidden = true;
+  }
+  function preferences() {
+    if (!panel) return;
+    panel.hidden = false;
+    panel.querySelector('button').focus();
+  }
+  function consentUI() {
+    if (!cfg.ENABLED || !cfg.META_PIXEL_ID || !cfg.REQUIRE_CONSENT) { start(); return; }
+    panel = document.createElement('section');
+    panel.className = 'ad-consent';
+    panel.setAttribute('aria-label', 'Advertising preferences');
+    var optedOut = navigator.globalPrivacyControl === true;
+    panel.innerHTML = '<p>Advertising preferences</p><p class="ad-consent-copy">'
+      + (optedOut ? 'Your browser\'s advertising opt-out is respected.'
+        : 'Allow Meta advertising cookies to measure visits, product views and cart activity, and help us show relevant ads? This is optional.')
+      + ' <a href="/privacy-policy.html">Privacy policy</a>.</p><div class="ad-consent-actions"></div>';
+    var actions = panel.querySelector('.ad-consent-actions');
+    function button(label, accept) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+      b.addEventListener('click', function () { saveChoice(accept); }); actions.appendChild(b);
+    }
+    if (!optedOut) button('Allow Meta ads', true);
+    button(optedOut ? 'Close' : 'Reject', false);
+    document.body.appendChild(panel);
+    var reopen = document.createElement('button');
+    reopen.type = 'button'; reopen.className = 'ad-preferences'; reopen.textContent = 'Ad preferences';
+    reopen.addEventListener('click', preferences);
+    (document.querySelector('footer') || document.body).appendChild(reopen);
+    var saved;
+    try { saved = JSON.parse(localStorage.getItem(choiceKey)); } catch (err) {}
+    if (saved && typeof saved.allow === 'boolean' && saved.at <= Date.now()
+        && Date.now() - saved.at < 180 * 86400000) {
+      panel.hidden = true; applyChoice(saved.allow);
+    } else { applyChoice(false); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', consentUI);
+  else consentUI();
 })();

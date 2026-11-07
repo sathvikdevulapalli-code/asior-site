@@ -2802,3 +2802,13 @@ html.search-open, html.search-open body { overflow: hidden; }
   .grid-editorial-frame img { transition: none; }
   .grid-editorial:hover .grid-editorial-frame img { transform: none; }
 }
+/* Optional advertising choice; both actions have the same visual weight. */
+.ad-consent { position:fixed; z-index:11000; bottom:16px; left:16px; width:min(460px,calc(100vw - 32px)); padding:20px; background:var(--surface,#161618); color:var(--ink,#E8E8EA); border:1px solid var(--field-line,#6C6C73); box-sizing:border-box; }
+.ad-consent[hidden] { display:none; }
+.ad-consent p { margin:0 0 12px; }
+.ad-consent-copy { font-size:13px; line-height:1.6; }
+.ad-consent a { color:inherit; text-decoration:underline; }
+.ad-consent-actions { display:flex; gap:12px; }
+.ad-consent-actions button { flex:1; padding:12px 10px; background:transparent; border:1px solid currentColor; border-radius:0; color:inherit; font:inherit; cursor:pointer; }
+.ad-consent-actions button:focus-visible,.ad-preferences:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+.ad-preferences { display:block; margin:20px auto; padding:8px; background:transparent; border:0; color:var(--ink,#E8E8EA); font:inherit; text-decoration:underline; cursor:pointer; }

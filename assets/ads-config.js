@@ -40,13 +40,12 @@
    ---------------------------------------------------------------
    CONSENT
 
-   There is no consent banner on this site. In the US that is normally
-   workable; for visitors in the UK/EU it is not, and this store ships
-   internationally. REQUIRE_CONSENT exists so the pixels can be gated
-   behind a real consent signal once one exists. Left true, ads.js
-   looks for window.ASIOR_CONSENT === true and sends nothing without
-   it — which means enabling a pixel id alone is not enough to start
-   tracking, on purpose.
+   ads.js presents an optional advertising choice with equal accept
+   and reject controls and an Ad preferences link in the footer.
+   REQUIRE_CONSENT stays true. No advertising SDK loads before an
+   affirmative choice; browser Global Privacy Control overrides that
+   choice. The stored choice expires after 180 days and contains no
+   customer identity or cart details.
 
    ---------------------------------------------------------------
    TO TURN A PIXEL ON
@@ -61,10 +60,10 @@
 window.ASIOR_ADS = {
   // Master switch. False = no pixel script is loaded and no event is
   // sent, whatever else is filled in below.
-  ENABLED: false,
+  ENABLED: true,
 
   // Meta (Facebook/Instagram) pixel id, digits only. Null = off.
-  META_PIXEL_ID: null,
+  META_PIXEL_ID: '1736325884098392',
 
   // TikTok pixel id. Null = off.
   TIKTOK_PIXEL_ID: null,
@@ -72,7 +71,7 @@ window.ASIOR_ADS = {
   // Who confirmed the id is real, that the deduplication question above
   // was answered, and when. ads.js refuses to run without this, the
   // same way promo-config refuses to render an unverified promotion.
-  VERIFIED: null,   // e.g. 'Sathvik, 2026-10-12, Meta dedupe checked'
+  VERIFIED: '2026-11-07: ASIOR dataset verified in Events Manager; checkout owns Purchase, custom storefront owns product/cart events; explicit opt-in required',
 
   // Gate every send behind window.ASIOR_CONSENT === true.
   // Leave true until the consent question is actually decided.
