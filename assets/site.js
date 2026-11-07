@@ -1141,7 +1141,9 @@
       // First touch travels with every funnel step, so revenue can be
       // attributed to the creator who actually started the journey.
       Object.keys(utm).forEach(function (k) { if (!(k in out)) out[k] = utm[k]; });
-      klaviyoTrack(metric, out);
+      // Recovery uses the identified onsite event below. Keep anonymous
+      // funnel analytics separate so one add cannot enter recovery twice.
+      klaviyoTrack(metric === 'Added To Cart' ? 'Storefront Added To Cart' : metric, out);
     } catch (err) { /* instrumentation is never load-bearing */ }
   }
 
@@ -1330,6 +1332,9 @@
       ProductID: product.handle,
       URL: product.url,
       ImageURL: product.image || undefined,
+      // Existing live flow templates use these lowercase properties.
+      handle: product.handle,
+      product: product.name,
     };
     if (typeof product.price === 'number' && isFinite(product.price)) {
       item.Price = product.price;
@@ -1357,18 +1362,23 @@
         ProductID: item.handle,
         URL: item.url,
         Quantity: item.quantity || 1,
+        handle: item.handle,
+        product: item.name,
       };
       if (typeof item.price === 'number' && isFinite(item.price)) {
         payload.Price = item.price;
         payload.$value = item.price * (item.quantity || 1);
       }
-      if (item.size) payload.Size = item.size;
+      if (item.size) { payload.Size = item.size; payload.size = item.size; }
       /* Where the add happened. One metric, not four -- duplicating
          "Added to Cart" per surface would double-count every purchase
          funnel. A property instead makes the PLP quick-add rate and the
          PDP add rate separable without inventing a second event. */
-      if (item.source) payload.Source = item.source;
-      klaviyoOnsite().push(['track', 'Added to Cart', payload]);
+      if (item.source) { payload.Source = item.source; payload.source = item.source; }
+      var utm = getUTMParams();
+      Object.keys(utm).forEach(function (key) { payload[key] = utm[key]; });
+      // Exact name verified against the live recovery metric VBKP75.
+      klaviyoOnsite().push(['track', 'Added To Cart', payload]);
     } catch (err) { /* never block the add */ }
   }
 
