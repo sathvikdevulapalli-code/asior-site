@@ -193,17 +193,73 @@ patch over the real problem. Fix the titles in Shopify and delete those
 two entries — the handles, variant IDs, cart and checkout are untouched
 either way.
 
-## 4. YNC
+## 4. YNC — the name came off the homepage
 
 The only fact about YNC anywhere in this codebase or the Shopify
 catalogue is the name. There is no date, no product list, no price, no
 description.
 
-The homepage band and the waitlist therefore say the name and nothing
-else. To say more — what it is, when it lands, who gets it first — send
-the facts and they go in. A date would also switch on the countdown and
-COMING-card machinery that already exists in `NEXT_DROP`; without a real
-date none of it renders, which is deliberate.
+The homepage band used to show it: the word "YNC" and "Join the list
+for YNC updates." Someone arriving from an ad has no idea what that
+is, so on 2026-11-07 the band was changed to say what the list
+actually does — "The next drop / One email when it goes live. Nothing
+else." — pointing at the same waitlist. That claim is backed: the
+Fall Early Access list (`TN58zR`) has a live "Early Access" flow, so
+the mail does get sent.
+
+**To put YNC back, send the facts**: what it is, when it lands, who
+gets it first. A date would also switch on the countdown and
+COMING-card machinery that already exists in `NEXT_DROP`; without a
+real date none of it renders, which is deliberate.
+
+## 4b. Photographs that are smaller than the page needs
+
+Nothing here is a code fix — the pixels do not exist and upscaling is
+not an option. Each of these shows visibly soft on a retina screen.
+
+**Product photos in Shopify, on the product page gallery.** The PDP
+paints its frames about 800px wide, so a 2x screen wants ~1600px.
+These uploads are smaller than that, worst first:
+
+| Product | File | Has | Wants |
+|---|---|---|---|
+| "Blossom" Tee | `IMG_7357.jpg` | 838px | 1600px |
+| Asior Lanyard | `IMG_8185.jpg` | 919px | 1600px |
+| "JAG" Crewneck | `BCO.37b48489….png` | 1024px | 1600px |
+| "Blossom" Tee | `c238690e….jpg` | 1066px | 1600px |
+| "JAG" Set | `99F17712.jpg` | 1170px | 1600px |
+| "JAG" Crewneck / Set | `jag-set-crewneck-sweats.jpg` | 1170px | 1600px |
+| "JAG" Sweats | `IMG_8617.jpg` | 1170px | 1600px |
+| "Lotus" Tee | `IMG_1553_Original.jpg` | 1229px | 1600px |
+| Asior Polo | `IMG_6821.jpg` | 1256px | 1600px |
+| "Holes" Tee | `IMG_6833.jpg` | 1281px | 1600px |
+| "JAG" Set | `171a4f21bb21.png` | 1415px | 1600px |
+
+Re-upload any of these at 2000px or more on the long edge and the
+site picks the larger rendition on its own — Shopify does the
+resizing, nothing in the repo changes.
+
+**The lookbook set.** `look-01` to `look-15` are 800x1200 originals.
+That is fine where they are small, and the gallery was reordered on
+2026-11-07 so the six wide cells all fall on the campaign frames,
+which have 1600px. But the collection-page banner strip
+(`/collections/tops.html` and the rest) paints `look-01/02/03` at
+479px, which wants 958px on a 2x screen and gets 800. Those three are
+the only files in `images/` carrying camera EXIF, which is why the
+banner is restricted to them — so this is left alone rather than
+swapped for a campaign frame. **Send the 800px looks again at 2000px
+or more and the banner sharpens with no code change.**
+
+**The homepage hero.** `oli04155` tops out at 2400px and the hero is
+full-bleed, so a 2x 1440 laptop wants 2880. It sits at 0.83. The
+4000px original from the shoot would close it.
+
+**The Kova Firefly render.** `Firefly_GeminiFlash_….png` is still the
+first media item on "Lotus" Tee in Shopify. The site already demotes
+it — it is never the grid tile, the link preview or the first gallery
+frame — but it is still reachable in the gallery, and it is an
+AI-generated image on a real product. Deleting it in Shopify Admin is
+the founder's call, not this repo's.
 
 ## 5. Policies still out of sync in Shopify Admin
 

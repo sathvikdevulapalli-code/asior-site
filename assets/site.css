@@ -135,13 +135,36 @@
   --btn-ls: 1px;
 
   /* Motion [theme var]: .25s default, .65s on image hovers, and a
-     600ms fade-in-up on scroll reveals. */
+     600ms fade-in-up on scroll reveals.
+
+     FOUR CURVES, NOT ONE. All four of these tokens used to hold the
+     same cubic-bezier(0, 0, .3, 1), so a panel sliding in, a panel
+     sliding out, a colour change on hover and a photograph
+     cross-fading all moved with the identical gesture. That is what
+     made the site feel flat in motion however many transitions were
+     added: the page had one accent and used it for every sentence.
+
+     Each curve now does its own job.
+
+       --ease-out    things ARRIVING: drawers, panels, reveals. A
+                     long, late deceleration -- it covers most of the
+                     distance early and settles slowly, which is what
+                     reads as weight rather than speed.
+       --ease-in     things LEAVING. Mirror of the above: slow to
+                     release, quick to go. An exit that decelerates
+                     looks like it changed its mind.
+       --ease-inout  things MOVING between two on-screen positions,
+                     where both ends are watched.
+       --ease-img    photographs. Deliberately gentler than the rest:
+                     an aggressive curve on a cross-fade makes the
+                     second frame snap, and these are the one thing on
+                     the page that should never look hurried. */
   --dur: .25s;
   --dur-image: .65s;
-  --ease-out: cubic-bezier(0, 0, .3, 1);
-  --ease-in: cubic-bezier(0, 0, .3, 1);
-  --ease-inout: cubic-bezier(0, 0, .3, 1);
-  --ease-img: cubic-bezier(0, 0, .3, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-in: cubic-bezier(.5, 0, .75, 0);
+  --ease-inout: cubic-bezier(.65, 0, .35, 1);
+  --ease-img: cubic-bezier(.33, 0, .2, 1);
 }
 
 /* Inter Tight is gone. The interface is the system Helvetica stack
@@ -1022,38 +1045,32 @@ html.cart-drawer-locked { overflow: hidden; }
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity var(--dur-image) var(--ease-out);
+  /* The slight zoom the card is specified to have. Only the
+     cross-fade was implemented; the second frame arrived at rest,
+     which is why the hover read as a swap rather than as a move. It
+     starts a hair in and settles to its own frame, on the image
+     curve so it never snaps. */
+  transform: scale(1.04);
+  transition: opacity var(--dur-image) var(--ease-img),
+              transform var(--dur-image) var(--ease-img);
 }
 
-.product-img .alt-shot.ready { opacity: 1; }
+.product-img .alt-shot.ready { opacity: 1; transform: none; }
 
 .product-frame { position: relative; }
 .product-link { display: block; text-decoration: none; color: var(--ink); }
 
-/* [measured] 14px uppercase, line-height 35px, left, clamped to one
-   line; price under it at 14px. A two-line title pushes every card in
-   the row out of alignment, which is why the reference clamps. */
-.product-title {
-  margin-top: 5px;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 35px;
-  text-transform: uppercase;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* The card caption -- name and price -- is defined ONCE, in the CARD
+   CAPTION block further down this file. There used to be three
+   declarations of .product-title and .product-price: this one, the
+   canonical block, and a third in the reference pass at the end. All
+   three had equal specificity, so the winner was decided per property
+   by document order, and editing any one of them moved only some of
+   the spacing. That is what left the price 3px under its name while
+   the name sat 10px under the photograph.
 
-.product-price {
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.2;
-  color: var(--ink);
-}
-
+   Only the discount sub-elements live here, because nothing else
+   declares them. */
 .product-price .compare {
   color: var(--muted);
   text-decoration: line-through;
@@ -1929,13 +1946,38 @@ body {
   text-transform: none;
   color: var(--ink);
   white-space: normal;
-  overflow: visible;
   /* The caption belongs to the photograph above it, not to the row
-     below. 12px over the name and 4px over the price put the two
-     lines in the middle of the gap, so the price read as loose from
-     its own product and close to the next one. Tight to its picture,
-     and the air goes into the grid's row gap instead. */
-  margin-top: 9px;
+     below: tight to its picture, and the air goes into the grid's row
+     gap instead. */
+  margin-top: 10px;
+
+  /* One line, always.
+
+     A name that wraps pushes its own price down. On a phone "Helia
+     Pendant & Chain, Silver" wrapped while "JAG Set" beside it did
+     not, so those two prices sat 19px apart vertically -- a row of
+     prices that do not line up is what makes a grid look thrown
+     together, and it is what the founder was seeing.
+
+     Reserving TWO lines was tried first and fixes the alignment, but
+     ten of the eleven names are one line, so every card carried a
+     blank line between its name and its price and the price read as
+     orphaned from the product. Clamping to one puts the price
+     straight under the name, tight, and lines every price in the
+     catalogue up with no dead air anywhere.
+
+     It costs exactly one ellipsis: "Helia Pendant & Chain, Silver" is
+     the only name in the catalogue too long for a phone card, and it
+     is clipped there and nowhere else -- not at 1440, not on its own
+     product page. The full text stays in the DOM, so the link's
+     accessible name and anything reading the page still get all of
+     it; only the pixels are clipped. A name that needs two lines on
+     a phone is also a sign the Shopify title is doing too much. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  min-height: 1.35em;  /* 1 line at line-height 1.35 */
 }
 
 /* Lining figures, lighter and quieter than the name above it: the
@@ -1948,7 +1990,10 @@ body {
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
-  margin-top: 2px;
+  /* 2px read as the price being part of the name rather than a fact
+     about it. 5px separates them without letting the price drift
+     toward the next row. */
+  margin-top: 5px;
 }
 
 
@@ -2207,15 +2252,10 @@ body {
 .product .price,
 .product-meta { text-align: left; }
 
-/* These two were a second, later copy of rules that already exist
-   further up this file, and being later they won: the card kept
-   rendering at weight 600 and a 13px price however the canonical
-   block was edited. Only the properties that genuinely differ from
-   the canonical block stay here. */
-.product-title { margin-top: 10px; }
-
-.product-price,
-.product .price { margin-top: 3px; }
+/* The .product-title / .product-price margin overrides that used to
+   sit here are gone. They were the third copy of the same two rules,
+   and being last they decided the spacing however the canonical block
+   was edited. The canonical block above now sets it. */
 
 .shop .coll-head,
 .arch .coll-head {
@@ -2801,4 +2841,196 @@ html.search-open, html.search-open body { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .grid-editorial-frame img { transition: none; }
   .grid-editorial:hover .grid-editorial-frame img { transform: none; }
+}
+
+/* ===================================================================
+   MOTION — RESPONSE, NOT DECORATION  (2026-11-07)
+
+   The founder asked for the site to feel expensive and smooth. The
+   thing that reads as expensive is not more animation; it is motion
+   that ANSWERS the visitor and then gets out of the way. A page that
+   fades every section up as you scroll reads as a template. A page
+   where the bag confirms, the panel settles and the photograph never
+   snaps reads as built.
+
+   So: nothing here starts on its own. Every rule below is a response
+   to a hover, a press, a focus or a cart change, plus the two page
+   mechanics (anchor scrolling, header offset) that make the rest feel
+   unhurried. The four ambient effects CLAUDE.md allows -- hero
+   settle, scroll reveal, card hover, drawer slide -- are unchanged and
+   still the only ones that run unprompted.
+
+   All of it is inside prefers-reduced-motion: no-preference except
+   the scroll-padding, which is a layout correction rather than motion
+   and is needed whether or not animation is wanted.
+   =================================================================== */
+
+/* An in-page anchor under a sticky header lands with its target
+   hidden behind the header. This is the offset, and it applies at
+   every motion preference because it is not motion. */
+html {
+  scroll-padding-top: calc(var(--header-h-ref) + 16px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+
+  /* ---- press ------------------------------------------------------
+
+     Every control that can be pressed says so, with the same gesture
+     and the same 90ms. Consistency is the point: a site where some
+     buttons answer a press and others do not feels unfinished in a
+     way that is hard to name but easy to feel.
+
+     Scale rather than translate, because a 1px nudge disappears on a
+     square button with no shadow to move against. The size chips and
+     the quick-add row get a smaller figure -- they are already small,
+     and 0.97 on a 32px chip is a visible jump. */
+  .btn,
+  .qa-size,
+  .pd-size,
+  .nav-toggle,
+  .icon-btn,
+  .cart-qty-btn,
+  button.pressable {
+    transition: background 160ms var(--ease-out),
+                border-color 160ms var(--ease-out),
+                color 160ms var(--ease-out),
+                transform 90ms var(--ease-out);
+  }
+
+  .btn:active:not([disabled]):not([aria-disabled="true"]) { transform: scale(.985); }
+  .qa-size:active:not([disabled]),
+  .pd-size:active:not([disabled]),
+  .cart-qty-btn:active:not([disabled]) { transform: scale(.94); }
+
+  /* ---- the nav underline -----------------------------------------
+
+     Drawn from the left rather than faded in, so the link reads as
+     being selected rather than merely highlighted. 1px, the same
+     hairline the rest of the page is ruled with. */
+  .site-header nav a {
+    position: relative;
+  }
+
+  .site-header nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 260ms var(--ease-out);
+  }
+
+  .site-header nav a:hover::after,
+  .site-header nav a:focus-visible::after { transform: scaleX(1); }
+
+  /* ---- the bag answers --------------------------------------------
+
+     A number that changes without moving is a number nobody notices.
+     The count lifts and settles once when it changes -- the only
+     confirmation that something reached the cart if the drawer is
+     shut. Driven by .bumped, which assets/site.js adds for one
+     animation and removes on animationend, so it can fire again on
+     the next add. */
+  .cart-count.bumped { animation: cartBump 420ms var(--ease-out); }
+
+  @keyframes cartBump {
+    0%   { transform: none; }
+    30%  { transform: translateY(-3px) scale(1.14); }
+    100% { transform: none; }
+  }
+
+  /* ---- focus ------------------------------------------------------
+
+     The ring is already the right shape. It arrives rather than
+     appearing, which stops keyboard tabbing from looking like a
+     strobe across a grid of eleven cards. */
+  a, button, input, select, textarea, summary {
+    transition: outline-offset 140ms var(--ease-out);
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible { outline-offset: 3px; }
+
+  /* ---- the wordmark signs itself ----------------------------------
+
+     The mark is set in Pinyon, a signature face, so the stroke that
+     belongs under it is a pen stroke. It draws left to right on
+     hover, slower than the nav underline, and lifts off the right end
+     the way a signature does -- the transform-origin stays left so
+     the line grows rather than slides.
+
+     Drawn as a pseudo-element rather than by sweeping a gradient
+     behind the glyphs with background-clip: text. That technique
+     needs color: transparent, so anywhere the clip is not supported
+     the wordmark disappears entirely -- the brand name, in the
+     header, on every page. Not a risk worth a flourish. */
+  .mark { position: relative; display: inline-block; }
+
+  .mark .mark-text::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 900ms var(--ease-inout);
+  }
+
+  .mark:hover .mark-text::after,
+  .mark:focus-visible .mark-text::after { transform: scaleX(1); }
+
+  .mark-text { position: relative; }
+}
+
+/* ---- the "found it" note ------------------------------------------
+
+   The one piece of UI the easter eggs share. Deliberately not a
+   dialog and not a popup: it takes no focus, blocks nothing, dismisses
+   itself, and cannot appear on load -- CLAUDE.md bans load-time
+   popups and this is not one. It only ever exists because the visitor
+   typed something.
+
+   Outside the reduced-motion gate because it must still be readable
+   with animation off; only its transition is conditional. */
+.egg-note {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 14px 18px;
+  background: var(--surface-hi);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--t-base);
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.egg-note.show { opacity: 1; pointer-events: auto; }
+.egg-note a { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .egg-note {
+    transform: translateX(-50%) translateY(10px);
+    transition: opacity 320ms var(--ease-out), transform 320ms var(--ease-out);
+  }
+  .egg-note.show { transform: translateX(-50%) translateY(0); }
 }

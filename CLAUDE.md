@@ -268,7 +268,25 @@ collection, archive, related, search. 4:5 image on `--surface`,
 uppercased in CSS — product names are already typed in caps where they
 belong in the Shopify data, and transforming here shouts the ones that
 are not. Price 14px/400 in `--muted` under it; both left-aligned under
-the photograph's left edge. A `+` circle bottom-right of the image
+the photograph's left edge.
+
+**The caption is defined once.** `.product-title` and `.product-price`
+were declared in three separate places in `site.css`, all at equal
+specificity, so the winner was decided per property by document order
+and editing any one of them moved only some of the spacing. That is
+how the price ended up 3px under its name while the name sat 10px
+under the photograph. One block now, and the two stale copies are
+gone — if you are about to add a fourth, edit the canonical one.
+
+**The title is clamped to one line** (`-webkit-line-clamp: 1`,
+`min-height: 1.35em`), 10px under the photograph with the price 5px
+under it. The clamp is what keeps every price in a row on the same
+baseline: a name that wraps pushes its own price down, and on a phone
+exactly one name does. Reserving two lines fixes the alignment too,
+but leaves a blank line under the ten names that do not wrap and the
+price reads as orphaned. The one cost is that "Helia Pendant & Chain,
+Silver" shows an ellipsis on a phone card and nowhere else; the full
+text stays in the DOM for the accessible name. A `+` circle bottom-right of the image
 reveals the size row. Badges are small black boxes with white caps,
 top-left. Sold-out products stay in the grid with their badge.
 
@@ -303,8 +321,11 @@ photograph (the four-model group shot), not a split; the founder asked
 for that on 2026-10-24. Desktop header is one row from 1180px up: nav
 left, wordmark centred, market and bag right.
 
-**Motion.** Four effects, and nothing else. All of them off under
+**Motion.** Split in two, and all of it off under
 `prefers-reduced-motion`.
+
+*Four ambient effects, and nothing else.* These are the only things
+that move without being asked to. Do not add a fifth.
 
 - Hero settle-zoom on load.
 - Reveal on scroll: anything with `data-reveal`, and every `.product`
@@ -312,6 +333,29 @@ left, wordmark centred, market and bag right.
   and settles as it comes within a screen, staggered by column.
 - Card hover: the second photograph fades in with a slight zoom.
 - Drawer and panel slides at 220ms (cart drawer, search panel).
+
+*Response motion*, added 2026-11-07 when the founder asked the site to
+feel expensive. It answers a hover, a press, a focus or a cart change
+and never starts on its own, which is the distinction that matters:
+more ambient animation reads as a template, a page that answers you
+reads as built. It lives in one block at the end of `assets/site.css`.
+
+- A press on every control, same gesture, same 90ms.
+- The nav underline draws from the left; the wordmark signs itself
+  with a slower stroke of the same hairline.
+- The bag badge bumps once when something is added — and only when
+  something is added. `renderCartCount(n, announce)` takes an explicit
+  second argument for exactly this, because the count also rises on
+  every page load for a returning shopper.
+- The focus ring arrives rather than appearing.
+
+**The four easing curves are four different curves.** `--ease-out`,
+`--ease-in`, `--ease-inout` and `--ease-img` all held the same
+`cubic-bezier(0, 0, .3, 1)`, so a panel arriving, a panel leaving, a
+hover and a photograph cross-fading all moved with one gesture. That
+is what made the site read as flat in motion however many transitions
+it had. Each now does its own job and the tokens say which. Keep them
+distinct.
 
 The reveal lives in one place: `wireReveal()` in `assets/site.js` and
 the `.js-reveal` block in `assets/site.css`. The hidden state is
@@ -359,6 +403,17 @@ early access" when a drop is configured and unopened, or when live
 
 **Voice:** short, texted rather than written. Lowercase is fine in body
 copy. "nothing in here yet." not "Your cart is currently empty."
+
+**Easter eggs.** Two, added 2026-11-07, both in `wireDelight()` in
+`assets/site.js`: typing `asior` anywhere outside a form field reveals
+a one-line note pointing at the lookbook, and a message is written to
+the console. The rules they follow are the ones any further egg must
+follow too — nothing fires on load (a greeting is a popup with a
+better name, and CLAUDE.md bans load-time popups), nothing claims a
+code, discount, stock level or date, nothing touches the cart or
+checkout, and nothing steals focus or blocks a tap. ASIORTEN is the
+only code the site may name and it is already public, so there is
+nothing for an egg to "unlock" — a hidden offer would be a fake one.
 
 **Sold out stays visible.** A sold-out product or size is left in the
 grid with its label. It reads as proof that things sell, which is why

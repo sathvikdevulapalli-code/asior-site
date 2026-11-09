@@ -1121,7 +1121,16 @@
     font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 0 16px;
+    /* The row wraps on a phone. Unwrapped, the button stretched to
+       the input's height beside it; wrapped onto its own line it had
+       nothing to stretch against and collapsed to its 14px line box
+       -- a 162x14 tap target on the one control this panel exists
+       for. Its own height, so it does not depend on a neighbour. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
     cursor: pointer;
     border-radius: 0;
     transition: border-color 200ms var(--ease-out), background 200ms var(--ease-out),

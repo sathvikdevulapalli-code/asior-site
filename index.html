@@ -351,21 +351,21 @@
 
   .home-row + .home-row { padding-top: clamp(48px, 6vw, 86px); }
 
-  /* A quiet band, not a hero. One rule above and below, the name, one
-     line, one link. Tokens only. */
-  .ync {
+  /* A quiet band, not a hero. One rule above and below, one line,
+     one link. Tokens only. */
+  .nextup {
     padding: clamp(44px, 5vw, 72px) 20px;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
 
-  .ync-copy {
+  .nextup-copy {
     max-width: 640px;
     margin: 0 auto;
     text-align: center;
   }
 
-  .ync-eyebrow {
+  .nextup-eyebrow {
     margin: 0 0 10px;
     font-size: var(--t-sm);
     font-weight: 500;
@@ -374,13 +374,13 @@
     color: var(--ink);
   }
 
-  .ync-note {
+  .nextup-note {
     margin: 0 0 18px;
     font-size: var(--t-base);
     color: var(--muted);
   }
 
-  .ync-link {
+  .nextup-link {
     /* inline-flex, not inline-block: min-height on an inline-block
        grows the box downwards and leaves the label sitting high in
        it. */
@@ -397,7 +397,7 @@
     text-decoration: none;
   }
 
-  .ync-link:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .nextup-link:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
   /* A row says what it is, in the same quiet label the rest of the
      interface uses. Tokens only, so this survives a palette change. */
@@ -1267,26 +1267,35 @@
        campaign band above it so the page does not repeat itself: copy
        on the left at rest, photograph on the right, and smaller. This
        is the way into the lookbook. -->
-  <!-- YNC.
+  <!-- The waitlist band.
 
-       The only fact this repo holds about YNC is its name. There is no
-       date, no product list, no price and no description of what it is
-       anywhere in the codebase or the Shopify catalogue, so this band
-       states the name, points at the waitlist that already exists, and
-       claims nothing else. Do not add a date, a countdown or a
-       description here without the founder supplying one -- a
-       countdown with no real date behind it is the fake-urgency
-       pattern CLAUDE.md bans.
+       This said "YNC" and "Join the list for YNC updates." A shopper
+       arriving from an ad has no idea what YNC is, and neither does
+       this repo: the name is the only fact about it anywhere in the
+       codebase or the Shopify catalogue -- no date, no product list,
+       no price, no description. A three-letter acronym with nothing
+       behind it is not a reason to sign up, so the band now says what
+       the list actually does, in the same words the waitlist page
+       uses: one email when the next drop goes live.
+
+       That claim is backed. The early-access list exists and its mail
+       does get sent, which is why "notify me" is allowed here when
+       back-in-stock wording is not.
+
+       Still no date and still no countdown. NEXT_DROP is empty, and
+       while it is empty none of the drop UI renders -- a countdown to
+       a date nobody has set is the fake-urgency pattern CLAUDE.md
+       bans. Filling NEXT_DROP is what turns the real machinery on.
 
        It is a band, not a tile: the Accessories category tile below
        stays where it is, because the homepage tiles are one of the
        three ways Accessories is still reachable after it left the
        nav. -->
-  <section class="ync" data-reveal aria-label="YNC">
-    <div class="ync-copy">
-      <p class="ync-eyebrow">YNC</p>
-      <p class="ync-note">Join the list for YNC updates.</p>
-      <a class="ync-link" href="/waitlist.html">Join the waitlist</a>
+  <section class="nextup" data-reveal aria-label="The next drop">
+    <div class="nextup-copy">
+      <p class="nextup-eyebrow">The next drop</p>
+      <p class="nextup-note">One email when it goes live. Nothing else.</p>
+      <a class="nextup-link" href="/waitlist.html">Join the waitlist</a>
     </div>
   </section>
 

@@ -953,6 +953,35 @@ async function syncPolicy(slug, file) {
     console.log(`  ${slug}: ${resolved} [LINK] placeholder(s) resolved, ${dropped} dropped as unmatched`);
   }
 
+  /* Anchors with no href, repaired.
+
+     The live Terms page carries the support address twice as
+     <a rel="noopener">asiorclothing@gmail.com<span></span></a> -- an
+     anchor with no href. It renders as plain text that looks like a
+     link and does nothing when tapped, on the one line of a legal
+     page a customer actually wants to use. Two of them, on the
+     contact section.
+
+     Repaired here rather than in Shopify Admin because this repo does
+     not write to Admin. An href-less anchor whose text is an email
+     address becomes a real mailto:; one wrapping anything else loses
+     the tag and keeps its text, because an anchor that goes nowhere
+     is not a link. Whoever owns the Shopify policies should still fix
+     it at the source. */
+  let mailed = 0, unwrapped = 0;
+  body = body.replace(/<a(?![^>]*\shref=)[^>]*>([\s\S]*?)<\/a>/gi, (whole, inner) => {
+    const text = inner.replace(/<[^>]*>/g, '').trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+      mailed++;
+      return `<a href="mailto:${text}">${text}</a>`;
+    }
+    unwrapped++;
+    return inner;
+  });
+  if (mailed || unwrapped) {
+    console.log(`  ${slug}: ${mailed} href-less email anchor(s) linked, ${unwrapped} unwrapped`);
+  }
+
   const target = path.join(ROOT, file);
   const html = fs.readFileSync(target, 'utf8');
   const start = html.indexOf('<!-- POLICY:START -->');
