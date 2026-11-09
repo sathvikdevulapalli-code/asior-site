@@ -1056,7 +1056,7 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   Free shipping over $75 is a real Shopify rate (see CLAUDE.md,
+   Free shipping over $50 is a real Shopify rate (see CLAUDE.md,
    Discounts), so it leads. The reference's own "$100" line is not
    carried across. */
 /* Three facts, each read back from Shopify: the automatic 2-piece
@@ -1072,7 +1072,7 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    the offer that actually conflicts instead. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
-  'Free shipping on US orders over $75',
+  'Free shipping on US orders over $50',
   '10% off your first order. Code ASIORTEN. Not with the 2-piece offer',
 ];
 

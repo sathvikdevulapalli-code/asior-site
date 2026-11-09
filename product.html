@@ -421,6 +421,24 @@
     .pd-name { font-size: 14px; }
     .pd-price { font-size: 14px; }
     .pd-tab { font-size: 11px; letter-spacing: 0.5px; }
+
+    /* The buy panel's vertical rhythm, tightened for a phone.
+
+       Measured on a 390x844 screen: the controls were spending 60px
+       between the size row and Add to bag and 28px above the actions,
+       which is desktop air on a screen that does not have it. Every
+       value below is a gap, not content -- no type gets smaller, no
+       photograph gets shorter, nothing is removed. It buys back about
+       36px, which is the difference between Add to bag sitting on the
+       fold line and sitting clear of it. */
+    .pd-titlerow { padding-bottom: 8px; }
+    .pd-fit { margin-top: 6px; }
+    .pd-sizelabel { margin-top: 12px; }
+    .pd-sizehint { margin-top: 6px; }
+    .pd-actions { margin-top: 14px; }
+    .pd-buynow { margin-top: 8px; }
+    .pd-code-offer { margin-top: 8px; }
+    .pd-offer { margin-top: 8px; }
   }
 
   .pd-sticky {
@@ -1087,6 +1105,43 @@
 
   .pd-offer:empty { display: none; }
 
+  /* ASIORTEN under Add to bag. The founder's spec for this line said
+     color:#fff; it reads var(--ink) instead, because every colour on
+     this site comes from a token -- a hardcoded one is what made the
+     last two palette flips a day's work each -- and because pure
+     white on a near-black page blooms at this size, which is the
+     whole reason --ink is off-white. */
+  .pd-code-offer {
+    margin: 10px 0 0;
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .pd-code-offer:empty { display: none; }
+
+  /* The code itself, boxed so it reads as something to copy. Dashed,
+     which is the one place on the site a border is not a hairline
+     rule -- it is doing a different job here. */
+  .pd-code-offer strong {
+    font-weight: 500;
+    border: 1px dashed currentColor;
+    padding: 1px 6px;
+  }
+
+  /* What the models are wearing, under the price. Quiet: it is a fact
+     about the photographs, not a claim about the product. */
+  .pd-fit {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: .02em;
+    color: var(--muted);
+  }
+
+  .pd-fit:empty { display: none; }
+
   /* ---------- next-drop signup ----------
      Tapping a sold-out size used to do nothing at all, and then for a
      while it offered a back-in-stock alert nothing could send. Now it
@@ -1186,7 +1241,7 @@
     <p class="announce-drop" data-drop-countdown></p>
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
-      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
+      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $50</p>
       <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
@@ -1733,6 +1788,7 @@
       ? `<p class="pd-model">Model is ${A.escapeHtml(details.model.height)}, wearing size ${A.escapeHtml(details.model.wearing)}.</p>`
       : '';
 
+
     // No apologetic "not measured yet" framing when there's no table —
     // just the real, always-true comparison method (howToMeasure), which
     // stands on its own as useful guidance. Never invented numbers to
@@ -1807,6 +1863,17 @@
     // Consolidate ?id= and /products/<handle>.html onto one indexable URL.
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.href = location.origin + productUrl(product.handle);
+
+    /* The model-fit line for the buy panel. Shopify's custom.model_info
+       wins; MODEL_FIT in launch-config.js is the stand-in. '' means the
+       line is not rendered at all.
+
+       Declared HERE, in the same scope as the root.innerHTML template
+       that reads it -- it was first written next to the Details tab's
+       own model sentence, which is a different function, and the
+       template then threw a ReferenceError that took the entire buy
+       panel down: no price, no sizes, no Add to bag. */
+    const fitLine = A.modelFitLine ? A.modelFitLine(product.handle, product.modelInfo) : '';
 
     const hasOptions = product.optionNames.length > 0;
     /* Exact match: every option named and equal. This is what actually
@@ -2072,6 +2139,15 @@
               <div class="pd-price tnum" id="pdPrice"></div>
             </div>
 
+            <!-- What the models in the photographs are wearing, under
+                 the price where the question is actually being asked.
+                 custom.model_info first, then MODEL_FIT in
+                 launch-config.js; a product with neither renders
+                 nothing, because a guessed size is a measurement the
+                 site invented. The same text still appears in the
+                 Details tab for anyone who scrolls. -->
+            ${fitLine ? `<p class="pd-fit">${A.escapeHtml(fitLine)}</p>` : ''}
+
             ${hasOptions ? `
               <div class="pd-sizelabel" id="pdSizeLabel">Size:</div>
               <div class="pd-sizes" id="pdSizes"></div>
@@ -2098,6 +2174,17 @@
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
+            <!-- ASIORTEN, at the moment of the decision rather than
+                 only in the rotating banner nobody from an ad reads.
+                 A.codeOfferHTML() owns the wording, including the
+                 "not with the 2-piece offer" clause that has to sit
+                 with it while that discount is live.
+
+                 Class is pd-code-offer, not pdp-offer: the 2-piece
+                 line directly below it is .pd-offer, and two class
+                 names one letter apart on adjacent elements is a trap
+                 for whoever edits this next. -->
+            <p class="pd-code-offer" id="pdCodeOffer"></p>
             <!-- The 2-piece offer, under the control it applies to.
                  Reads the cart quantity the header already has, so it
                  costs no request, and renders nothing at all when
@@ -2497,12 +2584,20 @@
     renderOffer();
     document.addEventListener('asior:cartqty', renderOffer);
 
+    /* ASIORTEN, above the 2-piece line. Static -- it does not depend
+       on the cart -- so it is written once and not re-rendered on
+       asior:cartqty. innerHTML because the helper marks up the code
+       itself; the string is fixed copy from the helper and carries
+       nothing from Shopify or the URL. */
+    const codeEl = document.getElementById('pdCodeOffer');
+    if (codeEl && A.codeOfferHTML) codeEl.innerHTML = A.codeOfferHTML();
+
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {
       /* The free-shipping threshold next to the code, because the
          shipping number is the one that surprises people at checkout:
          US rates are carrier-calculated and only appear there. Both
-         figures are real -- ASIORTEN is the one live code and $75 is
+         figures are real -- ASIORTEN is the one live code and $50 is
          the live Shopify rate -- and freeShippingBadge() returns
          nothing at all if that rate is ever switched off. */
       const ship = A.freeShippingBadge ? A.freeShippingBadge() : '';

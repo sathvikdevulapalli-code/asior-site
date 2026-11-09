@@ -41,9 +41,9 @@ const BANNED = [
   [/\b5%\s*(off|discount)/i, 'only ASIORTEN (10%) exists'],
   /* "free shipping" was banned here because no such rate existed and
      the phrase was pure slop. A real one does now: Domestic zone,
-     "Free shipping", $0.00, condition TOTAL_PRICE >= 75.00, active,
-     created 2026-10-22, lowered to $75 on 2026-10-26, read back from
-     the live delivery profile both times.
+     "Free shipping", $0.00, condition TOTAL_PRICE >= 50.00, active:
+     created at $99 on 2026-10-22, $75 on 2026-10-26, $50 by
+     2026-11-09, read back from the live delivery profile each time.
      The guard that matters is ASIOR_SHIPPING.VERIFIED, which gates
      every rendered mention. Re-add this line the day that rate is
      removed from Shopify. */

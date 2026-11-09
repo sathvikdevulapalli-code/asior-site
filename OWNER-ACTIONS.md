@@ -261,6 +261,63 @@ frame — but it is still reachable in the gallery, and it is an
 AI-generated image on a real product. Deleting it in Shopify Admin is
 the founder's call, not this repo's.
 
+## 4c. Model sizes for the other nine products
+
+The product page now shows, under the price, what the models in the
+photographs are wearing. Two are filled in, from you:
+
+- **"Scripture" Polo** — Models: 5'2" & 5'7" wear S · 6'0" wears M ·
+  6'5" wears L
+- **JAG Shorts** — Models: 5'2" & 5'7" wear S
+
+Every other product renders **no line at all**, because there is no
+model-size data for them anywhere — not in Shopify, not in this repo.
+A guessed one is a measurement the site invented and somebody orders a
+size against it, so nothing is shown rather than something plausible.
+
+Still needed: Holes Tee, ASR Shorts, JAG Sweats, JAG Crewneck, JAG Set,
+"Lotus" Tee, "Blossom" Tee, Helia Pendant, Asior Lanyard (the last two
+may not need one).
+
+Send them in any form and they go in. The proper home is Shopify's
+`custom.model_info` metafield, which the page already reads and
+prefers; `MODEL_FIT` in `assets/launch-config.js` is the stand-in until
+those are filled.
+
+## 4d. The $6.99 flat shipping rate does not exist
+
+The product-page brief asked for this copy:
+
+> Free US shipping over $50. Under that, it's a flat $6.99.
+
+**The first half shipped. The second half did not, because it is not
+true.** Read back from the live delivery profile on 2026-11-09, the US
+Domestic zone has:
+
+- `usps` — carrier-calculated, USPS live rate **+15%**, active. This is
+  what a customer under $50 is actually charged.
+- `Free shipping` — $0.00 at `TOTAL_PRICE >= 50.00`, active.
+- `Standard (backup)` — $10.90 (0–1 lb), $19.90 (1–5 lb)
+- `Economy (backup)` — $12.90 (0–5 lb), $34.90 (5–70 lb)
+
+There is no $6.99 rate. Printing one would quote a price Shopify will
+not charge, and the customer finds out at the payment step — which is
+the exact failure `promo-config.js` is written to prevent. So the site
+still says the US charge is calculated at checkout.
+
+**To make $6.99 real**, a flat rate at that price has to be created in
+the Domestic zone and USPS switched off or priced behind it. Two things
+to decide before that:
+
+1. It would be **sold below cost on most orders**. Your own backup
+   flats sit at $10.90 and up, which is roughly what USPS quotes for
+   these parcels. At $6.99 you absorb the difference on every order
+   under $50.
+2. It is a **Shopify Admin write**, which this repo never makes on its
+   own. Say the word and I will make it, or you make it in Admin and I
+   will flip the copy — either way the copy changes the moment the rate
+   is real.
+
 ## 5. Policies still out of sync in Shopify Admin
 
 Carried over, still open:

@@ -2146,6 +2146,47 @@
     return 'Add ' + more + ' more piece' + (more === 1 ? '' : 's') + ' for ' + o.PERCENT + '% off';
   }
 
+  /* ASIORTEN, named under Add to bag.
+
+     Until 2026-11-09 the product page deliberately did NOT name the
+     code while the automatic 2-piece discount was live: two offers
+     stated side by side with nothing said add up to 25% in a
+     shopper's head, so the code stepped aside and only the banner
+     carried it. The founder reversed that -- a shopper who came from
+     an ad never sees a rotating banner line, and the code was
+     effectively invisible at the moment of the decision.
+
+     What makes it safe to name both is the second sentence, and it is
+     not optional: it only appears while MULTI_BUY is live, and it says
+     plainly that the two do not combine. That is read back from
+     Shopify (combinesWith.orderDiscounts false), so it is a fact, not
+     a hedge. Free shipping DOES stack with both, which is why this
+     does not say "one offer per order".
+
+     One helper, like multiBuyOfferLine, so the sentence cannot drift
+     between the pages that show it. Returns HTML, not text: the code
+     itself is marked up so it reads as something to copy. */
+  function codeOfferHTML() {
+    var line = 'First order? Use code <strong>ASIORTEN</strong> for 10% off.';
+    return multiBuy() ? line + ' Not with the 2-piece offer.' : line;
+  }
+
+  /* The sizes the models are actually wearing, for one handle.
+
+     Shopify first: custom.model_info is the real home and the product
+     page passes it in. MODEL_FIT in launch-config.js is the stand-in
+     until those metafields are filled. Returns '' for a handle with
+     neither, and the line is then not rendered -- never a guess. */
+  function modelFitLine(handle, metafieldValue) {
+    var fromShopify = String(metafieldValue == null ? '' : metafieldValue).trim();
+    if (fromShopify) return fromShopify;
+    var cfg = window.ASIOR_LAUNCH || {};
+    var map = cfg.MODEL_FIT;
+    if (!map || !handle) return '';
+    var v = map[handle];
+    return typeof v === 'string' ? v.trim() : '';
+  }
+
   function multiBuyBadge() {
     var o = multiBuy();
     return o ? 'Any ' + o.MIN_QTY + ' pieces ' + o.PERCENT + '% off, applied at checkout' : '';
@@ -2256,6 +2297,8 @@
     displayName: displayName,
     fillGridRow: fillGridRow,
     multiBuyOfferLine: multiBuyOfferLine,
+    codeOfferHTML: codeOfferHTML,
+    modelFitLine: modelFitLine,
     cartQuantity: cartQuantity,
     freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,

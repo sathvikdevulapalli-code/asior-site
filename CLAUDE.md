@@ -69,9 +69,15 @@ pricing". None of those exist in Shopify.
 Two more real offers exist, both set up in Shopify on 2026-10-26 at the
 founder's direction to sell through the current stock:
 
-- **Free US shipping at $75** (was $99). Domestic zone, `Free shipping`,
-  $0.00, condition `TOTAL_PRICE >= 75.00`. `FREE_THRESHOLD` in
-  `promo-config.js` mirrors it.
+- **Free US shipping at $50** ($99, then $75, then $50). Domestic zone,
+  `Free shipping`, $0.00, condition `TOTAL_PRICE >= 50.00`.
+  `FREE_THRESHOLD` in `promo-config.js` mirrors it. Shopify is the
+  source of truth for this number: when it moves there it moves in
+  that one constant and nowhere else. It drifted once — the rate was
+  lowered to $50 in Shopify while this repo still said 75, so for a
+  while every surface told shoppers they needed $25 more than they
+  did. Read it back from the delivery profile rather than trusting
+  this line.
 - **Any 2 pieces 15% off**, a Shopify automatic discount
   (`DiscountAutomaticNode/1570203828441`), 15% off the order at a
   minimum quantity of 2, no code. Read back from the discount node on
@@ -172,8 +178,9 @@ lives in `assets/promo-config.js`:
   shopper's real rate is computed at checkout from their address, with
   a 15% handling adjustment on top. The site must therefore not quote a
   single US price; it says shipping is calculated at checkout.
-- **Free shipping over $75**, active, condition `TOTAL_PRICE >= 75.00`
-  (lowered from $99 on 2026-10-26).
+- **Free shipping over $50**, active, condition `TOTAL_PRICE >= 50.00`
+  (read back from the live delivery profile 2026-11-09; $99 on
+  2026-10-22, $75 on 2026-10-26, $50 by 2026-11-09).
   This is the one shipping figure the site states outright.
 - The old flat rates still exist as `(backup)` methods behind USPS, now
   $10.90/$19.90 Standard and $12.90/$34.90 Economy. They are a fallback
@@ -181,7 +188,7 @@ lives in `assets/promo-config.js`:
   / $9.90 figures this file used to list are gone. `shipping-policy.html`
   was still publishing that retired rate card as the live one until
   2026-10-26; it now says the US charge is calculated at checkout and
-  states only the $75 threshold.
+  states only the $50 threshold.
 - International: USPS, DHL Express, DHL eCommerce and FedEx, all
   carrier-calculated and shown at checkout.
 - Dispatch 1–2 business days. That is handling time, not delivery. It
