@@ -121,7 +121,7 @@ window.ASIOR_LAUNCH = {
   ],
 
   FALL_PRODUCTS: [
-    { name: 'Asior Polo', handle: 'scripture-polo' },
+    { name: '"Scripture" Polo', handle: 'scripture-polo' },
     { name: 'JAG Shorts', handle: 'jag-shorts' },
     { name: 'Holes Tee', handle: 'holes-tee' },
     { name: 'Asior Shorts', handle: 'asr-shorts' },
@@ -178,12 +178,13 @@ window.ASIOR_LAUNCH = {
      The real fix is the title in Shopify Admin, which this repo must
      never write to. Until someone makes that edit, this map overrides
      the displayed name and nothing else: the handle, the variant IDs,
-     search, the cart and checkout all keep Shopify's own title.
+     search, the cart and checkout all use the customer-facing name.
 
-     Keyed by handle, and deliberately tiny. Do not use it to rename a
-     product, only to correct how an existing name is cased. Delete an
-     entry the day Shopify's own title matches it. */
+     Keyed by handle and deliberately small. Use it only when Shopify's
+     title is stale or has the wrong display case. Delete an entry once
+     Shopify's own title matches the customer-facing name. */
   DISPLAY_NAMES: {
+    'scripture-polo': '"Scripture" Polo',
     'jag-shorts': 'JAG Shorts',
     'asr-shorts': 'ASR Shorts',
   },

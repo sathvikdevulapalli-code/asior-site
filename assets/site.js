@@ -1724,7 +1724,7 @@
      verified list in launch-config.js. Fails closed: a missing or
      malformed list shows no compare-at anywhere. */
   /* A product's displayed name. Shopify's title, unless DISPLAY_NAMES
-     in launch-config.js corrects its case -- see the comment there.
+     in launch-config.js corrects its customer-facing name -- see the comment there.
      Handle unknown or map missing: Shopify's title, unchanged. */
   function displayName(handle, title) {
     var clean = String(title == null ? '' : title).replace(/\s*\[preorder\]\s*/i, '').trim();

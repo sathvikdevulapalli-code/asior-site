@@ -1496,7 +1496,7 @@ function fallHandles() {
 }
 
 /* The displayed name for a product: Shopify's title, unless
-   DISPLAY_NAMES in launch-config.js corrects its case. Mirrors
+   DISPLAY_NAMES in launch-config.js corrects its customer-facing name. Mirrors
    displayName() in assets/site.js -- the pre-rendered card and the
    live-rendered one must not disagree about what a product is called.
    See the comment on DISPLAY_NAMES for why this exists and when to
