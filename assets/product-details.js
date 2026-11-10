@@ -169,6 +169,7 @@ window.ASIOR_PRODUCT_DETAILS = {
     garment: 'polo',
     fabric: null,
     fit: null,
+    modelInfo: "Models: 5'2\" & 5'7\" wear S · 6'0\" wears M · 6'5\" wears L",
     model: { height: null, wearing: null },
     measurements: {
       S:  { chest: null, length: null, sleeve: null },
@@ -182,6 +183,7 @@ window.ASIOR_PRODUCT_DETAILS = {
     garment: 'shorts',
     fabric: null,
     fit: null,
+    modelInfo: "Models: 5'2\" & 5'7\" wear S",
     model: { height: null, wearing: null },
     measurements: {
       S: { waist: null, rise: null, inseam: null, outseam: null },

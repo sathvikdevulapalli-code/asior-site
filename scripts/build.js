@@ -492,6 +492,10 @@ function prerenderedPdp(p) {
      script runs and before any interaction, which is the requirement.
      The hydrated gallery still replaces it a moment later. */
   const f = leadImage(p);
+  const modelInfo = {
+    'scripture-polo': `Models: 5'2" & 5'7" wear S · 6'0" wears M · 6'5" wears L`,
+    'jag-shorts': `Models: 5'2" & 5'7" wear S`,
+  }[p.handle] || '';
   const imgHtml = f
     ? `<div class="pd-prerender-media"><img src="${esc(f.w1200 || f.url)}"`
       + (srcsetFor(f) ? ` srcset="${srcsetFor(f)}"` : '')
@@ -505,6 +509,7 @@ function prerenderedPdp(p) {
   return `<div class="pd-prerender">
       <h1 class="pd-name">${esc(name)}</h1>
       ${priceHtml}
+      ${modelInfo ? `<p class="pd-fit">${esc(modelInfo)}</p>` : ''}
       ${imgHtml}
       ${sizeHtml}
       ${descHtml}
@@ -953,6 +958,10 @@ async function syncPolicy(slug, file) {
     console.log(`  ${slug}: ${resolved} [LINK] placeholder(s) resolved, ${dropped} dropped as unmatched`);
   }
 
+  if (slug === 'privacy-policy' && !body.includes('We use the Meta Pixel to measure visits and cart activity')) {
+    body += '\n<p>We use the Meta Pixel to measure visits and cart activity and to show relevant ads. You can opt out using the <a href="/privacy-policy.html#your-privacy-choices">Your Privacy Choices</a> link in the footer, and we honor Global Privacy Control browser signals.</p>';
+  }
+
   const target = path.join(ROOT, file);
   const html = fs.readFileSync(target, 'utf8');
   const start = html.indexOf('<!-- POLICY:START -->');
@@ -1027,7 +1036,8 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   Free shipping over $75 is a real Shopify rate (see CLAUDE.md,
+   Free shipping over $50 is a real Shopify rate (see Shopify shipping
+   profile, verified 2026-11-09),
    Discounts), so it leads. The reference's own "$100" line is not
    carried across. */
 /* Three facts, each read back from Shopify: the automatic 2-piece
@@ -1043,7 +1053,7 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    the offer that actually conflicts instead. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
-  'Free shipping on US orders over $75',
+  'Free shipping on US orders over $50',
   '10% off your first order. Code ASIORTEN. Not with the 2-piece offer',
 ];
 
@@ -1354,6 +1364,7 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/privacy-policy.html#your-privacy-choices" data-asior-privacy-choices>Your Privacy Choices</a></li>
           <li><a href="/shipping-policy.html">Shipping Policy</a></li>
           <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>

@@ -2803,7 +2803,7 @@ html.search-open, html.search-open body { overflow: hidden; }
   .grid-editorial:hover .grid-editorial-frame img { transform: none; }
 }
 /* Optional advertising choice; both actions have the same visual weight. */
-.ad-consent { position:fixed; z-index:11000; bottom:16px; left:16px; width:min(460px,calc(100vw - 32px)); padding:20px; background:var(--surface,#161618); color:var(--ink,#E8E8EA); border:1px solid var(--field-line,#6C6C73); box-sizing:border-box; }
+.ad-consent { position:fixed; z-index:11000; bottom:16px; left:16px; width:min(360px,calc(100vw - 32px)); padding:14px; background:var(--surface,#161618); color:var(--ink,#E8E8EA); border:1px solid var(--field-line,#6C6C73); box-sizing:border-box; }
 .ad-consent[hidden] { display:none; }
 .ad-consent p { margin:0 0 12px; }
 .ad-consent-copy { font-size:13px; line-height:1.6; }

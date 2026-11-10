@@ -38,14 +38,12 @@
    side — not both, and not neither.
 
    ---------------------------------------------------------------
-   CONSENT
+   OPT-OUTS
 
-   ads.js presents an optional advertising choice with equal accept
-   and reject controls and an Ad preferences link in the footer.
-   REQUIRE_CONSENT stays true. No advertising SDK loads before an
-   affirmative choice; browser Global Privacy Control overrides that
-   choice. The stored choice expires after 180 days and contains no
-   customer identity or cart details.
+   Meta loads by default. ads.js checks Global Privacy Control and the
+   visitor's asior_ads_optout choice before loading the SDK or sending
+   any event. The footer privacy link records an opt-out and reloads the
+   page so the SDK is absent on the next document load.
 
    ---------------------------------------------------------------
    TO TURN A PIXEL ON
@@ -69,11 +67,9 @@ window.ASIOR_ADS = {
   TIKTOK_PIXEL_ID: null,
 
   // Who confirmed the id is real, that the deduplication question above
-  // was answered, and when. ads.js refuses to run without this, the
-  // same way promo-config refuses to render an unverified promotion.
-  VERIFIED: '2026-11-07: ASIOR dataset verified in Events Manager; checkout owns Purchase, custom storefront owns product/cart events; explicit opt-in required',
+  // was answered, and when. Informational; no customer identifiers belong here.
+  VERIFIED: '2026-11-07: ASIOR dataset verified in Events Manager; checkout owns Purchase, custom storefront owns product/cart events',
 
-  // Gate every send behind window.ASIOR_CONSENT === true.
-  // Leave true until the consent question is actually decided.
-  REQUIRE_CONSENT: true,
+  // Load by default, subject to GPC and the visitor's opt-out choice.
+  REQUIRE_CONSENT: false,
 };

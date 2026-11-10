@@ -2,7 +2,7 @@
    Asior — advertising pixels, upper funnel only.
 
    Reads assets/ads-config.js and does nothing at all unless that file
-   is explicitly enabled, verified, and (by default) consented to. See
+   is enabled, the Meta ID exists, and the visitor has not opted out. See
    the long comment there for why this exists and for the
    deduplication rule: this file sends PageView, ViewContent,
    AddToCart and InitiateCheckout, and never Purchase.
@@ -20,16 +20,29 @@
   var started = false;
   var lastView = null;
 
-  /* Four independent gates, all of which must pass. Any one of them
-     failing means this file is inert — which is its default state. */
-  function allowed() {
-    if (!cfg.ENABLED) return false;
-    if (!cfg.VERIFIED) return false;              // nobody has checked it
-    if (!cfg.META_PIXEL_ID && !cfg.TIKTOK_PIXEL_ID) return false;
-    if (navigator.globalPrivacyControl === true) return false;
-    if (cfg.REQUIRE_CONSENT && window.ASIOR_CONSENT !== true) return false;
+  function asiorAdsAllowed() {
+    var current = window.ASIOR_ADS || {};
+    if (!current.ENABLED || !current.META_PIXEL_ID) return false;
+    // GPC communicates the visitor's opt-out preference.
+    if (window.navigator && window.navigator.globalPrivacyControl) return false;
+    try {
+      if (window.localStorage.getItem('asior_ads_optout') === '1') return false;
+    } catch (err) { /* storage may be unavailable; do not break the page */ }
     return true;
   }
+
+  // Preserve an earlier explicit rejection when migrating from the old
+  // accept/reject banner to the persistent opt-out control.
+  try {
+    if (window.localStorage.getItem('asior_ads_optout') !== '1') {
+      var legacyChoice = JSON.parse(window.localStorage.getItem('asior_ad_consent_v1'));
+      if (legacyChoice && legacyChoice.allow === false) {
+        window.localStorage.setItem('asior_ads_optout', '1');
+      }
+    }
+  } catch (err) { /* storage may be unavailable */ }
+
+  function allowed() { return asiorAdsAllowed(); }
 
   function start() {
     if (started || !allowed()) return;
@@ -123,60 +136,57 @@
     },
   };
 
-  // No advertising SDK or event is sent before an affirmative choice.
-  // Store only the choice and its date; never email, phone, or cart data.
-  var choiceKey = 'asior_ad_consent_v1';
+  // A small informational notice does not gate tracking. An opt-out is
+  // persisted locally, revokes the current SDK session, and reloads.
   var panel;
-  function applyChoice(yes) {
-    var previouslyAllowed = window.ASIOR_CONSENT === true;
-    window.ASIOR_CONSENT = yes === true && navigator.globalPrivacyControl !== true;
+  function optOut() {
     try {
-      if (window.fbq) window.fbq('consent', window.ASIOR_CONSENT ? 'grant' : 'revoke');
-    } catch (err) {}
-    if (window.ASIOR_CONSENT) {
-      start();
-      if (lastView && !previouslyAllowed) window.AsiorAds.viewContent(lastView);
-    }
-  }
-  function saveChoice(yes) {
-    try { localStorage.setItem(choiceKey, JSON.stringify({ allow: yes, at: Date.now() })); } catch (err) {}
-    applyChoice(yes);
-    if (panel) panel.hidden = true;
-  }
-  function preferences() {
-    if (!panel) return;
-    panel.hidden = false;
-    panel.querySelector('button').focus();
+      window.localStorage.setItem('asior_ads_optout', '1');
+    } catch (err) { /* still stop this page's sends if storage is blocked */ }
+    try { if (window.fbq) window.fbq('consent', 'revoke'); } catch (err) {}
+    window.location.reload();
   }
   function consentUI() {
-    if (!cfg.ENABLED || !cfg.META_PIXEL_ID || !cfg.REQUIRE_CONSENT) { start(); return; }
+    var footer = document.querySelector('footer.site-footer') || document.querySelector('footer');
+    if (footer) {
+      var privacyChoices = footer.querySelector('[data-asior-privacy-choices]');
+      if (!privacyChoices) {
+        privacyChoices = document.createElement('a');
+        privacyChoices.href = '/privacy-policy.html#your-privacy-choices';
+        privacyChoices.className = 'ad-preferences';
+        privacyChoices.textContent = 'Your Privacy Choices';
+        privacyChoices.setAttribute('data-asior-privacy-choices', '');
+        footer.appendChild(privacyChoices);
+      }
+      privacyChoices.id = 'your-privacy-choices';
+      privacyChoices.addEventListener('click', function (event) {
+        event.preventDefault();
+        optOut();
+      });
+    }
+
+    try { if (window.sessionStorage.getItem('asior_ads_notice_dismissed') === '1') return; }
+    catch (err) { /* show the notice if session storage is blocked */ }
     panel = document.createElement('section');
     panel.className = 'ad-consent';
-    panel.setAttribute('aria-label', 'Advertising preferences');
-    var optedOut = navigator.globalPrivacyControl === true;
-    panel.innerHTML = '<p>Advertising preferences</p><p class="ad-consent-copy">'
-      + (optedOut ? 'Your browser\'s advertising opt-out is respected.'
-        : 'Allow Meta advertising cookies to measure visits, product views and cart activity, and help us show relevant ads? This is optional.')
-      + ' <a href="/privacy-policy.html">Privacy policy</a>.</p><div class="ad-consent-actions"></div>';
+    panel.setAttribute('aria-label', 'Cookie notice');
+    panel.innerHTML = '<p class="ad-consent-copy">We use cookies for ads and analytics. You can '
+      + '<a href="/privacy-policy.html">opt out</a> anytime.</p><div class="ad-consent-actions"></div>';
     var actions = panel.querySelector('.ad-consent-actions');
-    function button(label, accept) {
+    function button(label, action) {
       var b = document.createElement('button'); b.type = 'button'; b.textContent = label;
-      b.addEventListener('click', function () { saveChoice(accept); }); actions.appendChild(b);
+      b.addEventListener('click', action); actions.appendChild(b);
     }
-    if (!optedOut) button('Allow Meta ads', true);
-    button(optedOut ? 'Close' : 'Reject', false);
+    button('OK', function () {
+      panel.hidden = true;
+      try { window.sessionStorage.setItem('asior_ads_notice_dismissed', '1'); } catch (err) {}
+    });
+    button('Opt out', optOut);
     document.body.appendChild(panel);
-    var reopen = document.createElement('button');
-    reopen.type = 'button'; reopen.className = 'ad-preferences'; reopen.textContent = 'Ad preferences';
-    reopen.addEventListener('click', preferences);
-    (document.querySelector('footer') || document.body).appendChild(reopen);
-    var saved;
-    try { saved = JSON.parse(localStorage.getItem(choiceKey)); } catch (err) {}
-    if (saved && typeof saved.allow === 'boolean' && saved.at <= Date.now()
-        && Date.now() - saved.at < 180 * 86400000) {
-      panel.hidden = true; applyChoice(saved.allow);
-    } else { applyChoice(false); }
   }
+
+  // The initial PageView starts immediately unless GPC or an opt-out is present.
+  if (asiorAdsAllowed()) start();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', consentUI);
   else consentUI();
 })();
