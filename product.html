@@ -203,6 +203,13 @@
     margin-right: 8px;
   }
 
+  .pd-fit {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
   /* [measured] 13px/500 uppercase, 0.52px tracking, ~20px under the
      title. */
   /* The real count under a size box. data-left is only ever written
@@ -777,7 +784,7 @@
      as the hydrated page, and preserve the photograph's full frame. */
   .pd-prerender-media {
     grid-column: 1;
-    grid-row: 1 / span 4;
+    grid-row: 1 / span 5;
     display: flex;
     justify-content: center;
     max-height: 78vh;
@@ -795,8 +802,9 @@
 
   .pd-prerender > .pd-name { grid-column: 2; grid-row: 1; }
   .pd-prerender > .pd-price { grid-column: 2; grid-row: 2; }
-  .pd-prerender > .pd-sizes { grid-column: 2; grid-row: 3; }
-  .pd-prerender > .pd-desc { grid-column: 2; grid-row: 4; }
+  .pd-prerender > .pd-fit { grid-column: 2; grid-row: 3; }
+  .pd-prerender > .pd-sizes { grid-column: 2; grid-row: 4; }
+  .pd-prerender > .pd-desc { grid-column: 2; grid-row: 5; }
 
   @media (max-width: 900px) {
     .pd-prerender {
@@ -805,6 +813,7 @@
     }
     .pd-prerender > .pd-name,
     .pd-prerender > .pd-price,
+    .pd-prerender > .pd-fit,
     .pd-prerender > .pd-sizes,
     .pd-prerender > .pd-desc { grid-column: 1; grid-row: auto; }
     .pd-prerender-media {
@@ -1087,6 +1096,15 @@
 
   .pd-offer:empty { display: none; }
 
+  .pdp-offer {
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin: 10px 0 0;
+    color: #fff;
+  }
+  .pdp-offer strong { border: 1px dashed currentColor; padding: 1px 6px; }
+
   /* ---------- next-drop signup ----------
      Tapping a sold-out size used to do nothing at all, and then for a
      while it offered a back-in-stock alert nothing could send. Now it
@@ -1177,7 +1195,7 @@
     <p class="announce-drop" data-drop-countdown></p>
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
-      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $75</p>
+      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $50</p>
       <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
@@ -1288,6 +1306,7 @@
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/privacy-policy.html#your-privacy-choices" data-asior-privacy-choices>Your Privacy Choices</a></li>
           <li><a href="/shipping-policy.html">Shipping Policy</a></li>
           <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>
@@ -2062,6 +2081,9 @@
               <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
               <div class="pd-price tnum" id="pdPrice"></div>
             </div>
+            ${((details && details.modelInfo) || product.modelInfo)
+              ? `<p class="pd-fit">${A.escapeHtml((details && details.modelInfo) || product.modelInfo)}</p>`
+              : ''}
 
             ${hasOptions ? `
               <div class="pd-sizelabel" id="pdSizeLabel">Size:</div>
@@ -2089,6 +2111,7 @@
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
+            <p class="pdp-offer">First order? Use code <strong>ASIORTEN</strong> for 10% off.</p>
             <!-- The 2-piece offer, under the control it applies to.
                  Reads the cart quantity the header already has, so it
                  costs no request, and renders nothing at all when
@@ -2493,7 +2516,7 @@
       /* The free-shipping threshold next to the code, because the
          shipping number is the one that surprises people at checkout:
          US rates are carrier-calculated and only appear there. Both
-         figures are real -- ASIORTEN is the one live code and $75 is
+         figures are real -- ASIORTEN is the one live code and $50 is
          the live Shopify rate -- and freeShippingBadge() returns
          nothing at all if that rate is ever switched off. */
       const ship = A.freeShippingBadge ? A.freeShippingBadge() : '';
