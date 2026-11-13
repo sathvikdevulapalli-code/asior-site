@@ -217,6 +217,14 @@
        warming a connection to a pixel that is switched off. -->
   <script defer src="/assets/ads-config.js"></script>
   <script defer src="/assets/ads.js"></script>
+  <!-- DROP ACCESS. Config first, because drop-access.js reads it
+       synchronously; both deferred so neither blocks first paint, and
+       both no-op entirely when ASIOR_DROP.ENABLED is false. The
+       automatic trigger is a separate switch (AUTO) and ships off --
+       see the long note at the top of drop-config.js about the two
+       Klaviyo popups that are already live on every page. -->
+  <script defer src="/assets/drop-config.js"></script>
+  <script defer src="/assets/drop-access.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -233,7 +241,6 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $50</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
   <header class="site-header">
@@ -289,10 +296,21 @@
   <section class="wl" aria-label="Join the Asior waitlist">
     <figure class="wl-figure">
       <picture>
-        <source type="image/webp" media="(max-width: 860px)" srcset="images/oli04236-800.1e7342e0.webp">
-        <source type="image/webp" srcset="images/oli04236.9f963ed0.webp">
-        <source media="(max-width: 860px)" srcset="images/oli04236-800.13e557be.jpg">
-        <img src="images/oli04236.319fc940.jpg" alt="Two models in Asior polos and sweat shorts against a stone wall"
+        <!-- Width descriptors, not a media switch to one fixed file.
+
+             The phone source used to be a bare srcset of the 800px
+             rendition, so a 3x phone painting this 390px wide got 800
+             pixels where it wanted ~1170 -- 0.68 of them. A media
+             query cannot know the device pixel ratio; only a w
+             descriptor plus sizes lets the browser work it out. Both
+             renditions are offered at both widths and the browser
+             picks. -->
+        <source type="image/webp"
+                srcset="images/oli04236-800.webp 800w, images/oli04236.webp 1600w"
+                sizes="(max-width: 860px) 100vw, 48vw">
+        <source srcset="images/oli04236-800.jpg 800w, images/oli04236.jpg 1600w"
+                sizes="(max-width: 860px) 100vw, 48vw">
+        <img src="images/oli04236.jpg" alt="Two models in Asior polos and sweat shorts against a stone wall"
              width="1600" height="2400" fetchpriority="high" decoding="async">
       </picture>
     </figure>
@@ -376,6 +394,13 @@
           <li><a href="/about.html">About</a></li>
           <li><a href="/community.html">Lookbook</a></li>
           <li><a href="/archive.html">Archive</a></li>
+          <!-- The half of DROP ACCESS that cannot annoy anybody: it
+               opens only because somebody asked. It is an <a> to the
+               real campaign page, so it still works with no
+               JavaScript and is a real destination for a crawler;
+               drop-access.js intercepts the click and opens the
+               overlay instead when it is running. -->
+          <li><a href="/drop.html" data-drop-open="footer">Drop access</a></li>
         </ul>
         <div class="social">
           <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">

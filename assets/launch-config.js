@@ -33,7 +33,7 @@ window.ASIOR_LAUNCH = {
   // is live" vs "almost here" in index.html) and fall-collection.html's
   // search-indexing decision.
   //
-  // TRUE as of this pass: all four intended pieces (Asior Polo, JAG
+  // TRUE as of this pass: all four intended pieces ("Scripture" Polo, JAG
   // Shorts, Holes Tee, Asior Shorts) have real, founder-verified
   // Shopify handles and are confirmed ACTIVE — the condition this flag
   // exists to gate. Set back to false immediately if any of the four is
@@ -121,6 +121,16 @@ window.ASIOR_LAUNCH = {
   ],
 
   FALL_PRODUCTS: [
+    /* Shopify's own title, exactly. It used to say 'Asior Polo' here
+       on the reasoning that the Shopify title was an internal name --
+       it is not. "Scripture" Polo is what the ad, the Instagram post,
+       the cart and Shopify's checkout all call it, and this override
+       was the only place on the whole site that disagreed.
+
+       Worse, it disagreed with ITSELF on the product page: build.js
+       pre-renders the heading from Shopify's title, then the
+       client-side render replaced it with this one, so the name
+       visibly changed after load. Same name in both now. */
     { name: '"Scripture" Polo', handle: 'scripture-polo' },
     { name: 'JAG Shorts', handle: 'jag-shorts' },
     { name: 'Holes Tee', handle: 'holes-tee' },
@@ -178,15 +188,38 @@ window.ASIOR_LAUNCH = {
      The real fix is the title in Shopify Admin, which this repo must
      never write to. Until someone makes that edit, this map overrides
      the displayed name and nothing else: the handle, the variant IDs,
-     search, the cart and checkout all use the customer-facing name.
+     search, the cart and checkout all keep Shopify's own title.
 
-     Keyed by handle and deliberately small. Use it only when Shopify's
-     title is stale or has the wrong display case. Delete an entry once
-     Shopify's own title matches the customer-facing name. */
+     Keyed by handle, and deliberately tiny. Do not use it to rename a
+     product, only to correct how an existing name is cased. Delete an
+     entry the day Shopify's own title matches it. */
   DISPLAY_NAMES: {
-    'scripture-polo': '"Scripture" Polo',
     'jag-shorts': 'JAG Shorts',
     'asr-shorts': 'ASR Shorts',
+  },
+
+  /* ---- what the models are wearing --------------------------------
+
+     The sizes the models in a product's photographs actually have on,
+     shown under the price. It is the single most asked question on a
+     product nobody can try on, and the answer is not derivable from
+     anything else on the page.
+
+     THE REAL HOME FOR THIS IS SHOPIFY. The PDP already reads
+     custom.model_info and prefers it over anything here -- this map is
+     the stand-in until those metafields are filled, the same kind of
+     display-layer patch DISPLAY_NAMES and CARD_IMAGE are. Fill the
+     metafield and delete the entry; nothing else changes.
+
+     ONLY REAL SIZES GO IN HERE. A handle with no entry renders no
+     line at all, which is correct: a guessed fit note is a
+     measurement the site invented, and somebody orders against it.
+     The two below came from the founder (the Polo's from the post
+     caption). The other nine products have no model-size data
+     anywhere yet -- see OWNER-ACTIONS.md. */
+  MODEL_FIT: {
+    'scripture-polo': 'Models: 5\'2" & 5\'7" wear S \u00b7 6\'0" wears M \u00b7 6\'5" wears L',
+    'jag-shorts': 'Models: 5\'2" & 5\'7" wear S',
   },
 
   /* ---- the next drop --------------------------------------------

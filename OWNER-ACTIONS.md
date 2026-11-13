@@ -193,17 +193,218 @@ patch over the real problem. Fix the titles in Shopify and delete those
 two entries — the handles, variant IDs, cart and checkout are untouched
 either way.
 
-## 4. YNC
+## 4. YNC — the name came off the homepage
 
 The only fact about YNC anywhere in this codebase or the Shopify
 catalogue is the name. There is no date, no product list, no price, no
 description.
 
-The homepage band and the waitlist therefore say the name and nothing
-else. To say more — what it is, when it lands, who gets it first — send
-the facts and they go in. A date would also switch on the countdown and
-COMING-card machinery that already exists in `NEXT_DROP`; without a real
-date none of it renders, which is deliberate.
+The homepage band used to show it: the word "YNC" and "Join the list
+for YNC updates." Someone arriving from an ad has no idea what that
+is, so on 2026-11-07 the band was changed to say what the list
+actually does — "The next drop / One email when it goes live. Nothing
+else." — pointing at the same waitlist. That claim is backed: the
+Fall Early Access list (`TN58zR`) has a live "Early Access" flow, so
+the mail does get sent.
+
+**To put YNC back, send the facts**: what it is, when it lands, who
+gets it first. A date would also switch on the countdown and
+COMING-card machinery that already exists in `NEXT_DROP`; without a
+real date none of it renders, which is deliberate.
+
+## 4b. Photographs that are smaller than the page needs
+
+Nothing here is a code fix — the pixels do not exist and upscaling is
+not an option. Each of these shows visibly soft on a retina screen.
+
+**Product photos in Shopify, on the product page gallery.** The PDP
+paints its frames about 800px wide, so a 2x screen wants ~1600px.
+These uploads are smaller than that, worst first:
+
+| Product | File | Has | Wants |
+|---|---|---|---|
+| "Blossom" Tee | `IMG_7357.jpg` | 838px | 1600px |
+| Asior Lanyard | `IMG_8185.jpg` | 919px | 1600px |
+| "JAG" Crewneck | `BCO.37b48489….png` | 1024px | 1600px |
+| "Blossom" Tee | `c238690e….jpg` | 1066px | 1600px |
+| "JAG" Set | `99F17712.jpg` | 1170px | 1600px |
+| "JAG" Crewneck / Set | `jag-set-crewneck-sweats.jpg` | 1170px | 1600px |
+| "JAG" Sweats | `IMG_8617.jpg` | 1170px | 1600px |
+| "Lotus" Tee | `IMG_1553_Original.jpg` | 1229px | 1600px |
+| Asior Polo | `IMG_6821.jpg` | 1256px | 1600px |
+| "Holes" Tee | `IMG_6833.jpg` | 1281px | 1600px |
+| "JAG" Set | `171a4f21bb21.png` | 1415px | 1600px |
+
+Re-upload any of these at 2000px or more on the long edge and the
+site picks the larger rendition on its own — Shopify does the
+resizing, nothing in the repo changes.
+
+**The lookbook set.** `look-01` to `look-15` are 800x1200 originals.
+That is fine where they are small, and the gallery was reordered on
+2026-11-07 so the six wide cells all fall on the campaign frames,
+which have 1600px. But the collection-page banner strip
+(`/collections/tops.html` and the rest) paints `look-01/02/03` at
+479px, which wants 958px on a 2x screen and gets 800. Those three are
+the only files in `images/` carrying camera EXIF, which is why the
+banner is restricted to them — so this is left alone rather than
+swapped for a campaign frame. **Send the 800px looks again at 2000px
+or more and the banner sharpens with no code change.**
+
+**The homepage hero.** `oli04155` tops out at 2400px and the hero is
+full-bleed, so a 2x 1440 laptop wants 2880. It sits at 0.83. The
+4000px original from the shoot would close it.
+
+**The Kova Firefly render.** `Firefly_GeminiFlash_….png` is still the
+first media item on "Lotus" Tee in Shopify. The site already demotes
+it — it is never the grid tile, the link preview or the first gallery
+frame — but it is still reachable in the gallery, and it is an
+AI-generated image on a real product. Deleting it in Shopify Admin is
+the founder's call, not this repo's.
+
+## 4c. Model sizes for the other nine products
+
+The product page now shows, under the price, what the models in the
+photographs are wearing. Two are filled in, from you:
+
+- **"Scripture" Polo** — Models: 5'2" & 5'7" wear S · 6'0" wears M ·
+  6'5" wears L
+- **JAG Shorts** — Models: 5'2" & 5'7" wear S
+
+Every other product renders **no line at all**, because there is no
+model-size data for them anywhere — not in Shopify, not in this repo.
+A guessed one is a measurement the site invented and somebody orders a
+size against it, so nothing is shown rather than something plausible.
+
+Still needed: Holes Tee, ASR Shorts, JAG Sweats, JAG Crewneck, JAG Set,
+"Lotus" Tee, "Blossom" Tee, Helia Pendant, Asior Lanyard (the last two
+may not need one).
+
+Send them in any form and they go in. The proper home is Shopify's
+`custom.model_info` metafield, which the page already reads and
+prefers; `MODEL_FIT` in `assets/launch-config.js` is the stand-in until
+those are filled.
+
+## 4d. The $6.99 flat shipping rate does not exist
+
+The product-page brief asked for this copy:
+
+> Free US shipping over $50. Under that, it's a flat $6.99.
+
+**The first half shipped. The second half did not, because it is not
+true.** Read back from the live delivery profile on 2026-11-09, the US
+Domestic zone has:
+
+- `usps` — carrier-calculated, USPS live rate **+15%**, active. This is
+  what a customer under $50 is actually charged.
+- `Free shipping` — $0.00 at `TOTAL_PRICE >= 50.00`, active.
+- `Standard (backup)` — $10.90 (0–1 lb), $19.90 (1–5 lb)
+- `Economy (backup)` — $12.90 (0–5 lb), $34.90 (5–70 lb)
+
+There is no $6.99 rate. Printing one would quote a price Shopify will
+not charge, and the customer finds out at the payment step — which is
+the exact failure `promo-config.js` is written to prevent. So the site
+still says the US charge is calculated at checkout.
+
+**To make $6.99 real**, a flat rate at that price has to be created in
+the Domestic zone and USPS switched off or priced behind it. Two things
+to decide before that:
+
+1. It would be **sold below cost on most orders**. Your own backup
+   flats sit at $10.90 and up, which is roughly what USPS quotes for
+   these parcels. At $6.99 you absorb the difference on every order
+   under $50.
+2. It is a **Shopify Admin write**, which this repo never makes on its
+   own. Say the word and I will make it, or you make it in Admin and I
+   will flip the copy — either way the copy changes the moment the rate
+   is real.
+
+## 4e. DROP ACCESS needs three things from you
+
+The drop experience is built, tested and shipped. Three of its
+switches are off because turning them on would require something that
+does not exist yet. None of these is a code change — each is one
+field once the thing behind it is real.
+
+### 1. Pause the two live Klaviyo popups, then set `AUTO: true`
+
+Checked against the Klaviyo API on 2026-11-13:
+
+| Form | Id | Status |
+|---|---|---|
+| Email & SMS Popup | `UxDQrj` | **live**, updated 2026-11-07 |
+| SMS | `Vtp6MG` | **live**, updated 2026-11-07 |
+
+`klaviyo.js` loads on all 22 pages, so both of these already appear to
+visitors today. The drop overlay's automatic trigger is therefore
+**off** — opening it on top of two existing popups would be the third
+ask in a row on a first visit, and three stacked interruptions is a
+plausible part of why engagement is low right now.
+
+**Worth knowing before you decide:** you are currently running two
+popups and a site-wide banner asking for the same email address. That
+is likely hurting more than the overlay would help.
+
+To switch the automatic trigger on: pause or retarget `UxDQrj` and
+`Vtp6MG` in Klaviyo → Signup Forms, then set `AUTO: true` in
+`assets/drop-config.js`. The footer DROP ACCESS link works today
+either way.
+
+### 2. A GA4 Measurement ID
+
+There is no GA4 on this site. No `gtag`, no `dataLayer`, no
+`G-XXXXXXXXXX`, no Tag Manager — searched the whole repo on
+2026-11-13. The brief asked for GA4 conversion events and the event
+layer is built and firing; with no measurement id those events
+currently reach Klaviyo and nothing else.
+
+Send a `G-XXXXXXXXXX` and it goes in `ANALYTICS.GA4_MEASUREMENT_ID` in
+`assets/drop-config.js`. Nothing else changes — gtag loads itself and
+receives the same events, with `send_page_view` off so this
+storefront's own pageview is not double-counted.
+
+Events already emitted, each only on a real success:
+`Drop Access Shown`, `Drop Drawer Opened`, `Drop Access Dismissed`,
+`Drop Product Clicked`, `Drop Waitlist Opened`, `Drop Waitlist Signup`,
+`Drop Add To Cart`, `Drop Access CTA`.
+
+### 3. A back-in-stock flow, if you want restock alerts
+
+Still none. All 27 flows listed 2026-11-13; the triggers in use are
+Metric, Added to List, Unconfigured and Price Drop. No Back in Stock.
+
+Klaviyo will happily accept a back-in-stock subscription over the API
+and store it forever without sending anything — which is exactly what
+the old capture did before it was removed. So sold-out pieces in the
+drawer offer **first access to the next drop** instead, which the live
+Welcome flow answers.
+
+Build a flow triggered by Back in Stock, set it Live, confirm it
+sends, then set `RESTOCK_ALERTS: true`.
+
+### Also worth a look
+
+- **"SMS Welcome Series with Discount"** (`XQDrPD`) is **live**. If it
+  sends a code other than ASIORTEN, that contradicts the site, which
+  says ASIORTEN is the only code. Worth opening.
+- **The SMS List's only flow is a draft.** `UiFFMg` is double opt-in
+  and its one flow, "Welcome Series - Customer v. Non-Customer"
+  (`VieNw4`), is draft. SMS signups confirm and then hear nothing.
+
+### What I could not verify
+
+The sandbox this ran in has no outbound network: `asiorclothing.com`,
+`steezdept.com`, `witheredhills.com`, `mnml.la` and every other
+external host return no response. So:
+
+- **I did not study the competitor sites.** The design draws on the
+  reference measurements already recorded in this repo from earlier
+  sessions and on the brand research basis in `CLAUDE.md`, not on
+  anything I looked at this week. Any claim that I examined their
+  current UI would be false.
+- **I could not open the production site.** Everything below was
+  verified against a local build serving the real Shopify catalogue
+  through a mock, at 1440, 390 and 375. Production needs checking on
+  a real device after deploy.
 
 ## 5. Policies still out of sync in Shopify Admin
 

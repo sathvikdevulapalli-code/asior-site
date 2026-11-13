@@ -203,13 +203,6 @@
     margin-right: 8px;
   }
 
-  .pd-fit {
-    margin: 8px 0 0;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--muted);
-  }
-
   /* [measured] 13px/500 uppercase, 0.52px tracking, ~20px under the
      title. */
   /* The real count under a size box. data-left is only ever written
@@ -428,6 +421,24 @@
     .pd-name { font-size: 14px; }
     .pd-price { font-size: 14px; }
     .pd-tab { font-size: 11px; letter-spacing: 0.5px; }
+
+    /* The buy panel's vertical rhythm, tightened for a phone.
+
+       Measured on a 390x844 screen: the controls were spending 60px
+       between the size row and Add to bag and 28px above the actions,
+       which is desktop air on a screen that does not have it. Every
+       value below is a gap, not content -- no type gets smaller, no
+       photograph gets shorter, nothing is removed. It buys back about
+       36px, which is the difference between Add to bag sitting on the
+       fold line and sitting clear of it. */
+    .pd-titlerow { padding-bottom: 8px; }
+    .pd-fit { margin-top: 6px; }
+    .pd-sizelabel { margin-top: 12px; }
+    .pd-sizehint { margin-top: 6px; }
+    .pd-actions { margin-top: 14px; }
+    .pd-buynow { margin-top: 8px; }
+    .pd-code-offer { margin-top: 8px; }
+    .pd-offer { margin-top: 8px; }
   }
 
   .pd-sticky {
@@ -784,7 +795,7 @@
      as the hydrated page, and preserve the photograph's full frame. */
   .pd-prerender-media {
     grid-column: 1;
-    grid-row: 1 / span 5;
+    grid-row: 1 / span 4;
     display: flex;
     justify-content: center;
     max-height: 78vh;
@@ -802,9 +813,8 @@
 
   .pd-prerender > .pd-name { grid-column: 2; grid-row: 1; }
   .pd-prerender > .pd-price { grid-column: 2; grid-row: 2; }
-  .pd-prerender > .pd-fit { grid-column: 2; grid-row: 3; }
-  .pd-prerender > .pd-sizes { grid-column: 2; grid-row: 4; }
-  .pd-prerender > .pd-desc { grid-column: 2; grid-row: 5; }
+  .pd-prerender > .pd-sizes { grid-column: 2; grid-row: 3; }
+  .pd-prerender > .pd-desc { grid-column: 2; grid-row: 4; }
 
   @media (max-width: 900px) {
     .pd-prerender {
@@ -813,7 +823,6 @@
     }
     .pd-prerender > .pd-name,
     .pd-prerender > .pd-price,
-    .pd-prerender > .pd-fit,
     .pd-prerender > .pd-sizes,
     .pd-prerender > .pd-desc { grid-column: 1; grid-row: auto; }
     .pd-prerender-media {
@@ -1096,14 +1105,42 @@
 
   .pd-offer:empty { display: none; }
 
-  .pdp-offer {
+  /* ASIORTEN under Add to bag. The founder's spec for this line said
+     color:#fff; it reads var(--ink) instead, because every colour on
+     this site comes from a token -- a hardcoded one is what made the
+     last two palette flips a day's work each -- and because pure
+     white on a near-black page blooms at this size, which is the
+     whole reason --ink is off-white. */
+  .pd-code-offer {
+    margin: 10px 0 0;
     font-size: 12px;
     letter-spacing: .04em;
     text-transform: uppercase;
-    margin: 10px 0 0;
-    color: #fff;
+    color: var(--ink);
   }
-  .pdp-offer strong { border: 1px dashed currentColor; padding: 1px 6px; }
+
+  .pd-code-offer:empty { display: none; }
+
+  /* The code itself, boxed so it reads as something to copy. Dashed,
+     which is the one place on the site a border is not a hairline
+     rule -- it is doing a different job here. */
+  .pd-code-offer strong {
+    font-weight: 500;
+    border: 1px dashed currentColor;
+    padding: 1px 6px;
+  }
+
+  /* What the models are wearing, under the price. Quiet: it is a fact
+     about the photographs, not a claim about the product. */
+  .pd-fit {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: .02em;
+    color: var(--muted);
+  }
+
+  .pd-fit:empty { display: none; }
 
   /* ---------- next-drop signup ----------
      Tapping a sold-out size used to do nothing at all, and then for a
@@ -1139,7 +1176,16 @@
     font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 0 16px;
+    /* The row wraps on a phone. Unwrapped, the button stretched to
+       the input's height beside it; wrapped onto its own line it had
+       nothing to stretch against and collapsed to its 14px line box
+       -- a 162x14 tap target on the one control this panel exists
+       for. Its own height, so it does not depend on a neighbour. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
     cursor: pointer;
     border-radius: 0;
     transition: border-color 200ms var(--ease-out), background 200ms var(--ease-out),
@@ -1180,6 +1226,14 @@
        warming a connection to a pixel that is switched off. -->
   <script defer src="/assets/ads-config.js"></script>
   <script defer src="/assets/ads.js"></script>
+  <!-- DROP ACCESS. Config first, because drop-access.js reads it
+       synchronously; both deferred so neither blocks first paint, and
+       both no-op entirely when ASIOR_DROP.ENABLED is false. The
+       automatic trigger is a separate switch (AUTO) and ships off --
+       see the long note at the top of drop-config.js about the two
+       Klaviyo popups that are already live on every page. -->
+  <script defer src="/assets/drop-config.js"></script>
+  <script defer src="/assets/drop-access.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>
@@ -1196,7 +1250,6 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $50</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
   <header class="site-header">
@@ -1279,6 +1332,13 @@
           <li><a href="/about.html">About</a></li>
           <li><a href="/community.html">Lookbook</a></li>
           <li><a href="/archive.html">Archive</a></li>
+          <!-- The half of DROP ACCESS that cannot annoy anybody: it
+               opens only because somebody asked. It is an <a> to the
+               real campaign page, so it still works with no
+               JavaScript and is a real destination for a crawler;
+               drop-access.js intercepts the click and opens the
+               overlay instead when it is running. -->
+          <li><a href="/drop.html" data-drop-open="footer">Drop access</a></li>
         </ul>
         <div class="social">
           <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -1743,6 +1803,7 @@
       ? `<p class="pd-model">Model is ${A.escapeHtml(details.model.height)}, wearing size ${A.escapeHtml(details.model.wearing)}.</p>`
       : '';
 
+
     // No apologetic "not measured yet" framing when there's no table —
     // just the real, always-true comparison method (howToMeasure), which
     // stands on its own as useful guidance. Never invented numbers to
@@ -1817,6 +1878,17 @@
     // Consolidate ?id= and /products/<handle>.html onto one indexable URL.
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.href = location.origin + productUrl(product.handle);
+
+    /* The model-fit line for the buy panel. Shopify's custom.model_info
+       wins; MODEL_FIT in launch-config.js is the stand-in. '' means the
+       line is not rendered at all.
+
+       Declared HERE, in the same scope as the root.innerHTML template
+       that reads it -- it was first written next to the Details tab's
+       own model sentence, which is a different function, and the
+       template then threw a ReferenceError that took the entire buy
+       panel down: no price, no sizes, no Add to bag. */
+    const fitLine = A.modelFitLine ? A.modelFitLine(product.handle, product.modelInfo) : '';
 
     const hasOptions = product.optionNames.length > 0;
     /* Exact match: every option named and equal. This is what actually
@@ -2081,9 +2153,15 @@
               <h1 class="pd-name">${A.escapeHtml(product.name)}</h1>
               <div class="pd-price tnum" id="pdPrice"></div>
             </div>
-            ${((details && details.modelInfo) || product.modelInfo)
-              ? `<p class="pd-fit">${A.escapeHtml((details && details.modelInfo) || product.modelInfo)}</p>`
-              : ''}
+
+            <!-- What the models in the photographs are wearing, under
+                 the price where the question is actually being asked.
+                 custom.model_info first, then MODEL_FIT in
+                 launch-config.js; a product with neither renders
+                 nothing, because a guessed size is a measurement the
+                 site invented. The same text still appears in the
+                 Details tab for anyone who scrolls. -->
+            ${fitLine ? `<p class="pd-fit">${A.escapeHtml(fitLine)}</p>` : ''}
 
             ${hasOptions ? `
               <div class="pd-sizelabel" id="pdSizeLabel">Size:</div>
@@ -2111,7 +2189,17 @@
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
-            <p class="pdp-offer">First order? Use code <strong>ASIORTEN</strong> for 10% off.</p>
+            <!-- ASIORTEN, at the moment of the decision rather than
+                 only in the rotating banner nobody from an ad reads.
+                 A.codeOfferHTML() owns the wording, including the
+                 "not with the 2-piece offer" clause that has to sit
+                 with it while that discount is live.
+
+                 Class is pd-code-offer, not pdp-offer: the 2-piece
+                 line directly below it is .pd-offer, and two class
+                 names one letter apart on adjacent elements is a trap
+                 for whoever edits this next. -->
+            <p class="pd-code-offer" id="pdCodeOffer"></p>
             <!-- The 2-piece offer, under the control it applies to.
                  Reads the cart quantity the header already has, so it
                  costs no request, and renders nothing at all when
@@ -2510,6 +2598,14 @@
     }
     renderOffer();
     document.addEventListener('asior:cartqty', renderOffer);
+
+    /* ASIORTEN, above the 2-piece line. Static -- it does not depend
+       on the cart -- so it is written once and not re-rendered on
+       asior:cartqty. innerHTML because the helper marks up the code
+       itself; the string is fixed copy from the helper and carries
+       nothing from Shopify or the URL. */
+    const codeEl = document.getElementById('pdCodeOffer');
+    if (codeEl && A.codeOfferHTML) codeEl.innerHTML = A.codeOfferHTML();
 
     const propEl = document.getElementById('pdSignupProp');
     if (propEl) {

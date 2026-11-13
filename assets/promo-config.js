@@ -112,8 +112,18 @@ window.ASIOR_PROMO = {
 window.ASIOR_SHIPPING = {
   // Free-shipping threshold in dollars, or 0 for free on every order.
   //
-  // Free US shipping at $50 and over. Verified in Shopify Settings >
-  // Shipping and delivery > General profile on 2026-11-09.
+  // Free US shipping at $50 and over. This is real: Domestic zone,
+  // method "Free shipping", $0.00, condition TOTAL_PRICE >= $50.00,
+  // active. Created at $99 on 2026-10-22, lowered to $75 on 2026-10-26,
+  // and lowered again to $50 before 2026-11-09.
+  //
+  // Read back from the live delivery profile on 2026-11-09, which is
+  // how the $50 was found: the rate had already been changed in
+  // Shopify and this file still said 75, so every surface on the site
+  // -- the banner, the PDP line, the cart's progress bar -- was
+  // telling shoppers they needed to spend $25 more than they actually
+  // did to earn free shipping. Shopify is the source of truth for this
+  // number; when it moves there, it moves here, and nowhere else.
   //
   // The rule still stands for whoever comes next: if that rate is
   // ever removed from Shopify, set this back to null AND clear
@@ -203,7 +213,7 @@ window.ASIOR_SHIPPING = {
   // Confirmed against the live Shopify delivery profile, not from
   // memory: the free-shipping method was created and then read back
   // out of the Domestic zone on this date.
-  VERIFIED: { by: 'read from Shopify Admin shipping profile', on: '2026-11-09' },
+  VERIFIED: { by: 'read from Shopify delivery profile', on: '2026-11-09' },
 
   /* ---------------------------------------------------------------
      RETURNS. Published on the storefront on 2026-10-11. Fit, order,

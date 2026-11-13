@@ -59,7 +59,7 @@ const STATIC_PAGES = [
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
-  '/waitlist.html', '/links',
+  '/waitlist.html', '/links', '/drop.html',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -492,10 +492,21 @@ function prerenderedPdp(p) {
      script runs and before any interaction, which is the requirement.
      The hydrated gallery still replaces it a moment later. */
   const f = leadImage(p);
-  const modelInfo = {
-    'scripture-polo': `Models: 5'2" & 5'7" wear S · 6'0" wears M · 6'5" wears L`,
-    'jag-shorts': `Models: 5'2" & 5'7" wear S`,
-  }[p.handle] || '';
+  /* What the models are wearing, for the pre-rendered first paint.
+
+     Read from MODEL_FIT in assets/launch-config.js, which is the one
+     place this data lives. It arrived on main as a hardcoded object
+     right here while this branch added the config and the client-side
+     renderer -- two sources for the same sentence, which is the
+     duplicate-renderer hazard CLAUDE.md warns about and which would
+     have drifted the first time one was edited. The hydrated panel
+     replaces this markup a moment later and reads the same map, so
+     both now say the same thing by construction.
+
+     Shopify's custom.model_info still wins at runtime; this prerender
+     cannot see metafields, so it shows the config value and the
+     hydrated render corrects it if Shopify has one. */
+  const modelInfo = (MODEL_FIT && MODEL_FIT[p.handle]) || '';
   const imgHtml = f
     ? `<div class="pd-prerender-media"><img src="${esc(f.w1200 || f.url)}"`
       + (srcsetFor(f) ? ` srcset="${srcsetFor(f)}"` : '')
@@ -958,6 +969,39 @@ async function syncPolicy(slug, file) {
     console.log(`  ${slug}: ${resolved} [LINK] placeholder(s) resolved, ${dropped} dropped as unmatched`);
   }
 
+  /* Anchors with no href, repaired.
+
+     The live Terms page carries the support address twice as
+     <a rel="noopener">asiorclothing@gmail.com<span></span></a> -- an
+     anchor with no href. It renders as plain text that looks like a
+     link and does nothing when tapped, on the one line of a legal
+     page a customer actually wants to use. Two of them, on the
+     contact section.
+
+     Repaired here rather than in Shopify Admin because this repo does
+     not write to Admin. An href-less anchor whose text is an email
+     address becomes a real mailto:; one wrapping anything else loses
+     the tag and keeps its text, because an anchor that goes nowhere
+     is not a link. Whoever owns the Shopify policies should still fix
+     it at the source. */
+  let mailed = 0, unwrapped = 0;
+  body = body.replace(/<a(?![^>]*\shref=)[^>]*>([\s\S]*?)<\/a>/gi, (whole, inner) => {
+    const text = inner.replace(/<[^>]*>/g, '').trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+      mailed++;
+      return `<a href="mailto:${text}">${text}</a>`;
+    }
+    unwrapped++;
+    return inner;
+  });
+  if (mailed || unwrapped) {
+    console.log(`  ${slug}: ${mailed} href-less email anchor(s) linked, ${unwrapped} unwrapped`);
+  }
+
+  /* The Meta Pixel disclosure, from main. Appended rather than
+     expected in the Shopify text, because the Shopify-hosted policy
+     does not mention the pixel and this repo does not write to Admin.
+     Guarded on its own sentence so repeated builds do not stack it. */
   if (slug === 'privacy-policy' && !body.includes('We use the Meta Pixel to measure visits and cart activity')) {
     body += '\n<p>We use the Meta Pixel to measure visits and cart activity and to show relevant ads. You can opt out using the <a href="/privacy-policy.html#your-privacy-choices">Your Privacy Choices</a> link in the footer, and we honor Global Privacy Control browser signals.</p>';
   }
@@ -1036,8 +1080,8 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   Free shipping over $50 is a real Shopify rate (see Shopify shipping
-   profile, verified 2026-11-09),
+   Free shipping over $50 is a real Shopify rate (read back from the
+   live Shopify delivery profile 2026-11-09; see CLAUDE.md,
    Discounts), so it leads. The reference's own "$100" line is not
    carried across. */
 /* Three facts, each read back from Shopify: the automatic 2-piece
@@ -1051,10 +1095,32 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    here said "one offer per order", which is wrong in the second half:
    it reads as though taking the 15% costs you the free shipping. Name
    the offer that actually conflicts instead. */
+/* TWO MESSAGES, NOT THREE.
+
+   The bar used to rotate three offers. Two of them do not combine,
+   so the third had to spend half its words saying so:
+
+     Any 2 pieces 15% off, applied at checkout
+     Free shipping on US orders over $50
+     10% off your first order. Code ASIORTEN. Not with the 2-piece offer
+
+   Three discount claims cycling above the header is not three times
+   the incentive. A shopper reads them as one blur and, at worst, adds
+   them up -- which is the same 25%-in-their-head problem the product
+   page is careful about, happening at the top of every page instead.
+
+   NO DISCOUNT CHANGED AND NONE WAS INVENTED. All three offers are
+   still live in Shopify and all three are still stated on the site.
+   What came out of the rotation is the restatement of ASIORTEN, which
+   now sits under Add to bag on every product page, with its
+   non-combination clause, at the moment the shopper is deciding --
+   which is a better place for a code than a banner they scroll past.
+
+   The two that are left need no caveat: they apply to everyone, they
+   stack with each other, and neither one contradicts the other. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
   'Free shipping on US orders over $50',
-  '10% off your first order. Code ASIORTEN. Not with the 2-piece offer',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
@@ -1097,6 +1163,11 @@ const LAUNCH = (() => {
    Membership is a handle list in the config, resolved against the live
    catalogue at build time. */
 const CATEGORIES = LAUNCH.CATEGORIES || [];
+
+/* Model sizes per handle, from launch-config.js. Empty object when
+   unset, so a handle with no real data renders no line -- never a
+   guessed one. */
+const MODEL_FIT = LAUNCH.MODEL_FIT || {};
 
 /* Shopify's own collections, at their real handles. Membership comes
    from Shopify, not from a list here. */
@@ -1337,6 +1408,13 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
           <li><a href="/about.html">About</a></li>
           <li><a href="/community.html">Lookbook</a></li>
           <li><a href="/archive.html">Archive</a></li>
+          <!-- The half of DROP ACCESS that cannot annoy anybody: it
+               opens only because somebody asked. It is an <a> to the
+               real campaign page, so it still works with no
+               JavaScript and is a real destination for a crawler;
+               drop-access.js intercepts the click and opens the
+               overlay instead when it is running. -->
+          <li><a href="/drop.html" data-drop-open="footer">Drop access</a></li>
         </ul>
         <div class="social">
           <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -1423,6 +1501,14 @@ const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" 
        warming a connection to a pixel that is switched off. -->
   <script defer src="/assets/ads-config.js"></script>
   <script defer src="/assets/ads.js"></script>
+  <!-- DROP ACCESS. Config first, because drop-access.js reads it
+       synchronously; both deferred so neither blocks first paint, and
+       both no-op entirely when ASIOR_DROP.ENABLED is false. The
+       automatic trigger is a separate switch (AUTO) and ships off --
+       see the long note at the top of drop-config.js about the two
+       Klaviyo popups that are already live on every page. -->
+  <script defer src="/assets/drop-config.js"></script>
+  <script defer src="/assets/drop-access.js"></script>
 `;
 
 /* Every page gets the shared head, including the two that carry no
@@ -1438,6 +1524,16 @@ const HEAD_PAGES = [
   'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
   'links.html',
   'collection.html',
+  /* The campaign page needs the shared head like any other: it is a
+     real indexable page with the same analytics and the same DROP
+     ACCESS scripts. */
+  'drop.html',
+  /* waitlist.html carries HEAD:START/END markers and a copy of this
+     block inside them, but was missing from this list -- so its head
+     was synced once and then drifted, and would never have picked up
+     another shared tag again. Found 2026-11-13 while adding the drop
+     scripts, which it would otherwise have been the one page without. */
+  'waitlist.html',
 ];
 
 const SHARED_MARKUP_PAGES = [
@@ -1455,6 +1551,7 @@ const SHARED_MARKUP_PAGES = [
   ['fall-collection.html', HEADER_FULL],
   ['text.html', HEADER_FULL],
   ['waitlist.html', HEADER_FULL],
+  ['drop.html', HEADER_FULL],
   ['archive.html', HEADER_FULL],
   ['about.html', HEADER_FULL],
   ['collection.html', HEADER_FULL],

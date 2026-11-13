@@ -223,7 +223,7 @@
       { cartId: cart.id, lines: [{ merchandiseId: variantId, quantity: qty }] }
     );
     var updated = data.cartLinesAdd.cart;
-    renderCartCount(updated.totalQuantity);
+    renderCartCount(updated.totalQuantity, true);
     return updated;
   }
 
@@ -244,7 +244,7 @@
       { cartId: cart.id, lines: [{ id: lineId, quantity: quantity }] }
     );
     var updated = data.cartLinesUpdate.cart;
-    renderCartCount(updated.totalQuantity);
+    renderCartCount(updated.totalQuantity, true);
     trackCart('Cart Quantity Changed', { quantity: quantity, cart_quantity: updated.totalQuantity });
     return updated;
   }
@@ -362,11 +362,29 @@
      same number the header shows and costs no extra request. */
   function cartQuantity() { return lastCartQty; }
 
-  function renderCartCount(n) {
+  /* `announce` is passed only by the cart mutations -- add, quantity
+     change, remove. It is what makes the badge bump.
+
+     It is an explicit argument rather than "did the number go up?"
+     because the number also goes up on every page load for a
+     returning shopper: renderCartCount(0) paints the badge, then
+     refreshCartCount() fills in the real figure. Inferring from the
+     change would have bumped the bag on arrival, every time, which is
+     an animation nobody asked for and a confirmation of nothing. */
+  function renderCartCount(n, announce) {
     var q = n > 0 ? n : 0;
+    var grew = announce && q > lastCartQty;
     lastCartQty = q;
     document.querySelectorAll('.cart-count').forEach(function (el) {
       el.textContent = String(q);
+      if (grew) {
+        /* Removed and re-added so a second add re-runs it; without
+           the reflow between, the class change is coalesced and the
+           animation never restarts. */
+        el.classList.remove('bumped');
+        void el.offsetWidth;
+        el.classList.add('bumped');
+      }
       // The icon alone says nothing, so the count rides on the link's
       // accessible name as well as in the bubble.
       var link = el.closest('.cart-link');
@@ -2138,6 +2156,47 @@
     return 'Add ' + more + ' more piece' + (more === 1 ? '' : 's') + ' for ' + o.PERCENT + '% off';
   }
 
+  /* ASIORTEN, named under Add to bag.
+
+     Until 2026-11-09 the product page deliberately did NOT name the
+     code while the automatic 2-piece discount was live: two offers
+     stated side by side with nothing said add up to 25% in a
+     shopper's head, so the code stepped aside and only the banner
+     carried it. The founder reversed that -- a shopper who came from
+     an ad never sees a rotating banner line, and the code was
+     effectively invisible at the moment of the decision.
+
+     What makes it safe to name both is the second sentence, and it is
+     not optional: it only appears while MULTI_BUY is live, and it says
+     plainly that the two do not combine. That is read back from
+     Shopify (combinesWith.orderDiscounts false), so it is a fact, not
+     a hedge. Free shipping DOES stack with both, which is why this
+     does not say "one offer per order".
+
+     One helper, like multiBuyOfferLine, so the sentence cannot drift
+     between the pages that show it. Returns HTML, not text: the code
+     itself is marked up so it reads as something to copy. */
+  function codeOfferHTML() {
+    var line = 'First order? Use code <strong>ASIORTEN</strong> for 10% off.';
+    return multiBuy() ? line + ' Not with the 2-piece offer.' : line;
+  }
+
+  /* The sizes the models are actually wearing, for one handle.
+
+     Shopify first: custom.model_info is the real home and the product
+     page passes it in. MODEL_FIT in launch-config.js is the stand-in
+     until those metafields are filled. Returns '' for a handle with
+     neither, and the line is then not rendered -- never a guess. */
+  function modelFitLine(handle, metafieldValue) {
+    var fromShopify = String(metafieldValue == null ? '' : metafieldValue).trim();
+    if (fromShopify) return fromShopify;
+    var cfg = window.ASIOR_LAUNCH || {};
+    var map = cfg.MODEL_FIT;
+    if (!map || !handle) return '';
+    var v = map[handle];
+    return typeof v === 'string' ? v.trim() : '';
+  }
+
   function multiBuyBadge() {
     var o = multiBuy();
     return o ? 'Any ' + o.MIN_QTY + ' pieces ' + o.PERCENT + '% off, applied at checkout' : '';
@@ -2248,6 +2307,8 @@
     displayName: displayName,
     fillGridRow: fillGridRow,
     multiBuyOfferLine: multiBuyOfferLine,
+    codeOfferHTML: codeOfferHTML,
+    modelFitLine: modelFitLine,
     cartQuantity: cartQuantity,
     freeShippingProgress: freeShippingProgress,
     srcsetFor: srcsetFor,
@@ -3138,6 +3199,106 @@
     document.fonts.ready.then(syncHeaderHeight).catch(function () {});
   }
 
+  /* ===================================================================
+     THE THINGS YOU ONLY FIND IF YOU LOOK
+
+     Two of them, and both are quiet. The rules they obey:
+
+       - Nothing fires on load. CLAUDE.md bans load-time popups and an
+         easter egg that greets you is just a popup with a better name.
+       - Nothing claims anything. No code, no discount, no stock, no
+         countdown. ASIORTEN is the only code the site may name and it
+         is already public, so there is nothing to "unlock" -- a
+         hidden offer would be a fake one.
+       - Nothing touches the purchase path. No cart, no checkout, no
+         variant.
+       - Nothing steals focus or blocks a tap.
+
+     What is left is worth finding on its own: the brand being a bit
+     more itself for the person who went looking.
+     =================================================================== */
+
+  /* The shared note. Built on demand, removed when it has been read,
+     so there is no element sitting in the DOM on a page nobody played
+     with. */
+  function eggNote(html, ms) {
+    var old = document.querySelector('.egg-note');
+    if (old) old.remove();
+    var el = document.createElement('div');
+    el.className = 'egg-note';
+    /* Polite, not assertive: this interrupts nothing a screen-reader
+       user is doing, which is the whole point of an easter egg. */
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML = html;
+    document.body.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { if (el.parentNode) el.remove(); }, 400);
+    }, ms || 6000);
+    return el;
+  }
+
+  /* Type the brand name anywhere on the site.
+
+     Keystrokes are only collected when focus is on the page body --
+     never while someone is in an input, a textarea or anything
+     contenteditable, which would make this fire in the middle of an
+     email address in the signup field.
+
+     The buffer is capped at the length of the word and the match is
+     on its tail, so "aasior" counts and nothing grows without bound.
+     It fires once per page view: a second note is not a reward. */
+  function wireTypedEgg() {
+    var WORD = 'asior';
+    var buf = '';
+    var found = false;
+    document.addEventListener('keydown', function (e) {
+      if (found) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (!e.key || e.key.length !== 1) return;
+      buf = (buf + e.key.toLowerCase()).slice(-WORD.length);
+      if (buf !== WORD) return;
+      found = true;
+      eggNote(
+        'you typed it. '
+        + '<a href="/community.html">see the whole thing on real people</a>',
+        7000
+      );
+    });
+  }
+
+  /* A note in the console.
+
+     The cheapest one and the oldest: anybody who opens devtools on a
+     small label's site is curious about the label. No claims, no
+     code, one real address they can actually write to.
+
+     The address is read out of the footer rather than written here.
+     There is one support address site-wide and scripts/build.js owns
+     it; a second copy in this file is a second thing to forget. No
+     footer link, no address line. */
+  function consoleNote() {
+    if (!window.console || !console.log) return;
+    try {
+      var link = document.querySelector('.site-footer a[href^="mailto:"], .fsupport a[href^="mailto:"]');
+      var email = link ? link.getAttribute('href').replace(/^mailto:/, '') : '';
+      console.log(
+        '%cAsior%c\na small label, run by two people.' + (email ? '\nif you got this far, say hello: ' + email : ''),
+        'font-family:Georgia,serif;font-size:28px;font-style:italic;',
+        'font-family:monospace;font-size:12px;line-height:1.6;'
+      );
+    } catch (err) { /* a console message is never worth an error */ }
+  }
+
+  function wireDelight() {
+    wireTypedEgg();
+    consoleNote();
+  }
+
   // Footer block on every page, and the whole of /text. The PDP
   // block renders after its catalog fetch, so product.html calls
   // wireSmsSignup() again once it has built the buy box.
@@ -3152,6 +3313,7 @@
   wireDropCountdown();
   wireHeroCta();
   wireReveal();
+  wireDelight();
   // Renders "(0)" immediately so the header never shows a bare "Cart"
   // while the real count is still in flight.
   renderCartCount(0);

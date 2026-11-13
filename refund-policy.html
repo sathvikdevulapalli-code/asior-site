@@ -14,12 +14,12 @@
 <meta property="og:title" content="Refunds and Returns | Asior">
 <meta property="og:description" content="How Asior handles fit, order and damage issues. Replacements first, reviewed case by case.">
 <meta property="og:url" content="https://asiorclothing.com/refund-policy.html">
-<meta property="og:image" content="https://asiorclothing.com/images/asior-hero-wide.00503c47.jpg">
+<meta property="og:image" content="https://asiorclothing.com/images/asior-hero-wide.jpg">
 <meta property="og:image:alt" content="Asior: small runs, run again rarely">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Refunds and Returns | Asior">
 <meta name="twitter:description" content="How Asior handles fit, order and damage issues. Replacements first, reviewed case by case.">
-<meta name="twitter:image" content="https://asiorclothing.com/images/asior-hero-wide.00503c47.jpg">
+<meta name="twitter:image" content="https://asiorclothing.com/images/asior-hero-wide.jpg">
 <meta name="theme-color" content="#0B0B0C">
 <link rel="canonical" href="https://asiorclothing.com/refund-policy.html">
 <link rel="stylesheet" href="/assets/site.css">
@@ -37,6 +37,14 @@
        warming a connection to a pixel that is switched off. -->
   <script defer src="/assets/ads-config.js"></script>
   <script defer src="/assets/ads.js"></script>
+  <!-- DROP ACCESS. Config first, because drop-access.js reads it
+       synchronously; both deferred so neither blocks first paint, and
+       both no-op entirely when ASIOR_DROP.ENABLED is false. The
+       automatic trigger is a separate switch (AUTO) and ships off --
+       see the long note at the top of drop-config.js about the two
+       Klaviyo popups that are already live on every page. -->
+  <script defer src="/assets/drop-config.js"></script>
+  <script defer src="/assets/drop-access.js"></script>
   <!-- HEAD:END -->
 <style>
   .policy-doc { max-width: 760px; margin: 0 auto; padding: 24px 24px 14vh; }
@@ -62,7 +70,6 @@
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
       <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $50</p>
-      <p class="announce-msg" aria-hidden="true">10% off your first order. Code ASIORTEN. Not with the 2-piece offer</p>
     </div>
   </div>
   <header class="site-header site-header--minimal">
@@ -105,6 +112,13 @@
           <li><a href="/about.html">About</a></li>
           <li><a href="/community.html">Lookbook</a></li>
           <li><a href="/archive.html">Archive</a></li>
+          <!-- The half of DROP ACCESS that cannot annoy anybody: it
+               opens only because somebody asked. It is an <a> to the
+               real campaign page, so it still works with no
+               JavaScript and is a real destination for a crawler;
+               drop-access.js intercepts the click and opens the
+               overlay instead when it is running. -->
+          <li><a href="/drop.html" data-drop-open="footer">Drop access</a></li>
         </ul>
         <div class="social">
           <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
