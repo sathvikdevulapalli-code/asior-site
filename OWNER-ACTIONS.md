@@ -411,7 +411,7 @@ external host return no response. So:
 Carried over, still open:
 
 - **Shipping.** `shipping-policy.html` now says the US charge is
-  calculated at checkout and that shipping is free over $75. The Shopify
+  calculated at checkout and that shipping is free over $50. The Shopify
   Admin shipping policy, which is what the checkout footer shows, still
   needs the same wording.
 - **Returns.** `/refund-policy.html` says fit and order issues are

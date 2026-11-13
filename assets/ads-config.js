@@ -38,15 +38,12 @@
    side — not both, and not neither.
 
    ---------------------------------------------------------------
-   CONSENT
+   OPT-OUTS
 
-   There is no consent banner on this site. In the US that is normally
-   workable; for visitors in the UK/EU it is not, and this store ships
-   internationally. REQUIRE_CONSENT exists so the pixels can be gated
-   behind a real consent signal once one exists. Left true, ads.js
-   looks for window.ASIOR_CONSENT === true and sends nothing without
-   it — which means enabling a pixel id alone is not enough to start
-   tracking, on purpose.
+   Meta loads by default. ads.js checks Global Privacy Control and the
+   visitor's asior_ads_optout choice before loading the SDK or sending
+   any event. The footer privacy link records an opt-out and reloads the
+   page so the SDK is absent on the next document load.
 
    ---------------------------------------------------------------
    TO TURN A PIXEL ON
@@ -61,20 +58,18 @@
 window.ASIOR_ADS = {
   // Master switch. False = no pixel script is loaded and no event is
   // sent, whatever else is filled in below.
-  ENABLED: false,
+  ENABLED: true,
 
   // Meta (Facebook/Instagram) pixel id, digits only. Null = off.
-  META_PIXEL_ID: null,
+  META_PIXEL_ID: '1736325884098392',
 
   // TikTok pixel id. Null = off.
   TIKTOK_PIXEL_ID: null,
 
   // Who confirmed the id is real, that the deduplication question above
-  // was answered, and when. ads.js refuses to run without this, the
-  // same way promo-config refuses to render an unverified promotion.
-  VERIFIED: null,   // e.g. 'Sathvik, 2026-10-12, Meta dedupe checked'
+  // was answered, and when. Informational; no customer identifiers belong here.
+  VERIFIED: '2026-11-07: ASIOR dataset verified in Events Manager; checkout owns Purchase, custom storefront owns product/cart events',
 
-  // Gate every send behind window.ASIOR_CONSENT === true.
-  // Leave true until the consent question is actually decided.
-  REQUIRE_CONSENT: true,
+  // Load by default, subject to GPC and the visitor's opt-out choice.
+  REQUIRE_CONSENT: false,
 };

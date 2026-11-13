@@ -2,7 +2,7 @@
    Asior — advertising pixels, upper funnel only.
 
    Reads assets/ads-config.js and does nothing at all unless that file
-   is explicitly enabled, verified, and (by default) consented to. See
+   is enabled, the Meta ID exists, and the visitor has not opted out. See
    the long comment there for why this exists and for the
    deduplication rule: this file sends PageView, ViewContent,
    AddToCart and InitiateCheckout, and never Purchase.
@@ -17,18 +17,36 @@
   'use strict';
 
   var cfg = window.ASIOR_ADS || {};
+  var started = false;
+  var lastView = null;
 
-  /* Four independent gates, all of which must pass. Any one of them
-     failing means this file is inert — which is its default state. */
-  function allowed() {
-    if (!cfg.ENABLED) return false;
-    if (!cfg.VERIFIED) return false;              // nobody has checked it
-    if (!cfg.META_PIXEL_ID && !cfg.TIKTOK_PIXEL_ID) return false;
-    if (cfg.REQUIRE_CONSENT && window.ASIOR_CONSENT !== true) return false;
+  function asiorAdsAllowed() {
+    var current = window.ASIOR_ADS || {};
+    if (!current.ENABLED || !current.META_PIXEL_ID) return false;
+    // GPC communicates the visitor's opt-out preference.
+    if (window.navigator && window.navigator.globalPrivacyControl) return false;
+    try {
+      if (window.localStorage.getItem('asior_ads_optout') === '1') return false;
+    } catch (err) { /* storage may be unavailable; do not break the page */ }
     return true;
   }
 
-  if (!allowed()) return;
+  // Preserve an earlier explicit rejection when migrating from the old
+  // accept/reject banner to the persistent opt-out control.
+  try {
+    if (window.localStorage.getItem('asior_ads_optout') !== '1') {
+      var legacyChoice = JSON.parse(window.localStorage.getItem('asior_ad_consent_v1'));
+      if (legacyChoice && legacyChoice.allow === false) {
+        window.localStorage.setItem('asior_ads_optout', '1');
+      }
+    }
+  } catch (err) { /* storage may be unavailable */ }
+
+  function allowed() { return asiorAdsAllowed(); }
+
+  function start() {
+    if (started || !allowed()) return;
+    started = true;
 
   // ---- Meta ---------------------------------------------------------
   if (cfg.META_PIXEL_ID) {
@@ -47,6 +65,7 @@
         s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
       })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
       window.fbq('init', String(cfg.META_PIXEL_ID));
+      window.fbq('set', 'autoConfig', false, String(cfg.META_PIXEL_ID));
       window.fbq('track', 'PageView');
     } catch (err) { /* never block the page */ }
   }
@@ -76,10 +95,13 @@
       })(window, document, 'ttq');
     } catch (err) { /* never block the page */ }
   }
+  }
 
   /* One send, fanned out to whichever pixels are configured. Event
      names differ between the two platforms, so both are passed in. */
   function send(metaEvent, tiktokEvent, props) {
+    if (!allowed()) return;
+    start();
     try { if (window.fbq && cfg.META_PIXEL_ID) window.fbq('track', metaEvent, props || {}); } catch (err) {}
     try { if (window.ttq && cfg.TIKTOK_PIXEL_ID) window.ttq.track(tiktokEvent, props || {}); } catch (err) {}
   }
@@ -92,6 +114,7 @@
   window.AsiorAds = {
     viewContent: function (item) {
       if (!item) return;
+      lastView = item;
       send('ViewContent', 'ViewContent', {
         content_ids: [item.handle], content_type: 'product',
         content_name: item.name, value: item.price, currency: item.currency || 'USD',
@@ -112,4 +135,58 @@
       });
     },
   };
+
+  // A small informational notice does not gate tracking. An opt-out is
+  // persisted locally, revokes the current SDK session, and reloads.
+  var panel;
+  function optOut() {
+    try {
+      window.localStorage.setItem('asior_ads_optout', '1');
+    } catch (err) { /* still stop this page's sends if storage is blocked */ }
+    try { if (window.fbq) window.fbq('consent', 'revoke'); } catch (err) {}
+    window.location.reload();
+  }
+  function consentUI() {
+    var footer = document.querySelector('footer.site-footer') || document.querySelector('footer');
+    if (footer) {
+      var privacyChoices = footer.querySelector('[data-asior-privacy-choices]');
+      if (!privacyChoices) {
+        privacyChoices = document.createElement('a');
+        privacyChoices.href = '/privacy-policy.html#your-privacy-choices';
+        privacyChoices.className = 'ad-preferences';
+        privacyChoices.textContent = 'Your Privacy Choices';
+        privacyChoices.setAttribute('data-asior-privacy-choices', '');
+        footer.appendChild(privacyChoices);
+      }
+      privacyChoices.id = 'your-privacy-choices';
+      privacyChoices.addEventListener('click', function (event) {
+        event.preventDefault();
+        optOut();
+      });
+    }
+
+    try { if (window.sessionStorage.getItem('asior_ads_notice_dismissed') === '1') return; }
+    catch (err) { /* show the notice if session storage is blocked */ }
+    panel = document.createElement('section');
+    panel.className = 'ad-consent';
+    panel.setAttribute('aria-label', 'Cookie notice');
+    panel.innerHTML = '<p class="ad-consent-copy">We use cookies for ads and analytics. You can '
+      + '<a href="/privacy-policy.html">opt out</a> anytime.</p><div class="ad-consent-actions"></div>';
+    var actions = panel.querySelector('.ad-consent-actions');
+    function button(label, action) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+      b.addEventListener('click', action); actions.appendChild(b);
+    }
+    button('OK', function () {
+      panel.hidden = true;
+      try { window.sessionStorage.setItem('asior_ads_notice_dismissed', '1'); } catch (err) {}
+    });
+    button('Opt out', optOut);
+    document.body.appendChild(panel);
+  }
+
+  // The initial PageView starts immediately unless GPC or an opt-out is present.
+  if (asiorAdsAllowed()) start();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', consentUI);
+  else consentUI();
 })();

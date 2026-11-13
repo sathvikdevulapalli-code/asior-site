@@ -492,6 +492,21 @@ function prerenderedPdp(p) {
      script runs and before any interaction, which is the requirement.
      The hydrated gallery still replaces it a moment later. */
   const f = leadImage(p);
+  /* What the models are wearing, for the pre-rendered first paint.
+
+     Read from MODEL_FIT in assets/launch-config.js, which is the one
+     place this data lives. It arrived on main as a hardcoded object
+     right here while this branch added the config and the client-side
+     renderer -- two sources for the same sentence, which is the
+     duplicate-renderer hazard CLAUDE.md warns about and which would
+     have drifted the first time one was edited. The hydrated panel
+     replaces this markup a moment later and reads the same map, so
+     both now say the same thing by construction.
+
+     Shopify's custom.model_info still wins at runtime; this prerender
+     cannot see metafields, so it shows the config value and the
+     hydrated render corrects it if Shopify has one. */
+  const modelInfo = (MODEL_FIT && MODEL_FIT[p.handle]) || '';
   const imgHtml = f
     ? `<div class="pd-prerender-media"><img src="${esc(f.w1200 || f.url)}"`
       + (srcsetFor(f) ? ` srcset="${srcsetFor(f)}"` : '')
@@ -505,6 +520,7 @@ function prerenderedPdp(p) {
   return `<div class="pd-prerender">
       <h1 class="pd-name">${esc(name)}</h1>
       ${priceHtml}
+      ${modelInfo ? `<p class="pd-fit">${esc(modelInfo)}</p>` : ''}
       ${imgHtml}
       ${sizeHtml}
       ${descHtml}
@@ -982,6 +998,14 @@ async function syncPolicy(slug, file) {
     console.log(`  ${slug}: ${mailed} href-less email anchor(s) linked, ${unwrapped} unwrapped`);
   }
 
+  /* The Meta Pixel disclosure, from main. Appended rather than
+     expected in the Shopify text, because the Shopify-hosted policy
+     does not mention the pixel and this repo does not write to Admin.
+     Guarded on its own sentence so repeated builds do not stack it. */
+  if (slug === 'privacy-policy' && !body.includes('We use the Meta Pixel to measure visits and cart activity')) {
+    body += '\n<p>We use the Meta Pixel to measure visits and cart activity and to show relevant ads. You can opt out using the <a href="/privacy-policy.html#your-privacy-choices">Your Privacy Choices</a> link in the footer, and we honor Global Privacy Control browser signals.</p>';
+  }
+
   const target = path.join(ROOT, file);
   const html = fs.readFileSync(target, 'utf8');
   const start = html.indexOf('<!-- POLICY:START -->');
@@ -1056,7 +1080,8 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
      2. the verified dispatch time from the shipping config,
      3. the brand line.
 
-   Free shipping over $50 is a real Shopify rate (see CLAUDE.md,
+   Free shipping over $50 is a real Shopify rate (read back from the
+   live Shopify delivery profile 2026-11-09; see CLAUDE.md,
    Discounts), so it leads. The reference's own "$100" line is not
    carried across. */
 /* Three facts, each read back from Shopify: the automatic 2-piece
@@ -1138,6 +1163,11 @@ const LAUNCH = (() => {
    Membership is a handle list in the config, resolved against the live
    catalogue at build time. */
 const CATEGORIES = LAUNCH.CATEGORIES || [];
+
+/* Model sizes per handle, from launch-config.js. Empty object when
+   unset, so a handle with no real data renders no line -- never a
+   guessed one. */
+const MODEL_FIT = LAUNCH.MODEL_FIT || {};
 
 /* Shopify's own collections, at their real handles. Membership comes
    from Shopify, not from a list here. */
@@ -1412,6 +1442,7 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
         <ul class="flinks">
           <li><a href="/terms-of-service.html">Terms of Service</a></li>
           <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/privacy-policy.html#your-privacy-choices" data-asior-privacy-choices>Your Privacy Choices</a></li>
           <li><a href="/shipping-policy.html">Shipping Policy</a></li>
           <li><a href="/refund-policy.html">Refunds and Returns</a></li>
           <li><a href="/contact.html">Contact Information</a></li>
@@ -1562,7 +1593,7 @@ function fallHandles() {
 }
 
 /* The displayed name for a product: Shopify's title, unless
-   DISPLAY_NAMES in launch-config.js corrects its case. Mirrors
+   DISPLAY_NAMES in launch-config.js corrects its customer-facing name. Mirrors
    displayName() in assets/site.js -- the pre-rendered card and the
    live-rendered one must not disagree about what a product is called.
    See the comment on DISPLAY_NAMES for why this exists and when to

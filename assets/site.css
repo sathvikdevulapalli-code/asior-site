@@ -3051,7 +3051,21 @@ html {
 .drop-root {
   position: fixed;
   inset: 0;
-  z-index: 120;          /* over the header (50) and the cart drawer */
+  /* Above the cookie notice, which assets/ads.js appends at 11000.
+
+     A modal dialog has to be the topmost thing on the page or it is
+     not modal: at 120 the notice floated over the overlay and, being
+     a real fixed panel with buttons, intercepted clicks through it --
+     Playwright caught it blocking the footer DROP ACCESS link. The
+     notice is still reachable; it is simply under the scrim while a
+     dialog is open, which is what a scrim is for.
+
+     The ladder on this site, for whoever adds the next layer:
+       50     site header (sticky)
+       60     announcement bar
+       11000  cookie notice (assets/ads.js)
+       12000  this overlay */
+  z-index: 12000;
 }
 
 .drop-root[hidden] { display: none; }
@@ -3477,3 +3491,13 @@ body.drop-open {
   .drop-btn--primary:hover { background: var(--surface-hi); border-color: var(--ink); color: var(--ink); }
   .drop-close:hover { background: var(--surface-hi); }
 }
+/* Optional advertising choice; both actions have the same visual weight. */
+.ad-consent { position:fixed; z-index:11000; bottom:16px; left:16px; width:min(360px,calc(100vw - 32px)); padding:14px; background:var(--surface,#161618); color:var(--ink,#E8E8EA); border:1px solid var(--field-line,#6C6C73); box-sizing:border-box; }
+.ad-consent[hidden] { display:none; }
+.ad-consent p { margin:0 0 12px; }
+.ad-consent-copy { font-size:13px; line-height:1.6; }
+.ad-consent a { color:inherit; text-decoration:underline; }
+.ad-consent-actions { display:flex; gap:12px; }
+.ad-consent-actions button { flex:1; padding:12px 10px; background:transparent; border:1px solid currentColor; border-radius:0; color:inherit; font:inherit; cursor:pointer; }
+.ad-consent-actions button:focus-visible,.ad-preferences:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+.ad-preferences { display:block; margin:20px auto; padding:8px; background:transparent; border:0; color:var(--ink,#E8E8EA); font:inherit; text-decoration:underline; cursor:pointer; }
