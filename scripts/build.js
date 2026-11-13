@@ -59,7 +59,7 @@ const STATIC_PAGES = [
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
-  '/waitlist.html', '/links',
+  '/waitlist.html', '/links', '/drop.html',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -1070,10 +1070,32 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    here said "one offer per order", which is wrong in the second half:
    it reads as though taking the 15% costs you the free shipping. Name
    the offer that actually conflicts instead. */
+/* TWO MESSAGES, NOT THREE.
+
+   The bar used to rotate three offers. Two of them do not combine,
+   so the third had to spend half its words saying so:
+
+     Any 2 pieces 15% off, applied at checkout
+     Free shipping on US orders over $50
+     10% off your first order. Code ASIORTEN. Not with the 2-piece offer
+
+   Three discount claims cycling above the header is not three times
+   the incentive. A shopper reads them as one blur and, at worst, adds
+   them up -- which is the same 25%-in-their-head problem the product
+   page is careful about, happening at the top of every page instead.
+
+   NO DISCOUNT CHANGED AND NONE WAS INVENTED. All three offers are
+   still live in Shopify and all three are still stated on the site.
+   What came out of the rotation is the restatement of ASIORTEN, which
+   now sits under Add to bag on every product page, with its
+   non-combination clause, at the moment the shopper is deciding --
+   which is a better place for a code than a banner they scroll past.
+
+   The two that are left need no caveat: they apply to everyone, they
+   stack with each other, and neither one contradicts the other. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
   'Free shipping on US orders over $50',
-  '10% off your first order. Code ASIORTEN. Not with the 2-piece offer',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
@@ -1356,6 +1378,13 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
           <li><a href="/about.html">About</a></li>
           <li><a href="/community.html">Lookbook</a></li>
           <li><a href="/archive.html">Archive</a></li>
+          <!-- The half of DROP ACCESS that cannot annoy anybody: it
+               opens only because somebody asked. It is an <a> to the
+               real campaign page, so it still works with no
+               JavaScript and is a real destination for a crawler;
+               drop-access.js intercepts the click and opens the
+               overlay instead when it is running. -->
+          <li><a href="/drop.html" data-drop-open="footer">Drop access</a></li>
         </ul>
         <div class="social">
           <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -1441,6 +1470,14 @@ const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" 
        warming a connection to a pixel that is switched off. -->
   <script defer src="/assets/ads-config.js"></script>
   <script defer src="/assets/ads.js"></script>
+  <!-- DROP ACCESS. Config first, because drop-access.js reads it
+       synchronously; both deferred so neither blocks first paint, and
+       both no-op entirely when ASIOR_DROP.ENABLED is false. The
+       automatic trigger is a separate switch (AUTO) and ships off --
+       see the long note at the top of drop-config.js about the two
+       Klaviyo popups that are already live on every page. -->
+  <script defer src="/assets/drop-config.js"></script>
+  <script defer src="/assets/drop-access.js"></script>
 `;
 
 /* Every page gets the shared head, including the two that carry no
@@ -1456,6 +1493,16 @@ const HEAD_PAGES = [
   'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
   'links.html',
   'collection.html',
+  /* The campaign page needs the shared head like any other: it is a
+     real indexable page with the same analytics and the same DROP
+     ACCESS scripts. */
+  'drop.html',
+  /* waitlist.html carries HEAD:START/END markers and a copy of this
+     block inside them, but was missing from this list -- so its head
+     was synced once and then drifted, and would never have picked up
+     another shared tag again. Found 2026-11-13 while adding the drop
+     scripts, which it would otherwise have been the one page without. */
+  'waitlist.html',
 ];
 
 const SHARED_MARKUP_PAGES = [
@@ -1473,6 +1520,7 @@ const SHARED_MARKUP_PAGES = [
   ['fall-collection.html', HEADER_FULL],
   ['text.html', HEADER_FULL],
   ['waitlist.html', HEADER_FULL],
+  ['drop.html', HEADER_FULL],
   ['archive.html', HEADER_FULL],
   ['about.html', HEADER_FULL],
   ['collection.html', HEADER_FULL],

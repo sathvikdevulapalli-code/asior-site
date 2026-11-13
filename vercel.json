@@ -14,6 +14,10 @@
     {
       "source": "/links",
       "destination": "/links.html"
+    },
+    {
+      "source": "/drop",
+      "destination": "/drop.html"
     }
   ],
   "redirects": [

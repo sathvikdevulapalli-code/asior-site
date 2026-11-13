@@ -318,6 +318,94 @@ to decide before that:
    will flip the copy — either way the copy changes the moment the rate
    is real.
 
+## 4e. DROP ACCESS needs three things from you
+
+The drop experience is built, tested and shipped. Three of its
+switches are off because turning them on would require something that
+does not exist yet. None of these is a code change — each is one
+field once the thing behind it is real.
+
+### 1. Pause the two live Klaviyo popups, then set `AUTO: true`
+
+Checked against the Klaviyo API on 2026-11-13:
+
+| Form | Id | Status |
+|---|---|---|
+| Email & SMS Popup | `UxDQrj` | **live**, updated 2026-11-07 |
+| SMS | `Vtp6MG` | **live**, updated 2026-11-07 |
+
+`klaviyo.js` loads on all 22 pages, so both of these already appear to
+visitors today. The drop overlay's automatic trigger is therefore
+**off** — opening it on top of two existing popups would be the third
+ask in a row on a first visit, and three stacked interruptions is a
+plausible part of why engagement is low right now.
+
+**Worth knowing before you decide:** you are currently running two
+popups and a site-wide banner asking for the same email address. That
+is likely hurting more than the overlay would help.
+
+To switch the automatic trigger on: pause or retarget `UxDQrj` and
+`Vtp6MG` in Klaviyo → Signup Forms, then set `AUTO: true` in
+`assets/drop-config.js`. The footer DROP ACCESS link works today
+either way.
+
+### 2. A GA4 Measurement ID
+
+There is no GA4 on this site. No `gtag`, no `dataLayer`, no
+`G-XXXXXXXXXX`, no Tag Manager — searched the whole repo on
+2026-11-13. The brief asked for GA4 conversion events and the event
+layer is built and firing; with no measurement id those events
+currently reach Klaviyo and nothing else.
+
+Send a `G-XXXXXXXXXX` and it goes in `ANALYTICS.GA4_MEASUREMENT_ID` in
+`assets/drop-config.js`. Nothing else changes — gtag loads itself and
+receives the same events, with `send_page_view` off so this
+storefront's own pageview is not double-counted.
+
+Events already emitted, each only on a real success:
+`Drop Access Shown`, `Drop Drawer Opened`, `Drop Access Dismissed`,
+`Drop Product Clicked`, `Drop Waitlist Opened`, `Drop Waitlist Signup`,
+`Drop Add To Cart`, `Drop Access CTA`.
+
+### 3. A back-in-stock flow, if you want restock alerts
+
+Still none. All 27 flows listed 2026-11-13; the triggers in use are
+Metric, Added to List, Unconfigured and Price Drop. No Back in Stock.
+
+Klaviyo will happily accept a back-in-stock subscription over the API
+and store it forever without sending anything — which is exactly what
+the old capture did before it was removed. So sold-out pieces in the
+drawer offer **first access to the next drop** instead, which the live
+Welcome flow answers.
+
+Build a flow triggered by Back in Stock, set it Live, confirm it
+sends, then set `RESTOCK_ALERTS: true`.
+
+### Also worth a look
+
+- **"SMS Welcome Series with Discount"** (`XQDrPD`) is **live**. If it
+  sends a code other than ASIORTEN, that contradicts the site, which
+  says ASIORTEN is the only code. Worth opening.
+- **The SMS List's only flow is a draft.** `UiFFMg` is double opt-in
+  and its one flow, "Welcome Series - Customer v. Non-Customer"
+  (`VieNw4`), is draft. SMS signups confirm and then hear nothing.
+
+### What I could not verify
+
+The sandbox this ran in has no outbound network: `asiorclothing.com`,
+`steezdept.com`, `witheredhills.com`, `mnml.la` and every other
+external host return no response. So:
+
+- **I did not study the competitor sites.** The design draws on the
+  reference measurements already recorded in this repo from earlier
+  sessions and on the brand research basis in `CLAUDE.md`, not on
+  anything I looked at this week. Any claim that I examined their
+  current UI would be false.
+- **I could not open the production site.** Everything below was
+  verified against a local build serving the real Shopify catalogue
+  through a mock, at 1440, 390 and 375. Production needs checking on
+  a real device after deploy.
+
 ## 5. Policies still out of sync in Shopify Admin
 
 Carried over, still open:

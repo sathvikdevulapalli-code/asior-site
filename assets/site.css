@@ -3034,3 +3034,446 @@ html {
   }
   .egg-note.show { transform: translateX(-50%) translateY(0); }
 }
+
+/* ===================================================================
+   DROP ACCESS  (2026-11-13)
+
+   The entry overlay and its product drawer. Every colour, radius and
+   duration is a token -- no hex values here, for the reason the
+   palette section gives: a hardcoded colour is what made each theme
+   flip a day's work.
+
+   It is an overlay, never a lock. There is no rule in this block that
+   can cover the page without the close control, the scrim and the
+   "Continue shopping" button all being reachable.
+   =================================================================== */
+
+.drop-root {
+  position: fixed;
+  inset: 0;
+  z-index: 120;          /* over the header (50) and the cart drawer */
+}
+
+.drop-root[hidden] { display: none; }
+
+/* The page behind must not scroll under the overlay. position: fixed
+   on the body is what stops iOS scroll chaining; drop-access.js keeps
+   the scroll offset in body.style.top and restores it on close, so
+   closing never throws the visitor back to the top of the page. */
+body.drop-open {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+
+.drop-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .72);
+  opacity: 0;
+}
+
+.drop-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* Desktop: editorial split. The photograph is the left half and does
+   the selling; the right half is quiet and carries the two actions. */
+@media (min-width: 880px) {
+  .drop-panel {
+    inset: auto 50% auto 50%;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    width: min(1040px, calc(100vw - 80px));
+    height: min(620px, calc(100vh - 80px));
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line);
+  }
+}
+
+.drop-figure {
+  margin: 0;
+  overflow: hidden;
+  background: var(--surface);
+  /* On a phone the photograph is a band at the top, not half the
+     screen: the actions have to be reachable with a thumb without
+     scrolling. */
+  height: 34vh;
+}
+
+@media (min-width: 880px) {
+  .drop-figure { height: auto; }
+}
+
+.drop-figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+}
+
+.drop-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(22px, 5vw, 48px);
+  padding-bottom: calc(clamp(22px, 5vw, 48px) + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.drop-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.drop-eyebrow {
+  margin: 0 0 12px;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.drop-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4.4vw, 40px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.drop-sub {
+  margin: 0 0 26px;
+  font-size: var(--t-base);
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 42ch;
+}
+
+.drop-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+@media (min-width: 560px) {
+  .drop-actions { flex-direction: row; }
+  .drop-actions .drop-btn { flex: 1; }
+}
+
+.drop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 20px;
+  font-family: var(--font);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0;
+  border: 1px solid var(--field-line);
+  background: none;
+  color: var(--ink);
+}
+
+/* The primary action inverts, the way every primary action on this
+   site does: off-white fill, near-black caps, square. */
+.drop-btn--primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.drop-continue {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: var(--t-base);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---- the product rail ---------------------------------------------
+
+   A horizontal shelf that snaps, so a thumb swipes one card at a time
+   on a phone and a trackpad flicks through on a desktop. */
+.drop-shop-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.drop-back {
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--t-sm);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.drop-shop-head .drop-eyebrow { margin: 0; }
+
+.drop-rail {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  scrollbar-width: thin;
+}
+
+.drop-card {
+  flex: 0 0 min(70vw, 240px);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+}
+
+.drop-card-media {
+  display: block;
+  aspect-ratio: 4 / 5;
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.drop-card-media img,
+.drop-card-ph {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.drop-card-ph {
+  aspect-ratio: 4 / 5;
+  background: var(--surface);
+  margin-bottom: 10px;
+}
+
+.drop-status {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.drop-status--out { color: var(--muted); }
+.drop-status--soon { color: var(--ink); }
+
+.drop-card-name {
+  margin: 0;
+  font-size: var(--t-base);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.drop-card-price {
+  margin: 4px 0 10px;
+  font-size: var(--t-base);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.drop-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.drop-size {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  background: none;
+  border: 1px solid var(--field-line);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--t-sm);
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.drop-size[disabled] {
+  color: var(--muted);
+  border-color: var(--line);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.drop-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: none;
+  border: 1px solid var(--field-line);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--t-sm);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.drop-card-msg {
+  margin: 8px 0 0;
+  font-size: var(--t-sm);
+  color: var(--muted);
+  min-height: 1em;
+}
+
+.drop-card-msg:empty { min-height: 0; }
+
+.drop-loading { margin: 0; font-size: var(--t-base); color: var(--muted); }
+
+/* ---- the waitlist form inside a card ------------------------------ */
+.drop-wl { margin-top: 10px; }
+
+.drop-wl-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.drop-wl-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  font-size: var(--t-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.drop-wl-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.drop-wl-row input { flex: 1; min-width: 140px; }
+
+.drop-wl-row button {
+  min-height: 44px;
+  padding: 10px 14px;
+  background: none;
+  border: 1px solid var(--field-line);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--t-sm);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.drop-wl-consent,
+.drop-wl-msg {
+  margin: 8px 0 0;
+  font-size: var(--t-xs);
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.drop-wl-msg.is-error { color: var(--ink); }
+
+.drop-wl-done {
+  margin: 10px 0 0;
+  font-size: var(--t-base);
+  color: var(--ink);
+}
+
+/* ---- motion -------------------------------------------------------
+
+   The overlay arrives on --ease-out, the curve this site uses for
+   things that arrive. Under reduced motion it is simply there: no
+   transform, no fade, no delay, and the close control is reachable
+   the instant it exists. */
+@media (prefers-reduced-motion: no-preference) {
+  .drop-scrim { transition: opacity 260ms var(--ease-out); }
+  .drop-panel {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 300ms var(--ease-out), transform 300ms var(--ease-out);
+  }
+  @media (min-width: 880px) {
+    .drop-panel { transform: translate(-50%, -50%) scale(.985); }
+    .drop-root.is-open .drop-panel { transform: translate(-50%, -50%) scale(1); }
+  }
+  .drop-root.is-open .drop-scrim { opacity: 1; }
+  .drop-root.is-open .drop-panel { opacity: 1; transform: translateY(0); }
+  @media (min-width: 880px) {
+    .drop-root.is-open .drop-panel { transform: translate(-50%, -50%) scale(1); }
+  }
+  .drop-btn,
+  .drop-size,
+  .drop-card-btn {
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out),
+                color 160ms var(--ease-out), transform 90ms var(--ease-out);
+  }
+  .drop-btn:active,
+  .drop-card-btn:active { transform: scale(.985); }
+  .drop-size:active:not([disabled]) { transform: scale(.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-scrim { opacity: 1; }
+  .drop-panel { opacity: 1; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .drop-btn--ghost:hover,
+  .drop-card-btn:hover,
+  .drop-size:hover:not([disabled]) {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+  }
+  .drop-btn--primary:hover { background: var(--surface-hi); border-color: var(--ink); color: var(--ink); }
+  .drop-close:hover { background: var(--surface-hi); }
+}

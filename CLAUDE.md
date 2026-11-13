@@ -434,6 +434,71 @@ promoted ahead of it. Kova's Shopify `featuredImage` is a Firefly render
 as of 2026-10-06 and is demoted this way. It is not deleted — that is
 the founder's call in Shopify Admin.
 
+## DROP ACCESS
+
+An entry overlay and a product drawer, plus `/drop.html`, a reusable
+campaign page. Configured entirely by `assets/drop-config.js`
+(`window.ASIOR_DROP`); `assets/drop-access.js` reads it and decides.
+Both are loaded, deferred, on all 22 pages from `HEAD_SHARED`.
+
+**It is never a lock.** Escape, the scrim, the close button and
+"Continue shopping" all close it, and every card either adds to the
+real Shopify cart or links to the real product page. There is no
+configuration of it that puts a wall in front of the catalogue, and
+`NEVER_ON` plus a live cart-quantity check keep it away from anyone
+who has started buying. A waitlist that costs a sale is worse than no
+waitlist.
+
+**`AUTO` ships false, on purpose.** Two Klaviyo signup popups are LIVE
+on this account — `UxDQrj` "Email & SMS Popup" and `Vtp6MG` "SMS",
+both checked 2026-11-13 — and `klaviyo.js` loads on every page, so
+both already appear. An overlay that opened itself on top of them
+would be a third interruption on a first visit. Pause those two in
+Klaviyo before setting `AUTO: true`, or the measurement is worthless
+and the experience is a wall. The footer DROP ACCESS link opens it on
+demand either way, and that half cannot annoy anyone.
+
+**`RESTOCK_ALERTS` is false and must stay false until a flow exists.**
+A sold-out card is the obvious home for "notify me when it's back",
+and there is still no back-in-stock flow in Klaviyo: all 27 flows were
+listed on 2026-11-13 and the triggers are Metric, Added to List,
+Unconfigured and Price Drop. Klaviyo will accept a back-in-stock
+subscription over the API and store it forever without sending
+anything, which is exactly how the old `/client/back-in-stock-
+subscriptions/` capture sent nobody anything. Sold-out pieces offer
+first access to the next drop instead, which a live flow answers.
+
+**Three kinds of capture, kept apart.** A campaign waitlist joins the
+campaign's own `listId` (YNC → `TN58zR` Fall Early Access, live
+"Early Access" flow). A sold-out piece goes through the shared
+`klaviyoNextDropSignup` to the Email List. A restock alert does not
+exist. Every signup carries the product handle, the size where there
+is one, the campaign and the source as event properties, so the list
+is segmentable by what the person actually wanted. SMS is never
+subscribed as a side effect of an email signup — it stays its own
+form with its own consent.
+
+**Events fire on success, never on click.** `emit()` in
+`drop-access.js` is called by the code path that saw the request
+resolve. There is no GA4 on this site — searched 2026-11-13, no
+`gtag`, no `dataLayer`, no measurement id anywhere — so
+`ANALYTICS.GA4_MEASUREMENT_ID` is null and events go to Klaviyo only.
+Put a real `G-XXXXXXXXXX` in that one field and gtag loads and gets
+the same events, with `send_page_view: false` so this storefront's
+own pageview is not counted twice.
+
+**The A/B.** `ROLLOUT` splits eligible visitors into a sticky `test`
+and `control` bucket, written once to `localStorage` so nobody flips
+between sessions. A browser that refuses storage is `control`: never
+interrupted and never counted. `ENABLED: false` is the kill switch —
+one flag, one redeploy, nothing else to undo.
+
+**Campaigns.** One entry per drop in `CAMPAIGNS`, exactly one
+`active`. `handles: []` and `opensAt: ''` are valid and mean the page
+shows no product shelf and no date — which is YNC's real state, since
+the only fact this repo or Shopify holds about YNC is the name. Fill
+them only from real data.
+
 ## Build step (`scripts/build.js`)
 
 Run via `npm run build`. It:
