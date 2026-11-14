@@ -1426,12 +1426,24 @@ html.cart-drawer-locked { overflow: hidden; }
 .nav-toggle, .nav-close { display: none; }
 
 @media (max-width: 900px) {
+  /* The phone header is 64px, and it takes the TOKEN to get there.
+
+     `height: 64px` alone did not: .site-header carries
+     `min-height: var(--header-h-ref)` and min-height beats height, so
+     every phone page shipped an 85px header -- 21px of chrome, above
+     the fold, on every single one. Setting the token is also what
+     keeps `margin-bottom: calc(var(--header-h-ref) * -1)` and
+     `scroll-padding-top` honest, which a hardcoded height cannot do.
+     The hero variant needs its own line because `.page--hero
+     .site-header` sets the token at higher specificity. */
+  .site-header,
+  .page--hero .site-header { --header-h-ref: 64px; }
+
   .site-header {
     grid-template-columns: 1fr auto 1fr;
     padding: 0 15px;
-    height: 64px;
+    height: var(--header-h-ref);
   }
-  .page--hero .site-header { margin-bottom: -64px; }
 
   .nav-toggle {
     display: inline-flex;

@@ -422,23 +422,8 @@
     .pd-price { font-size: 14px; }
     .pd-tab { font-size: 11px; letter-spacing: 0.5px; }
 
-    /* The buy panel's vertical rhythm, tightened for a phone.
-
-       Measured on a 390x844 screen: the controls were spending 60px
-       between the size row and Add to bag and 28px above the actions,
-       which is desktop air on a screen that does not have it. Every
-       value below is a gap, not content -- no type gets smaller, no
-       photograph gets shorter, nothing is removed. It buys back about
-       36px, which is the difference between Add to bag sitting on the
-       fold line and sitting clear of it. */
-    .pd-titlerow { padding-bottom: 8px; }
-    .pd-fit { margin-top: 6px; }
-    .pd-sizelabel { margin-top: 12px; }
-    .pd-sizehint { margin-top: 6px; }
-    .pd-actions { margin-top: 14px; }
-    .pd-buynow { margin-top: 8px; }
-    .pd-code-offer { margin-top: 8px; }
-    .pd-offer { margin-top: 8px; }
+    /* The phone rhythm used to live here and half of it was dead --
+       see the block at the end of this stylesheet for why it moved. */
   }
 
   .pd-sticky {
@@ -1210,6 +1195,37 @@
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0;
     margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* ---- the buy panel's vertical rhythm on a phone -----------------
+
+     THIS BLOCK IS LAST ON PURPOSE. Do not move it back up.
+
+     These eight rules used to sit in the @media (max-width: 1000px)
+     block near the top of this stylesheet, which is BEFORE the
+     components they override. At equal specificity the later rule
+     wins, so .pd-fit kept its 8px and .pd-code-offer kept its 10px
+     while .pd-actions and .pd-sizehint did take the override: half
+     the block was silently dead, and which half depended on nothing
+     but where each component happened to be declared. That is the
+     same trap the card caption fell into (see CLAUDE.md), and the
+     only reliable fix is to declare the overrides after everything
+     they override.
+
+     Measured on a 390x844 screen. Every value is a gap, not content:
+     no type gets smaller, no photograph gets shorter, nothing is
+     removed. Together with the 64px phone header they put the
+     photograph, name, price, fit line, size row, Add to bag and the
+     ASIORTEN line inside the first screen with nothing to scroll. */
+  @media (max-width: 1000px) {
+    .pd-titlerow { padding-bottom: 8px; }
+    .pd-fit { margin-top: 6px; }
+    .pd-sizelabel { margin-top: 12px; }
+    .pd-sizehint { margin-top: 6px; }
+    .pd-actions { margin-top: 14px; }
+    .pd-buynow { margin-top: 10px; }
+    .pd-code-offer { margin-top: 8px; }
+    .pd-offer { margin-top: 8px; }
   }
 </style>
 
@@ -2180,6 +2196,36 @@
               <!-- [measured] Full width, 48px, black, 14px/700,
                    letter-spacing 1px, square. -->
               <button class="pd-add" id="addBtn">${product.isPreorder ? 'Preorder' : 'Add to bag'}</button>
+
+              <!-- The two offer lines sit BETWEEN the buttons, not
+                   under both of them, for two reasons.
+
+                   The brief asked for the code "right under the Add to
+                   Bag button", and under Buy it now is not that.
+
+                   And Buy it now skips the cart: a shopper who takes
+                   it never sees the cart drawer, which is the only
+                   other place the 2-piece offer is stated. Putting
+                   both lines above that button is the last moment
+                   they can be read by the person most likely to miss
+                   them. On a 390x844 phone it is also the difference
+                   between the code being on the first screen and 21px
+                   under it.
+
+                   Class is pd-code-offer, not pdp-offer: the 2-piece
+                   line directly below it is .pd-offer, and two class
+                   names one letter apart on adjacent elements is a
+                   trap for whoever edits this next.
+
+                   A.codeOfferHTML() owns the code wording, including
+                   the "not with the 2-piece offer" clause that has to
+                   sit with it while that discount is live. -->
+              <p class="pd-code-offer" id="pdCodeOffer"></p>
+              <!-- Reads the cart quantity the header already has, so
+                   it costs no request, and renders nothing at all
+                   when ASIOR_OFFERS.MULTI_BUY is null. -->
+              <p class="pd-offer" id="pdOffer"></p>
+
               <!-- Kept, not added. The spec says not to ADD express
                    buttons because the reference has none; this one
                    predates the redesign and goes straight to the same
@@ -2189,22 +2235,6 @@
               <button class="pd-buynow" id="buyNowBtn">Buy it now</button>
               <div class="pd-confirm" id="addConfirm" role="status" aria-live="polite">added. <a href="/cart.html">View cart</a></div>
             </div>
-            <!-- ASIORTEN, at the moment of the decision rather than
-                 only in the rotating banner nobody from an ad reads.
-                 A.codeOfferHTML() owns the wording, including the
-                 "not with the 2-piece offer" clause that has to sit
-                 with it while that discount is live.
-
-                 Class is pd-code-offer, not pdp-offer: the 2-piece
-                 line directly below it is .pd-offer, and two class
-                 names one letter apart on adjacent elements is a trap
-                 for whoever edits this next. -->
-            <p class="pd-code-offer" id="pdCodeOffer"></p>
-            <!-- The 2-piece offer, under the control it applies to.
-                 Reads the cart quantity the header already has, so it
-                 costs no request, and renders nothing at all when
-                 ASIOR_OFFERS.MULTI_BUY is null. -->
-            <p class="pd-offer" id="pdOffer"></p>
             <p class="pd-stock-note" id="pdStockNote"></p>
 
             <div class="pd-drop" id="pdDrop">

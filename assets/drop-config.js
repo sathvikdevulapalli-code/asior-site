@@ -16,33 +16,38 @@
    waitlist that costs a sale is worse than no waitlist.
 
    ---------------------------------------------------------------
-   WHY AUTO IS FALSE
+   THE POPUP THAT WAS IN ITS WAY
 
-   Two Klaviyo popups are LIVE on this account right now, checked
-   2026-11-13 against the Klaviyo API:
+   Two Klaviyo popups were LIVE on this account, checked 2026-11-13
+   against the Klaviyo API:
 
      UxDQrj  "Email & SMS Popup"  live, updated 2026-11-07
      Vtp6MG  "SMS"                live, updated 2026-11-07
 
-   klaviyo.js loads on all 21 pages, so both already appear. An
-   overlay that opened itself on top of them would be the third
-   interruption in a row on a first visit, and three stacked asks is
-   not an exclusive drop, it is a wall. That is a plausible part of
-   why engagement is low today, and adding to it would make the
-   measurement meaningless as well.
+   klaviyo.js loads on every page, so both appeared on every visit.
+   With the announcement bar also carrying an email ask, a first-time
+   visitor was asked for the same address three ways, and an overlay
+   opening itself on top would have been a fourth. Three stacked asks
+   is not an exclusive drop, it is a wall -- and a plausible part of
+   why engagement is low.
 
-   So the automatic trigger ships OFF. The DROP ACCESS link in the
-   footer and any /drop link still open it on demand, which is the
-   half that cannot annoy anybody.
+   On 2026-11-13, at the founder's direction:
+     - UxDQrj was UNPUBLISHED. It is the one that duplicates this
+       overlay's job: an email ask that opens itself.
+     - Vtp6MG was LEFT LIVE, because this overlay never asks for a
+       phone number and so takes nothing away from SMS capture.
+     - AUTO was set true, at ROLLOUT 0.5.
 
-   TO TURN THE AUTOMATIC TRIGGER ON:
-     1. Pause or delete UxDQrj and Vtp6MG in Klaviyo (Signup Forms),
-        or narrow their targeting so they cannot fire on the same
-        visit.
-     2. Set AUTO: true here.
-     3. Watch DISMISS_RATE and the purchase conversion rate for both
-        buckets before widening ROLLOUT.
-   Doing step 2 without step 1 is the one combination to avoid.
+   IF YOU REPUBLISH UxDQrj, SET AUTO BACK TO FALSE, or the double ask
+   comes back. Those two settings belong together; that pairing is the
+   thing to keep straight. Both halves are reversible -- republish in
+   Klaviyo (Signup Forms), flip the boolean here.
+
+   WHAT TO WATCH before widening ROLLOUT past 0.5: the purchase
+   conversion rate of the `test` bucket against `control`, and the
+   ratio of Drop Access Dismissed to Drop Access Shown. If dismissals
+   dominate, or test converts worse than control, set AUTO false. An
+   overlay is never worth a sale.
    =================================================================== */
 
 window.ASIOR_DROP = {
@@ -54,16 +59,21 @@ window.ASIOR_DROP = {
 
   /* The automatic trigger, separately from the feature itself. False
      means the overlay only ever opens because somebody asked for it.
-     See WHY AUTO IS FALSE above before changing this. */
-  AUTO: false,
+
+     TRUE since 2026-11-13, paired with UxDQrj being unpublished in
+     Klaviyo -- see THE POPUP THAT WAS IN ITS WAY above. Read that
+     before changing either one. */
+  AUTO: true,
 
   /* Share of ELIGIBLE visitors who get the automatic experience, as a
      fraction. The rest are the control group and see the site exactly
      as it is. Sticky per visitor (see dropBucket in drop-access.js),
      so nobody sees it flip between visits.
 
-     0.5 is an even split, which is what a comparison needs. It has no
-     effect at all while AUTO is false. */
+     0.5 is an even split, which is what a comparison needs, and it is
+     deliberately not 1.0: half of eligible visitors still get the
+     site exactly as it was, which is the only way to tell whether
+     this helps or hurts. Widen it once that comparison says so. */
   ROLLOUT: 0.5,
 
   /* When the automatic trigger fires, for an eligible visitor.

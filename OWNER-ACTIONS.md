@@ -325,29 +325,53 @@ switches are off because turning them on would require something that
 does not exist yet. None of these is a code change — each is one
 field once the thing behind it is real.
 
-### 1. Pause the two live Klaviyo popups, then set `AUTO: true`
+### 1. ~~Pause the popups, then set `AUTO: true`~~ — DONE 2026-11-13
 
-Checked against the Klaviyo API on 2026-11-13:
+Checked against the Klaviyo API on 2026-11-13: both `UxDQrj` "Email &
+SMS Popup" and `Vtp6MG` "SMS" were live, and `klaviyo.js` loads on
+every page. With the announcement bar's email ask as well, a
+first-time visitor was asked for the same address three ways.
 
-| Form | Id | Status |
+Done at your direction:
+
+| Form | Id | Now |
 |---|---|---|
-| Email & SMS Popup | `UxDQrj` | **live**, updated 2026-11-07 |
-| SMS | `Vtp6MG` | **live**, updated 2026-11-07 |
+| Email & SMS Popup | `UxDQrj` | **unpublished** — it duplicated the overlay's job |
+| SMS | `Vtp6MG` | **left live** — the overlay never asks for a phone number |
 
-`klaviyo.js` loads on all 22 pages, so both of these already appear to
-visitors today. The drop overlay's automatic trigger is therefore
-**off** — opening it on top of two existing popups would be the third
-ask in a row on a first visit, and three stacked interruptions is a
-plausible part of why engagement is low right now.
+And `AUTO: true` in `assets/drop-config.js`, at `ROLLOUT: 0.5` — half
+of eligible visitors get the overlay, half get the site exactly as it
+was, which is the only way to tell whether it helps.
 
-**Worth knowing before you decide:** you are currently running two
-popups and a site-wide banner asking for the same email address. That
-is likely hurting more than the overlay would help.
+**If you republish `UxDQrj`, set `AUTO` back to false** or the double
+ask comes back. Both are one click.
 
-To switch the automatic trigger on: pause or retarget `UxDQrj` and
-`Vtp6MG` in Klaviyo → Signup Forms, then set `AUTO: true` in
-`assets/drop-config.js`. The footer DROP ACCESS link works today
-either way.
+**Before widening `ROLLOUT`:** compare the `test` bucket's purchase
+conversion against `control`, and look at Drop Access Dismissed vs
+Drop Access Shown. If dismissals dominate or test converts worse, set
+`AUTO: false`.
+
+### 1b. Two more Klaviyo things, one fixed
+
+**FIXED — the Early Access email had an empty coupon box.** The flow
+your new YNC waitlist feeds (`TXCdzE` "Early Access", live) sends an
+email whose preview reads *"your code's inside. keep it."* and whose
+body says *"and 10% off when it's time. / keep this one."* — above a
+dotted box containing `{% coupon_code 'VIP' %}`. **There are zero
+coupons in this Klaviyo account**, so that tag rendered as nothing:
+every person who joined got a promise of a code and an empty box.
+Replaced with the literal **ASIORTEN**, which is real in Shopify, is
+10% off, and is the only code the site names. Verified by re-rendering
+the template: the box reads ASIORTEN and every other block — logo,
+copy, dotted border, social icons, unsubscribe — is unchanged. The
+template is renamed "Fall Early Access (ASIORTEN 10%)".
+
+**Still open — the SMS List's only flow is a draft.** `UiFFMg` is
+double opt-in and its one flow, "Welcome Series - Customer v.
+Non-Customer" (`VieNw4`), is draft. So an SMS signup confirms and then
+hears nothing. The live `XQDrPD` "SMS Welcome Series with Discount"
+is triggered by a metric, not by that list — and it does correctly say
+ASIORTEN, which was checked.
 
 ### 2. A GA4 Measurement ID
 
