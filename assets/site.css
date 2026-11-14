@@ -3513,3 +3513,205 @@ body.drop-open {
 .ad-consent-actions button { flex:1; padding:12px 10px; background:transparent; border:1px solid currentColor; border-radius:0; color:inherit; font:inherit; cursor:pointer; }
 .ad-consent-actions button:focus-visible,.ad-preferences:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
 .ad-preferences { display:block; margin:20px auto; padding:8px; background:transparent; border:0; color:var(--ink,#E8E8EA); font:inherit; text-decoration:underline; cursor:pointer; }
+
+/* ===================================================================
+   THE ENTRY GATE
+
+   The wall, not the overlay. assets/drop-gate.js owns the behaviour
+   and assets/drop-config.js owns whether it exists at all; this is
+   only how it looks. See the header of drop-gate.js before changing
+   any of it -- in particular `.asior-gate-pending`, which hides the
+   whole page and is the one rule here that can show a visitor
+   nothing at all if its watchdog is ever removed.
+   =================================================================== */
+
+/* Before the gate has painted. Set by the inline bootstrap in <head>
+   so the storefront never flashes up behind the wall, and torn off
+   again by drop-gate.js the moment the gate is on screen -- or by the
+   watchdog, unconditionally, if the script never got that far.
+   visibility, not display: the layout is still built underneath, so
+   revealing costs no reflow. */
+html.asior-gate-pending body { visibility: hidden; }
+
+/* Once the gate is up. The page behind cannot be scrolled or reached;
+   the gate is the only thing in the tab. */
+html.asior-gated,
+html.asior-gated body { overflow: hidden; height: 100%; }
+
+.gate-root {
+  position: fixed;
+  inset: 0;
+  z-index: 13000;          /* above the overlay's 12000, which is above
+                              the cookie notice's 11000 */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--bg);
+  animation: gateIn 420ms var(--ease-out) both;
+}
+
+.gate-root.is-leaving { animation: gateOut 300ms var(--ease-in) both; }
+
+@keyframes gateIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gateOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* The campaign photograph, dimmed enough that off-white type clears
+   4.5:1 over any part of it. */
+.gate-shade { position: absolute; inset: 0; overflow: hidden; }
+.gate-shade img { width: 100%; height: 100%; object-fit: cover; opacity: .62; }
+
+/* The scrim is directional, and it follows the panel.
+
+   A flat dim over the whole frame buys contrast by throwing the
+   photograph away, and then the gate is a login box. The scrim is
+   near-opaque only where the type sits -- the bottom of a phone, the
+   left of a desktop -- and thins out across the rest, so the clothes
+   are the first thing a visitor sees and the words are still legible
+   over black rather than over a model's shoulder.
+
+   The dense end is at .96 and above, which is effectively --bg, so
+   --ink and --muted keep the 7.0:1 they have on the page itself. Any
+   change to these stops has to keep that end that dense. */
+.gate-shade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(11, 11, 12, .30) 0%,
+    rgba(11, 11, 12, .48) 30%,
+    rgba(11, 11, 12, .97) 53%,
+    rgba(11, 11, 12, 1) 100%);
+}
+
+.gate-panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 24px 56px;
+  text-align: left;
+}
+
+.gate-mark {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.gate-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+.gate-blurb {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 34em;
+}
+
+.gate-blurb:empty { display: none; }
+
+.gate-form { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+
+.gate-form .field {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  font-family: var(--font);
+  font-size: 16px;         /* 16px or iOS zooms the page on focus, and a
+                              zoomed gate cannot be dismissed */
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--field-line);
+  border-radius: var(--input-radius);
+}
+
+.gate-form .field::placeholder { color: var(--muted); }
+
+.gate-form button {
+  height: 48px;
+  border: 0;
+  border-radius: var(--btn-radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.gate-form button[disabled] { opacity: .55; cursor: default; }
+
+.gate-msg {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+  min-height: 1.45em;      /* reserved, so an error does not shove the
+                              consent line down the screen */
+}
+
+.gate-msg.is-err { color: var(--ink); }
+.gate-msg.is-ok  { color: var(--ink); }
+
+.gate-consent {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+@media (min-width: 760px) {
+  .gate-root { align-items: center; justify-content: flex-start; }
+  .gate-panel { max-width: 460px; padding: 0 0 0 72px; }
+  .gate-title { font-size: 38px; }
+
+  /* The panel moves to the left on a wide screen, so the dense end of
+     the scrim moves with it. The text column ends around 530px of
+     1440, which is 37%, so the first 42% stays at or above .96. */
+  .gate-shade::after {
+    background: linear-gradient(90deg,
+      rgba(11, 11, 12, 1) 0%,
+      rgba(11, 11, 12, .97) 42%,
+      rgba(11, 11, 12, .62) 68%,
+      rgba(11, 11, 12, .42) 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-root, .gate-root.is-leaving { animation: none; }
+}
+
+/* ---- a search that matched nothing -------------------------------
+
+   The grid hides its cards one by one, so a query with no matches
+   left a blank page under the field: a count saying "0 products" and
+   nothing at all to click. This is the state that says so and hands
+   back the control that fixes it. Hidden unless a real query matched
+   nothing, so it never appears on an ordinary visit. Wired in
+   wireShopSearch() in assets/site.js, beside the filter that empties
+   the grid. */
+.shop-search-empty {
+  padding: 48px 0 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.shop-search-empty[hidden] { display: none; }
+
+.shop-search-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}

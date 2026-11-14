@@ -2377,6 +2377,8 @@
     var input = document.getElementById('shopSearch');
     var grid = document.getElementById('shopGrid');
     var status = document.getElementById('shopSearchStatus');
+    var empty = document.getElementById('shopSearchEmpty');
+    var clear = document.getElementById('shopSearchClear');
     if (!input || !grid) return;
 
     /* Queried per keystroke, not captured once. shop.html replaces the
@@ -2407,9 +2409,20 @@
       if (status) status.textContent = query
         ? shown + ' product' + (shown === 1 ? '' : 's')
         : '';
+      /* Only when a real query matched nothing. No query, or any
+         match at all, and this stays out of the way. */
+      if (empty) empty.hidden = !query || shown > 0;
     }
 
     input.addEventListener('input', apply);
+
+    if (clear) {
+      clear.addEventListener('click', function () {
+        input.value = '';
+        apply();
+        try { input.focus(); } catch (err) { /* nothing to focus */ }
+      });
+    }
 
     /* ?q= seeds the field and runs once, so a search is linkable and
        the WebSite SearchAction in the home page's structured data

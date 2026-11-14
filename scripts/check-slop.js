@@ -229,6 +229,78 @@ for (const file of pages(ROOT)) {
   }
 }
 
+/* ---- every theme-color meta reads the real page colour ---------
+
+   CLAUDE.md names theme-color metas as one of the three leftovers
+   that had to be hunted down by hand after each palette flip, and
+   three separate weekly reviews (PRs #82, #84, #89) each found the
+   same two policy pages still on #000000 months after the flip --
+   none of them landed, so the bug outlived all three. A grep is
+   cheaper than a fourth review.
+
+   It compares against --bg in site.css rather than a literal, so a
+   deliberate palette change moves this with it instead of tripping
+   it. */
+{
+  const css = fs.readFileSync(path.join(ROOT, 'assets', 'site.css'), 'utf8');
+  const bg = (css.match(/--bg:\s*(#[0-9a-f]{3,8})\b/i) || [])[1];
+  if (!bg) {
+    console.error('  assets/site.css  no --bg token found; the theme-color guard cannot run');
+    hits++;
+  } else {
+    const want = bg.toLowerCase();
+    const wrong = [];
+    for (const file of pages(ROOT).filter(f => f.endsWith('.html'))) {
+      const html = fs.readFileSync(file, 'utf8');
+      const re = /<meta\s+name="theme-color"\s+content="([^"]*)"/gi;
+      let m;
+      while ((m = re.exec(html))) {
+        if (m[1].trim().toLowerCase() !== want) {
+          wrong.push(`${path.relative(ROOT, file)} says ${m[1]}`);
+        }
+      }
+    }
+    if (wrong.length) {
+      console.error(`  ${wrong.length} theme-color meta(s) disagree with --bg (${bg}):`);
+      for (const w of wrong.slice(0, 10)) console.error(`      ${w}`);
+      hits++;
+    }
+  }
+}
+
+/* ---- the gate's kill switch is one boolean, in two places -------
+
+   assets/drop-config.js holds GATE.ON. The inline bootstrap in every
+   page's <head> needs the same answer before the deferred config has
+   run, so build.js stamps a copy into it. Two copies of a kill switch
+   is how a shop ends up closed on pages nobody re-generated, so this
+   checks the built HTML against the config and fails if any page
+   disagrees. If this ever fires, run the build -- do not hand-edit
+   the pages. */
+{
+  const cfg = fs.readFileSync(path.join(ROOT, 'assets', 'drop-config.js'), 'utf8');
+  const at = cfg.indexOf('GATE: {');
+  const m = at === -1 ? null : cfg.slice(at, at + 2000).match(/\bON:\s*(true|false)\b/);
+  if (!m) {
+    console.error('  assets/drop-config.js  no GATE.ON found; the gate guard cannot run');
+    hits++;
+  } else {
+    const want = `/*GATE_ON*/${m[1]}/*END_GATE_ON*/`;
+    const wrong = [];
+    for (const file of pages(ROOT).filter(f => f.endsWith('.html'))) {
+      const html = fs.readFileSync(file, 'utf8');
+      if (!html.includes('/*GATE_ON*/')) continue;    // page carries no bootstrap
+      if (!html.includes(want)) wrong.push(path.relative(ROOT, file));
+    }
+    if (wrong.length) {
+      console.error(`  the gate bootstrap disagrees with GATE.ON (${m[1]}) on ${wrong.length} page(s):`);
+      for (const f of wrong.slice(0, 8)) console.error(`      ${f}`);
+      console.error('      Run `npm run build` rather than editing the pages.');
+      hits++;
+    }
+  }
+}
+
 if (hits) {
   console.error(`\ncheck-slop: ${hits} banned item(s) in the built site.`);
   process.exit(1);
