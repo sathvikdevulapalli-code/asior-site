@@ -635,20 +635,38 @@ sales. It is not written, because it is a statement about inventory
 that is false, and a fabricated sellout followed by a fabricated
 restock is the deceptive-urgency pattern this file bans twice over.
 
-What the gate says instead is **computed**: `tellWhatIsLeft()` counts
-variants where `availableForSale` is false and renders "N of M sizes
-already gone". On that day it was 9 of 30, with 3 more down to a
-single unit — real scarcity, and sharper than the invented kind
-because it is specific. It reads `availableForSale`, never quantity,
-for the reason the badges do: the Lanyard sits at −5 and is still
-buyable. It runs after the gate paints and fails silent, so a
-catalogue that cannot be reached produces no line rather than a
-guess, and it cannot drift into a lie as stock moves.
+What the gate says instead is **computed**: `tellWhatIsLeft()` reads
+the live catalogue and names the dead sizes — "gone: blossom tee
+black m · blossom tee white s · +5 more". On 2026-11-14 that was 9 of
+30 variants, with 3 more down to a single unit: real scarcity, and
+sharper than the invented kind because it is specific.
+
+**It names sizes and never a ratio.** The first version read "N of M
+sizes already gone" and the founder was right to kill it: a
+denominator advertises how much is still on the shelf, so "9 of 30
+gone" also tells a shopper twenty-one are there for the taking. A
+list of things somebody wanted and cannot have says only that things
+go. Two names and a count, not four — four ran to three lines on a
+phone and pushed the wordmark down the screen.
+
+It reads `availableForSale`, never quantity, for the reason the
+badges do: the Lanyard sits at −5 and is still buyable. It runs after
+the gate paints and fails silent, so a catalogue that cannot be
+reached produces no line rather than a guess, and it cannot drift
+into a lie as stock moves. `scarcity.js` asserts every name printed
+is genuinely sold out, that nothing still buyable is ever listed as
+gone, and that no ratio appears.
 
 When the pieces are actually ordered and land in Shopify, the restock
 framing is a small and honest change: `EYEBROW` to 'restocked', the
 real words in `LEDE`, and the computed line keeps itself right. Do it
 after the units exist, not before.
+
+Asked a second time, more directly, to "just say we're already sold
+out". Still no: 89 units across 11 buyable products makes it false,
+and it is self-defeating as well as untrue — it tells people not to
+try to buy the stock that exists, and it is disproved the moment
+anyone gets through the gate and sees a full catalogue.
 
 **The gate names no discount, and must not.** Every discount in the
 Shopify account was read back on 2026-11-14. The only ACTIVE ones
