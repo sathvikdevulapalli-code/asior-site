@@ -589,6 +589,34 @@ its email renders a real ASIORTEN coupon block — read back
 2026-11-14. If that flow is ever paused the CTA becomes a promise
 nothing keeps, so change the copy in the same breath.
 
+**`TN58zR` is DOUBLE OPT-IN, and that is the thing to know about the
+gate's signup.** Read back 2026-11-14: `opt_in_process`
+`double_opt_in`, `profile_count` **0** — nobody has completed it in
+the two months since the list was created. A Client API
+subscription leaves the person PENDING and Klaviyo emails them a
+confirmation link; they do not join the list, and the Early Access
+flow that carries ASIORTEN does not fire, until they click it.
+
+The embed itself is **not** broken, and that was worth establishing
+separately: the Email List (`TFEDaD`) is single opt-in with **48**
+real subscribers, and every recent one carries a browser
+User-Agent as `method_detail`, which is the signature of a
+client-side subscription from a real browser. The mechanism works.
+That list is just a door with a second lock on it.
+
+So the sheet's lede names the confirmation step, the success
+message asks for it, and `LIST_DOUBLE_OPT_IN` in `drop-config.js`
+drives both. Flip the list to single opt-in in Klaviyo, or point
+`LIST_ID` at a single opt-in list, and set that flag false in the
+same change.
+
+**A message that asks something of the reader is held on screen.**
+`admit()` took a `hold` argument on 2026-11-14 because the gate used
+to remove itself 320ms after showing its message — fine while that
+message was "you're in", useless once it carries the one action
+still required. A line shown for a third of a second has not been
+communicated, it has been technically displayed.
+
 **The gate's assets are fetched by the bootstrap, not by a `<link>`
 in the head.** Three faces and a poster is 102KB, and a visitor who
 is already through never sees any of it. Static preloads spent that

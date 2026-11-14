@@ -92,6 +92,12 @@
 
   var SUPPORT = CFG.SUPPORT_EMAIL || 'asiorclothing@gmail.com';
 
+  /* Whether the list the gate joins needs a confirmation click before
+     the member is really on it. Read from the config rather than
+     assumed, so switching LIST_ID or flipping the list to single
+     opt-in in Klaviyo changes the wording in one place. */
+  var LIST_IS_DOUBLE_OPT_IN = CFG.LIST_DOUBLE_OPT_IN === true;
+
   var LS_OPEN = 'asior_gate_opened_at';
   var LS_EMAIL = 'asior_gate_email';
 
@@ -447,18 +453,29 @@
     el.className = 'gate-msg' + (kind ? ' is-' + kind : '');
   }
 
-  function admit(email, note) {
+  /* `hold` is how long the message stays up before the gate leaves.
+
+     It used to be 320ms for everything, which was fine while the
+     message only said "you're in" -- nobody needs to read that. It is
+     not fine now: on a double opt-in list the message carries the one
+     action still required of them, and a line that is on screen for a
+     third of a second has not been communicated, it has been
+     technically displayed. Anything asking something of the reader
+     gets long enough to read it. */
+  function admit(email, note, hold) {
     markOpened(email);
-    say(note || 'You’re in.', 'ok');
+    say(note || 'you\u2019re in.', 'ok');
     document.documentElement.classList.remove('asior-gated');
-    if (root) {
+    if (!root) return;
+    setTimeout(function () {
+      if (!root) return;
       root.classList.add('is-leaving');
       setTimeout(function () {
         if (root && root.parentNode) root.parentNode.removeChild(root);
         root = null;
         document.removeEventListener('keydown', trap, true);
       }, 320);
-    }
+    }, hold || 0);
   }
 
   function submit(e) {
@@ -542,7 +559,27 @@
           }, { email: email });
         } catch (x) { /* best effort */ }
       }
-      admit(email, phone ? 'you\u2019re in. check your phone too.' : 'you\u2019re in.');
+      /* "you're in" is true of the SITE and not of the list, and the
+         difference matters here.
+
+         Fall Early Access (TN58zR) is a DOUBLE OPT-IN list: checked
+         2026-11-14, opt_in_process double_opt_in, profile_count 0 in
+         the two months since it was made. A subscription through the
+         Client API leaves somebody PENDING and Klaviyo sends them a
+         confirmation email; they do not join the list, and the Early
+         Access flow that carries ASIORTEN does not fire, until they
+         click it. Telling them they are on the list when they are one
+         unclicked email short of it is how a promise quietly goes
+         unkept, and the zero says that is exactly what has been
+         happening.
+
+         So the gate opens either way, because they gave a real
+         address and the request succeeded, and the message names the
+         one thing they still have to do. */
+      admit(email, LIST_IS_DOUBLE_OPT_IN
+        ? 'you\u2019re in. check your inbox and confirm to get the code.'
+        : (phone ? 'you\u2019re in. check your phone too.' : 'you\u2019re in.'),
+        LIST_IS_DOUBLE_OPT_IN ? 2400 : 0);
     }).catch(function (err) {
       /* See "THE THREE WAYS THIS COULD TAKE THE WHOLE STORE DOWN" at
          the top. They gave a real address and the request genuinely
@@ -550,7 +587,7 @@
          signup both. */
       if (CFG.FAIL_OPEN_ON_ERROR !== false) {
         try { console.warn('[asior gate] signup failed, admitting anyway:', err && err.message); } catch (x) {}
-        admit(email, 'you\u2019re in. we could not save your email just now.');
+        admit(email, 'you\u2019re in. we could not save your email just now.', 2400);
         return;
       }
       busy = false;

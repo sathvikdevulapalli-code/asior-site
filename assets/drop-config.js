@@ -132,6 +132,27 @@ window.ASIOR_DROP = {
        this file offers a second door, so there is no second door. */
     LIST_ID: 'TN58zR',
 
+    /* TN58zR IS DOUBLE OPT-IN, and that changes what the gate may say.
+
+       Read back 2026-11-14: opt_in_process "double_opt_in",
+       profile_count 0 -- nobody has completed it in the two months
+       since the list was created. A Client API subscription leaves
+       the person PENDING and Klaviyo emails them a confirmation
+       link; they do not join the list, and the Early Access flow
+       that carries ASIORTEN does not fire, until they click it.
+
+       For comparison, the Email List (TFEDaD) is single opt-in and
+       has 48 real subscribers, every recent one stamped with a
+       browser User-Agent -- which is what a working Client API
+       signup looks like. The embed is not broken. This list is just
+       a door with a second lock on it.
+
+       Set this false if the list is switched to single opt-in in
+       Klaviyo, or if LIST_ID is pointed at a single opt-in list, and
+       the success message stops asking for a confirmation that is no
+       longer needed. */
+    LIST_DOUBLE_OPT_IN: true,
+
     /* The line above the wordmark. A moment, not an offer.
 
        IT NAMES NO DISCOUNT, AND IT MUST NOT. Every discount in the
@@ -158,7 +179,12 @@ window.ASIOR_DROP = {
     CTA_SUB: 'email + sms \u00b7 first access to the drop',
 
     /* The line at the top of the sheet. */
-    LEDE: 'First access to the drop, plus 10% off your first order.',
+    /* The lede names the confirmation step, because the list is
+       double opt-in and the code rides on the flow behind it. The
+       button can promise the offer; the sheet has to say what it
+       takes to get it. */
+    LEDE: 'First access to the drop, plus 10% off your first order. '
+        + 'Confirm the email we send and the code is yours.',
     SUBMIT: 'Get early access',
 
     /* The address in the gate's foot. Same one the rest of the site
