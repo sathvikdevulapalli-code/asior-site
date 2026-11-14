@@ -4236,7 +4236,13 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 }
 
 @media (min-width: 760px) {
-  .gate-core { gap: clamp(22px, 3.6vh, 40px); }
+  /* Tightened with the base rule above. This was clamp(22px, 3.6vh,
+     40px), written when the screen held four things; it now holds
+     seven, and leaving the desktop override behind would have
+     silently undone the fix above 760px -- which is exactly how the
+     duplicated SMS block and the duplicated font preloads got
+     through earlier in this work. */
+  .gate-core { gap: clamp(14px, 2.2vh, 24px); }
   .gate-blurb { font-size: 15px; }
 }
 
