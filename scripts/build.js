@@ -1533,6 +1533,26 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
    every page from here, so the tags exist in exactly one place. */
 const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
   <script async src="https://static.klaviyo.com/onsite/js/${KLAVIYO_COMPANY_ID}/klaviyo.js?company_id=${KLAVIYO_COMPANY_ID}"></script>
+  <!-- A REAL VISITOR COUNT, which nothing else here provides.
+
+       Checked 2026-11-14: Shopify reported 50 sessions in 30 days and
+       attributed 100% of them to "direct" -- not one to social. That
+       is not Shopify being wrong, it is Shopify having nothing to go
+       on: Instagram's in-app browser sends no document.referrer, so
+       unless the inbound URL carries UTM parameters there is nothing
+       to attribute with. Klaviyo is no second opinion either; its
+       Active on Site metric fired 5 times in the same 30 days,
+       because it only counts profiles Klaviyo already knows.
+
+       Vercel counts at the edge, on the request itself, so it is
+       immune to the referrer being stripped, to ad blockers, and to
+       the gate. It is the only number here that answers "how many
+       people actually arrived".
+
+       NEEDS ONE CLICK FROM THE OWNER: Web Analytics has to be enabled
+       on the Vercel project or this script 404s harmlessly and counts
+       nothing. See OWNER-ACTIONS.md. -->
+  <script defer src="/_vercel/insights/script.js"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
   <!-- Ad pixels. Both files are inert until assets/ads-config.js is
