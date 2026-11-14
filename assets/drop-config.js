@@ -223,6 +223,29 @@ window.ASIOR_DROP = {
       { src: '/images/look-03.jpg', alt: 'Two looks \u2014 black Asior tees with Asior sweat shorts' },
     ],
 
+    /* The address in the gate's foot. Same one the rest of the site
+       uses; see SUPPORT_EMAIL in scripts/build.js. */
+    SUPPORT_EMAIL: 'asiorclothing@gmail.com',
+
+    /* ---- the SMS half ------------------------------------------
+
+       Its own checkbox, its own field, its own sentence, its own
+       Klaviyo list. SMS is NEVER subscribed as a side effect of an
+       email signup -- that is a rule in CLAUDE.md and the reason is
+       that an email address is not permission to text somebody. The
+       box ships unticked and the number field does not exist until
+       it is ticked.
+
+       OPT_LABEL carries the disclosures a marketing text programme
+       needs: that the messages recur, that rates may apply, and how
+       to stop. Changing it is a compliance decision, not copy.
+
+       WORTH KNOWING: the SMS List's only flow (VieNw4) is still a
+       DRAFT, so a number captured here is stored and answered by
+       nothing until someone sets that flow live. That is survivable
+       in a way the old back-in-stock capture was not -- this gate
+       promises no message, where that one promised one by name -- but
+       it is why the welcome text is in OWNER-ACTIONS.md. */
     /* Pages the gate never stands in front of.
 
        A privacy policy behind an email-capture wall is self-defeating,
