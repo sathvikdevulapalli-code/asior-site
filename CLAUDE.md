@@ -212,6 +212,87 @@ needs to be synchronized before checkout displays it.
 matching PDP/quick-view sentence. Do not add a return window or promise
 a specific refund timeline without confirmation.
 
+## Attribution
+
+The numbers that started this, read back 2026-11-14: Instagram's own
+dashboard counted **75 bio-link clicks**; Shopify Analytics reported
+**50 sessions in 30 days and attributed 100% of them to `direct`**,
+zero to social. Klaviyo's Active on Site showed 5, which counts known
+profiles only. None of those figures was broken. Instagram's in-app
+browser sends **no `Referer`** to an external site, and the bio link
+carried **no UTM tags**, so every one of those visitors arrived looking
+exactly like somebody who typed the domain in.
+
+**Three tiers, strongest first**, in `getUTMParams()` in
+`assets/site.js`:
+
+1. **Tagged** — UTM or click-id params on the URL (`utm_source`,
+   `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `ttclid`,
+   `fbclid`, `gclid`). Measured.
+2. **Inferred** — `inferTouch()`. The in-app browser from the
+   User-Agent first, then the referrer's hostname.
+3. **Nothing**, which is what a typed URL or a bookmark honestly looks
+   like. No touch is invented for it.
+
+Every inferred touch is stamped `asior_attr: 'inferred-app'` or
+`'inferred-referrer'`, and a tagged one `'tagged'`. **That stamp is not
+decoration.** A derived source reported as a measured one is how an
+analytics number becomes a lie, and this value is what lets the founder
+tell "Instagram, because the link said so" from "Instagram, because the
+browser looked like it" on a Shopify order.
+
+**A guess never outranks a fact, and a fact never outranks an earlier
+fact.** First touch wins, so a creator who found the customer is not
+displaced by the branded search that customer ran a week later — but a
+stored *inference* is replaced by a real tagged arrival, because
+otherwise an inferred `instagram` would sit in front of a real
+`utm_content` naming which post it was. Both halves have tests.
+
+**Instagram is tested before Facebook and the order is load-bearing.**
+Instagram's UA contains `FBAN`/`FBAV` — it is a Meta app — so testing
+Facebook first attributes every Instagram visitor to Facebook.
+
+**Where it goes.** Two destinations, both already plumbed:
+
+- **The Shopify order**, via `cartAttributes()`, which rides
+  `getUTMParams()` and so needed no change. Attributes ride through
+  checkout and land on the order in Shopify Admin, which is where
+  revenue is actually reconciled. `createCart` retries without
+  attributes if the API rejects them — attribution never costs a sale.
+- **A countable visit**, via `trackArrival()`: one Klaviyo `Site Visit`
+  event per **session**, carrying `source`, `medium`, `attribution` and
+  `landing_page`, on the anonymous id. Once per session and not once per
+  page, because 22 pages of browsing is one visit and counting page
+  views here would inflate the figure in exactly the direction that
+  flatters us. A browser that refuses `sessionStorage` is skipped
+  entirely: a visitor who cannot be deduplicated is better uncounted
+  than counted 22 times.
+
+**Shopify's session analytics will keep saying `direct` whatever we
+infer, and that is not a bug to chase.** A headless storefront does not
+fire Shopify's own session beacon; Shopify's attribution comes from the
+checkout, not from a page view. The order is fixed, the visit is counted
+in Klaviyo, and the session number in Shopify Analytics is simply not
+the instrument for this question. Do not add a hand-rolled monorail
+beacon to try to move it.
+
+**Two things only the founder can do**, and the inference is a floor
+under them rather than a replacement:
+
+- **Tag the Instagram bio link.** `?utm_source=instagram&utm_medium=bio`
+  plus a `utm_content` per post turns tier 2 into tier 1 and is the only
+  way to tell one post from another.
+- **Enable Vercel Web Analytics** in the Vercel dashboard. The script is
+  already shipped from `HEAD_SHARED`; it counts anonymous page views with
+  referrers and needs no profile.
+
+Nothing here probes or fingerprints. The UA string is read, and nothing
+is stored that the visitor did not arrive with. `h/track.js` is the
+suite — 50 assertions over real Instagram, TikTok, Facebook and Snapchat
+webview UA strings, the referrer table, internal navigation, the
+tier ordering, the single-count rule, and the buy path with storage
+refused.
+
 ## Brand and design
 
 The site should read as a small real label run by a person. Research
