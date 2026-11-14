@@ -167,6 +167,33 @@ window.ASIOR_DROP = {
        real terms go, in its real words. */
     EYEBROW: 'black friday',
 
+    /* ---- the restock framing, and why it is not here -------------
+
+       Asked on 2026-11-14 to frame the gate as a huge restock of
+       everything after selling out. Shopify, read the same day: 11 of
+       11 products active and buyable, 89 units, nothing sold out and
+       nothing restocked. The founder confirmed no stock has been
+       ordered yet and that more pieces are only likely later.
+
+       So that line is not written here. It is a statement about
+       inventory, it would be false, and a fabricated sellout followed
+       by a fabricated restock is the deceptive-urgency pattern this
+       repo bans in two separate places and the FTC enforces against.
+
+       WHEN THE PIECES ARE ACTUALLY ORDERED AND RECEIVED, this is a
+       small change and an honest one: set EYEBROW to 'restocked', put
+       the real words in LEDE, and the scarcity line below keeps
+       itself right on its own because it is computed. Do it after the
+       units are in Shopify, not before -- the whole point is that the
+       page says what the catalogue says.
+
+       SCARCITY is what is true today, and it is not weak: 9 of 30
+       variants were already gone and 3 were down to a single unit.
+       The gate states that from the live catalogue rather than from
+       this file, so it is specific, it updates itself, and it cannot
+       become a lie as stock moves. Set it false to say nothing. */
+    SCARCITY: true,
+
     /* The one solid action on the screen. The form is behind it.
 
        "10% off" is TRUE and is checked, not assumed: the Early Access

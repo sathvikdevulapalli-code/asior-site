@@ -625,6 +625,31 @@ are not shown; the inline bootstrap is the only code that knows the
 gate is about to appear, so it injects them there. `perf.js` proves
 an admitted visitor fetches no gate font and no film.
 
+**The gate does not claim a sellout or a restock, and the reason is
+on the record.** Asked on 2026-11-14 to frame it as a huge restock of
+everything after selling out. Shopify the same day: 11 of 11 products
+active and buyable, 89 units, nothing sold out and nothing restocked.
+The founder confirmed no stock had been ordered and that more pieces
+were only likely later, and asked for the wording anyway to push
+sales. It is not written, because it is a statement about inventory
+that is false, and a fabricated sellout followed by a fabricated
+restock is the deceptive-urgency pattern this file bans twice over.
+
+What the gate says instead is **computed**: `tellWhatIsLeft()` counts
+variants where `availableForSale` is false and renders "N of M sizes
+already gone". On that day it was 9 of 30, with 3 more down to a
+single unit — real scarcity, and sharper than the invented kind
+because it is specific. It reads `availableForSale`, never quantity,
+for the reason the badges do: the Lanyard sits at −5 and is still
+buyable. It runs after the gate paints and fails silent, so a
+catalogue that cannot be reached produces no line rather than a
+guess, and it cannot drift into a lie as stock moves.
+
+When the pieces are actually ordered and land in Shopify, the restock
+framing is a small and honest change: `EYEBROW` to 'restocked', the
+real words in `LEDE`, and the computed line keeps itself right. Do it
+after the units exist, not before.
+
 **The gate names no discount, and must not.** Every discount in the
 Shopify account was read back on 2026-11-14. The only ACTIVE ones
 are ASIORTEN, the 2-piece automatic and free shipping at $50;

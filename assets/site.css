@@ -3792,6 +3792,21 @@ html.asior-gated body { overflow: hidden; height: 100%; }
    without pushing at the edges. Tracking is POSITIVE: Anton's default
    fit is tight enough at size, and a little air between five heavy
    caps is what stops ASIOR reading as one solid block. */
+/* Computed from the live catalogue by tellWhatIsLeft(), or hidden.
+   Sits under the eyebrow as a second, quieter system line -- it is a
+   fact about the stock, not a headline, and it reads as one. */
+.gate-scarcity {
+  margin: 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  color: rgba(232, 232, 234, 0.9);
+}
+
+.gate-scarcity[hidden] { display: none; }
+
 .gate-wordmark {
   /* It is a <button> -- clicking the mark opens the members'
      entrance -- so every UA button style has to be stripped, or the
@@ -4218,7 +4233,8 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-foot b { font-weight: 400; color: rgba(232, 232, 234, 0.45); }
 
-.gate-foot-right { display: flex; gap: 16px; }
+.gate-foot-left,
+.gate-foot-right { display: flex; gap: 16px; flex-wrap: wrap; }
 
 /* The centre scrim is sized for the desktop column. On a phone the
    panel is nearly the full width of the frame, so an ellipse at

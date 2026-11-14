@@ -218,6 +218,10 @@
             ? '<p class="gate-eyebrow g-rise" style="--in:120ms">' + esc(CFG.EYEBROW) + '</p>'
             : '') +
 
+          /* Filled in by tellWhatIsLeft() from the live catalogue, or
+             left hidden. Never written by hand. */
+          '<p class="gate-scarcity g-rise" id="gateScarcity" style="--in:180ms" hidden></p>' +
+
           /* The mark is a button: it opens the same sheet. Unmarked on
              purpose -- it looks like the wordmark and nothing else --
              but a real button rather than a click handler on a
@@ -344,6 +348,58 @@
 
     document.addEventListener('keydown', trap, true);
     pumpFilm();
+    tellWhatIsLeft();
+  }
+
+  /* ---- what is actually left ----------------------------------------
+
+     The founder asked for the gate to be framed as a huge restock
+     after selling out. Shopify said otherwise on 2026-11-14: 11 of 11
+     products active and buyable, 89 units, nothing sold out and
+     nothing restocked. A sellout-and-restock line would have been a
+     false inventory claim on a live storefront, which is the thing
+     CLAUDE.md bans outright and the FTC treats as deceptive.
+
+     What IS true is scarcity at the size level, and it is good: 9 of
+     30 variants were already gone and 3 more were down to one unit.
+     So the line is computed from the live catalogue rather than
+     written, which means it is urgent, it is specific, and it cannot
+     drift into a lie as stock moves.
+
+     availableForSale, never quantity. The Asior Lanyard sits at -5
+     and is still buyable, so a quantity rule would call a sellable
+     product sold out -- the same trap CLAUDE.md documents for badges.
+
+     Everything here fails silent and runs AFTER the gate has painted:
+     no line is always better than a wrong one, and the wall must not
+     wait on a request. */
+  function tellWhatIsLeft() {
+    var A2 = window.Asior || {};
+    if (!A2.shopifyFetch || !CFG.SCARCITY) return;
+
+    A2.shopifyFetch(
+      '{ products(first: 50) { edges { node { availableForSale variants(first: 40) {'
+      + ' edges { node { availableForSale } } } } } } }'
+    ).then(function (data) {
+      var edges = (data && data.products && data.products.edges) || [];
+      var total = 0, gone = 0;
+      for (var i = 0; i < edges.length; i++) {
+        var ve = (edges[i].node.variants && edges[i].node.variants.edges) || [];
+        for (var j = 0; j < ve.length; j++) {
+          total++;
+          if (ve[j].node.availableForSale === false) gone++;
+        }
+      }
+      /* Nothing to boast about, so say nothing. A "0 of 30 gone" line
+         is an anti-advert. */
+      if (!total || !gone) return;
+      var el = root && root.querySelector('#gateScarcity');
+      if (!el) return;
+      el.textContent = gone + ' of ' + total + ' sizes already gone';
+      el.hidden = false;
+    }).catch(function () {
+      /* No line. Never a guess. */
+    });
   }
 
   /* ---- the film ----------------------------------------------------
