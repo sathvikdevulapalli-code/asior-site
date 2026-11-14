@@ -227,22 +227,86 @@
                     'aria-label="Asior, members’ entrance">Asior</button>' +
           '</h1>' +
 
-          '<div class="gate-actions g-rise" style="--in:420ms">' +
-            '<button type="button" class="gate-cta" id="gateOpen">' +
-              esc(CFG.CTA || 'Early Access') + '</button>' +
-            '<p class="gate-cta-sub">' + esc(CFG.CTA_SUB || '') + '</p>' +
-            (CFG.FOLLOW && CFG.FOLLOW.ON
-              ? '<button type="button" class="gate-second" id="gateFollow">Follow</button>'
+          /* The description. It was lost when the sheet went away and
+             the sheet's lede went with it -- this screen is now the
+             only screen, so the one thing the gate has to explain
+             belongs on it. */
+          (CFG.LEDE
+            ? '<p class="gate-blurb g-rise" style="--in:360ms">' + esc(CFG.LEDE) + '</p>'
+            : '') +
+
+          /* THE FORM IS ON THE SCREEN, not behind a button.
+
+             It was behind the CTA, which is how the original worked,
+             and the founder asked for the clicks taken out: a
+             first-time visitor should see the boxes and type, not
+             press a thing to be shown a thing to press. Both fields
+             are here, the description is here, and the lookbook is a
+             strip below rather than another overlay. One screen, one
+             action. */
+          '<form class="gate-form g-rise" id="gateForm" novalidate style="--in:420ms">' +
+            '<label class="sr-only" for="gateEmail">Email address</label>' +
+            '<input class="field" type="email" id="gateEmail" name="email" ' +
+                   'placeholder="email" autocomplete="email" spellcheck="false" required>' +
+            (smsOn
+              ? '<label class="sr-only" for="gatePhone">Phone number (optional)</label>' +
+                '<input class="field" type="tel" id="gatePhone" name="phone" ' +
+                       'placeholder="phone (optional)" autocomplete="tel" inputmode="tel">'
               : '') +
+            '<button type="submit" id="gateBtn">' + esc(CFG.CTA || 'Enter') + '</button>' +
+            '<p class="gate-cta-sub">' + esc(CFG.CTA_SUB || '') + '</p>' +
+          '</form>' +
+
+          '<p class="gate-msg g-rise" id="gateMsg" role="status" aria-live="polite" ' +
+             'style="--in:520ms"></p>' +
+
+          /* The consent copy, on the screen beside the field it is
+             about, which is where prior express written consent has
+             to be. Collapsed behind a details element so it is not a
+             wall of small print above the fold, but open-able without
+             leaving the gate and present in the DOM for a reader. */
+          '<div class="gate-fineprint g-rise" style="--in:580ms">' +
+            (smsOn
+              ? '<details><summary>sms terms</summary><p>' + esc(CFG.SMS.CONSENT || '') +
+                ' See our <a href="/privacy-policy.html">Privacy Policy</a> and ' +
+                '<a href="/terms-of-service.html">Terms of Service</a>.</p></details>'
+              : '') +
+            '<p>By signing up, you agree to receive occasional marketing emails. ' +
+              'Unsubscribe anytime.</p>' +
           '</div>' +
 
         '</div>' +
 
-        '<div class="gate-foot g-rise" style="--in:640ms">' +
-          (CFG.LOOKBOOK && CFG.LOOKBOOK.length
-            ? '<button type="button" class="gate-bracket" id="gateLook">' +
-                '<b>[</b> lookbook <b>]</b></button>'
-            : '<span></span>') +
+        /* THE LOOKBOOK IS ON THE SCREEN TOO, as a strip you can swipe,
+           not a bracket that opens an overlay. The clothes are the
+           reason anybody is here and they were two taps away. Real
+           frames from the real shoot, lazy-loaded, and nothing in it
+           is a link because there is nowhere to go from behind a
+           gate. */
+        (CFG.LOOKBOOK && CFG.LOOKBOOK.length
+          ? '<div class="gate-look g-rise" style="--in:660ms">' +
+              '<p class="gate-look-label">the collection</p>' +
+              '<div class="gate-strip" tabindex="0" role="region" aria-label="Lookbook">' +
+                CFG.LOOKBOOK.map(function (sh) {
+                  return '<div class="gate-shot"><img src="' + esc(sh.src) + '" alt="' +
+                         esc(sh.alt) + '" loading="lazy" decoding="async"></div>';
+                }).join('') +
+              '</div>' +
+            '</div>'
+          : '') +
+
+        /* Follow was a button that opened a sheet of two links. With
+           the form on the screen the sheet was orphaned -- the button
+           went with the actions block -- and two links do not need a
+           dialog. They are links in the foot now, which is one tap
+           instead of two and no dead markup. */
+        '<div class="gate-foot g-rise" style="--in:760ms">' +
+          '<span class="gate-foot-left">' +
+            ((CFG.FOLLOW && CFG.FOLLOW.ON ? (CFG.FOLLOW.LINKS || []) : []).map(function (l) {
+              return '<a href="' + esc(l.href) + '" target="_blank" rel="noopener">' +
+                     '<b>[</b> ' + esc(l.label) + ' <b>]</b></a>';
+            }).join('')) +
+          '</span>' +
           '<span class="gate-foot-right">' +
             '<a href="mailto:' + esc(SUPPORT) + '">' + esc(SUPPORT) + '</a>' +
             '<a href="/privacy-policy.html"><b>[</b> privacy <b>]</b></a>' +
@@ -260,131 +324,26 @@
          clause most brands miss, that consent is not a condition of
          purchase. Entering a number is the consent act; leaving it
          blank subscribes nothing and still opens the gate. */
-      '<div class="gate-sheet-wrap" id="gateSignup" hidden>' +
-        '<div class="gate-sheet-scrim" data-gclose></div>' +
-        '<div class="gate-sheet" role="dialog" aria-modal="true" aria-labelledby="gateLede" tabindex="-1">' +
-          '<button type="button" class="gate-close" data-gclose aria-label="Close">' +
-            '<b>[</b> close <b>]</b></button>' +
-          '<p class="gate-sheet-label">early access</p>' +
-          '<p class="gate-lede" id="gateLede">' + esc(CFG.LEDE || '') + '</p>' +
-          '<form class="gate-form" id="gateForm" novalidate>' +
-            '<label class="sr-only" for="gateEmail">Email address</label>' +
-            '<input class="field" type="email" id="gateEmail" name="email" ' +
-                   'placeholder="email" autocomplete="email" spellcheck="false" required>' +
-            (smsOn
-              ? '<label class="sr-only" for="gatePhone">Phone number (optional)</label>' +
-                '<input class="field" type="tel" id="gatePhone" name="phone" ' +
-                       'placeholder="phone (optional)" autocomplete="tel" inputmode="tel">'
-              : '') +
-            '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || 'Get early access') + '</button>' +
-          '</form>' +
-          '<p class="gate-msg" id="gateMsg" role="status" aria-live="polite"></p>' +
-          (smsOn
-            ? '<p class="gate-consent">' + esc(CFG.SMS.CONSENT || '') +
-              ' See our <a href="/privacy-policy.html">Privacy Policy</a> and ' +
-              '<a href="/terms-of-service.html">Terms of Service</a>.</p>'
-            : '') +
-          '<p class="gate-consent">By signing up, you agree to receive occasional ' +
-            'marketing emails. Unsubscribe anytime.</p>' +
-        '</div>' +
-      '</div>' +
-
-      /* ---- the lookbook ----------------------------------------
-         Photographs only, nothing to click: there is nowhere to go
-         from behind a gate. Lazy-loaded inside a hidden overlay, so
-         the gate itself never pays for them. */
-      (CFG.LOOKBOOK && CFG.LOOKBOOK.length
-        ? '<div class="gate-sheet-wrap gate-look-wrap" id="gateLookbook" hidden>' +
-            '<div class="gate-sheet-scrim" data-gclose></div>' +
-            '<div class="gate-sheet gate-sheet-look" role="dialog" aria-modal="true" ' +
-                 'aria-label="Lookbook" tabindex="-1">' +
-              '<button type="button" class="gate-close" data-gclose aria-label="Close">' +
-                '<b>[</b> close <b>]</b></button>' +
-              '<div class="gate-strip" tabindex="0" role="region" aria-label="Lookbook">' +
-                CFG.LOOKBOOK.map(function (s) {
-                  return '<div class="gate-shot"><img src="' + esc(s.src) + '" alt="' +
-                         esc(s.alt) + '" loading="lazy" decoding="async"></div>';
-                }).join('') +
-              '</div>' +
-            '</div>' +
-          '</div>'
-        : '') +
-
-      /* ---- follow ----------------------------------------------
-         Links, not an embedded feed: a live Instagram grid needs the
-         Basic Display API, a server to hold the token and a refresh
-         every 60 days, which is a standing job on a site of static
-         files. */
-      (CFG.FOLLOW && CFG.FOLLOW.ON
-        ? '<div class="gate-sheet-wrap" id="gateFollowSheet" hidden>' +
-            '<div class="gate-sheet-scrim" data-gclose></div>' +
-            '<div class="gate-sheet" role="dialog" aria-modal="true" ' +
-                 'aria-label="Follow Asior" tabindex="-1">' +
-              '<button type="button" class="gate-close" data-gclose aria-label="Close">' +
-                '<b>[</b> close <b>]</b></button>' +
-              '<p class="gate-sheet-label">follow</p>' +
-              '<ul class="gate-follow-list">' +
-                (CFG.FOLLOW.LINKS || []).map(function (l) {
-                  return '<li><a href="' + esc(l.href) + '" target="_blank" rel="noopener">' +
-                         '<b>[</b> ' + esc(l.label) + ' <b>]</b></a></li>';
-                }).join('') +
-              '</ul>' +
-            '</div>' +
-          '</div>'
-        : '');
-
     document.body.appendChild(root);
     document.documentElement.classList.add('asior-gated');
     reveal();
 
     root.querySelector('#gateForm').addEventListener('submit', submit);
 
-    var openSignup = function () { openSheet('#gateSignup', '#gateEmail'); };
-    root.querySelector('#gateOpen').addEventListener('click', openSignup);
-    root.querySelector('#gateMark').addEventListener('click', openSignup);
-
-    var lookBtn = root.querySelector('#gateLook');
-    if (lookBtn) lookBtn.addEventListener('click', function () { openSheet('#gateLookbook'); });
-
-    var followBtn = root.querySelector('#gateFollow');
-    if (followBtn) followBtn.addEventListener('click', function () { openSheet('#gateFollowSheet'); });
-
-    root.addEventListener('click', function (e) {
-      if (e.target.closest('[data-gclose]')) closeSheet();
-    });
+    /* The mark no longer opens anything -- the form is already on
+       screen -- so it focuses the field instead. Still a button, so
+       it is still reachable from a keyboard, and a tap on the big
+       obvious thing does something useful rather than nothing. */
+    var mark = root.querySelector('#gateMark');
+    if (mark) {
+      mark.addEventListener('click', function () {
+        var f = root.querySelector('#gateEmail');
+        if (f) { try { f.focus(); } catch (e) {} }
+      });
+    }
 
     document.addEventListener('keydown', trap, true);
     pumpFilm();
-  }
-
-  /* ---- the sheets ---------------------------------------------------
-
-     One open at a time. Escape closes a SHEET and nothing else: the
-     gate itself has no escape, which is the whole point of it, so
-     onKey below only acts when a sheet is up. */
-  var openPanel = null;
-
-  function openSheet(sel, focusSel) {
-    closeSheet();
-    var el = root && root.querySelector(sel);
-    if (!el) return;
-    el.hidden = false;
-    openPanel = el;
-    requestAnimationFrame(function () { el.classList.add('is-open'); });
-    setTimeout(function () {
-      var f = focusSel ? el.querySelector(focusSel) : el.querySelector('.gate-sheet');
-      if (f) { try { f.focus(); } catch (e) {} }
-    }, 80);
-  }
-
-  function closeSheet() {
-    if (!openPanel) return;
-    var el = openPanel;
-    openPanel = null;
-    el.classList.remove('is-open');
-    setTimeout(function () { el.hidden = true; }, 240);
-    var back = root && root.querySelector('#gateOpen');
-    if (back) { try { back.focus(); } catch (e) {} }
   }
 
   /* ---- the film ----------------------------------------------------
@@ -417,26 +376,19 @@
     }
   }
 
-  /* Focus stays inside, and Escape closes a SHEET and nothing else.
-
-     The gate itself has no escape -- that is the whole point of it --
-     so Escape is only wired while a sheet is open, where a dialog
-     that cannot be dismissed from the keyboard would be a trap in the
-     accessibility sense rather than the marketing one. Tab cycles
-     within whatever is frontmost, so the screen is operable without a
-     mouse either way. */
+  /* Focus stays inside. Tab cycles the gate's own controls, so the
+     screen is fully operable from a keyboard; Escape does nothing,
+     because the gate has no escape by design and there are no longer
+     any sheets over it that would need one. */
   function trap(e) {
     if (!root) return;
 
-    if (e.key === 'Escape' && openPanel) {
-      e.preventDefault();
-      closeSheet();
-      return;
-    }
+    /* Escape is deliberately not wired at all now. There are no
+       sheets left to dismiss -- everything is on the one screen --
+       and the gate itself has no escape by design. */
     if (e.key !== 'Tab') return;
 
-    var scope = openPanel ? openPanel.querySelector('.gate-sheet') : root;
-    if (!scope) return;
+    var scope = root;
     var f = [].slice.call(scope.querySelectorAll(
       'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )).filter(function (el) { return el.offsetParent !== null; });

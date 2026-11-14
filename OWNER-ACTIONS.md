@@ -512,3 +512,42 @@ landing and written onto the Shopify cart as attributes, so they appear
 on the order. Verified end to end against a mocked Storefront API on
 2026-10-28 — `cartCreate` carried
 `utm_source=instagram, utm_medium=paid, utm_campaign=fall-sellout`.
+
+## Turn on Vercel Web Analytics (one click, and nothing counts visits without it)
+
+`<script defer src="/_vercel/insights/script.js">` now ships on every
+page, but it 404s harmlessly until Web Analytics is enabled on the
+Vercel project (Project, Analytics, Enable).
+
+Why it matters, measured 2026-11-14:
+
+| source | 30 days | what it actually counts |
+|---|---|---|
+| Shopify sessions | 50, **100% "direct"** | only what the monorail beacon sends |
+| Klaviyo Active on Site | 5 | only profiles Klaviyo already knows |
+| Vercel | — | every request, at the edge |
+
+Nothing on this site counts visitors today. Shopify attributed **zero**
+sessions to social in 30 days, which is not Shopify being wrong:
+Instagram's in-app browser sends no `document.referrer`, so without UTM
+parameters on the inbound link there is nothing to attribute with.
+
+## Put UTMs on the Instagram bio link
+
+The site already captures first-touch UTMs and click ids, keeps them
+in `localStorage`, and rides them through to the Shopify order as cart
+attributes. That machinery works and is unused, because the links
+arriving carry no tags.
+
+Either point the bio at the link-in-bio page, which stamps them for
+you:
+
+    asiorclothing.com/links
+
+or tag the direct link:
+
+    asiorclothing.com/?utm_source=instagram&utm_medium=social&utm_campaign=bio
+
+Until one of those is live, every Instagram visitor lands as "direct"
+and no report can tell you otherwise.
+

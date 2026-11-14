@@ -3715,7 +3715,11 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: clamp(18px, 3.2vh, 34px);
+  /* Tighter than it was. The screen used to hold four things and now
+     holds seven -- eyebrow, mark, description, form, message, fine
+     print, lookbook -- and the old gap left a hole between the
+     sub-line and the fine print big enough to read as a mistake. */
+  gap: clamp(12px, 1.9vh, 20px);
 }
 
 /* The type's own backing, bound to the column rather than to the
@@ -3820,7 +3824,7 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-blurb {
   margin: 0;
-  max-width: 30em;
+  max-width: 26em;
   font-size: 14px;
   line-height: 1.55;
   color: rgba(232, 232, 234, 0.82);
@@ -3987,7 +3991,14 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-lede:empty { display: none; }
 
-.gate-form { display: flex; flex-direction: column; gap: 8px; }
+/* On the screen now, over the film, so the field boundaries have to
+   hold against moving pictures rather than against a flat sheet. */
+.gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(380px, 100%);
+}
 
 .gate-form .field {
   width: 100%;
@@ -3995,22 +4006,22 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   padding: 0 14px;
   font-family: var(--g-sans);
   font-size: 16px;         /* 16px or iOS zooms on focus */
-  color: var(--ink);
-  background: var(--input-bg);
-  border: 1px solid var(--field-line);
+  color: #fff;
+  background: rgba(11, 11, 12, 0.55);
+  border: 1px solid rgba(232, 232, 234, 0.5);
   border-radius: var(--input-radius);
 }
 
-.gate-form .field::placeholder { color: var(--muted); }
-.gate-form .field:focus { border-color: var(--ink); outline: none; }
+.gate-form .field::placeholder { color: rgba(232, 232, 234, 0.62); }
+.gate-form .field:focus { border-color: #fff; outline: none; background: rgba(11, 11, 12, 0.75); }
 
 .gate-form button[type="submit"] {
   height: 50px;
   margin-top: 2px;
   border: 0;
   border-radius: var(--btn-radius);
-  background: var(--accent);
-  color: var(--on-accent);
+  background: #fff;
+  color: #0B0B0C;
   font-family: var(--g-sans);
   font-size: 13px;
   font-weight: 700;
@@ -4088,6 +4099,80 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-follow-list b { font-weight: 400; color: var(--muted); }
 .gate-follow-list a:hover { color: #fff; }
+
+/* ---------- the fine print ----------
+
+   On the screen beside the field it is about, which is where prior
+   express written consent has to be -- but folded, so the gate is not
+   a wall of small print above the fold. A <details> rather than a
+   link away: it opens in place, it is in the DOM for a reader, and
+   nobody has to leave the gate to read what they are agreeing to. */
+.gate-fineprint {
+  width: min(380px, 100%);
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(232, 232, 234, 0.7);
+}
+
+.gate-fineprint p { margin: 8px 0 0; }
+.gate-fineprint a { color: inherit; text-decoration: underline; }
+
+.gate-fineprint summary {
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(232, 232, 234, 0.62);
+}
+
+.gate-fineprint summary:hover { color: #fff; }
+.gate-fineprint details p { margin-top: 6px; }
+
+/* ---------- the lookbook, on the screen ----------
+
+   A swipeable strip rather than a bracket that opens an overlay. The
+   clothes are the reason anybody is here and they were two taps
+   away. */
+.gate-look { width: 100%; margin-top: 4px; }
+
+.gate-look-label {
+  margin: 0 0 8px;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: rgba(232, 232, 234, 0.72);
+}
+
+.gate-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+
+.gate-strip::-webkit-scrollbar { display: none; }
+
+.gate-shot {
+  flex: 0 0 104px;
+  scroll-snap-align: start;
+  background: var(--surface);
+}
+
+@media (min-width: 760px) { .gate-shot { flex-basis: 132px; } }
+
+.gate-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+}
 
 /* ---------- the foot ---------- */
 
