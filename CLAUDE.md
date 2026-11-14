@@ -461,13 +461,62 @@ campaign page. Configured entirely by `assets/drop-config.js`
 (`window.ASIOR_DROP`); `assets/drop-access.js` reads it and decides.
 Both are loaded, deferred, on all 22 pages from `HEAD_SHARED`.
 
-**It is never a lock.** Escape, the scrim, the close button and
-"Continue shopping" all close it, and every card either adds to the
-real Shopify cart or links to the real product page. There is no
+**The overlay is never a lock.** Escape, the scrim, the close button
+and "Continue shopping" all close it, and every card either adds to
+the real Shopify cart or links to the real product page. There is no
 configuration of it that puts a wall in front of the catalogue, and
 `NEVER_ON` plus a live cart-quantity check keep it away from anyone
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
+
+**The gate is. That is a separate thing, and it is deliberate.**
+`assets/drop-gate.js` plus `GATE` in `drop-config.js` is a real wall:
+a full-screen entry screen on every storefront page, no close
+control, Escape does nothing, and joining the Email list is the only
+way through. The founder asked for it on 2026-11-14, after being told
+in those words that it reverses their own earlier instruction not to
+password-protect the live storefront and that it stops new visitors
+buying Fall stock while the $50 free-shipping and 2-piece offers are
+running to clear that stock. They chose it anyway and chose email as
+the only door. **Do not "fix" it back to a dismissible overlay** —
+that is the thing they asked to change. `GATE.ON: false` is the one
+flag that turns it off, and nothing else needs undoing.
+
+It is a second file from the overlay on purpose: the overlay must
+never block a sale, the gate is a wall by definition, and one file
+holding both is one flag away from turning the overlay into a wall by
+accident.
+
+**It is not security, and nobody may be told it is.** The check runs
+in a browser on pages that are public URLs underneath it. No
+JavaScript, or `curl`, or reading `drop-gate.js` walks straight past,
+and Google indexes every product page exactly as before. It makes a
+first-time human visitor join the list before they see the clothes.
+That is all it does and all it may be described as doing.
+
+**Three things keep the gate from being an outage**, and all three
+have to stay:
+
+- **The watchdog.** The inline bootstrap in `HEAD_SHARED` hides
+  `<body>` before the storefront paints, so there is no flash of the
+  shop. If `drop-gate.js` then fails to load or throws, nothing else
+  would ever unhide it and the whole site is a blank page. The same
+  inline script schedules its own unconditional reveal at 4s. A
+  broken gate shows the shop; it never shows nothing.
+- **`FAIL_OPEN_ON_ERROR`.** Email is the only way in, so Klaviyo
+  being down is Asior being down. True admits a visitor whose
+  submission genuinely failed to reach Klaviyo — after a real address
+  and a real failure. It is a fuse, not a loophole.
+- **`ALWAYS_OPEN`.** The privacy, terms, refund and shipping policies
+  and `404.html` are never gated. A privacy policy behind an
+  email-capture wall is self-defeating, and Shopify's checkout footer
+  links to those four from a domain the gate cannot reach.
+
+**One boolean, two places, guarded.** The bootstrap runs before the
+deferred config, so `build.js` stamps `GATE.ON` into the head of
+every page and `check-slop.js` fails the build if any built page
+disagrees with `drop-config.js`. Never hand-edit the stamped value —
+run the build.
 
 **`AUTO` and the Klaviyo popup belong together.** Two Klaviyo signup
 popups were live — `UxDQrj` "Email & SMS Popup" and `Vtp6MG` "SMS" —

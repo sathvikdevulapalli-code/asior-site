@@ -229,6 +229,39 @@ for (const file of pages(ROOT)) {
   }
 }
 
+/* ---- the gate's kill switch is one boolean, in two places -------
+
+   assets/drop-config.js holds GATE.ON. The inline bootstrap in every
+   page's <head> needs the same answer before the deferred config has
+   run, so build.js stamps a copy into it. Two copies of a kill switch
+   is how a shop ends up closed on pages nobody re-generated, so this
+   checks the built HTML against the config and fails if any page
+   disagrees. If this ever fires, run the build -- do not hand-edit
+   the pages. */
+{
+  const cfg = fs.readFileSync(path.join(ROOT, 'assets', 'drop-config.js'), 'utf8');
+  const at = cfg.indexOf('GATE: {');
+  const m = at === -1 ? null : cfg.slice(at, at + 2000).match(/\bON:\s*(true|false)\b/);
+  if (!m) {
+    console.error('  assets/drop-config.js  no GATE.ON found; the gate guard cannot run');
+    hits++;
+  } else {
+    const want = `/*GATE_ON*/${m[1]}/*END_GATE_ON*/`;
+    const wrong = [];
+    for (const file of pages(ROOT).filter(f => f.endsWith('.html'))) {
+      const html = fs.readFileSync(file, 'utf8');
+      if (!html.includes('/*GATE_ON*/')) continue;    // page carries no bootstrap
+      if (!html.includes(want)) wrong.push(path.relative(ROOT, file));
+    }
+    if (wrong.length) {
+      console.error(`  the gate bootstrap disagrees with GATE.ON (${m[1]}) on ${wrong.length} page(s):`);
+      for (const f of wrong.slice(0, 8)) console.error(`      ${f}`);
+      console.error('      Run `npm run build` rather than editing the pages.');
+      hits++;
+    }
+  }
+}
+
 if (hits) {
   console.error(`\ncheck-slop: ${hits} banned item(s) in the built site.`);
   process.exit(1);

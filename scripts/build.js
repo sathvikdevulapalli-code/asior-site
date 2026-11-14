@@ -1531,7 +1531,7 @@ const FOOTER_HTML = `  <!-- The brand signature's strongest placement. Shopping 
    Klaviyo async and analytics deferred, so neither blocks first paint,
    and the preconnects save a round trip on each handshake. Synced into
    every page from here, so the tags exist in exactly one place. */
-const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
   <script async src="https://static.klaviyo.com/onsite/js/${KLAVIYO_COMPANY_ID}/klaviyo.js?company_id=${KLAVIYO_COMPANY_ID}"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
@@ -1551,7 +1551,67 @@ const HEAD_SHARED = `  <link rel="preconnect" href="https://static.klaviyo.com" 
        Klaviyo popups that are already live on every page. -->
   <script defer src="/assets/drop-config.js"></script>
   <script defer src="/assets/drop-access.js"></script>
+  <!-- THE ENTRY GATE. A wall, unlike the overlay above it. Read the
+       header of assets/drop-gate.js before touching any of this.
+
+       The bootstrap below is INLINE and SYNCHRONOUS on purpose: a
+       deferred script cannot hide the page until after the storefront
+       has already painted, and a wall that appears a beat after the
+       clothes is not a wall. It adds a class that hides <body> via
+       the .asior-gate-pending rule in site.css.
+
+       The watchdog is the reason that is safe. If drop-gate.js fails
+       to load, throws, or is slow, nothing else would ever remove
+       that class and every visitor would sit looking at a blank page
+       -- the whole site, down, from one bad deploy. So the same
+       inline script that hides the page schedules its own
+       unconditional reveal. A broken gate shows the shop. It never
+       shows nothing.
+
+       It reads ASIOR_DROP.GATE.ON from the deferred config, which has
+       not run yet, so it cannot: it checks the inlined copy of that
+       one boolean below instead. The build writes both from the same
+       source, and check-slop fails if they disagree. -->
+  <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
+    var d=document.documentElement;
+    if(localStorage.getItem('asior_gate_opened_at'))return;
+    d.classList.add('asior-gate-pending');
+    setTimeout(function(){d.classList.remove('asior-gate-pending');},4000);
+  }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}}})();</script>
+  <script defer src="/assets/drop-gate.js"></script>
 `;
+
+/* The gate's one boolean, read out of its real home.
+
+   The inline bootstrap above runs before the deferred config, so it
+   cannot ask ASIOR_DROP.GATE.ON -- it needs the answer baked in. Two
+   copies of a boolean is exactly how a kill switch ends up flipped in
+   one place and not the other, so only one of them is ever written by
+   hand: drop-config.js. This reads it from there at build time and
+   stamps it into the head of all 22 pages.
+
+   If it cannot be read, the gate is OFF. A gate that switches itself
+   on because a regex missed is a shop that closes itself. */
+function gateOnFromConfig() {
+  try {
+    const src = fs.readFileSync(path.join(ROOT, 'assets', 'drop-config.js'), 'utf8');
+    const at = src.indexOf('GATE: {');
+    if (at === -1) return false;
+    const m = src.slice(at, at + 2000).match(/\bON:\s*(true|false)\b/);
+    if (!m) return false;
+    return m[1] === 'true';
+  } catch (err) {
+    console.error('  gate: could not read GATE.ON, shipping the head with the gate OFF:', err.message);
+    return false;
+  }
+}
+
+const GATE_ON = gateOnFromConfig();
+const HEAD_SHARED = HEAD_SHARED_RAW.replace(
+  '/*GATE_ON*/true/*END_GATE_ON*/',
+  '/*GATE_ON*/' + GATE_ON + '/*END_GATE_ON*/'
+);
+console.log(`  gate: GATE.ON is ${GATE_ON}; head bootstrap stamped to match`);
 
 /* Every page gets the shared head, including the two that carry no
    shared header/footer: lanyard.html is a standalone product page, and

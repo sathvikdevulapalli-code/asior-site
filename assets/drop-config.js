@@ -101,6 +101,74 @@ window.ASIOR_DROP = {
      the same intent. */
   NEVER_ON: ['/cart', '/account', '/checkout'],
 
+  /* ---- THE ENTRY GATE -----------------------------------------------
+
+     THIS ONE REALLY BLOCKS THE STORE. Everything above this point is
+     the dismissible overlay; this is a wall.
+
+     Added 2026-11-14 at the founder's direction, after being told
+     that it reverses their own earlier instruction not to
+     password-protect the live storefront, and that it stops new
+     visitors buying Fall stock while the $50 free-shipping and
+     2-piece offers are running to clear that stock. They chose it
+     anyway, and chose email signup as the only way through.
+
+     IT IS NOT SECURITY. The check runs in a browser on pages that are
+     public URLs underneath it: no JavaScript, or `curl`, or reading
+     assets/drop-gate.js walks straight past. Google indexes every
+     product page exactly as before. It makes a first-time human
+     visitor join the list before they see the clothes, and that is
+     the whole of what it does.
+
+     TO TURN IT OFF: ON: false. One flag, one redeploy, nothing else
+     to undo, and the site is exactly what it was. */
+  GATE: {
+    /* The wall. False = assets/drop-gate.js returns immediately and
+       nothing is ever hidden. */
+    ON: true,
+
+    /* Email signup is the only way through, by the founder's choice
+       on 2026-11-14 over a code or a choice of both. Nothing else in
+       this file offers a second door, so there is no second door. */
+    LIST_ID: 'TN58zR',
+
+    HEADLINE: 'Members only.',
+    BLURB: 'Asior is open to the list. Put your email in and the door opens '
+         + 'for you, here and every time you come back.',
+    CTA: 'Enter',
+
+    /* Pages the gate never stands in front of.
+
+       A privacy policy behind an email-capture wall is self-defeating,
+       and Shopify's checkout footer links to these four from a domain
+       this gate cannot reach -- so emptying this list breaks those
+       links for somebody who is mid-checkout. 404 is here so a
+       mistyped URL is a 404 and not a wall. Matched as path prefixes,
+       with any .html suffix already stripped. */
+    ALWAYS_OPEN: [
+      '/privacy-policy',
+      '/terms-of-service',
+      '/refund-policy',
+      '/shipping-policy',
+      '/404',
+    ],
+
+    /* How long an unlock lasts. A returning customer is not asked
+       twice; a shared computer forgets after a year. */
+    REMEMBER_DAYS: 365,
+
+    /* THE OUTAGE FUSE. Email is the only way in, so Klaviyo being
+       down is Asior being down -- every visitor, no sales, until it
+       comes back.
+
+       True admits a visitor whose submission genuinely failed to
+       reach Klaviyo: after they typed a real address, and after the
+       request really failed. It is not a loophole a visitor can find
+       by guessing, it is a fuse. Set it false and a Klaviyo outage
+       closes the shop. */
+    FAIL_OPEN_ON_ERROR: true,
+  },
+
   /* ---- campaigns ---------------------------------------------------
 
      Each entry is one drop campaign. /drop.html renders the ACTIVE
