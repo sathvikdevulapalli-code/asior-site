@@ -1189,24 +1189,23 @@
      ahead. There is no low-stock state on purpose -- Shopify's
      quantities are not reliable enough across this catalogue to make a
      claim like that, and a wrong one costs more than a missing one. */
-  function dropState(catalog) {
-    var cfg = window.ASIOR_LAUNCH || {};
-    var at = cfg.PUBLIC_LAUNCH_TIME ? Date.parse(cfg.PUBLIC_LAUNCH_TIME) : NaN;
+  /* dropState(catalog) used to live here: it returned
+     { state: 'pre-drop' | 'live' | 'sold-out' | 'evergreen', at } off
+     PUBLIC_LAUNCH_TIME and FALL_PRODUCTS.
 
-    if (isFinite(at) && Date.now() < at) return { state: 'pre-drop', at: at };
-    if (!isFinite(at)) return { state: 'evergreen', at: null };
+     It was removed because it never ran. A second function with the
+     same name is declared further down this same IIFE -- the no-arg
+     one that returns 'upcoming' | 'open' | null off NEXT_DROP -- and
+     within one scope the LAST function declaration wins. Every caller
+     (wireDropCountdown, wireHeroCta, index.html) passes no argument
+     and expects the string, so the object version was shadowed from
+     the day it was added and nothing noticed. It was also exported
+     twice under the one key.
 
-    // Needs the catalogue. Until it arrives, a launched drop is live.
-    if (!catalog || !catalog.length) return { state: 'live', at: at };
-
-    var handles = (cfg.FALL_PRODUCTS || []).map(function (p) { return p.handle; });
-    var fall = catalog.filter(function (p) { return handles.indexOf(p.handle) !== -1; });
-    // No Fall pieces in the catalogue at all is not the same as all of
-    // them being sold out, and must not be reported as one.
-    if (!fall.length) return { state: 'live', at: at };
-    var allGone = fall.every(function (p) { return p.soldOut; });
-    return { state: allGone ? 'sold-out' : 'live', at: at };
-  }
+     Same trap as the three .product-title blocks and the mobile
+     header's min-height: the file reads as though both definitions
+     apply. If a pre-drop/sold-out state is ever wanted back, give it
+     its own name. */
 
   /* The launch instant in the visitor's own timezone, which is the only
      one they can act on. Returns null rather than a guess when the
@@ -2453,7 +2452,6 @@
   // -----------------------------------------------------------------
   window.Asior = {
     wireHeroCta: wireHeroCta,
-    dropState: dropState,
     dropConfig: dropConfig,
     comingCard: comingCard,
     wireComingNotify: wireComingNotify,
