@@ -881,24 +881,17 @@ ${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</la
   return urls.length;
 }
 
-/* Pull the real policy text out of the Shopify-hosted page. */
-async function syncPolicy(slug, file) {
-  const res = await fetch(`https://${SHOPIFY_DOMAIN}/policies/${slug}`, {
-    headers: { 'User-Agent': 'asior-build' },
-  });
-  if (!res.ok) throw new Error(`${slug}: HTTP ${res.status}`);
-  const page = await res.text();
+/* Every repair the policy text needs, in one place.
 
-  const m = page.match(/<div[^>]*class="[^"]*shopify-policy__body[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/)
-        || page.match(/<main[^>]*>([\s\S]*?)<\/main>/);
-  if (!m) throw new Error(`${slug}: could not locate policy body`);
-
-  let body = m[1]
-    .replace(/<script[\s\S]*?<\/script>/g, '')
-    .replace(/<style[\s\S]*?<\/style>/g, '')
-    .replace(/\s(class|style|id)="[^"]*"/g, '')
-    .trim();
-
+   These used to sit inline in syncPolicy(), which meant they only ran
+   when the fetch from Shopify succeeded -- and syncPolicy() throws on
+   a failed fetch, deliberately, so the page keeps its last good text.
+   The consequence was that the two dead anchors below survived every
+   offline build AND the committed HTML, because nothing ever cleaned
+   the text already on disk. The repairs are the same either way, so
+   they live here and run on both: on fresh text from Shopify, and on
+   whatever is already in the page when the fetch fails. */
+function cleanPolicyBody(body, slug) {
   /* Shopify's policy templates ship with literal "[LINK]" placeholders
      where the merchant is meant to link their other policies. Four of
      them were live on the public Terms and Privacy pages: "our Privacy
@@ -1005,6 +998,55 @@ async function syncPolicy(slug, file) {
   if (slug === 'privacy-policy' && !body.includes('We use the Meta Pixel to measure visits and cart activity')) {
     body += '\n<p>We use the Meta Pixel to measure visits and cart activity and to show relevant ads. You can opt out using the <a href="/privacy-policy.html#your-privacy-choices">Your Privacy Choices</a> link in the footer, and we honor Global Privacy Control browser signals.</p>';
   }
+  return body;
+}
+
+/* Run the repairs over the text already committed to a policy page.
+
+   Called after every sync attempt. On a successful sync it is a no-op,
+   because the fresh body went through the same function. On a failed
+   one it is the only thing standing between a customer and an email
+   address that looks like a link and does nothing. */
+function repairCommittedPolicy(file, slug) {
+  const target = path.join(ROOT, file);
+  const html = fs.readFileSync(target, 'utf8');
+  const start = html.indexOf('<!-- POLICY:START -->');
+  const end = html.indexOf('<!-- POLICY:END -->');
+  if (start === -1 || end === -1) return 0;
+  const block = html.slice(start, end);
+  const open = block.indexOf('<div class="policy-body">');
+  const close = block.lastIndexOf('</div>');
+  if (open === -1 || close === -1 || close <= open) return 0;
+  const bodyStart = open + '<div class="policy-body">'.length;
+  const body = block.slice(bodyStart, close);
+  const fixed = cleanPolicyBody(body, slug);
+  if (fixed === body) return 0;
+  const out = html.slice(0, start)
+    + block.slice(0, bodyStart) + fixed + block.slice(close)
+    + html.slice(end);
+  fs.writeFileSync(target, out);
+  return 1;
+}
+
+/* Pull the real policy text out of the Shopify-hosted page. */
+async function syncPolicy(slug, file) {
+  const res = await fetch(`https://${SHOPIFY_DOMAIN}/policies/${slug}`, {
+    headers: { 'User-Agent': 'asior-build' },
+  });
+  if (!res.ok) throw new Error(`${slug}: HTTP ${res.status}`);
+  const page = await res.text();
+
+  const m = page.match(/<div[^>]*class="[^"]*shopify-policy__body[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/)
+        || page.match(/<main[^>]*>([\s\S]*?)<\/main>/);
+  if (!m) throw new Error(`${slug}: could not locate policy body`);
+
+  let body = m[1]
+    .replace(/<script[\s\S]*?<\/script>/g, '')
+    .replace(/<style[\s\S]*?<\/style>/g, '')
+    .replace(/\s(class|style|id)="[^"]*"/g, '')
+    .trim();
+
+  body = cleanPolicyBody(body, slug);
 
   const target = path.join(ROOT, file);
   const html = fs.readFileSync(target, 'utf8');
@@ -2325,6 +2367,10 @@ function syncSiteJsonLd() {
     } catch (err) {
       failed = true;
       console.error(`✗ ${file} sync failed:`, err.message);
+    }
+    /* Whatever the sync did, the text on disk gets the repairs. */
+    if (repairCommittedPolicy(file, slug)) {
+      console.log(`  ${file}: committed policy text repaired in place`);
     }
   }
 

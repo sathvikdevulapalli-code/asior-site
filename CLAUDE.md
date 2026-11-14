@@ -285,6 +285,26 @@ how the price ended up 3px under its name while the name sat 10px
 under the photograph. One block now, and the two stale copies are
 gone — if you are about to add a fourth, edit the canonical one.
 
+**Document order is not a cascade.** The same trap caught the product
+page twice more, and both are fixed. `.site-header` carries
+`min-height: var(--header-h-ref)`, so the mobile block's `height:
+64px` never won — min-height beats height — and every phone page
+shipped an 85px header. The phone breakpoint now sets the token
+instead, which is also what keeps the hero's negative margin and
+`scroll-padding-top` in step. And `product.html`'s phone rhythm block
+sat *before* the components it overrode, so half of it was dead at
+equal specificity; it now lives at the end of that stylesheet and
+says so. An override belongs after what it overrides, or it belongs
+in the token.
+
+**The phone first screen is a contract.** On a 390×844 phone, a
+product page shows the photograph, name, price, model-fit line, size
+row, Add to bag and the ASIORTEN line with nothing scrolled. The two
+offer lines sit *between* Add to bag and Buy it now — Buy it now
+skips the cart, so that is the last place a shopper taking the
+express route can read them. Anything added to the buy panel is
+measured against that screen before it ships.
+
 **The title is clamped to one line** (`-webkit-line-clamp: 1`,
 `min-height: 1.35em`), 10px under the photograph with the price 5px
 under it. The clamp is what keeps every price in a row on the same
@@ -449,14 +469,21 @@ configuration of it that puts a wall in front of the catalogue, and
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
 
-**`AUTO` ships false, on purpose.** Two Klaviyo signup popups are LIVE
-on this account — `UxDQrj` "Email & SMS Popup" and `Vtp6MG` "SMS",
-both checked 2026-11-13 — and `klaviyo.js` loads on every page, so
-both already appear. An overlay that opened itself on top of them
-would be a third interruption on a first visit. Pause those two in
-Klaviyo before setting `AUTO: true`, or the measurement is worthless
-and the experience is a wall. The footer DROP ACCESS link opens it on
-demand either way, and that half cannot annoy anyone.
+**`AUTO` and the Klaviyo popup belong together.** Two Klaviyo signup
+popups were live — `UxDQrj` "Email & SMS Popup" and `Vtp6MG` "SMS" —
+and `klaviyo.js` loads on every page, so with the announcement bar's
+email ask a first-time visitor was asked for the same address three
+ways. On 2026-11-13, at the founder's direction: **`UxDQrj` was
+unpublished** (it duplicates the overlay's job), **`Vtp6MG` was left
+live** (the overlay never asks for a phone number, so it takes nothing
+from SMS capture), and **`AUTO` was set true at `ROLLOUT: 0.5`**.
+
+If `UxDQrj` is ever republished, set `AUTO` back to false — otherwise
+the double ask returns. That pairing is the thing to keep straight,
+and both halves are one click each. `ROLLOUT` stays at 0.5 until the
+`test` bucket's purchase conversion beats `control`; if dismissals
+dominate or test converts worse, turn `AUTO` off. An overlay is never
+worth a sale.
 
 **`RESTOCK_ALERTS` is false and must stay false until a flow exists.**
 A sold-out card is the obvious home for "notify me when it's back",
