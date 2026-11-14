@@ -366,6 +366,12 @@
      written, which means it is urgent, it is specific, and it cannot
      drift into a lie as stock moves.
 
+     It names the DEAD SIZES and never a ratio. An earlier version
+     read "N of M sizes already gone", and a denominator advertises
+     how much is still on the shelf -- the opposite of the job. A list
+     of things somebody wanted and cannot have says only that things
+     go.
+
      availableForSale, never quantity. The Asior Lanyard sits at -5
      and is still buyable, so a quantity rule would call a sellable
      product sold out -- the same trap CLAUDE.md documents for badges.
@@ -378,24 +384,45 @@
     if (!A2.shopifyFetch || !CFG.SCARCITY) return;
 
     A2.shopifyFetch(
-      '{ products(first: 50) { edges { node { availableForSale variants(first: 40) {'
-      + ' edges { node { availableForSale } } } } } } }'
+      '{ products(first: 50) { edges { node { title variants(first: 40) {'
+      + ' edges { node { title availableForSale } } } } } } }'
     ).then(function (data) {
       var edges = (data && data.products && data.products.edges) || [];
-      var total = 0, gone = 0;
+      var gone = [];
       for (var i = 0; i < edges.length; i++) {
-        var ve = (edges[i].node.variants && edges[i].node.variants.edges) || [];
+        var n = edges[i].node;
+        var ve = (n.variants && n.variants.edges) || [];
         for (var j = 0; j < ve.length; j++) {
-          total++;
-          if (ve[j].node.availableForSale === false) gone++;
+          if (ve[j].node.availableForSale !== false) continue;
+          var size = String(ve[j].node.title || '').trim();
+          if (!size || size === 'Default Title') continue;
+          /* The product name without its quote marks, then the size:
+             "JAG SET L" reads as a thing somebody wanted and cannot
+             have, which is the point. */
+          gone.push((String(n.title || '').replace(/["']/g, '') + ' ' + size)
+            .replace(/\s*\/\s*/g, ' ').trim());
         }
       }
-      /* Nothing to boast about, so say nothing. A "0 of 30 gone" line
-         is an anti-advert. */
-      if (!total || !gone) return;
+      if (!gone.length) return;
+
+      /* NAMES, NOT A RATIO.
+
+         This said "N of M sizes already gone", and the founder was
+         right that it was the wrong move: a denominator advertises
+         how much is still sitting there. Naming the dead sizes says
+         only that things go, which is the half that creates demand,
+         and it never states or implies what is left. */
+      /* Two, and a count. Four ran to three lines on a phone and
+         dominated the top of the screen -- a list that long reads as
+         inventory admin, not as scarcity. Two names and "+7 more"
+         lands harder and leaves the mark the biggest thing up
+         there. */
+      var show = gone.slice(0, 2).join(' \u00b7 ').toLowerCase();
+      if (gone.length > 2) show += ' \u00b7 +' + (gone.length - 2) + ' more';
+
       var el = root && root.querySelector('#gateScarcity');
       if (!el) return;
-      el.textContent = gone + ' of ' + total + ' sizes already gone';
+      el.textContent = 'gone: ' + show;
       el.hidden = false;
     }).catch(function () {
       /* No line. Never a guess. */
