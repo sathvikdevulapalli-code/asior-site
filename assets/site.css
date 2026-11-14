@@ -3789,7 +3789,17 @@ html.asior-gated body { overflow: hidden; height: 100%; }
    fit is tight enough at size, and a little air between five heavy
    caps is what stops ASIOR reading as one solid block. */
 .gate-wordmark {
+  /* It is a <button> -- clicking the mark opens the members'
+     entrance -- so every UA button style has to be stripped, or the
+     name sits in a grey box. Unmarked on purpose: it looks like the
+     wordmark and nothing else, but it is a real button so it can be
+     reached from a keyboard. */
+  display: inline-block;
   margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
   font-family: var(--g-display);
   font-weight: 400;
   font-size: clamp(3.4rem, 15vw, 8rem);
@@ -3818,35 +3828,27 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-blurb:empty { display: none; }
 
-/* ---------- the form ---------- */
+/* ---------- the two actions ----------
 
-.gate-form {
+   The signup was a bare line of text on the first version of this
+   screen, indistinguishable from the wordmark above it, and nobody
+   could tell it was the one thing you are meant to press. It is a
+   filled block: the only solid shape on the whole gate, so it reads
+   as the action without a label saying so. Everything else here
+   stays text, which is what lets one button carry that weight. */
+
+.gate-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   width: min(380px, 100%);
 }
 
-.gate-form .field {
+.gate-cta {
   width: 100%;
-  height: 50px;
-  padding: 0 14px;
-  font-family: var(--g-sans);
-  font-size: 16px;         /* 16px or iOS zooms on focus, and a zoomed
-                              gate cannot be dismissed */
-  color: #fff;
-  background: rgba(11, 11, 12, 0.5);
-  border: 1px solid rgba(232, 232, 234, 0.45);
-  border-radius: var(--input-radius);
-}
-
-.gate-form .field::placeholder { color: rgba(232, 232, 234, 0.6); }
-.gate-form .field:focus { border-color: #fff; outline: none; }
-
-/* The only solid shape on the gate, which is what lets it read as the
-   action without a label saying so. Everything else stays text. */
-.gate-form button[type="submit"] {
-  height: 50px;
+  min-height: 52px;
+  padding: 0 24px;
   border: 0;
   border-radius: var(--btn-radius);
   background: #fff;
@@ -3860,74 +3862,252 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   transition: box-shadow 160ms var(--g-cut), transform 90ms var(--g-cut);
 }
 
-.gate-form button[type="submit"]:hover { box-shadow: 0 0 0 4px rgba(232, 232, 234, 0.18); }
-.gate-form button[type="submit"]:active { transform: scale(0.978); }
-.gate-form button[type="submit"][disabled] { opacity: 0.55; cursor: default; transform: none; }
+.gate-cta:hover { box-shadow: 0 0 0 4px rgba(232, 232, 234, 0.18); }
+.gate-cta:active { transform: scale(0.978); }
 
-/* ---------- the SMS half ----------
-
-   Its own field, its own checkbox, its own sentence. SMS is never a
-   side effect of giving an email -- that is a rule in CLAUDE.md and
-   the reason is that an email address is not consent to be texted.
-   The number is only sent when the box is ticked, and the box starts
-   unticked. Leaving both alone still opens the gate. */
-
-.gate-sms {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 2px;
+.gate-cta-sub {
+  margin: 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: rgba(232, 232, 234, 0.74);
 }
 
-.gate-sms-opt {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  text-align: left;
+.gate-cta-sub:empty { display: none; }
+
+/* Text, with a rule that draws in from the left on hover. The second
+   action must not compete with the first: no fill, no box. */
+.gate-second {
+  position: relative;
+  margin-top: 4px;
+  padding: 6px 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--g-sans);
   font-size: 12px;
-  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: rgba(232, 232, 234, 0.82);
+}
+
+.gate-second::after {
+  content: '';
+  position: absolute;
+  left: 2px; bottom: 2px;
+  width: 0; height: 1px;
+  background: currentColor;
+  transition: width 220ms var(--g-cut);
+}
+
+.gate-second:hover, .gate-second:focus-visible { color: #fff; }
+.gate-second:hover::after, .gate-second:focus-visible::after { width: calc(100% - 4px); }
+
+.gate-wordmark-wrap { margin: 0; }
+
+/* ---------- the sheets ----------
+
+   The form lives behind the action, not on the screen. That is what
+   keeps the gate a picture with a name on it rather than a login
+   page over a photograph -- and it is how the original worked. */
+
+.gate-sheet-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.gate-sheet-wrap[hidden] { display: none; }
+
+.gate-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 11, 12, 0.82);
+  opacity: 0;
+  transition: opacity 240ms var(--g-cut);
+}
+
+.gate-sheet-wrap.is-open .gate-sheet-scrim { opacity: 1; }
+
+.gate-sheet {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 44px 28px 28px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 240ms var(--g-cut), transform 240ms var(--g-cut);
+}
+
+.gate-sheet-wrap.is-open .gate-sheet { opacity: 1; transform: none; }
+.gate-sheet:focus { outline: none; }
+
+.gate-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  min-width: 44px; min-height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(232, 232, 234, 0.72);
+}
+
+.gate-close:hover, .gate-close:focus-visible { color: #fff; }
+.gate-close b { font-weight: 400; color: rgba(232, 232, 234, 0.45); }
+
+.gate-sheet-label {
+  margin: 0 0 10px;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: rgba(232, 232, 234, 0.72);
+}
+
+.gate-lede {
+  margin: 0 0 20px;
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.gate-lede:empty { display: none; }
+
+.gate-form { display: flex; flex-direction: column; gap: 8px; }
+
+.gate-form .field {
+  width: 100%;
+  height: 50px;
+  padding: 0 14px;
+  font-family: var(--g-sans);
+  font-size: 16px;         /* 16px or iOS zooms on focus */
+  color: var(--ink);
+  background: var(--input-bg);
+  border: 1px solid var(--field-line);
+  border-radius: var(--input-radius);
+}
+
+.gate-form .field::placeholder { color: var(--muted); }
+.gate-form .field:focus { border-color: var(--ink); outline: none; }
+
+.gate-form button[type="submit"] {
+  height: 50px;
+  margin-top: 2px;
+  border: 0;
+  border-radius: var(--btn-radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--g-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
-.gate-sms-opt input {
-  flex: 0 0 auto;
-  width: 17px;
-  height: 17px;
-  margin: 1px 0 0;
-  accent-color: #fff;
-  cursor: pointer;
-}
-
-/* Revealed by the checkbox, so an unticked gate is two controls, not
-   four. [hidden] alone loses to the flex display above. */
-.gate-sms-field[hidden] { display: none; }
+.gate-form button[type="submit"][disabled] { opacity: 0.55; cursor: default; }
 
 .gate-msg {
-  margin: 0;
-  min-height: 1.5em;       /* reserved, so an error does not shove the
-                              consent lines down the screen */
+  margin: 10px 0 0;
+  min-height: 1.5em;
   font-family: var(--g-mono);
   font-size: 11px;
   line-height: 1.5;
   letter-spacing: 0.04em;
-  color: rgba(232, 232, 234, 0.86);
+  color: var(--muted);
 }
 
-.gate-msg.is-err { color: #fff; }
-.gate-msg.is-ok  { color: #fff; }
+.gate-msg.is-err, .gate-msg.is-ok { color: var(--ink); }
 
 .gate-consent {
-  margin: 0;
-  max-width: 34em;
+  margin: 12px 0 0;
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(232, 232, 234, 0.7);
+  color: var(--muted);
 }
 
-.gate-consent + .gate-consent { margin-top: -2px; }
+.gate-consent a { color: inherit; text-decoration: underline; }
+
+/* ---------- the lookbook ---------- */
+
+.gate-sheet-look {
+  width: min(900px, 100%);
+  padding: 44px 0 0;
+}
+
+.gate-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 0 0 20px;
+}
+
+.gate-strip::-webkit-scrollbar { display: none; }
+
+.gate-shot {
+  flex: 0 0 72%;
+  scroll-snap-align: center;
+  background: var(--surface);
+}
+
+@media (min-width: 760px) { .gate-shot { flex-basis: 38%; } }
+
+.gate-shot img { display: block; width: 100%; height: auto; }
+
+/* ---------- follow ---------- */
+
+.gate-follow-list { margin: 0; padding: 0; list-style: none; }
+
+.gate-follow-list li + li { margin-top: 10px; }
+
+.gate-follow-list a {
+  display: inline-block;
+  padding: 8px 0;
+  font-family: var(--g-mono);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.gate-follow-list b { font-weight: 400; color: var(--muted); }
+.gate-follow-list a:hover { color: #fff; }
 
 /* ---------- the foot ---------- */
+
+/* Same stripping as the wordmark: a bracket link is text, and the
+   button underneath it must not show. */
+.gate-bracket {
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: rgba(232, 232, 234, 0.72);
+}
+
+.gate-bracket:hover, .gate-bracket:focus-visible { color: #fff; }
+.gate-bracket b { font-weight: 400; color: rgba(232, 232, 234, 0.45); }
+
 
 .gate-foot {
   position: relative;

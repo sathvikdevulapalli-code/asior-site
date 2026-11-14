@@ -1576,20 +1576,29 @@ const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.c
     var d=document.documentElement;
     if(localStorage.getItem('asior_gate_opened_at'))return;
     d.classList.add('asior-gate-pending');
+    /* The gate's assets are fetched HERE, not from static <link>s in
+       this head, because only this line knows whether the gate is
+       about to appear. Three faces and a poster is 102KB, and a
+       visitor who is already through the gate never sees any of it --
+       preloading them on every page spent that on every page view of
+       every admitted customer, for a screen they will not be shown.
+       Injected only on the paint where the gate actually renders.
+
+       crossorigin is required on a font preload even same-origin:
+       font fetches are always CORS-mode, and a preload without it is
+       made in the wrong mode, ignored, and quietly fetched twice. */
+    ['/fonts/anton-latin.woff2','/fonts/inter-tight-var-latin.woff2',
+     '/fonts/courier-prime-400-latin.woff2'].forEach(function(h){
+      var l=document.createElement('link');
+      l.rel='preload';l.as='font';l.type='font/woff2';l.href=h;l.crossOrigin='anonymous';
+      d.firstChild.appendChild(l);
+    });
+    var p=document.createElement('link');
+    p.rel='preload';p.as='image';p.href='/video/gate-poster.jpg';p.fetchPriority='high';
+    d.firstChild.appendChild(p);
     setTimeout(function(){d.classList.remove('asior-gate-pending');},4000);
   }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}}})();</script>
   <script defer src="/assets/drop-gate.js"></script>
-  <!-- The gate's three faces, preloaded.
-
-       The @font-face rules live in site.css, so the browser would not
-       learn these files exist until it has parsed that far -- and
-       while the gate is up it IS the site, so its first paint is the
-       whole first impression. crossorigin is required even same-origin:
-       font fetches are always CORS-mode, and a preload without it is
-       made in the wrong mode, ignored, and quietly fetched again. -->
-  <link rel="preload" href="/fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/courier-prime-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 `;
 
 /* The gate's one boolean, read out of its real home.

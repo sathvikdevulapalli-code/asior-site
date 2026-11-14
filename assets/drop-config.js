@@ -146,8 +146,82 @@ window.ASIOR_DROP = {
        real terms go, in its real words. */
     EYEBROW: 'black friday',
 
-    BLURB: 'First access, before it goes up for anyone else.',
-    CTA: 'Enter',
+    /* The one solid action on the screen. The form is behind it.
+
+       "10% off" is TRUE and is checked, not assumed: the Early Access
+       flow (TXCdzE) on list TN58zR is LIVE, triggered by Added to
+       List, and its email renders a real ASIORTEN coupon block --
+       read back on 2026-11-14. If that flow is ever paused, this
+       copy becomes a promise nothing keeps, so change it in the same
+       breath. */
+    CTA: 'Early Access + 10% Off',
+    CTA_SUB: 'email + sms \u00b7 first access to the drop',
+
+    /* The line at the top of the sheet. */
+    LEDE: 'First access to the drop, plus 10% off your first order.',
+    SUBMIT: 'Get early access',
+
+    /* The address in the gate's foot. Same one the rest of the site
+       uses; see SUPPORT_EMAIL in scripts/build.js. */
+    SUPPORT_EMAIL: 'asiorclothing@gmail.com',
+
+    /* ---- the SMS half ------------------------------------------
+
+       An optional phone field beside the email one, with the consent
+       paragraph visible at the point of collection rather than
+       behind a toggle. SMS is never subscribed as a side effect of
+       an email signup: the number is its own value, its own request
+       and its own list, and an email alone sends nothing to SMS.
+
+       CONSENT is not copy, it is compliance. 47 CFR 64.1200(f)
+       requires prior express WRITTEN consent for marketing texts,
+       and the clause most brands miss is "not a condition of any
+       purchase". Klaviyo subscribes the number to a marketing list
+       the moment it is submitted, so this paragraph is what makes
+       that legitimate. Trimmed as far as it goes and no further --
+       have the final wording reviewed by a lawyer.
+
+       WORTH KNOWING: the SMS List's only flow (VieNw4) is still a
+       DRAFT, so a number captured here is stored and answered by
+       nothing until someone sets that flow live. Survivable in a way
+       the old back-in-stock capture was not -- this form promises no
+       message -- but it is why the welcome text is in
+       OWNER-ACTIONS.md. */
+    SMS: {
+      ON: true,
+      CONSENT: 'By entering your number you agree to receive recurring automated '
+             + 'marketing texts from Asior at that number. Consent is not a condition '
+             + 'of any purchase. Message frequency varies and message & data rates may '
+             + 'apply. Reply STOP to cancel, HELP for help.',
+    },
+
+    /* ---- the quiet second action -------------------------------
+       Links, not an embedded feed: a live Instagram grid needs the
+       Basic Display API, a server to hold the token and a refresh
+       every 60 days, which is a standing job on a site of static
+       files. Both handles are the ones in the shared footer. */
+    FOLLOW: {
+      ON: true,
+      LINKS: [
+        { label: 'instagram', href: 'https://www.instagram.com/asior_clothing/' },
+        { label: 'tiktok', href: 'https://www.tiktok.com/@asiorclothing.com' },
+      ],
+    },
+
+    /* ---- the lookbook ------------------------------------------
+       Photographs only, nothing to click: there is nowhere to go
+       from behind a gate, and community.html is gated like every
+       other page. Real frames from the real shoot, lazy-loaded
+       inside a hidden overlay so the gate never pays for them.
+       Empty this array and the bracket link disappears. */
+    LOOKBOOK: [
+      { src: '/images/look-01.jpg', alt: 'Black Asior tee with animal-print patches, worn with black shorts' },
+      { src: '/images/look-02.jpg', alt: 'Black Asior polo with animal-print collar and cuff trim' },
+      { src: '/images/look-04.jpg', alt: 'Two looks in all black \u2014 animal-print tees with black shorts' },
+      { src: '/images/look-05.jpg', alt: 'Back of a black Asior tee with the script logo in white' },
+      { src: '/images/look-06.jpg', alt: 'Asior sweat shorts with an animal-print side stripe' },
+      { src: '/images/look-03.jpg', alt: 'Two looks \u2014 black Asior tees with Asior sweat shorts' },
+    ],
 
     /* The address in the gate's foot. Same one the rest of the site
        uses; see SUPPORT_EMAIL in scripts/build.js. */
@@ -172,12 +246,6 @@ window.ASIOR_DROP = {
        in a way the old back-in-stock capture was not -- this gate
        promises no message, where that one promised one by name -- but
        it is why the welcome text is in OWNER-ACTIONS.md. */
-    SMS: {
-      ON: true,
-      OPT_LABEL: 'Text me too. Recurring marketing texts, msg & data rates may '
-               + 'apply, reply STOP to opt out.',
-    },
-
     /* Pages the gate never stands in front of.
 
        A privacy policy behind an email-capture wall is self-defeating,

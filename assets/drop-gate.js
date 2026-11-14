@@ -90,6 +90,8 @@
 
   if (!CFG || CFG.ON !== true) { reveal(); return; }
 
+  var SUPPORT = CFG.SUPPORT_EMAIL || 'asiorclothing@gmail.com';
+
   var LS_OPEN = 'asior_gate_opened_at';
   var LS_EMAIL = 'asior_gate_email';
 
@@ -154,8 +156,16 @@
     return null;
   }
 
+  /* ---- the screen ---------------------------------------------------
+
+     The shape of the original drop gate: a line saying when, the mark,
+     one solid action, a quiet second action, and a bracket link. The
+     form is NOT on this screen -- it is behind the action, in a sheet,
+     which is what keeps the gate a picture with a name on it rather
+     than a login page over a photograph. */
   function build() {
     var camp = campaign() || {};
+    var smsOn = CFG.SMS && CFG.SMS.ON === true;
 
     root = document.createElement('div');
     root.className = 'gate-root';
@@ -163,16 +173,8 @@
     root.setAttribute('aria-modal', 'true');
     root.setAttribute('aria-labelledby', 'gateTitle');
 
-    var smsOn = CFG.SMS && CFG.SMS.ON === true;
-
     root.innerHTML =
-      /* The still is first and always painted: it covers the moment
-         before the film decodes, and if the film never plays it is
-         simply what the gate is. */
       '<div class="gate-still" aria-hidden="true"></div>' +
-
-      /* Painted into only when the browser refuses to play the film
-         outright. See pumpFilm() below. */
       '<canvas class="gate-film" id="gateCanvas" aria-hidden="true" hidden></canvas>' +
 
       /* Both formats, MP4 first, each with an explicit codec string.
@@ -210,100 +212,182 @@
             ? '<p class="gate-eyebrow g-rise" style="--in:120ms">' + esc(CFG.EYEBROW) + '</p>'
             : '') +
 
-          '<h1 class="gate-wordmark g-rise" id="gateTitle" style="--in:260ms">Asior</h1>' +
+          /* The mark is a button: it opens the same sheet. Unmarked on
+             purpose -- it looks like the wordmark and nothing else --
+             but a real button rather than a click handler on a
+             heading, so it is reachable from a keyboard. */
+          '<h1 class="gate-wordmark-wrap g-rise" id="gateTitle" style="--in:260ms">' +
+            '<button type="button" class="gate-wordmark" id="gateMark" ' +
+                    'aria-label="Asior, members’ entrance">Asior</button>' +
+          '</h1>' +
 
-          (CFG.BLURB
-            ? '<p class="gate-blurb g-rise" style="--in:400ms">' + esc(CFG.BLURB) + '</p>'
-            : '') +
-
-          '<form class="gate-form g-rise" style="--in:520ms" novalidate>' +
-            '<label class="sr-only" for="gateEmail">Email address</label>' +
-            '<input class="field" type="email" id="gateEmail" name="email" ' +
-                   'placeholder="Email address" autocomplete="email" ' +
-                   'spellcheck="false" required>' +
-
-            (smsOn
-              ? '<div class="gate-sms">' +
-                  /* Unticked, and it stays unticked unless the person
-                     ticks it. An email address is not consent to be
-                     texted; this is the only thing that is. */
-                  '<label class="gate-sms-opt">' +
-                    '<input type="checkbox" id="gateSmsOpt">' +
-                    '<span>' + esc(CFG.SMS.OPT_LABEL ||
-                      'Text me too. Recurring marketing texts, msg & data rates may apply, reply STOP to opt out.') +
-                    '</span>' +
-                  '</label>' +
-                  '<div class="gate-sms-field" id="gateSmsField" hidden>' +
-                    '<label class="sr-only" for="gatePhone">Mobile number</label>' +
-                    '<input class="field" type="tel" id="gatePhone" name="phone" ' +
-                           'placeholder="Mobile number" autocomplete="tel" ' +
-                           'inputmode="tel" spellcheck="false">' +
-                  '</div>' +
-                '</div>'
+          '<div class="gate-actions g-rise" style="--in:420ms">' +
+            '<button type="button" class="gate-cta" id="gateOpen">' +
+              esc(CFG.CTA || 'Early Access') + '</button>' +
+            '<p class="gate-cta-sub">' + esc(CFG.CTA_SUB || '') + '</p>' +
+            (CFG.FOLLOW && CFG.FOLLOW.ON
+              ? '<button type="button" class="gate-second" id="gateFollow">Follow</button>'
               : '') +
-
-            '<button type="submit" id="gateBtn">' + esc(CFG.CTA || 'Enter') + '</button>' +
-          '</form>' +
-
-          '<p class="gate-msg g-rise" id="gateMsg" role="status" aria-live="polite" style="--in:600ms"></p>' +
-
-          /* The footer's consent sentence, word for word, because this
-             joins the same list on the same marketing consent. */
-          '<p class="gate-consent g-rise" style="--in:660ms">' +
-            'By signing up, you agree to receive occasional marketing emails. ' +
-            'Unsubscribe anytime.' +
-          '</p>' +
+          '</div>' +
 
         '</div>' +
 
-        '<div class="gate-foot g-rise" style="--in:780ms">' +
-          '<a href="mailto:' + esc(CFG.SUPPORT_EMAIL || 'asiorclothing@gmail.com') + '">' +
-            esc(CFG.SUPPORT_EMAIL || 'asiorclothing@gmail.com') + '</a>' +
+        '<div class="gate-foot g-rise" style="--in:640ms">' +
+          (CFG.LOOKBOOK && CFG.LOOKBOOK.length
+            ? '<button type="button" class="gate-bracket" id="gateLook">' +
+                '<b>[</b> lookbook <b>]</b></button>'
+            : '<span></span>') +
           '<span class="gate-foot-right">' +
+            '<a href="mailto:' + esc(SUPPORT) + '">' + esc(SUPPORT) + '</a>' +
             '<a href="/privacy-policy.html"><b>[</b> privacy <b>]</b></a>' +
             '<a href="/terms-of-service.html"><b>[</b> terms <b>]</b></a>' +
           '</span>' +
         '</div>' +
-      '</main>';
+      '</main>' +
+
+      /* ---- the signup sheet ------------------------------------
+
+         Email and, separately and optionally, a phone number. The
+         TCPA paragraph is visible at the point of collection rather
+         than behind a toggle, which is what 47 CFR 64.1200(f)
+         requires of prior express written consent -- including the
+         clause most brands miss, that consent is not a condition of
+         purchase. Entering a number is the consent act; leaving it
+         blank subscribes nothing and still opens the gate. */
+      '<div class="gate-sheet-wrap" id="gateSignup" hidden>' +
+        '<div class="gate-sheet-scrim" data-gclose></div>' +
+        '<div class="gate-sheet" role="dialog" aria-modal="true" aria-labelledby="gateLede" tabindex="-1">' +
+          '<button type="button" class="gate-close" data-gclose aria-label="Close">' +
+            '<b>[</b> close <b>]</b></button>' +
+          '<p class="gate-sheet-label">early access</p>' +
+          '<p class="gate-lede" id="gateLede">' + esc(CFG.LEDE || '') + '</p>' +
+          '<form class="gate-form" id="gateForm" novalidate>' +
+            '<label class="sr-only" for="gateEmail">Email address</label>' +
+            '<input class="field" type="email" id="gateEmail" name="email" ' +
+                   'placeholder="email" autocomplete="email" spellcheck="false" required>' +
+            (smsOn
+              ? '<label class="sr-only" for="gatePhone">Phone number (optional)</label>' +
+                '<input class="field" type="tel" id="gatePhone" name="phone" ' +
+                       'placeholder="phone (optional)" autocomplete="tel" inputmode="tel">'
+              : '') +
+            '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || 'Get early access') + '</button>' +
+          '</form>' +
+          '<p class="gate-msg" id="gateMsg" role="status" aria-live="polite"></p>' +
+          (smsOn
+            ? '<p class="gate-consent">' + esc(CFG.SMS.CONSENT || '') +
+              ' See our <a href="/privacy-policy.html">Privacy Policy</a> and ' +
+              '<a href="/terms-of-service.html">Terms of Service</a>.</p>'
+            : '') +
+          '<p class="gate-consent">By signing up, you agree to receive occasional ' +
+            'marketing emails. Unsubscribe anytime.</p>' +
+        '</div>' +
+      '</div>' +
+
+      /* ---- the lookbook ----------------------------------------
+         Photographs only, nothing to click: there is nowhere to go
+         from behind a gate. Lazy-loaded inside a hidden overlay, so
+         the gate itself never pays for them. */
+      (CFG.LOOKBOOK && CFG.LOOKBOOK.length
+        ? '<div class="gate-sheet-wrap gate-look-wrap" id="gateLookbook" hidden>' +
+            '<div class="gate-sheet-scrim" data-gclose></div>' +
+            '<div class="gate-sheet gate-sheet-look" role="dialog" aria-modal="true" ' +
+                 'aria-label="Lookbook" tabindex="-1">' +
+              '<button type="button" class="gate-close" data-gclose aria-label="Close">' +
+                '<b>[</b> close <b>]</b></button>' +
+              '<div class="gate-strip" tabindex="0" role="region" aria-label="Lookbook">' +
+                CFG.LOOKBOOK.map(function (s) {
+                  return '<div class="gate-shot"><img src="' + esc(s.src) + '" alt="' +
+                         esc(s.alt) + '" loading="lazy" decoding="async"></div>';
+                }).join('') +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        : '') +
+
+      /* ---- follow ----------------------------------------------
+         Links, not an embedded feed: a live Instagram grid needs the
+         Basic Display API, a server to hold the token and a refresh
+         every 60 days, which is a standing job on a site of static
+         files. */
+      (CFG.FOLLOW && CFG.FOLLOW.ON
+        ? '<div class="gate-sheet-wrap" id="gateFollowSheet" hidden>' +
+            '<div class="gate-sheet-scrim" data-gclose></div>' +
+            '<div class="gate-sheet" role="dialog" aria-modal="true" ' +
+                 'aria-label="Follow Asior" tabindex="-1">' +
+              '<button type="button" class="gate-close" data-gclose aria-label="Close">' +
+                '<b>[</b> close <b>]</b></button>' +
+              '<p class="gate-sheet-label">follow</p>' +
+              '<ul class="gate-follow-list">' +
+                (CFG.FOLLOW.LINKS || []).map(function (l) {
+                  return '<li><a href="' + esc(l.href) + '" target="_blank" rel="noopener">' +
+                         '<b>[</b> ' + esc(l.label) + ' <b>]</b></a></li>';
+                }).join('') +
+              '</ul>' +
+            '</div>' +
+          '</div>'
+        : '');
 
     document.body.appendChild(root);
     document.documentElement.classList.add('asior-gated');
     reveal();
 
-    root.querySelector('.gate-form').addEventListener('submit', submit);
+    root.querySelector('#gateForm').addEventListener('submit', submit);
 
-    /* The number field only exists once the box is ticked, so an
-       unticked gate is two controls rather than four. */
-    var optIn = root.querySelector('#gateSmsOpt');
-    if (optIn) {
-      optIn.addEventListener('change', function () {
-        var field = root.querySelector('#gateSmsField');
-        if (!field) return;
-        field.hidden = !optIn.checked;
-        if (optIn.checked) {
-          var tel = root.querySelector('#gatePhone');
-          if (tel) { try { tel.focus(); } catch (e) {} }
-        }
-      });
-    }
+    var openSignup = function () { openSheet('#gateSignup', '#gateEmail'); };
+    root.querySelector('#gateOpen').addEventListener('click', openSignup);
+    root.querySelector('#gateMark').addEventListener('click', openSignup);
+
+    var lookBtn = root.querySelector('#gateLook');
+    if (lookBtn) lookBtn.addEventListener('click', function () { openSheet('#gateLookbook'); });
+
+    var followBtn = root.querySelector('#gateFollow');
+    if (followBtn) followBtn.addEventListener('click', function () { openSheet('#gateFollowSheet'); });
+
+    root.addEventListener('click', function (e) {
+      if (e.target.closest('[data-gclose]')) closeSheet();
+    });
 
     document.addEventListener('keydown', trap, true);
     pumpFilm();
+  }
+
+  /* ---- the sheets ---------------------------------------------------
+
+     One open at a time. Escape closes a SHEET and nothing else: the
+     gate itself has no escape, which is the whole point of it, so
+     onKey below only acts when a sheet is up. */
+  var openPanel = null;
+
+  function openSheet(sel, focusSel) {
+    closeSheet();
+    var el = root && root.querySelector(sel);
+    if (!el) return;
+    el.hidden = false;
+    openPanel = el;
+    requestAnimationFrame(function () { el.classList.add('is-open'); });
     setTimeout(function () {
-      var f = root.querySelector('#gateEmail');
+      var f = focusSel ? el.querySelector(focusSel) : el.querySelector('.gate-sheet');
       if (f) { try { f.focus(); } catch (e) {} }
-    }, 60);
+    }, 80);
+  }
+
+  function closeSheet() {
+    if (!openPanel) return;
+    var el = openPanel;
+    openPanel = null;
+    el.classList.remove('is-open');
+    setTimeout(function () { el.hidden = true; }, 240);
+    var back = root && root.querySelector('#gateOpen');
+    if (back) { try { back.focus(); } catch (e) {} }
   }
 
   /* ---- the film ----------------------------------------------------
 
      Three outcomes, and the gate is presentable in all three:
 
-       it plays        -> the <video> fades in over the still
-       autoplay refused-> the still stays, and the gate is a photograph
-       cannot decode   -> same, unless the browser will decode frames
-                          into a canvas, which some will when they will
-                          not composite a video element
+       it plays         -> the <video> fades in over the still
+       autoplay refused -> the still stays, and the gate is a photograph
+       cannot decode    -> the same
 
      Nothing here can throw into the caller: a film is decoration, and
      decoration must never be what keeps someone out of a shop. */
@@ -327,13 +411,29 @@
     }
   }
 
-  /* Focus stays inside. Escape is deliberately not wired: this is a
-     gate, and the founder asked for one that does not let people
-     through. Tab still cycles, so it is operable by keyboard. */
+  /* Focus stays inside, and Escape closes a SHEET and nothing else.
+
+     The gate itself has no escape -- that is the whole point of it --
+     so Escape is only wired while a sheet is open, where a dialog
+     that cannot be dismissed from the keyboard would be a trap in the
+     accessibility sense rather than the marketing one. Tab cycles
+     within whatever is frontmost, so the screen is operable without a
+     mouse either way. */
   function trap(e) {
     if (!root) return;
+
+    if (e.key === 'Escape' && openPanel) {
+      e.preventDefault();
+      closeSheet();
+      return;
+    }
     if (e.key !== 'Tab') return;
-    var f = root.querySelectorAll('input, button, a[href]');
+
+    var scope = openPanel ? openPanel.querySelector('.gate-sheet') : root;
+    if (!scope) return;
+    var f = [].slice.call(scope.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(function (el) { return el.offsetParent !== null; });
     if (!f.length) return;
     var first = f[0], last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -379,18 +479,17 @@
 
     /* ---- the SMS half ------------------------------------------
 
-       Only if the box is ticked, and only with a number. Ticking it
-       and leaving the field blank is not consent to anything, so it
-       is treated as not ticked rather than as an error -- the person
-       is trying to get into a shop, not fill in a form.
+       A number is optional and typing one is the consent act, with
+       the TCPA paragraph visible beside the field rather than behind
+       a toggle -- which is what prior express written consent needs,
+       and is why this is a field rather than a checkbox.
 
-       The number is NEVER derived from the email signup. It is its
-       own request, to its own list, after its own checkbox, which is
-       the rule in CLAUDE.md and the reason is that an email address
-       is not permission to text somebody. */
-    var optIn = root.querySelector('#gateSmsOpt');
+       The number is NEVER derived from the email signup: it is its
+       own value, its own request and its own list, and an email on
+       its own subscribes no phone number. Leaving it blank is not an
+       error, it is just no SMS. */
     var telEl = root.querySelector('#gatePhone');
-    var phone = (optIn && optIn.checked && telEl) ? (telEl.value || '').trim() : '';
+    var phone = telEl ? (telEl.value || '').trim() : '';
     if (phone && !/^[0-9+().\-\s]{7,}$/.test(phone)) {
       say('that number does not look right.', 'err');
       try { telEl.focus(); } catch (x) {}

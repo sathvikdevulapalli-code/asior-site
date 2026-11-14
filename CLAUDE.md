@@ -562,16 +562,40 @@ across the loop is now 6.9:1. The gate suite samples 14 shots across
 the loop and fails under 4.5:1 — if either the wash or the film's
 `brightness()` is weakened, the test says so.
 
-**SMS is its own half, and that is not optional.** Its own
-checkbox, its own field, its own sentence, its own Klaviyo list
-(`UiFFMg` via `klaviyoSubscribeSms`). The box ships unticked, the
-number field does not exist until it is ticked, and an email signup
-subscribes no phone number — there are tests for exactly that, at
-both widths. `OPT_LABEL` carries the disclosures a marketing text
-programme needs (recurring, rates may apply, reply STOP); changing
-it is a compliance decision, not copy. Ticking the box and leaving
-the field blank is not an error: the gate opens with the email
-alone, because the person is trying to get into a shop.
+**The form is behind the action, not on the screen.** The gate is
+an eyebrow, the mark, one solid button and a bracket link; pressing
+the button (or the mark, which is the members' entrance) opens a
+sheet with the form in it. That is how the original worked and it
+is what keeps the gate a picture with a name on it rather than a
+login page over a photograph. Escape closes a **sheet** and never
+the gate — a dialog that cannot be dismissed from the keyboard is a
+trap in the accessibility sense, where the gate itself is one by
+design.
+
+**SMS is an optional field, with its consent beside it.** Its own
+value, its own request, its own Klaviyo list (`UiFFMg` via
+`klaviyoSubscribeSms`). Typing a number is the consent act and the
+TCPA paragraph is visible at the point of collection rather than
+behind a toggle, which is what 47 CFR 64.1200(f) requires of prior
+express written consent — including "not a condition of any
+purchase", the clause most brands miss. `SMS.CONSENT` is compliance,
+not copy. An email alone subscribes no phone number and there are
+tests for exactly that at both widths; leaving the number blank is
+not an error, the gate opens on the email alone.
+
+**"10% off" on the gate is checked, not assumed.** The Early Access
+flow (`TXCdzE`) on `TN58zR` is live, triggered by Added to List, and
+its email renders a real ASIORTEN coupon block — read back
+2026-11-14. If that flow is ever paused the CTA becomes a promise
+nothing keeps, so change the copy in the same breath.
+
+**The gate's assets are fetched by the bootstrap, not by a `<link>`
+in the head.** Three faces and a poster is 102KB, and a visitor who
+is already through never sees any of it. Static preloads spent that
+on every page view of every admitted customer, for a screen they
+are not shown; the inline bootstrap is the only code that knows the
+gate is about to appear, so it injects them there. `perf.js` proves
+an admitted visitor fetches no gate font and no film.
 
 **The gate names no discount, and must not.** Every discount in the
 Shopify account was read back on 2026-11-14. The only ACTIVE ones
