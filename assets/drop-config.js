@@ -132,10 +132,51 @@ window.ASIOR_DROP = {
        this file offers a second door, so there is no second door. */
     LIST_ID: 'TN58zR',
 
-    HEADLINE: 'Members only.',
-    BLURB: 'Asior is open to the list. Put your email in and the door opens '
-         + 'for you, here and every time you come back.',
+    /* The line above the wordmark. A moment, not an offer.
+
+       IT NAMES NO DISCOUNT, AND IT MUST NOT. Every discount in the
+       Shopify account was read back on 2026-11-14: the only ACTIVE
+       ones are ASIORTEN (10%), the "Any 2 pieces 15% off" automatic,
+       and free shipping at $50. THERE IS NO BLACK FRIDAY DISCOUNT.
+       The 12-HOUR SALE 15% automatic expired 2026-11-08 and THIRTY
+       expired 2026-10-28. So this says when, not what: the moment is
+       real and the percentage would not be.
+
+       Create a Black Friday discount in Shopify and this is where its
+       real terms go, in its real words. */
+    EYEBROW: 'black friday',
+
+    BLURB: 'First access, before it goes up for anyone else.',
     CTA: 'Enter',
+
+    /* The address in the gate's foot. Same one the rest of the site
+       uses; see SUPPORT_EMAIL in scripts/build.js. */
+    SUPPORT_EMAIL: 'asiorclothing@gmail.com',
+
+    /* ---- the SMS half ------------------------------------------
+
+       Its own checkbox, its own field, its own sentence, its own
+       Klaviyo list. SMS is NEVER subscribed as a side effect of an
+       email signup -- that is a rule in CLAUDE.md and the reason is
+       that an email address is not permission to text somebody. The
+       box ships unticked and the number field does not exist until
+       it is ticked.
+
+       OPT_LABEL carries the disclosures a marketing text programme
+       needs: that the messages recur, that rates may apply, and how
+       to stop. Changing it is a compliance decision, not copy.
+
+       WORTH KNOWING: the SMS List's only flow (VieNw4) is still a
+       DRAFT, so a number captured here is stored and answered by
+       nothing until someone sets that flow live. That is survivable
+       in a way the old back-in-stock capture was not -- this gate
+       promises no message, where that one promised one by name -- but
+       it is why the welcome text is in OWNER-ACTIONS.md. */
+    SMS: {
+      ON: true,
+      OPT_LABEL: 'Text me too. Recurring marketing texts, msg & data rates may '
+               + 'apply, reply STOP to opt out.',
+    },
 
     /* Pages the gate never stands in front of.
 
