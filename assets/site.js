@@ -1189,24 +1189,23 @@
      ahead. There is no low-stock state on purpose -- Shopify's
      quantities are not reliable enough across this catalogue to make a
      claim like that, and a wrong one costs more than a missing one. */
-  function dropState(catalog) {
-    var cfg = window.ASIOR_LAUNCH || {};
-    var at = cfg.PUBLIC_LAUNCH_TIME ? Date.parse(cfg.PUBLIC_LAUNCH_TIME) : NaN;
+  /* dropState(catalog) used to live here: it returned
+     { state: 'pre-drop' | 'live' | 'sold-out' | 'evergreen', at } off
+     PUBLIC_LAUNCH_TIME and FALL_PRODUCTS.
 
-    if (isFinite(at) && Date.now() < at) return { state: 'pre-drop', at: at };
-    if (!isFinite(at)) return { state: 'evergreen', at: null };
+     It was removed because it never ran. A second function with the
+     same name is declared further down this same IIFE -- the no-arg
+     one that returns 'upcoming' | 'open' | null off NEXT_DROP -- and
+     within one scope the LAST function declaration wins. Every caller
+     (wireDropCountdown, wireHeroCta, index.html) passes no argument
+     and expects the string, so the object version was shadowed from
+     the day it was added and nothing noticed. It was also exported
+     twice under the one key.
 
-    // Needs the catalogue. Until it arrives, a launched drop is live.
-    if (!catalog || !catalog.length) return { state: 'live', at: at };
-
-    var handles = (cfg.FALL_PRODUCTS || []).map(function (p) { return p.handle; });
-    var fall = catalog.filter(function (p) { return handles.indexOf(p.handle) !== -1; });
-    // No Fall pieces in the catalogue at all is not the same as all of
-    // them being sold out, and must not be reported as one.
-    if (!fall.length) return { state: 'live', at: at };
-    var allGone = fall.every(function (p) { return p.soldOut; });
-    return { state: allGone ? 'sold-out' : 'live', at: at };
-  }
+     Same trap as the three .product-title blocks and the mobile
+     header's min-height: the file reads as though both definitions
+     apply. If a pre-drop/sold-out state is ever wanted back, give it
+     its own name. */
 
   /* The launch instant in the visitor's own timezone, which is the only
      one they can act on. Returns null rather than a guess when the
@@ -1431,6 +1430,50 @@
     } catch (err) { /* tracking must never block a real user action */ }
   }
 
+  /* ---- one countable arrival per session ----------------------------
+
+     Shopify's session analytics will keep reporting this storefront's
+     traffic as direct whatever we infer, because a headless storefront
+     does not fire Shopify's own session beacon -- its attribution comes
+     from the checkout, not from a page view. Cart attributes fix the
+     ORDER (see cartAttributes), but an order is not a visit, and the
+     question asked was how many people came from Instagram.
+
+     So the visit is counted where it can be: one Klaviyo event per
+     session, carrying the inferred source and nothing else personal.
+     klaviyoTrack already falls back to the anonymous id, so this works
+     for a visitor who has never given an address, which is almost all
+     of them. 'Site Visit' then shows up in Klaviyo Analytics as a
+     metric that can be grouped by source -- the real number, next to
+     Instagram's 75.
+
+     Once per SESSION, not once per page: 22 pages of browsing is one
+     visit, and counting page views here would inflate the figure in
+     exactly the direction that flatters us. Fails silent, never
+     blocks, and is skipped entirely for a browser that will not hold
+     sessionStorage -- a visitor we cannot deduplicate is better
+     uncounted than counted 22 times. */
+  function trackArrival() {
+    try {
+      if (sessionStorage.getItem('asior_arrival')) return;
+      sessionStorage.setItem('asior_arrival', '1');
+    } catch (err) {
+      return;
+    }
+    try {
+      var utm = getUTMParams();
+      var props = {
+        source: utm.utm_source || 'direct',
+        medium: utm.utm_medium || 'none',
+        attribution: utm.asior_attr || 'none',
+        landing_page: location.pathname.slice(0, 120)
+      };
+      if (utm.utm_campaign) props.campaign = utm.utm_campaign;
+      if (utm.utm_content) props.content = utm.utm_content;
+      klaviyoTrack('Site Visit', props);
+    } catch (err) { /* a count is never worth a page */ }
+  }
+
   /* Sold-out capture goes to the normal email list, not a restock flow.
 
      There is no back-in-stock flow in Klaviyo on this account -- 18
@@ -1472,16 +1515,135 @@
     return id;
   }
 
-  /* First-touch UTM capture, persisted across pages/sessions the same
-     way getAnonId is. If the current URL carries any of the three
-     standard params, that's the freshest touch and overwrites whatever
-     was stored before; otherwise this returns the last touch this
-     browser had, if any. Deliberately not wired into klaviyoSubscribe
-     or klaviyoSubscribeToList — that endpoint's schema was only just
+  /* ---- where this visitor actually came from ------------------------
+
+     The problem this solves, measured on 2026-11-14: Shopify Analytics
+     reported 50 sessions in 30 days and attributed 100% of them to
+     "direct", zero to social, while Instagram's own dashboard counted
+     75 bio-link clicks. Neither number was wrong. Instagram's in-app
+     browser does not send a Referer to an external site, and the bio
+     link carried no UTM tags, so every one of those visitors arrived
+     looking exactly like somebody who typed the domain in.
+
+     An in-app browser does, however, announce itself in the User-Agent
+     -- Instagram's appends "Instagram 312.0.0.x", TikTok's carries
+     "musical_ly" and a BytedanceWebview token, Facebook's "FBAN"/"FBAV".
+     That is a first-party signal, present on the first request, and it
+     needs nothing from the ad platform and no tagged link.
+
+     So: real UTMs if the link has them, otherwise the referrer if there
+     is one, otherwise the app the browser says it is. Every inferred
+     touch is stamped asior_attr: 'inferred' so it is never mistaken in
+     Shopify or Klaviyo for a tagged click -- a derived source reported
+     as a measured one is how an analytics number becomes a lie.
+
+     Deliberately not a fingerprint: the UA string is read, nothing is
+     probed, and nothing is stored that the visitor did not arrive with. */
+
+  var IN_APP_BROWSERS = [
+    // Order matters where strings overlap: Instagram's UA also contains
+    // FBAV (it is a Meta app), so Instagram has to be tested first or
+    // every Instagram visitor is attributed to Facebook.
+    { re: /Instagram/i,                     source: 'instagram' },
+    { re: /\bTikTok\b|musical_ly|BytedanceWebview/i, source: 'tiktok' },
+    { re: /Snapchat/i,                      source: 'snapchat' },
+    { re: /Pinterest/i,                     source: 'pinterest' },
+    { re: /\[LinkedInApp\]/i,               source: 'linkedin' },
+    { re: /\bTwitter\b/i,                   source: 'twitter' },
+    { re: /FBAN|FBAV|FB_IAB|FBIOS/i,        source: 'facebook' },
+    { re: /\bLine\//i,                      source: 'line' },
+    { re: /KAKAOTALK/i,                     source: 'kakaotalk' }
+  ];
+
+  var REFERRER_SOURCES = [
+    { re: /(^|\.)instagram\.com$/i,  source: 'instagram', medium: 'social' },
+    { re: /(^|\.)tiktok\.com$/i,     source: 'tiktok',    medium: 'social' },
+    { re: /(^|\.)facebook\.com$|(^|\.)fb\.com$/i, source: 'facebook', medium: 'social' },
+    { re: /(^|\.)x\.com$|(^|\.)twitter\.com$|(^|\.)t\.co$/i, source: 'twitter', medium: 'social' },
+    { re: /(^|\.)pinterest\.[a-z.]+$/i, source: 'pinterest', medium: 'social' },
+    { re: /(^|\.)reddit\.com$/i,     source: 'reddit',    medium: 'social' },
+    { re: /(^|\.)youtube\.com$|(^|\.)youtu\.be$/i, source: 'youtube', medium: 'social' },
+    { re: /(^|\.)linkedin\.com$|(^|\.)lnkd\.in$/i, source: 'linkedin', medium: 'social' },
+    { re: /(^|\.)google\.[a-z.]+$/i, source: 'google',    medium: 'organic' },
+    { re: /(^|\.)bing\.com$/i,       source: 'bing',      medium: 'organic' },
+    { re: /(^|\.)duckduckgo\.com$/i, source: 'duckduckgo', medium: 'organic' },
+    { re: /(^|\.)search\.yahoo\.com$/i, source: 'yahoo',  medium: 'organic' }
+  ];
+
+  function inAppSource() {
+    var ua = '';
+    try { ua = navigator.userAgent || ''; } catch (err) { return null; }
+    for (var i = 0; i < IN_APP_BROWSERS.length; i++) {
+      if (IN_APP_BROWSERS[i].re.test(ua)) return IN_APP_BROWSERS[i].source;
+    }
+    return null;
+  }
+
+  function referrerSource() {
+    var host = '';
+    try {
+      var ref = document.referrer || '';
+      if (!ref) return null;
+      var url = new URL(ref);
+      host = url.hostname || '';
+      // Our own pages are not a referrer. A visitor moving from the
+      // shop to a product page must not be re-attributed to us.
+      if (host === location.hostname) return null;
+    } catch (err) {
+      return null;
+    }
+    for (var i = 0; i < REFERRER_SOURCES.length; i++) {
+      if (REFERRER_SOURCES[i].re.test(host)) {
+        return { source: REFERRER_SOURCES[i].source, medium: REFERRER_SOURCES[i].medium };
+      }
+    }
+    // A referrer we do not recognise is still worth more than nothing:
+    // the hostname is the source and the medium is a referral.
+    return { source: host.replace(/^www\./, '').slice(0, 60), medium: 'referral' };
+  }
+
+  /* An inferred touch, or null when there is genuinely nothing to go
+     on -- which is what a typed URL or a bookmark looks like, and the
+     honest answer for it is still "direct". */
+  function inferTouch() {
+    var app = inAppSource();
+    if (app) {
+      /* The app's own browser is the strongest signal available and it
+         beats the referrer, which inside these browsers is either
+         absent or an interstitial of the app's own. */
+      return { utm_source: app, utm_medium: 'social', asior_attr: 'inferred-app' };
+    }
+    var ref = referrerSource();
+    if (ref) {
+      return { utm_source: ref.source, utm_medium: ref.medium, asior_attr: 'inferred-referrer' };
+    }
+    return null;
+  }
+
+  /* First-touch attribution capture, persisted across pages and
+     sessions the same way getAnonId is.
+
+     Three tiers, strongest first:
+
+       1. UTM / click-id params on the URL -- a tagged link, measured.
+       2. An inferred touch from the in-app browser or the referrer.
+       3. Nothing, which is what direct traffic honestly looks like.
+
+     A tagged link always beats a stored inference, and never beats a
+     stored tagged link. That ordering is the whole point: first touch
+     wins so a creator who found the customer is not displaced by the
+     branded search that customer ran a week later, but a guess must
+     never outrank a fact, which is what would happen if an inferred
+     'instagram' were allowed to sit in front of a real utm_content
+     naming which post it was.
+
+     Deliberately not wired into klaviyoSubscribe or
+     klaviyoSubscribeToList -- that endpoint's schema was only just
      confirmed correct after a real production incident, and adding an
      unverified field to that specific request is exactly the kind of
      unproven change that caused it. Attribution rides on klaviyoTrack's
-     event properties instead, which already accepts arbitrary keys. */
+     event properties instead, which already accepts arbitrary keys,
+     and on the Shopify cart's attributes via cartAttributes(). */
   function getUTMParams() {
     var utm = {};
     try {
@@ -1503,18 +1665,37 @@
         // a pasted link can carry a very long value.
         if (v) utm[k] = String(v).slice(0, 200);
       });
-      if (Object.keys(utm).length) {
-        /* First touch wins. A visitor who lands from a creator link and
-           then comes back through a branded search should still be
-           credited to the creator -- overwriting here would quietly
-           reassign every conversion to the last channel, which is the
-           one that needed the least work. */
-        var prior = localStorage.getItem('asior_utm');
-        if (!prior) localStorage.setItem('asior_utm', JSON.stringify(utm));
-        return prior ? JSON.parse(prior) : utm;
+
+      var stored = null;
+      try {
+        var raw = localStorage.getItem('asior_utm');
+        if (raw) stored = JSON.parse(raw);
+      } catch (err) {
+        stored = null;   // unparseable is the same as absent
       }
-      var stored = localStorage.getItem('asior_utm');
-      return stored ? JSON.parse(stored) : {};
+      if (stored && typeof stored !== 'object') stored = null;
+
+      if (Object.keys(utm).length) {
+        utm.asior_attr = 'tagged';
+        /* First touch wins -- unless what is stored is an inference,
+           which a real tagged arrival is allowed to replace. */
+        if (!stored || stored.asior_attr !== 'tagged') {
+          try { localStorage.setItem('asior_utm', JSON.stringify(utm)); } catch (err) {}
+          return utm;
+        }
+        return stored;
+      }
+
+      if (stored) return stored;
+
+      /* No params and nothing stored: this is the visitor Shopify has
+         been filing as "direct" for a month. */
+      var guess = inferTouch();
+      if (guess) {
+        try { localStorage.setItem('asior_utm', JSON.stringify(guess)); } catch (err) {}
+        return guess;
+      }
+      return {};
     } catch (err) {
       return utm;
     }
@@ -2271,7 +2452,6 @@
   // -----------------------------------------------------------------
   window.Asior = {
     wireHeroCta: wireHeroCta,
-    dropState: dropState,
     dropConfig: dropConfig,
     comingCard: comingCard,
     wireComingNotify: wireComingNotify,
@@ -2336,6 +2516,7 @@
     launchDateLabel: launchDateLabel,
     getAnonId: getAnonId,
     getUTMParams: getUTMParams,
+    inferTouch: inferTouch,
     getVariant: getVariant,
     trackABEvent: trackABEvent,
     getViewed: getViewed,
@@ -3337,4 +3518,6 @@
   // the URL bar. This is what makes getUTMParams() called later, from
   // a form on any page, actually see the first touch.
   getUTMParams();
+  // And counts the visit once, now that the touch is resolved.
+  trackArrival();
 })();

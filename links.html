@@ -117,6 +117,26 @@
 <!-- HEAD:START -->
   <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <!-- A REAL VISITOR COUNT, which nothing else here provides.
+
+       Checked 2026-11-14: Shopify reported 50 sessions in 30 days and
+       attributed 100% of them to "direct" -- not one to social. That
+       is not Shopify being wrong, it is Shopify having nothing to go
+       on: Instagram's in-app browser sends no document.referrer, so
+       unless the inbound URL carries UTM parameters there is nothing
+       to attribute with. Klaviyo is no second opinion either; its
+       Active on Site metric fired 5 times in the same 30 days,
+       because it only counts profiles Klaviyo already knows.
+
+       Vercel counts at the edge, on the request itself, so it is
+       immune to the referrer being stripped, to ad blockers, and to
+       the gate. It is the only number here that answers "how many
+       people actually arrived".
+
+       NEEDS ONE CLICK FROM THE OWNER: Web Analytics has to be enabled
+       on the Vercel project or this script 404s harmlessly and counts
+       nothing. See OWNER-ACTIONS.md. -->
+  <script defer src="/_vercel/insights/script.js"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
   <!-- Ad pixels. Both files are inert until assets/ads-config.js is
@@ -135,6 +155,54 @@
        Klaviyo popups that are already live on every page. -->
   <script defer src="/assets/drop-config.js"></script>
   <script defer src="/assets/drop-access.js"></script>
+  <!-- THE ENTRY GATE. A wall, unlike the overlay above it. Read the
+       header of assets/drop-gate.js before touching any of this.
+
+       The bootstrap below is INLINE and SYNCHRONOUS on purpose: a
+       deferred script cannot hide the page until after the storefront
+       has already painted, and a wall that appears a beat after the
+       clothes is not a wall. It adds a class that hides <body> via
+       the .asior-gate-pending rule in site.css.
+
+       The watchdog is the reason that is safe. If drop-gate.js fails
+       to load, throws, or is slow, nothing else would ever remove
+       that class and every visitor would sit looking at a blank page
+       -- the whole site, down, from one bad deploy. So the same
+       inline script that hides the page schedules its own
+       unconditional reveal. A broken gate shows the shop. It never
+       shows nothing.
+
+       It reads ASIOR_DROP.GATE.ON from the deferred config, which has
+       not run yet, so it cannot: it checks the inlined copy of that
+       one boolean below instead. The build writes both from the same
+       source, and check-slop fails if they disagree. -->
+  <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
+    var d=document.documentElement;
+    if(localStorage.getItem('asior_gate_opened_at'))return;
+    d.classList.add('asior-gate-pending');
+    /* The gate's assets are fetched HERE, not from static <link>s in
+       this head, because only this line knows whether the gate is
+       about to appear. Three faces and a poster is 102KB, and a
+       visitor who is already through the gate never sees any of it --
+       preloading them on every page spent that on every page view of
+       every admitted customer, for a screen they will not be shown.
+       Injected only on the paint where the gate actually renders.
+
+       crossorigin is required on a font preload even same-origin:
+       font fetches are always CORS-mode, and a preload without it is
+       made in the wrong mode, ignored, and quietly fetched twice. */
+    ['/fonts/anton-latin.woff2','/fonts/inter-tight-var-latin.woff2',
+     '/fonts/courier-prime-400-latin.woff2'].forEach(function(h){
+      var l=document.createElement('link');
+      l.rel='preload';l.as='font';l.type='font/woff2';l.href=h;l.crossOrigin='anonymous';
+      d.firstChild.appendChild(l);
+    });
+    var p=document.createElement('link');
+    p.rel='preload';p.as='image';p.href='/video/gate-poster.jpg';p.fetchPriority='high';
+    d.firstChild.appendChild(p);
+    setTimeout(function(){d.classList.remove('asior-gate-pending');},4000);
+  }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}}})();</script>
+  <script defer src="/assets/drop-gate.js"></script>
   <!-- HEAD:END -->
 </head>
 <body>

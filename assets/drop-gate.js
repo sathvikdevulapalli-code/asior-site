@@ -218,6 +218,10 @@
             ? '<p class="gate-eyebrow g-rise" style="--in:120ms">' + esc(CFG.EYEBROW) + '</p>'
             : '') +
 
+          /* Filled in by tellWhatIsLeft() from the live catalogue, or
+             left hidden. Never written by hand. */
+          '<p class="gate-scarcity g-rise" id="gateScarcity" style="--in:180ms" hidden></p>' +
+
           /* The mark is a button: it opens the same sheet. Unmarked on
              purpose -- it looks like the wordmark and nothing else --
              but a real button rather than a click handler on a
@@ -344,6 +348,85 @@
 
     document.addEventListener('keydown', trap, true);
     pumpFilm();
+    tellWhatIsLeft();
+  }
+
+  /* ---- what is actually left ----------------------------------------
+
+     The founder asked for the gate to be framed as a huge restock
+     after selling out. Shopify said otherwise on 2026-11-14: 11 of 11
+     products active and buyable, 89 units, nothing sold out and
+     nothing restocked. A sellout-and-restock line would have been a
+     false inventory claim on a live storefront, which is the thing
+     CLAUDE.md bans outright and the FTC treats as deceptive.
+
+     What IS true is scarcity at the size level, and it is good: 9 of
+     30 variants were already gone and 3 more were down to one unit.
+     So the line is computed from the live catalogue rather than
+     written, which means it is urgent, it is specific, and it cannot
+     drift into a lie as stock moves.
+
+     It names the DEAD SIZES and never a ratio. An earlier version
+     read "N of M sizes already gone", and a denominator advertises
+     how much is still on the shelf -- the opposite of the job. A list
+     of things somebody wanted and cannot have says only that things
+     go.
+
+     availableForSale, never quantity. The Asior Lanyard sits at -5
+     and is still buyable, so a quantity rule would call a sellable
+     product sold out -- the same trap CLAUDE.md documents for badges.
+
+     Everything here fails silent and runs AFTER the gate has painted:
+     no line is always better than a wrong one, and the wall must not
+     wait on a request. */
+  function tellWhatIsLeft() {
+    var A2 = window.Asior || {};
+    if (!A2.shopifyFetch || !CFG.SCARCITY) return;
+
+    A2.shopifyFetch(
+      '{ products(first: 50) { edges { node { title variants(first: 40) {'
+      + ' edges { node { title availableForSale } } } } } } }'
+    ).then(function (data) {
+      var edges = (data && data.products && data.products.edges) || [];
+      var gone = [];
+      for (var i = 0; i < edges.length; i++) {
+        var n = edges[i].node;
+        var ve = (n.variants && n.variants.edges) || [];
+        for (var j = 0; j < ve.length; j++) {
+          if (ve[j].node.availableForSale !== false) continue;
+          var size = String(ve[j].node.title || '').trim();
+          if (!size || size === 'Default Title') continue;
+          /* The product name without its quote marks, then the size:
+             "JAG SET L" reads as a thing somebody wanted and cannot
+             have, which is the point. */
+          gone.push((String(n.title || '').replace(/["']/g, '') + ' ' + size)
+            .replace(/\s*\/\s*/g, ' ').trim());
+        }
+      }
+      if (!gone.length) return;
+
+      /* NAMES, NOT A RATIO.
+
+         This said "N of M sizes already gone", and the founder was
+         right that it was the wrong move: a denominator advertises
+         how much is still sitting there. Naming the dead sizes says
+         only that things go, which is the half that creates demand,
+         and it never states or implies what is left. */
+      /* Two, and a count. Four ran to three lines on a phone and
+         dominated the top of the screen -- a list that long reads as
+         inventory admin, not as scarcity. Two names and "+7 more"
+         lands harder and leaves the mark the biggest thing up
+         there. */
+      var show = gone.slice(0, 2).join(' \u00b7 ').toLowerCase();
+      if (gone.length > 2) show += ' \u00b7 +' + (gone.length - 2) + ' more';
+
+      var el = root && root.querySelector('#gateScarcity');
+      if (!el) return;
+      el.textContent = 'gone: ' + show;
+      el.hidden = false;
+    }).catch(function () {
+      /* No line. Never a guess. */
+    });
   }
 
   /* ---- the film ----------------------------------------------------

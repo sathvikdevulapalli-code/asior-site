@@ -513,41 +513,86 @@ on the order. Verified end to end against a mocked Storefront API on
 2026-10-28 — `cartCreate` carried
 `utm_source=instagram, utm_medium=paid, utm_campaign=fall-sellout`.
 
-## Turn on Vercel Web Analytics (one click, and nothing counts visits without it)
+## Tracking: what the site now does by itself (2026-11-14)
 
-`<script defer src="/_vercel/insights/script.js">` now ships on every
-page, but it 404s harmlessly until Web Analytics is enabled on the
-Vercel project (Project, Analytics, Enable).
-
-Why it matters, measured 2026-11-14:
+The complaint: Instagram's dashboard said **75 bio-link clicks**,
+Shopify said **12**. Here is the whole picture, read back on
+2026-11-14.
 
 | source | 30 days | what it actually counts |
 |---|---|---|
-| Shopify sessions | 50, **100% "direct"** | only what the monorail beacon sends |
+| Instagram dashboard | 75 clicks | taps on the bio link, before the browser even opens |
+| Shopify sessions | 50, **100% "direct"** | only what Shopify's monorail beacon sends |
 | Klaviyo Active on Site | 5 | only profiles Klaviyo already knows |
-| Vercel | — | every request, at the edge |
+| Vercel | — | every request, at the edge — **not enabled yet** |
 
-Nothing on this site counts visitors today. Shopify attributed **zero**
-sessions to social in 30 days, which is not Shopify being wrong:
-Instagram's in-app browser sends no `document.referrer`, so without UTM
-parameters on the inbound link there is nothing to attribute with.
+None of those numbers is broken. They count different things, and 75
+taps was never going to equal 50 sessions: a tap that is cancelled, a
+preview that never loads, and one person tapping four times are all
+clicks and none is a session.
 
-## Put UTMs on the Instagram bio link
+The real fault was the **100% direct**. Instagram's in-app browser
+sends no `Referer` to an external site, and the bio link carries no UTM
+tags, so every Instagram visitor arrived looking exactly like somebody
+who typed the domain in.
 
-The site already captures first-touch UTMs and click ids, keeps them
-in `localStorage`, and rides them through to the Shopify order as cart
-attributes. That machinery works and is unused, because the links
-arriving carry no tags.
+**That part is fixed in code and needs nothing from you.** An in-app
+browser announces itself in the User-Agent, so the site now derives the
+source from that, falling back to the referrer, and inventing nothing
+when there is genuinely no signal. Every derived source is stamped as
+derived so it is never confused with a tagged click. See the
+**Attribution** section of `CLAUDE.md`.
+
+Two places it shows up:
+
+- **On the order, in Shopify Admin.** Open an order, Additional
+  details: `utm_source`, `utm_medium` and `asior_attr` are on it. This
+  is the one that matters for revenue — it tells you which channel paid
+  for itself.
+- **In Klaviyo, as a `Site Visit` metric**, one per session, groupable
+  by `source`. This is the visit count Shopify cannot give you.
+
+**Shopify's own session report will keep saying "direct" anyway, and
+that is not worth chasing.** A headless storefront does not fire
+Shopify's session beacon; Shopify attributes from the checkout, not
+from a page view. Read the order, not the session report.
+
+---
+
+## Two things only you can do
+
+### 1. Turn on Vercel Web Analytics — one click
+
+`<script defer src="/_vercel/insights/script.js">` ships on every page
+already, but it 404s harmlessly until Web Analytics is enabled:
+**Vercel, the project, Analytics, Enable.**
+
+This is the only thing that counts *anonymous* visits at the edge, so
+it is immune to the referrer being stripped, to ad blockers, and to the
+gate. Until it is on, nothing counts a visitor who does not subscribe
+or buy.
+
+### 2. Tag the Instagram bio link
+
+The inference tells you *Instagram*. It cannot tell you *which post*,
+and no amount of code can — that information only exists if the link
+carries it. So tagging the link is still worth doing, and it also moves
+those visitors from "derived" to "measured".
 
 Either point the bio at the link-in-bio page, which stamps them for
 you:
 
     asiorclothing.com/links
 
-or tag the direct link:
+or tag the link directly:
 
-    asiorclothing.com/?utm_source=instagram&utm_medium=social&utm_campaign=bio
+    asiorclothing.com/?utm_source=instagram&utm_medium=bio&utm_campaign=bf26
 
-Until one of those is live, every Instagram visitor lands as "direct"
-and no report can tell you otherwise.
+and change `utm_content` per post when you want to tell two posts
+apart:
 
+    asiorclothing.com/?utm_source=instagram&utm_medium=bio&utm_campaign=bf26&utm_content=reel-03
+
+A tagged arrival always beats the derived one, and the first tagged
+arrival is the one that sticks — so a customer who finds you through a
+reel and comes back via a Google search is still credited to the reel.

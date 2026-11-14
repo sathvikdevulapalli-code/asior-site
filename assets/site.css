@@ -168,7 +168,11 @@
 }
 
 /* Inter Tight is gone. The interface is the system Helvetica stack
-   now, so the only @font-face left is the signature. */
+   now, so the only @font-face the STOREFRONT loads is the
+   signature. The gate self-hosts three more -- Anton, Inter Tight
+   and Courier Prime -- at the end of this file; they are fetched
+   by the bootstrap only on a paint where the gate appears, so an
+   admitted visitor never pays for them. */
 
 /* Subset woff2, 15KB, against 141KB for the raw TrueType it replaces.
    This face used to draw one word per page (the wordmark); it now sets
@@ -1862,12 +1866,11 @@ body {
 
 .coll-head .coll-filter { margin: 0 auto; }
 
-/* Card captions under the photograph. */
-/* Left, under the photograph's left edge. */
-.product-title,
-.product-price,
-.product .price,
-.product-meta { text-align: left; }
+/* Card captions under the photograph.
+
+   Left-aligned under the photograph's left edge -- declared with the
+   left-alignment block further down, not here, so there is one copy
+   of that rule rather than two identical ones to keep in step. */
 
 /* The size row on a card centres with them. */
 
@@ -3792,6 +3795,21 @@ html.asior-gated body { overflow: hidden; height: 100%; }
    without pushing at the edges. Tracking is POSITIVE: Anton's default
    fit is tight enough at size, and a little air between five heavy
    caps is what stops ASIOR reading as one solid block. */
+/* Computed from the live catalogue by tellWhatIsLeft(), or hidden.
+   Sits under the eyebrow as a second, quieter system line -- it is a
+   fact about the stock, not a headline, and it reads as one. */
+.gate-scarcity {
+  margin: 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  color: rgba(232, 232, 234, 0.9);
+}
+
+.gate-scarcity[hidden] { display: none; }
+
 .gate-wordmark {
   /* It is a <button> -- clicking the mark opens the members'
      entrance -- so every UA button style has to be stripped, or the
@@ -4218,7 +4236,8 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-foot b { font-weight: 400; color: rgba(232, 232, 234, 0.45); }
 
-.gate-foot-right { display: flex; gap: 16px; }
+.gate-foot-left,
+.gate-foot-right { display: flex; gap: 16px; flex-wrap: wrap; }
 
 /* The centre scrim is sized for the desktop column. On a phone the
    panel is nearly the full width of the frame, so an ellipse at
