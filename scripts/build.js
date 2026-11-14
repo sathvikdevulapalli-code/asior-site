@@ -1579,6 +1579,17 @@ const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.c
     setTimeout(function(){d.classList.remove('asior-gate-pending');},4000);
   }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}}})();</script>
   <script defer src="/assets/drop-gate.js"></script>
+  <!-- The gate's three faces, preloaded.
+
+       The @font-face rules live in site.css, so the browser would not
+       learn these files exist until it has parsed that far -- and
+       while the gate is up it IS the site, so its first paint is the
+       whole first impression. crossorigin is required even same-origin:
+       font fetches are always CORS-mode, and a preload without it is
+       made in the wrong mode, ignored, and quietly fetched again. -->
+  <link rel="preload" href="/fonts/anton-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-tight-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/courier-prime-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 `;
 
 /* The gate's one boolean, read out of its real home.

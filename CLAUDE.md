@@ -518,6 +518,69 @@ every page and `check-slop.js` fails the build if any built page
 disagrees with `drop-config.js`. Never hand-edit the stamped value —
 run the build.
 
+**The gate's look is the old drop gate, brought back.** On
+2026-11-14 the founder asked for the locker from the very start of
+the project. It was still in the repo: `video/gate.mp4`, its WebM and
+its poster were committed and had a `Cache-Control` rule in
+`vercel.json`, referenced by nothing since the old `index.html` gate
+was retired; `fonts/inter-tight-var-latin.woff2` was still in
+`fonts/`. Anton and Courier Prime were restored from `742d53b`, the
+commit that shipped it. The design is that one: the panther film,
+the Anton wordmark, Courier Prime for the small system lines, Inter
+Tight for everything else, bracket links in the foot, the staged
+rise.
+
+**The three faces are self-hosted and that is deliberate.** While
+the gate is up it IS the site, so its first paint is the whole first
+impression, and a `fonts.googleapis.com` link puts a DNS lookup, a
+TLS handshake and a third-party stylesheet in front of it — then a
+second host for the files. They are preloaded from `HEAD_SHARED`
+with `crossorigin`, which is required even same-origin: font fetches
+are always CORS-mode, and a preload without it is made in the wrong
+mode, ignored, and quietly fetched twice.
+
+**The film's three outcomes.** MP4 first then WebM, each with an
+explicit `codecs=` string, because a browser commits to the first
+source it believes it can play and never reconsiders — listing WebM
+first is what once put this film behind a play button on Safari, and
+MP4 alone has nothing to play on a Windows Firefox without H.264.
+There is no `poster` attribute and no `controls`, so iOS has nothing
+to decorate with a play button: if autoplay is refused the gate is
+simply a still photograph. A film is decoration, and decoration
+never keeps anyone out of a shop.
+
+**A moving background cannot be trusted for contrast.** Measured
+across the whole 8.5s loop rather than on one frame: the poster is
+the *darkest* frame, and later ones take the grass bright enough to
+drop the consent line to 3.2:1. Dimming the film until everything
+passed worked and was wrong — at that brightness the panther was
+gone and the background was a texture, so the measurement had been
+solved by deleting the feature. The fix belongs to the text, so it
+is `.gate-core::before`: a wash bound to the column, flat across its
+height and gone by the edges, with the film left bright. Worst case
+across the loop is now 6.9:1. The gate suite samples 14 shots across
+the loop and fails under 4.5:1 — if either the wash or the film's
+`brightness()` is weakened, the test says so.
+
+**SMS is its own half, and that is not optional.** Its own
+checkbox, its own field, its own sentence, its own Klaviyo list
+(`UiFFMg` via `klaviyoSubscribeSms`). The box ships unticked, the
+number field does not exist until it is ticked, and an email signup
+subscribes no phone number — there are tests for exactly that, at
+both widths. `OPT_LABEL` carries the disclosures a marketing text
+programme needs (recurring, rates may apply, reply STOP); changing
+it is a compliance decision, not copy. Ticking the box and leaving
+the field blank is not an error: the gate opens with the email
+alone, because the person is trying to get into a shop.
+
+**The gate names no discount, and must not.** Every discount in the
+Shopify account was read back on 2026-11-14. The only ACTIVE ones
+are ASIORTEN, the 2-piece automatic and free shipping at $50;
+there is **no Black Friday discount** — "12-HOUR SALE 15%" expired
+2026-11-08 and THIRTY expired 2026-10-28. So `EYEBROW` says *when*,
+not *what*. Create a real one in Shopify and its real terms go in
+that field, in its real words.
+
 **`AUTO` and the Klaviyo popup belong together.** Two Klaviyo signup
 popups were live — `UxDQrj` "Email & SMS Popup" and `Vtp6MG` "SMS" —
 and `klaviyo.js` loads on every page, so with the announcement bar's

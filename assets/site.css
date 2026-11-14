@@ -3517,37 +3517,97 @@ body.drop-open {
 /* ===================================================================
    THE ENTRY GATE
 
-   The wall, not the overlay. assets/drop-gate.js owns the behaviour
-   and assets/drop-config.js owns whether it exists at all; this is
-   only how it looks. See the header of drop-gate.js before changing
-   any of it -- in particular `.asior-gate-pending`, which hides the
-   whole page and is the one rule here that can show a visitor
-   nothing at all if its watchdog is ever removed.
+   The wall, not the dismissible overlay. assets/drop-gate.js owns the
+   behaviour, assets/drop-config.js owns whether it exists at all, and
+   this is how it looks. Read the header of drop-gate.js before
+   changing any of it -- in particular `.asior-gate-pending`, which
+   hides the whole page and is the one rule here that can show a
+   visitor nothing at all if its watchdog is ever removed.
+
+   THE LOOK IS NOT NEW. It is the drop gate this site shipped in
+   742d53b -- the panther film, the Anton wordmark, Inter Tight, the
+   bracket links, the staged rise -- rebuilt on the current gate's
+   plumbing at the founder's request on 2026-11-14. The film
+   (video/gate.mp4) and its poster were still committed and still had
+   a Cache-Control rule in vercel.json; nothing had referenced them
+   since the old index.html gate was retired. Inter Tight was still in
+   fonts/. Anton and Courier Prime were restored from that commit.
+
+   The three faces are self-hosted, which was a deliberate call then
+   and still is: while the gate is up it IS the site, so its first
+   paint is the whole first impression, and a fonts.googleapis.com
+   link puts a DNS lookup, a TLS handshake and a third-party
+   stylesheet in front of it -- then a second host for the files.
+   Served from here they are requests on a connection the browser has
+   already opened, they cannot be broken by an outage nobody here
+   controls, and no visitor is announced to Google for opening the
+   homepage. Latin subset only.
    =================================================================== */
+
+/* Anton carries the wordmark and nothing else. A display face earns
+   its place on exactly one element: drawn for size, one weight, and a
+   condensed fit that lets the mark sit large without crowding the
+   frame -- the same qualities that make it wrong for a 10px label. */
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/anton-latin.woff2') format('woff2');
+}
+
+/* One variable file covering 400-700, so every weight the gate uses
+   costs one request. Helvetica has no real semi-bold, so a 600 on it
+   is synthesised and the mark renders differently per machine; Inter
+   Tight is the same neo-grotesque skeleton with a drawn one. */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter-tight-var-latin.woff2') format('woff2');
+}
+
+/* Courier redrawn at a usable weight: the typewriter character the
+   small system lines want, without the hairlines that make real
+   Courier New look broken at 10px. */
+@font-face {
+  font-family: 'Courier Prime';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/courier-prime-400-latin.woff2') format('woff2');
+}
+
+.gate-root {
+  --g-display: 'Anton', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
+  --g-sans: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --g-mono: 'Courier Prime', 'Courier New', Courier, monospace;
+  /* Overlays cut rather than dissolve, so they take an easing with a
+     hard front edge rather than the site's general-purpose one. */
+  --g-cut: cubic-bezier(0.16, 1, 0.3, 1);
+}
 
 /* Before the gate has painted. Set by the inline bootstrap in <head>
    so the storefront never flashes up behind the wall, and torn off
-   again by drop-gate.js the moment the gate is on screen -- or by the
+   again by drop-gate.js once the gate is on screen -- or by the
    watchdog, unconditionally, if the script never got that far.
    visibility, not display: the layout is still built underneath, so
    revealing costs no reflow. */
 html.asior-gate-pending body { visibility: hidden; }
 
-/* Once the gate is up. The page behind cannot be scrolled or reached;
-   the gate is the only thing in the tab. */
+/* Once the gate is up the page behind cannot be scrolled or reached. */
 html.asior-gated,
 html.asior-gated body { overflow: hidden; height: 100%; }
 
 .gate-root {
   position: fixed;
   inset: 0;
-  z-index: 13000;          /* above the overlay's 12000, which is above
+  z-index: 13000;          /* over the overlay's 12000, which is over
                               the cookie notice's 11000 */
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
   background: var(--bg);
-  animation: gateIn 420ms var(--ease-out) both;
+  font-family: var(--g-sans);
+  animation: gateIn 420ms var(--g-cut) both;
 }
 
 .gate-root.is-leaving { animation: gateOut 300ms var(--ease-in) both; }
@@ -3555,140 +3615,376 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 @keyframes gateIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes gateOut { from { opacity: 1; } to { opacity: 0; } }
 
-/* The campaign photograph, dimmed enough that off-white type clears
-   4.5:1 over any part of it. */
-.gate-shade { position: absolute; inset: 0; overflow: hidden; }
-.gate-shade img { width: 100%; height: 100%; object-fit: cover; opacity: .62; }
+/* ---------- the film ---------- */
 
-/* The scrim is directional, and it follows the panel.
-
-   A flat dim over the whole frame buys contrast by throwing the
-   photograph away, and then the gate is a login box. The scrim is
-   near-opaque only where the type sits -- the bottom of a phone, the
-   left of a desktop -- and thins out across the rest, so the clothes
-   are the first thing a visitor sees and the words are still legible
-   over black rather than over a model's shoulder.
-
-   The dense end is at .96 and above, which is effectively --bg, so
-   --ink and --muted keep the 7.0:1 they have on the page itself. Any
-   change to these stops has to keep that end that dense. */
-.gate-shade::after {
-  content: '';
+.gate-film, .gate-still, .gate-grade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg,
-    rgba(11, 11, 12, .30) 0%,
-    rgba(11, 11, 12, .48) 30%,
-    rgba(11, 11, 12, .97) 53%,
-    rgba(11, 11, 12, 1) 100%);
+  pointer-events: none;
 }
 
-.gate-panel {
-  position: relative;
+/* Hidden until the film is genuinely running. The poster is a
+   background layer rather than a poster="" attribute, which is what
+   used to let iOS draw its own play button over the top whenever
+   autoplay was refused. With no poster attribute and no controls
+   there is nothing for the browser to decorate: if autoplay is
+   refused outright (Low Power Mode, Safari's per-site Never
+   Auto-Play) the gate is simply a still photograph. */
+.gate-film {
+  z-index: 0;
   width: 100%;
-  max-width: 420px;
-  padding: 0 24px 56px;
-  text-align: left;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 500ms var(--g-cut);
+  /* THE HIGHLIGHT CAP, and it is not a style choice.
+
+     A moving background cannot be trusted for contrast. Measured
+     across the whole 8.5s loop rather than on one frame: the poster
+     is the DARKEST frame in the film, and later ones take the grass
+     bright enough to drop the consent line to 3.2:1 and the eyebrow
+     to 3.5:1 on top of the grade. The original gate got away with the
+     same footage ungraded because it carried an eyebrow, a clock, a
+     wordmark and one button -- this one also carries a blurb, an SMS
+     disclosure and two consent lines, which is a great deal of small
+     text over moving pictures.
+
+     The first attempt at this capped the film to brightness(0.46).
+     It passed at 6.31:1 and it was the wrong trade: at that level the
+     panther is gone and the background is a dark texture, so the
+     measurement was solved by deleting the feature. The cap is now
+     light, and the type carries its own backing instead -- see
+     .gate-core::before below. The gate suite measures 14 shots across
+     the loop and fails under 4.5:1, so if either is weakened the test
+     says so. */
+  filter: brightness(0.82) contrast(1.03);
 }
 
-.gate-mark {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .22em;
-  color: var(--muted);
-  margin-bottom: 18px;
+.gate-film.is-playing { opacity: 1; }
+
+/* [hidden] is a UA rule and .gate-film is an author rule, so without
+   this the canvas would lie over the film even while hidden. */
+.gate-film[hidden] { display: none; }
+
+/* The first frame of the same graded film. Covers the moment before
+   it decodes and, if it never plays, is what the gate stays as. */
+.gate-still {
+  z-index: 0;
+  background-image: url('/video/gate-poster.jpg');
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bg);
+  /* The same cap as the film, or the picture visibly lifts at the
+     moment the film starts and drops again if it ever stalls. */
+  filter: brightness(0.82) contrast(1.03);
 }
 
-.gate-title {
+/* Two gradients doing two different jobs. The first is a scrim only
+   as wide as the panel, so the type never sits on a highlight; the
+   second takes the corners to true black. Between them is an
+   untouched band where the bright end of the footage is allowed to
+   live -- dimming that too is what flattens a page like this into one
+   mid tone. Measured: every text block clears 4.5:1 over the worst
+   frame, and the check is in the gate suite. */
+.gate-grade {
+  z-index: 1;
+  background:
+    linear-gradient(to top, rgba(11, 11, 12, 0.88) 0%, rgba(11, 11, 12, 0) 15%),
+    radial-gradient(ellipse 46% 52% at 50% 46%, rgba(11, 11, 12, 0.88), rgba(11, 11, 12, 0) 92%),
+    radial-gradient(ellipse 76% 72% at 50% 50%, rgba(11, 11, 12, 0) 44%, rgba(11, 11, 12, 0.96) 100%);
+}
+
+/* ---------- the column ---------- */
+
+.gate-main {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 4vh, 40px) 24px clamp(20px, 3vh, 32px);
+  overflow-y: auto;
+}
+
+.gate-core {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(18px, 3.2vh, 34px);
+}
+
+/* The type's own backing, bound to the column rather than to the
+   frame.
+
+   This is what lets the film stay bright. Dimming the whole picture
+   until the small text passes is the obvious fix and it is the wrong
+   one: at the brightness that guaranteed 4.5:1 everywhere, the
+   panther had disappeared and the background was a texture. The
+   contrast problem belongs to the text, so the fix belongs to the
+   text -- a soft wash that follows the column, dense where the words
+   are and gone by the edges, so the footage is still a film either
+   side of it.
+
+   No blur: backdrop-filter is glassmorphism and CLAUDE.md bans it.
+   No border, no radius, no card. Just a shadow the words sit in. */
+.gate-core::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(860px, 150%);
+  height: min(900px, 132%);
+  pointer-events: none;
+  /* The falloff is late on purpose. An ellipse that fades from the
+     middle leaves the two elements at the ENDS of the column -- the
+     eyebrow at the top, the consent line at the bottom -- sitting on
+     open film: measured 4.38:1 and 4.05:1, both under. The wash is
+     flat across most of its height and only lets go at the very
+     edge, so the whole column is covered and the picture still opens
+     out either side of it. */
+  background: radial-gradient(ellipse 50% 50% at 50% 50%,
+    rgba(11, 11, 12, 0.94) 0%,
+    rgba(11, 11, 12, 0.93) 56%,
+    rgba(11, 11, 12, 0.86) 78%,
+    rgba(11, 11, 12, 0.46) 92%,
+    rgba(11, 11, 12, 0) 100%);
+}
+
+.gate-core > * { position: relative; }
+
+/* Staged rather than simultaneous, so the screen assembles in the
+   order it should be read: moment, name, action. Pure CSS, so it
+   still resolves with JS off, and fill-mode both leaves every element
+   at its final state under reduced motion instead of invisible. */
+@keyframes gateRise {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.g-rise {
+  animation: gateRise 900ms var(--g-cut) both;
+  animation-delay: var(--in, 0ms);
+}
+
+.gate-eyebrow {
   margin: 0;
-  font-size: 30px;
-  line-height: 1.1;
-  font-weight: 500;
-  letter-spacing: -.01em;
-  color: var(--ink);
+  font-family: var(--g-mono);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: rgba(232, 232, 234, 0.86);
+}
+
+/* Anton: condensed, one weight, real mass -- which is what makes the
+   mark read as a graphic rather than as a heading in the same face as
+   everything else. Condensed also buys height, so the name dominates
+   without pushing at the edges. Tracking is POSITIVE: Anton's default
+   fit is tight enough at size, and a little air between five heavy
+   caps is what stops ASIOR reading as one solid block. */
+.gate-wordmark {
+  margin: 0;
+  font-family: var(--g-display);
+  font-weight: 400;
+  font-size: clamp(3.4rem, 15vw, 8rem);
+  line-height: 0.86;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  color: #fff;
+  /* A very slow breath, under the threshold where it reads as an
+     animation. It stops the mark sitting dead against footage that is
+     always moving. */
+  animation: gateBreathe 9s ease-in-out 1.6s infinite;
+}
+
+@keyframes gateBreathe {
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 1; }
 }
 
 .gate-blurb {
-  margin: 12px 0 0;
+  margin: 0;
+  max-width: 30em;
   font-size: 14px;
-  line-height: 1.5;
-  color: var(--muted);
-  max-width: 34em;
+  line-height: 1.55;
+  color: rgba(232, 232, 234, 0.82);
 }
 
 .gate-blurb:empty { display: none; }
 
-.gate-form { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+/* ---------- the form ---------- */
+
+.gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(380px, 100%);
+}
 
 .gate-form .field {
   width: 100%;
-  height: 48px;
+  height: 50px;
   padding: 0 14px;
-  font-family: var(--font);
-  font-size: 16px;         /* 16px or iOS zooms the page on focus, and a
-                              zoomed gate cannot be dismissed */
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--field-line);
+  font-family: var(--g-sans);
+  font-size: 16px;         /* 16px or iOS zooms on focus, and a zoomed
+                              gate cannot be dismissed */
+  color: #fff;
+  background: rgba(11, 11, 12, 0.5);
+  border: 1px solid rgba(232, 232, 234, 0.45);
   border-radius: var(--input-radius);
 }
 
-.gate-form .field::placeholder { color: var(--muted); }
+.gate-form .field::placeholder { color: rgba(232, 232, 234, 0.6); }
+.gate-form .field:focus { border-color: #fff; outline: none; }
 
-.gate-form button {
-  height: 48px;
+/* The only solid shape on the gate, which is what lets it read as the
+   action without a label saying so. Everything else stays text. */
+.gate-form button[type="submit"] {
+  height: 50px;
   border: 0;
   border-radius: var(--btn-radius);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-family: var(--font);
-  font-size: 14px;
+  background: #fff;
+  color: #0B0B0C;
+  font-family: var(--g-sans);
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow 160ms var(--g-cut), transform 90ms var(--g-cut);
+}
+
+.gate-form button[type="submit"]:hover { box-shadow: 0 0 0 4px rgba(232, 232, 234, 0.18); }
+.gate-form button[type="submit"]:active { transform: scale(0.978); }
+.gate-form button[type="submit"][disabled] { opacity: 0.55; cursor: default; transform: none; }
+
+/* ---------- the SMS half ----------
+
+   Its own field, its own checkbox, its own sentence. SMS is never a
+   side effect of giving an email -- that is a rule in CLAUDE.md and
+   the reason is that an email address is not consent to be texted.
+   The number is only sent when the box is ticked, and the box starts
+   unticked. Leaving both alone still opens the gate. */
+
+.gate-sms {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.gate-sms-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(232, 232, 234, 0.82);
   cursor: pointer;
 }
 
-.gate-form button[disabled] { opacity: .55; cursor: default; }
+.gate-sms-opt input {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: #fff;
+  cursor: pointer;
+}
+
+/* Revealed by the checkbox, so an unticked gate is two controls, not
+   four. [hidden] alone loses to the flex display above. */
+.gate-sms-field[hidden] { display: none; }
 
 .gate-msg {
-  margin: 10px 0 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--muted);
-  min-height: 1.45em;      /* reserved, so an error does not shove the
-                              consent line down the screen */
-}
-
-.gate-msg.is-err { color: var(--ink); }
-.gate-msg.is-ok  { color: var(--ink); }
-
-.gate-consent {
-  margin: 14px 0 0;
+  margin: 0;
+  min-height: 1.5em;       /* reserved, so an error does not shove the
+                              consent lines down the screen */
+  font-family: var(--g-mono);
   font-size: 11px;
   line-height: 1.5;
-  color: var(--muted);
+  letter-spacing: 0.04em;
+  color: rgba(232, 232, 234, 0.86);
 }
 
-@media (min-width: 760px) {
-  .gate-root { align-items: center; justify-content: flex-start; }
-  .gate-panel { max-width: 460px; padding: 0 0 0 72px; }
-  .gate-title { font-size: 38px; }
+.gate-msg.is-err { color: #fff; }
+.gate-msg.is-ok  { color: #fff; }
 
-  /* The panel moves to the left on a wide screen, so the dense end of
-     the scrim moves with it. The text column ends around 530px of
-     1440, which is 37%, so the first 42% stays at or above .96. */
-  .gate-shade::after {
-    background: linear-gradient(90deg,
-      rgba(11, 11, 12, 1) 0%,
-      rgba(11, 11, 12, .97) 42%,
-      rgba(11, 11, 12, .62) 68%,
-      rgba(11, 11, 12, .42) 100%);
+.gate-consent {
+  margin: 0;
+  max-width: 34em;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(232, 232, 234, 0.7);
+}
+
+.gate-consent + .gate-consent { margin-top: -2px; }
+
+/* ---------- the foot ---------- */
+
+.gate-foot {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
+.gate-foot a {
+  color: rgba(232, 232, 234, 0.72);
+  text-decoration: none;
+}
+
+.gate-foot a:hover,
+.gate-foot a:focus-visible { color: #fff; }
+
+.gate-foot b { font-weight: 400; color: rgba(232, 232, 234, 0.45); }
+
+.gate-foot-right { display: flex; gap: 16px; }
+
+/* The centre scrim is sized for the desktop column. On a phone the
+   panel is nearly the full width of the frame, so an ellipse at
+   46%x52% leaves the blurb and the SMS line sitting on open grass --
+   measured at 4.12:1 and 3.81:1 against the film, both under 4.5.
+   A wider, denser ellipse here covers the panel at that width while
+   the desktop grade, which already passes, is left alone. */
+@media (max-width: 759px) {
+  .gate-grade {
+    background:
+      linear-gradient(to top, rgba(11, 11, 12, 0.90) 0%, rgba(11, 11, 12, 0) 18%),
+      radial-gradient(ellipse 88% 46% at 50% 52%, rgba(11, 11, 12, 0.95), rgba(11, 11, 12, 0) 96%),
+      radial-gradient(ellipse 96% 78% at 50% 50%, rgba(11, 11, 12, 0) 38%, rgba(11, 11, 12, 0.97) 100%);
   }
 }
 
+@media (min-width: 760px) {
+  .gate-core { gap: clamp(22px, 3.6vh, 40px); }
+  .gate-blurb { font-size: 15px; }
+}
+
+/* Every animation here, including the film's own fade and the
+   wordmark's breath. The film still plays: a looping background is
+   not what this setting is about, and stopping it would leave the
+   poster, which is a worse page, not a calmer one. */
 @media (prefers-reduced-motion: reduce) {
-  .gate-root, .gate-root.is-leaving { animation: none; }
+  .gate-root,
+  .gate-root.is-leaving,
+  .g-rise,
+  .gate-wordmark { animation: none; }
+  .gate-film { transition: none; }
 }
 
 /* ---- a search that matched nothing -------------------------------
