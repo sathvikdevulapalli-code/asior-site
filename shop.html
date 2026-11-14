@@ -875,6 +875,21 @@
         </a>
       </div>
   <!-- SHOPGRID:END -->
+
+    </div>
+    <!-- A search that matches nothing used to leave an empty page with
+         a count and no way out: the grid hides its cards one by one, so
+         there was literally nothing on screen under the field. This
+         says so and hands back the control that fixes it.
+
+         OUTSIDE #shopGrid, deliberately. SHOPGRID:END sits inside that
+         container and the live catalogue replaces grid.innerHTML
+         wholesale, so anything after the marker is gone the moment the
+         fetch lands -- which is exactly how the first attempt at this
+         vanished. Wired in wireShopSearch() in assets/site.js. -->
+    <div class="shop-search-empty" id="shopSearchEmpty" hidden>
+      <p>nothing matched that.</p>
+      <button type="button" class="btn btn--ghost" id="shopSearchClear">Clear search</button>
     </div>
     <p class="coll-empty" id="shopEmpty" hidden></p>
   </section>

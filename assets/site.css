@@ -3690,3 +3690,28 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .gate-root, .gate-root.is-leaving { animation: none; }
 }
+
+/* ---- a search that matched nothing -------------------------------
+
+   The grid hides its cards one by one, so a query with no matches
+   left a blank page under the field: a count saying "0 products" and
+   nothing at all to click. This is the state that says so and hands
+   back the control that fixes it. Hidden unless a real query matched
+   nothing, so it never appears on an ordinary visit. Wired in
+   wireShopSearch() in assets/site.js, beside the filter that empties
+   the grid. */
+.shop-search-empty {
+  padding: 48px 0 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.shop-search-empty[hidden] { display: none; }
+
+.shop-search-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
