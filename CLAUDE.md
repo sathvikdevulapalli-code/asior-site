@@ -25,7 +25,8 @@ per-product into `/products/<handle>.html` at build time), `cart.html`,
 `lanyard.html` (a standalone product page, outside the generated set).
 `archive.html` (every product, sold out included, labelled AVAILABLE /
 SOLD OUT), `about.html`, `community.html` (the lookbook — the URL keeps
-its old name so existing links don't break), `contact.html`,
+its old name so existing links don't break, with `/lookbook`
+rewriting to it), `contact.html`,
 `manufacturing.html`, `account.html` round out the nav. `404.html` is
 served by Vercel for any unmatched path; it carries the shared header
 and footer but is deliberately absent from the sitemap.
@@ -716,11 +717,23 @@ sales. It is not written, because it is a statement about inventory
 that is false, and a fabricated sellout followed by a fabricated
 restock is the deceptive-urgency pattern this file bans twice over.
 
-What the gate says instead is **computed**: `tellWhatIsLeft()` reads
+What the gate said instead was **computed**: `tellWhatIsLeft()` reads
 the live catalogue and names the dead sizes — "gone: blossom tee
 black m · blossom tee white s · +5 more". On 2026-11-14 that was 9 of
 30 variants, with 3 more down to a single unit: real scarcity, and
 sharper than the invented kind because it is specific.
+
+**`SCARCITY` is false since 2026-11-15**, at the founder's request:
+they asked for the bar naming what is gone to come off the gate.
+Nothing about it was wrong — that is a presentation call and theirs
+to make. The function, its CSS and its tests all stay, and
+`scarcity.js` now covers both states: that the shipped gate writes
+nothing into the slot and never says "gone", and, with the flag
+forced back on through an init script, that every name it would print
+is still genuinely sold out and still states no ratio. So turning it
+back on is one flag and the honesty guarantees come with it. The rest
+of this section is why the line says what it says, and still governs
+the day it is switched on.
 
 **It names sizes and never a ratio.** The first version read "N of M
 sizes already gone" and the founder was right to kill it: a
@@ -737,6 +750,27 @@ reached produces no line rather than a guess, and it cannot drift
 into a lie as stock moves. `scarcity.js` asserts every name printed
 is genuinely sold out, that nothing still buyable is ever listed as
 gone, and that no ratio appears.
+
+**The lookbook is a page, not a strip on the gate.** Six photographs
+sat open under the form until 2026-11-15; the founder asked for them
+off, and they made the gate a page you scroll rather than one screen
+with a name on it. `LOOKBOOK: []` empties the strip. The real lookbook
+is `community.html` — titled Lookbook, in the nav as Lookbook, nine
+frames — and `/lookbook` now rewrites to it in `vercel.json`, so the
+obvious URL works without breaking the old one.
+
+It is deliberately **not linked from the gate**. Every storefront page
+is gated, so a link there would just show the gate again; the only way
+to make it work would be adding the lookbook to `ALWAYS_OPEN`, which
+puts the clothes in front of the wall and is the opposite of what the
+gate is for. Refill `LOOKBOOK` to put the strip back.
+
+Taking both off left the fine print floating ~45px below the sub-line,
+because the empty `#gateMsg` live region reserves a line. It is now
+collapsed with `.gate-msg:empty { min-height: 0; margin-top: 0 }` —
+height only, never `display`, because a live region that is
+`display: none` when its message lands is the one way to stop a screen
+reader announcing it.
 
 When the pieces are actually ordered and land in Shopify, the restock
 framing is a small and honest change: `EYEBROW` to 'restocked', the

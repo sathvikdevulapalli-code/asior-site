@@ -18,6 +18,10 @@
     {
       "source": "/drop",
       "destination": "/drop.html"
+    },
+    {
+      "source": "/lookbook",
+      "destination": "/community.html"
     }
   ],
   "redirects": [

@@ -3718,10 +3718,13 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   align-items: center;
   justify-content: center;
   text-align: center;
-  /* Tighter than it was. The screen used to hold four things and now
-     holds seven -- eyebrow, mark, description, form, message, fine
-     print, lookbook -- and the old gap left a hole between the
-     sub-line and the fine print big enough to read as a mistake. */
+  /* Tighter than it was. The screen holds five things -- eyebrow,
+     mark, description, form, fine print, with an empty message line
+     collapsed between the last two -- and the old gap left a hole
+     between the sub-line and the fine print big enough to read as a
+     mistake. The scarcity line and the lookbook strip were the sixth
+     and seventh until 2026-11-15; both are config-gated off now and
+     the lookbook is its own page. */
   gap: clamp(12px, 1.9vh, 20px);
 }
 
@@ -4059,6 +4062,21 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   letter-spacing: 0.04em;
   color: var(--muted);
 }
+
+/* Nothing said yet, so nothing reserved.
+
+   min-height above holds a line so the column does not jump when a
+   message arrives. With the lookbook strip under it that reserve was
+   invisible; with the strip gone it left the fine print floating ~45px
+   below the sub-line, which reads as a mistake rather than as space.
+
+   Collapsed only while the element is EMPTY, and by height alone --
+   display is never toggled. #gateMsg is an aria-live region, and a
+   live region that is display:none when the message lands is the one
+   way to stop a screen reader announcing it. It stays rendered and
+   stays in the flow; it just takes no room until it has something to
+   say. */
+.gate-msg:empty { min-height: 0; margin-top: 0; }
 
 .gate-msg.is-err, .gate-msg.is-ok { color: var(--ink); }
 
