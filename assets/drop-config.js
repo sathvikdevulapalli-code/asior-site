@@ -187,12 +187,19 @@ window.ASIOR_DROP = {
        units are in Shopify, not before -- the whole point is that the
        page says what the catalogue says.
 
-       SCARCITY is what is true today, and it is not weak: 9 of 30
-       variants were already gone and 3 were down to a single unit.
-       The gate states that from the live catalogue rather than from
-       this file, so it is specific, it updates itself, and it cannot
-       become a lie as stock moves. Set it false to say nothing. */
-    SCARCITY: true,
+       SCARCITY computes that line from the live catalogue -- it names
+       the sold-out sizes ("gone: blossom tee black m - ...") rather
+       than stating a ratio, so it is specific, it updates itself, and
+       it cannot become a lie as stock moves.
+
+       OFF since 2026-11-15, at the founder's request: they wanted the
+       bar naming what is gone taken off the gate. Nothing about it was
+       wrong -- it reads availableForSale, every name it printed was
+       genuinely sold out, and scarcity.js still proves that -- it is a
+       presentation call, and theirs to make. The code stays and is
+       tested; this flag is the whole of the switch. Set it true to
+       bring the line back. */
+    SCARCITY: false,
 
     /* The one solid action on the screen. The form is behind it.
 
@@ -262,19 +269,23 @@ window.ASIOR_DROP = {
     },
 
     /* ---- the lookbook ------------------------------------------
-       Photographs only, nothing to click: there is nowhere to go
-       from behind a gate, and community.html is gated like every
-       other page. Real frames from the real shoot, lazy-loaded
-       inside a hidden overlay so the gate never pays for them.
-       Empty this array and the bracket link disappears. */
-    LOOKBOOK: [
-      { src: '/images/look-01.jpg', alt: 'Black Asior tee with animal-print patches, worn with black shorts' },
-      { src: '/images/look-02.jpg', alt: 'Black Asior polo with animal-print collar and cuff trim' },
-      { src: '/images/look-04.jpg', alt: 'Two looks in all black \u2014 animal-print tees with black shorts' },
-      { src: '/images/look-05.jpg', alt: 'Back of a black Asior tee with the script logo in white' },
-      { src: '/images/look-06.jpg', alt: 'Asior sweat shorts with an animal-print side stripe' },
-      { src: '/images/look-03.jpg', alt: 'Two looks \u2014 black Asior tees with Asior sweat shorts' },
-    ],
+
+       It is a PAGE now, not a strip on this screen.
+
+       Off since 2026-11-15 at the founder's request: six photographs
+       sitting open under the form made the gate a scrolling page
+       rather than one screen with a name on it, and the site already
+       has a real lookbook at /community.html (titled Lookbook, in the
+       nav as Lookbook, nine frames) plus a /lookbook rewrite pointing
+       at it. A visitor sees it once they are through.
+
+       Deliberately NOT linked from the gate. Every storefront page is
+       gated, so a link here would show the gate again -- the only way
+       to make it work would be adding the lookbook to ALWAYS_OPEN,
+       which puts the clothes in front of the wall and is the opposite
+       of what the gate is for. Refill this array to put the strip
+       back on the gate. */
+    LOOKBOOK: [],
 
     /* Pages the gate never stands in front of.
 
