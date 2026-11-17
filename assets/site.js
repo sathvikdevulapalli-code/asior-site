@@ -2168,7 +2168,47 @@
   }
 
   function shippingConfig() {
-    return window.ASIOR_SHIPPING || {};
+    var s = window.ASIOR_SHIPPING || {};
+    var windowConfig = s.BFCM_WINDOW;
+    if (windowConfig && Date.now() >= Date.parse(windowConfig.START)
+      && Date.now() <= Date.parse(windowConfig.END)) {
+      var active = Object.assign({}, s);
+      active.FREE_THRESHOLD = windowConfig.FREE_THRESHOLD;
+      return active;
+    }
+    return s;
+  }
+
+  function isBfcmWindow() {
+    var windowConfig = (window.ASIOR_SHIPPING || {}).BFCM_WINDOW;
+    return Boolean(windowConfig && Date.now() >= Date.parse(windowConfig.START)
+      && Date.now() <= Date.parse(windowConfig.END));
+  }
+
+  function isDiscountCodeSuppressed() {
+    return isBfcmWindow();
+  }
+
+  function syncTimedOfferCopy() {
+    var threshold = Number(shippingConfig().FREE_THRESHOLD);
+    var label = threshold.toFixed(2).replace(/\.00$/, '');
+    var track = document.querySelector('[data-announce]');
+    if (track) {
+      Array.prototype.slice.call(track.querySelectorAll('.announce-msg')).forEach(function (msg) {
+        if (/free shipping on us orders/i.test(msg.textContent)) {
+          msg.textContent = 'Free shipping on US orders at $' + label + ' and over';
+        }
+      });
+    }
+    document.querySelectorAll('[data-free-shipping-copy]').forEach(function (el) {
+      el.textContent = 'Shipping is free on US orders at $' + label + ' and over.';
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncTimedOfferCopy);
+  } else {
+    syncTimedOfferCopy();
   }
 
   function freeShippingActive() {
@@ -2358,6 +2398,7 @@
      between the pages that show it. Returns HTML, not text: the code
      itself is marked up so it reads as something to copy. */
   function codeOfferHTML() {
+    if (isDiscountCodeSuppressed()) return '';
     var line = 'First order? Use code <strong>ASIORTEN</strong> for 10% off.';
     return multiBuy() ? line + ' Not with the 2-piece offer.' : line;
   }
@@ -2387,7 +2428,7 @@
     var s = shippingConfig();
     if (!freeShippingActive()) return null;
     if (s.FREE_THRESHOLD === 0) return 'free shipping on every order';
-    return 'free shipping over $' + s.FREE_THRESHOLD;
+    return 'free shipping at $' + s.FREE_THRESHOLD + ' and over';
   }
 
   /* Cart progress toward free shipping. Returns null when there is no
@@ -2472,6 +2513,8 @@
     shippingDetailHTML: shippingDetailHTML,
     returnsLine: returnsLine,
     shippingConfig: shippingConfig,
+    isBfcmWindow: isBfcmWindow,
+    isDiscountCodeSuppressed: isDiscountCodeSuppressed,
     isGeneratedImage: isGeneratedImage,
     compareAtVerified: compareAtVerified,
     leadImage: leadImage,
@@ -2634,6 +2677,7 @@
      first message and stops, because a timed content swap is motion
      whether or not it is animated. */
   function wireAnnounce() {
+    syncTimedOfferCopy();
     var track = document.querySelector('[data-announce]');
     if (!track) return;
     var msgs = Array.prototype.slice.call(track.querySelectorAll('.announce-msg'));

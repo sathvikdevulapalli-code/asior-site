@@ -79,6 +79,9 @@ founder's direction to sell through the current stock:
   while every surface told shoppers they needed $25 more than they
   did. Read it back from the delivery profile rather than trusting
   this line.
+  During the scheduled BFCM automatic 20% sale (Nov 27, 2026 2:00 PM CT
+  through Nov 30 11:59 PM CT), the storefront threshold is $62.50 before
+  discount so Shopify's post-discount $50 shipping rule remains accurate.
 - **Any 2 pieces 15% off**, a Shopify automatic discount
   (`DiscountAutomaticNode/1570203828441`), 15% off the order at a
   minimum quantity of 2, no code. Read back from the discount node on
@@ -111,7 +114,9 @@ card. All of it is gated on `MULTI_BUY`.
 While that automatic discount is live, ASIORTEN steps aside rather than
 sitting beside it: the product page's trustline drops the code, and the
 cart page and the announcement bar both say the code does not combine
-with the 2-piece offer. Two offers stated side by side with nothing
+with the 2-piece offer. During the scheduled BFCM window, storefront
+promotion copy also hides ASIORTEN. This is display-only; Shopify still
+accepts the code if a shopper enters it. Two offers stated side by side with nothing
 said add up to 25% in a shopper's head. The wording names the 2-piece
 offer specifically and does not say "one offer per order", which was
 the earlier phrasing and is wrong: free shipping stacks with both.

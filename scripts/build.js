@@ -1162,7 +1162,7 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
    stack with each other, and neither one contradicts the other. */
 const ANNOUNCEMENTS = [
   'Any 2 pieces 15% off, applied at checkout',
-  'Free shipping on US orders over $50',
+  'Free shipping on US orders at $50 and over',
 ];
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">

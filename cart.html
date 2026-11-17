@@ -680,7 +680,7 @@
     <p class="announce-drop" data-drop-countdown></p>
     <div class="announce-track" data-announce>
       <p class="announce-msg is-on">Any 2 pieces 15% off, applied at checkout</p>
-      <p class="announce-msg" aria-hidden="true">Free shipping on US orders over $50</p>
+      <p class="announce-msg" aria-hidden="true">Free shipping on US orders at $50 and over</p>
     </div>
   </div>
   <header class="site-header">
@@ -949,7 +949,9 @@
             A.getUTMParams()),
           { email: email });
         form.style.display = 'none';
-        confirmEl.textContent = "You're in. Check your inbox for your code.";
+        confirmEl.textContent = A.isDiscountCodeSuppressed && A.isDiscountCodeSuppressed()
+          ? "You're in. We'll keep you posted on the next drop."
+          : "You're in. Check your inbox for your code.";
         confirmEl.classList.add('show');
       } catch (err) {
         confirmEl.textContent = 'Something went wrong, try again in a moment.';
@@ -1024,6 +1026,9 @@
      disappears by itself if that discount is ever ended. */
   function signupPropHTML() {
     var A = window.Asior || {};
+    if (A.isDiscountCodeSuppressed && A.isDiscountCodeSuppressed()) {
+      return 'Black Friday pricing is applied automatically at checkout.';
+    }
     var multi = !!(A.multiBuyBadge && A.multiBuyBadge());
     return 'Use code ASIORTEN for 10% off your first order.'
       + (multi ? ' It does not combine with the 2 piece offer.' : '');
@@ -1132,7 +1137,7 @@
       </div>
       <p class="cart-signup-prop">${signupPropHTML()}</p>
       <div class="cart-klaviyo" id="cartSignup">
-        <div class="cart-klaviyo-label">Get 10% Off With Code ASIORTEN</div>
+        <div class="cart-klaviyo-label">${A.isDiscountCodeSuppressed && A.isDiscountCodeSuppressed() ? 'Get updates for the next drop' : 'Get 10% Off With Code ASIORTEN'}</div>
         <!-- Phone first, and not called optional. See the same block in
              shop.html for why that line is gone. The field is still not
              required; the copy just stopped arguing against it. The TCPA
@@ -1155,7 +1160,7 @@
           <a href="privacy-policy.html">Privacy Policy</a> and
           <a href="terms-of-service.html">Terms of Service</a>.
         </p>
-        <div class="cart-signup-confirm" id="cartSignupConfirm" role="status" aria-live="polite">You're in. Code ASIORTEN takes 10% off your first order.</div>
+        <div class="cart-signup-confirm" id="cartSignupConfirm" role="status" aria-live="polite">${A.isDiscountCodeSuppressed && A.isDiscountCodeSuppressed() ? "You're in. We'll keep you posted on the next drop." : "You're in. Code ASIORTEN takes 10% off your first order."}</div>
       </div>
     `;
 

@@ -131,6 +131,15 @@ window.ASIOR_SHIPPING = {
   // words "free shipping" anywhere.
   FREE_THRESHOLD: 50,
 
+  // During the scheduled 20% automatic BFCM sale, Shopify evaluates
+  // TOTAL_PRICE after discounts. $62.50 before the sale discount leaves
+  // $50.00 for the live free-shipping rule.
+  BFCM_WINDOW: {
+    START: '2026-11-27T14:00:00-06:00',
+    END: '2026-11-30T23:59:00-06:00',
+    FREE_THRESHOLD: 62.50,
+  },
+
   // Fulfilment time — how long before it ships. NOT delivery time.
   FULFILMENT: '1-2 business days',
 
