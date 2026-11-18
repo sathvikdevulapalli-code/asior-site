@@ -8,6 +8,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/vip",
+      "destination": "/vip.html"
+    },
+    {
       "source": "/text",
       "destination": "/text.html"
     },

@@ -594,6 +594,10 @@
           }, { email: email });
         } catch (x) { /* best effort */ }
       }
+      if (window.fbq) {
+        try { window.fbq('track', 'Lead', { content_name: 'BF drop early access' }); }
+        catch (x) { /* tracking must never block a signup */ }
+      }
       /* "you're in" is true of the SITE and not of the list, and the
          difference matters here.
 
@@ -612,9 +616,9 @@
          address and the request succeeded, and the message names the
          one thing they still have to do. */
       admit(email, LIST_IS_DOUBLE_OPT_IN
-        ? 'you\u2019re in. check your inbox and confirm to get the code.'
-        : (phone ? 'you\u2019re in. check your phone too.' : 'you\u2019re in.'),
-        LIST_IS_DOUBLE_OPT_IN ? 2400 : 0);
+        ? 'check your inbox and confirm to join the VIP list. 20% off starts November 27 at 2:00 PM CT; no code needed.'
+        : 'you\u2019re on the VIP list. 20% off starts November 27 at 2:00 PM CT; no code needed.',
+        4000);
     }).catch(function (err) {
       /* See "THE THREE WAYS THIS COULD TAKE THE WHOLE STORE DOWN" at
          the top. They gave a real address and the request genuinely

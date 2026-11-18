@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,follow">
+  <title>Black Friday VIP Access | ASIOR</title>
+  <meta name="description" content="Join ASIOR's Black Friday VIP list. The automatic 20% sale opens November 27 at 2 PM Central.">
+  <meta property="og:title" content="ASIOR Black Friday VIP Access">
+  <meta property="og:description" content="20% off automatically, November 27–30. Join for the launch reminder.">
+  <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+  <link rel="icon" href="/assets/favicon.ico">
+  <style>
+    :root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#101010;color:#f5f3ee}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+    .photo{background:#252525 url('/images/asior-hero-wide.00503c47.jpg') center/cover no-repeat;min-height:100vh}
+    main{max-width:620px;width:100%;margin:auto;padding:48px clamp(24px,5vw,72px)}
+    .brand{font-size:23px;letter-spacing:.27em;font-weight:700}.eyebrow{color:#b7a690;text-transform:uppercase;letter-spacing:.2em;font-size:11px;margin-top:68px}
+    h1{font-size:clamp(38px,4vw,64px);line-height:1.02;letter-spacing:-.055em;margin:15px 0 18px;font-weight:600}
+    .lede{font-size:17px;line-height:1.55;color:#d7d2ca;max-width:38ch}.date{margin:28px 0;color:#eac59e;font-size:14px;letter-spacing:.04em}
+    form{display:grid;gap:12px;margin-top:28px}label.field-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+    input[type=email],input[type=tel]{width:100%;background:#1d1d1d;border:1px solid #67625d;color:#fff;padding:16px;font-size:16px;border-radius:0}
+    input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #eac59e;outline-offset:2px}
+    .check{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:#d7d2ca;margin:4px 0}
+    .check input{margin:2px 0 0;width:17px;height:17px;flex:none;accent-color:#d9b995}
+    button{border:0;background:#e7d0b1;color:#111;padding:17px;font-size:13px;text-transform:uppercase;letter-spacing:.13em;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}.fine{font-size:11px;line-height:1.6;color:#bcb7af}.fine a,footer a{color:#e9d0b0}
+    #status{min-height:2em;font-size:14px;line-height:1.5}footer{margin-top:48px;font-size:11px;color:#aaa;display:flex;gap:18px;flex-wrap:wrap}
+    @media(max-width:800px){body{grid-template-columns:1fr}.photo{min-height:33vh}main{padding:32px 24px 54px}.eyebrow{margin-top:40px}}
+  </style>
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
+  <script defer src="/assets/vip-signup.js"></script>
+</head>
+<body>
+  <div class="photo" role="img" aria-label="ASIOR clothing campaign photograph"></div>
+  <main>
+    <div class="brand">ASIOR</div>
+    <p class="eyebrow">Black Friday 2026</p>
+    <h1>Get first word<br>when the vault opens.</h1>
+    <p class="lede">Join the VIP list for the launch reminder. Our Black Friday sale is <strong>20% off eligible products automatically</strong>; no code is needed.</p>
+    <p class="date">NOV 27, 2:00 PM CT TO NOV 30, 11:59 PM CT</p>
+    <form id="vipForm" novalidate>
+      <label class="field-label" for="vipEmail">Email address</label>
+      <input type="email" id="vipEmail" name="email" autocomplete="email" required placeholder="you@example.com">
+      <label class="check"><input type="checkbox" id="emailConsent" required><span>I agree to receive ASIOR Black Friday and occasional marketing emails. Frequency varies. I can unsubscribe using any email's link. See the <a href="/privacy-policy.html">Privacy Policy</a>.</span></label>
+      <label class="field-label" for="vipPhone">Mobile number (optional)</label>
+      <input type="tel" id="vipPhone" name="phone_number" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555">
+      <label class="check"><input type="checkbox" id="smsConsent"><span>If I provide a number, I agree to receive recurring automated ASIOR marketing texts at that number. Consent is not a condition of purchase. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe, HELP for help. See the <a href="/privacy-policy.html">Privacy Policy</a> and <a href="/terms-of-service.html">SMS terms</a>.</span></label>
+      <button type="submit" id="vipButton">Join the VIP list</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+    <p class="fine">This page collects signups only. Shopping opens when the Black Friday sale begins on November 27 at 2:00 PM CT.</p>
+    <footer><a href="/privacy-policy.html">Privacy</a><a href="/terms-of-service.html">Terms</a><a href="mailto:asiorclothing@gmail.com">Contact</a></footer>
+  </main>
+</body>
+</html>

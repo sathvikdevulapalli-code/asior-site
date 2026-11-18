@@ -209,17 +209,18 @@ window.ASIOR_DROP = {
        read back on 2026-11-14. If that flow is ever paused, this
        copy becomes a promise nothing keeps, so change it in the same
        breath. */
-    CTA: 'Early Access + 10% Off',
-    CTA_SUB: 'email + sms \u00b7 first access to the drop',
+    CTA: 'Black Friday VIP Access',
+    CTA_SUB: 'email + optional sms \u00b7 20% off november 27',
 
     /* The line at the top of the sheet. */
     /* The lede names the confirmation step, because the list is
        double opt-in and the code rides on the flow behind it. The
        button can promise the offer; the sheet has to say what it
        takes to get it. */
-    LEDE: 'First access to the drop, plus 10% off your first order. '
-        + 'Confirm the email we send and the code is yours.',
-    SUBMIT: 'Get early access',
+    LEDE: 'Be first to know when ASIOR Black Friday opens November 27 at 2:00 PM CT. '
+        + 'The 20% discount applies automatically through November 30. '
+        + 'Confirm the email we send to join the VIP list.',
+    SUBMIT: 'Join the VIP list',
 
     /* The address in the gate's foot. Same one the rest of the site
        uses; see SUPPORT_EMAIL in scripts/build.js. */
