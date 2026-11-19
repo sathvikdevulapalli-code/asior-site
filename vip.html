@@ -2,61 +2,538 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex,follow">
+  <meta name="theme-color" content="#0B0B0C">
   <title>Black Friday VIP Access | ASIOR</title>
   <meta name="description" content="Join ASIOR's Black Friday VIP list. The automatic 20% sale opens November 27 at 2 PM Central.">
   <meta property="og:title" content="ASIOR Black Friday VIP Access">
   <meta property="og:description" content="20% off automatically, November 27–30. Join for the launch reminder.">
   <meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
   <link rel="icon" href="/assets/favicon.ico">
+
+  <!-- The three faces the entry gate already self-hosts. /vip is the
+       gate's sibling, so it uses the same type rather than loading a
+       fourth family or reaching for a webfont host: while this page is
+       running paid traffic, its first paint is the whole first
+       impression, and a fonts.googleapis.com link would put a DNS
+       lookup, a TLS handshake and a third-party stylesheet in front of
+       it. crossorigin is required even same-origin — font fetches are
+       always CORS-mode, and a preload without it is made in the wrong
+       mode, ignored, and quietly fetched twice. -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/anton-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-tight-var-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/courier-prime-400-latin.woff2" crossorigin>
+
   <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
   <style>
-    :root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#101010;color:#f5f3ee}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
-    .photo{background:#252525 url('/images/asior-hero-wide.00503c47.jpg') center/cover no-repeat;min-height:100vh}
-    main{max-width:620px;width:100%;margin:auto;padding:48px clamp(24px,5vw,72px)}
-    .brand{font-size:23px;letter-spacing:.27em;font-weight:700}.eyebrow{color:#b7a690;text-transform:uppercase;letter-spacing:.2em;font-size:11px;margin-top:28px}
-    h1{font-size:clamp(38px,3.6vw,52px);line-height:1.04;letter-spacing:-.05em;margin:12px 0 12px;font-weight:600}
-    .lede{font-size:16px;line-height:1.5;color:#d7d2ca;max-width:38ch}.date{margin:18px 0;color:#eac59e;font-size:13px;letter-spacing:.04em}
-    form{display:grid;gap:10px;margin-top:18px}label.field-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-    input[type=email],input[type=tel]{width:100%;background:#1d1d1d;border:1px solid #67625d;color:#fff;padding:16px;font-size:16px;border-radius:0}
-    input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #eac59e;outline-offset:2px}
-    .check{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:#d7d2ca;margin:4px 0}
-    .check input{margin:2px 0 0;width:17px;height:17px;flex:none;accent-color:#d9b995}
-    .sms-extra{border-top:1px solid #49443f;padding-top:10px}.sms-extra summary{cursor:pointer;color:#eac59e;font-size:13px;list-style-position:inside}.sms-extra[open]{display:grid;gap:10px}
-    button{border:0;background:#e7d0b1;color:#111;padding:17px;font-size:13px;text-transform:uppercase;letter-spacing:.13em;font-weight:700;cursor:pointer}
-    button:disabled{opacity:.55;cursor:wait}.fine{font-size:11px;line-height:1.6;color:#bcb7af}.fine a,footer a{color:#e9d0b0}
-    #status{min-height:2em;font-size:14px;line-height:1.5}footer{margin-top:48px;font-size:11px;color:#aaa;display:flex;gap:18px;flex-wrap:wrap}
-    @media(max-width:800px){body{grid-template-columns:1fr}.photo{min-height:20vh}main{padding:24px 24px 42px}.eyebrow{margin-top:24px}}
+    /* ===================================================================
+       ASIOR — Black Friday VIP
+
+       Editorial split: a full-bleed photograph held under grain and a
+       vignette on the left, a tight content column on the right. One
+       accent only, and it is the brand's own off-white: the palette is
+       the storefront's (--bg #0B0B0C, --ink #E8E8EA, --muted #9A9AA0),
+       so this page cannot drift away from the shop it feeds. The peach
+       and tan this page used to carry are gone — they were a colour the
+       brand does not own.
+
+       Square corners, 1px hairlines, no shadows, no cards. The primary
+       action inverts to an off-white fill with near-black caps, which
+       is the storefront's one button.
+       =================================================================== */
+
+    @font-face {
+      font-family: 'Anton';
+      font-style: normal; font-weight: 400; font-display: swap;
+      src: url('/fonts/anton-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Inter Tight';
+      font-style: normal; font-weight: 400 700; font-display: swap;
+      src: url('/fonts/inter-tight-var-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Courier Prime';
+      font-style: normal; font-weight: 400; font-display: swap;
+      src: url('/fonts/courier-prime-400-latin.woff2') format('woff2');
+    }
+
+    :root {
+      color-scheme: dark;
+
+      --bg: #0B0B0C;
+      --ink: #E8E8EA;
+      --muted: #9A9AA0;
+      /* Hairlines, not borders. Two weights: one that separates, one
+         that reads as a drawn edge. */
+      --line: rgba(232, 232, 234, 0.10);
+      --line-strong: rgba(232, 232, 234, 0.22);
+      /* Control boundaries clear 3:1 against the page. */
+      --field-line: #6C6C73;
+
+      --display: 'Anton', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --sans: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --mono: 'Courier Prime', 'Courier New', Courier, monospace;
+
+      /* Deliberate and heavy. Nothing here bounces or overshoots. */
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      display: grid;
+      /* 55/45. The photograph leads. */
+      grid-template-columns: 55fr 45fr;
+    }
+
+    /* ---- the photograph -------------------------------------------
+
+       A real frame from the real shoot, full-bleed and cropped with
+       object-fit, under two passes: a vignette that pulls the corners
+       down so the frame has a centre, and a fine grain that keeps a
+       flat dark photograph from reading as a flat dark rectangle.
+       Both are bound to this panel and never touch the type. */
+    .frame {
+      /* <figure> carries a UA margin of 1em 40px. Unreset, it inset the
+         photograph from its own panel and left a black gutter down the
+         left and under the frame. */
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background: #121214;
+    }
+
+    .frame img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 42%;
+      /* Held back a touch so the grain and the caption sit on it
+         without fighting the clothes. */
+      filter: brightness(0.86) contrast(1.04) saturate(0.92);
+    }
+
+    .frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(120% 90% at 50% 38%, transparent 38%, rgba(11, 11, 12, 0.62) 100%),
+        linear-gradient(to top, rgba(11, 11, 12, 0.78) 0%, transparent 42%);
+      pointer-events: none;
+    }
+
+    /* Film grain. An SVG turbulence tile rather than a raster, so it
+       costs no request and stays sharp on any display. */
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+      opacity: 0.16;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+
+    /* An editorial caption, set in the mono face along the foot of the
+       frame. It says what the picture is, which is what a caption is
+       for. */
+    .frame figcaption {
+      position: absolute;
+      left: clamp(20px, 3vw, 40px);
+      bottom: clamp(20px, 3vw, 36px);
+      z-index: 1;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(232, 232, 234, 0.72);
+    }
+
+    /* ---- the column ------------------------------------------------ */
+    main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(30px, 3.4vw, 54px) clamp(24px, 4.4vw, 68px);
+      padding-left: max(clamp(24px, 4.4vw, 68px), env(safe-area-inset-left, 0px));
+      padding-right: max(clamp(24px, 4.4vw, 68px), env(safe-area-inset-right, 0px));
+      min-width: 0;
+    }
+
+    .column { width: 100%; max-width: 440px; }
+
+    .wordmark {
+      font-family: var(--display);
+      font-size: clamp(26px, 2.2vw, 34px);
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: clamp(24px, 3.4vh, 38px) 0 0;
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(42px, 4.4vw, 68px);
+      line-height: 0.94;
+      letter-spacing: 0.005em;
+      text-transform: uppercase;
+      text-wrap: balance;
+      margin: 14px 0 0;
+    }
+
+    .lede {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 40ch;
+      margin: 18px 0 0;
+    }
+    .lede strong { color: var(--ink); font-weight: 600; }
+
+    /* The window, on its own rule. A date is data, so it is set in the
+       mono face like every other piece of metadata on this page. */
+    .window {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 22px 0 0;
+      padding: 12px 0;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .window span { color: var(--muted); }
+
+    /* ---- the form -------------------------------------------------- */
+    form { margin: 26px 0 0; }
+
+    .field-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+
+    /* Transparent, with one drawn edge underneath. No inset box, no
+       radius, no browser chrome. 16px so iOS does not zoom the page
+       when the field takes focus. */
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--field-line);
+      border-radius: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.4;
+      padding: 12px 0;
+      transition: border-color 0.3s var(--ease);
+    }
+    input[type="email"]::placeholder,
+    input[type="tel"]::placeholder { color: rgba(154, 154, 160, 0.65); }
+
+    input[type="email"]:focus,
+    input[type="tel"]:focus {
+      outline: none;
+      border-bottom-color: var(--ink);
+    }
+    /* The rule alone carries focus for a pointer; a keyboard also gets
+       a real ring, because a focus state that only a sighted mouse user
+       can follow is not a focus state. */
+    input[type="email"]:focus-visible,
+    input[type="tel"]:focus-visible {
+      outline: 1px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    /* A square box drawn to match the hairlines, not the browser's. */
+    .check { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: start; margin: 14px 0 0; }
+    .check span { font-size: 11px; line-height: 1.6; color: var(--muted); }
+    .check a { color: var(--muted); text-underline-offset: 2px; }
+    .check a:hover { color: var(--ink); }
+
+    .check input[type="checkbox"] {
+      appearance: none; -webkit-appearance: none;
+      width: 15px; height: 15px; margin: 3px 0 0;
+      border: 1px solid var(--field-line);
+      border-radius: 0;
+      background: transparent;
+      display: grid; place-content: center;
+      cursor: pointer;
+      transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+    }
+    .check input[type="checkbox"]::after {
+      content: "";
+      width: 7px; height: 4px;
+      border-left: 1.5px solid var(--bg);
+      border-bottom: 1.5px solid var(--bg);
+      transform: rotate(-45deg) translate(0.5px, -1px) scale(0.6);
+      opacity: 0;
+      transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+    }
+    .check input[type="checkbox"]:checked {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+    .check input[type="checkbox"]:checked::after { opacity: 1; transform: rotate(-45deg) translate(0.5px, -1px) scale(1); }
+    .check input[type="checkbox"]:hover { border-color: var(--ink); }
+    .check input[type="checkbox"]:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+
+    /* The optional half, folded away. */
+    .sms {
+      margin: 20px 0 0;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+    .sms > summary {
+      cursor: pointer;
+      list-style: none;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.3s var(--ease);
+    }
+    .sms > summary::-webkit-details-marker { display: none; }
+    .sms > summary::before { content: "+ "; }
+    .sms[open] > summary::before { content: "– "; }
+    .sms > summary:hover { color: var(--ink); }
+    .sms > summary:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+    .sms .field-label { margin-top: 16px; }
+
+    /* The storefront's one button: off-white fill, near-black caps,
+       square. It shifts weight on hover and presses on tap. It does not
+       scale up — a control that grows under the finger reads as a toy. */
+    button[type="submit"] {
+      width: 100%;
+      margin: 20px 0 0;
+      border: 1px solid var(--ink);
+      border-radius: 0;
+      background: var(--ink);
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s var(--ease), color 0.3s var(--ease), opacity 0.3s var(--ease);
+    }
+    button[type="submit"]:hover { background: transparent; color: var(--ink); }
+    button[type="submit"]:active { transform: translateY(1px); transition-duration: 90ms; }
+    button[type="submit"]:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+    button[type="submit"]:disabled { opacity: 0.45; cursor: wait; background: var(--ink); color: var(--bg); }
+
+    /* Reserves nothing until it has something to say, so the column
+       does not carry a gap waiting for a message. */
+    #status { font-size: 13px; line-height: 1.5; color: var(--ink); margin: 14px 0 0; }
+    #status:empty { margin: 0; }
+
+    .fine {
+      font-size: 11px;
+      line-height: 1.65;
+      color: var(--muted);
+      margin: 14px 0 0;
+    }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin: clamp(26px, 3.6vh, 40px) 0 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.3s var(--ease); }
+    footer a:hover { color: var(--ink); }
+    footer a:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+
+    /* ---- the cookie notice ------------------------------------------
+
+       assets/ads.js appends .ad-consent to every page it runs on, and
+       its styles live in assets/site.css, which this standalone page
+       does not load. Unstyled, it rendered as a default browser box
+       across the foot of the page. Same rules, this page's tokens. */
+    .ad-consent {
+      position: fixed; z-index: 11000; bottom: 16px; left: 16px;
+      width: min(360px, calc(100vw - 32px));
+      padding: 14px;
+      background: #161618;
+      color: var(--ink);
+      border: 1px solid var(--field-line);
+      box-sizing: border-box;
+    }
+    .ad-consent[hidden] { display: none; }
+    .ad-consent p { margin: 0 0 12px; }
+    .ad-consent-copy { font-size: 12px; line-height: 1.6; color: var(--muted); }
+    .ad-consent a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+    .ad-consent-actions { display: flex; gap: 10px; }
+    .ad-consent-actions button {
+      flex: 1; padding: 11px 10px;
+      background: transparent; border: 1px solid var(--field-line); border-radius: 0;
+      color: var(--ink);
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+    }
+    .ad-consent-actions button:hover { border-color: var(--ink); }
+    .ad-consent-actions button:focus-visible,
+    .ad-preferences:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+
+    /* ---- the arrival ------------------------------------------------
+
+       One staged rise on load, and nothing else moves on its own. The
+       page is complete at rest: the from-state lives only inside the
+       animation, with backwards fill, so a visitor with motion turned
+       off — or with the stylesheet half-applied — is never shown a
+       blank column waiting for a keyframe. */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: none; }
+      }
+      .rise {
+        animation: rise 0.8s var(--ease) backwards;
+        animation-delay: var(--in, 0ms);
+      }
+      .frame img {
+        animation: settle 1.6s var(--ease) backwards;
+      }
+      @keyframes settle {
+        from { transform: scale(1.04); opacity: 0; }
+        to   { transform: none; opacity: 1; }
+      }
+    }
+
+    /* ---- phone ------------------------------------------------------
+
+       The photograph becomes an atmospheric header and the form sits
+       immediately under it, reachable without a scroll on a 390x844
+       screen. */
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr; }
+      .frame {
+        height: 38vh;
+        min-height: 230px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .frame img { object-position: 50% 36%; }
+      main {
+        justify-content: flex-start;
+        padding-top: clamp(26px, 4vh, 38px);
+        padding-bottom: 42px;
+      }
+      .column { max-width: none; }
+      .eyebrow { margin-top: 24px; }
+      h1 { font-size: clamp(38px, 11vw, 54px); }
+    }
+
+    @media (max-width: 420px) {
+      .frame { height: 32vh; min-height: 190px; }
+    }
   </style>
+
   <script defer src="/assets/ads-config.js"></script>
   <script defer src="/assets/ads.js"></script>
   <script defer src="/assets/vip-signup.js"></script>
 </head>
 <body>
-  <div class="photo" role="img" aria-label="ASIOR clothing campaign photograph"></div>
+
+  <figure class="frame">
+    <picture>
+      <source srcset="/images/asior-hero-wide.webp" type="image/webp">
+      <img src="/images/asior-hero-wide.jpg"
+           alt="Four models in ASIOR Fall 2026 pieces, photographed outdoors"
+           fetchpriority="high" decoding="async">
+    </picture>
+    <figcaption>ASIOR / Fall 2026</figcaption>
+  </figure>
+
   <main>
-    <div class="brand">ASIOR</div>
-    <p class="eyebrow">Black Friday 2026</p>
-    <h1>Black Friday<br>starts here.</h1>
-    <p class="lede">Join the VIP list for the launch reminder. Our Black Friday sale is <strong>20% off eligible products automatically</strong>; no code is needed.</p>
-    <p class="date">NOV 27, 2:00 PM CT TO NOV 30, 11:59 PM CT</p>
-    <form id="vipForm" novalidate>
-      <label class="field-label" for="vipEmail">Email address</label>
-      <input type="email" id="vipEmail" name="email" autocomplete="email" required placeholder="you@example.com">
-      <label class="check"><input type="checkbox" id="emailConsent" required><span>I agree to receive ASIOR Black Friday and occasional marketing emails. Frequency varies. I can unsubscribe using any email's link. See the <a href="/privacy-policy.html">Privacy Policy</a>.</span></label>
-      <details class="sms-extra">
-        <summary>Want text reminders too? Add your number</summary>
-        <label class="field-label" for="vipPhone">Mobile number (optional)</label>
-        <input type="tel" id="vipPhone" name="phone_number" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555">
-        <label class="check"><input type="checkbox" id="smsConsent"><span>If I provide a number, I agree to receive recurring automated ASIOR marketing texts at that number. Consent is not a condition of purchase. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe, HELP for help. See the <a href="/privacy-policy.html">Privacy Policy</a> and <a href="/terms-of-service.html">SMS terms</a>.</span></label>
-      </details>
-      <button type="submit" id="vipButton">Join the VIP list</button>
-      <p id="status" role="status" aria-live="polite"></p>
-    </form>
-    <p class="fine">This page collects signups only. Shopping opens when the Black Friday sale begins on November 27 at 2:00 PM CT.</p>
-    <footer><a href="/privacy-policy.html">Privacy</a><a href="/terms-of-service.html">Terms</a><a href="mailto:asiorclothing@gmail.com">Contact</a></footer>
+    <div class="column">
+
+      <p class="wordmark rise" style="--in:80ms">Asior</p>
+
+      <p class="eyebrow rise" style="--in:200ms">Black Friday 2026</p>
+
+      <h1 class="rise" style="--in:300ms">Black Friday<br>starts here.</h1>
+
+      <p class="lede rise" style="--in:420ms">
+        Join the VIP list for the launch reminder.
+        <strong>20% off everything, applied automatically.</strong>
+        No code needed.
+      </p>
+
+      <p class="window rise" style="--in:520ms">
+        Nov 27, 2:00 PM CT <span>to</span> Nov 30, 11:59 PM CT
+      </p>
+
+      <form id="vipForm" novalidate class="rise" style="--in:620ms">
+        <label class="field-label" for="vipEmail">Email address</label>
+        <input type="email" id="vipEmail" name="email" autocomplete="email" required placeholder="you@example.com">
+        <label class="check"><input type="checkbox" id="emailConsent" required><span>I agree to receive ASIOR Black Friday and occasional marketing emails. Frequency varies. I can unsubscribe using any email's link. See the <a href="/privacy-policy.html">Privacy Policy</a>.</span></label>
+
+        <details class="sms">
+          <summary>Want text reminders too? Add your number</summary>
+          <label class="field-label" for="vipPhone">Mobile number (optional)</label>
+          <input type="tel" id="vipPhone" name="phone_number" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555">
+          <label class="check"><input type="checkbox" id="smsConsent"><span>If I provide a number, I agree to receive recurring automated ASIOR marketing texts at that number. Consent is not a condition of purchase. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe, HELP for help. See the <a href="/privacy-policy.html">Privacy Policy</a> and <a href="/terms-of-service.html">SMS terms</a>.</span></label>
+        </details>
+
+        <button type="submit" id="vipButton">Join the VIP list</button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="fine rise" style="--in:720ms">
+        This page collects signups only. Shopping opens when the Black Friday sale begins on November 27 at 2:00 PM CT.
+      </p>
+
+      <footer class="rise" style="--in:800ms">
+        <a href="/privacy-policy.html">Privacy</a>
+        <a href="/terms-of-service.html">Terms</a>
+        <a href="mailto:asiorclothing@gmail.com">Contact</a>
+      </footer>
+
+    </div>
   </main>
+
 </body>
 </html>
