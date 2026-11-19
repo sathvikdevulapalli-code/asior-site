@@ -62,7 +62,7 @@
     button.disabled = true;
     message('Adding you to the VIP list…');
     try {
-      await subscribe('TN58zR', { email: email, properties: sourceProperties() });
+      await subscribe('TFEDaD', { email: email, properties: sourceProperties() });
       try {
         window._learnq = window._learnq || [];
         window._learnq.push(['identify', { $email: email }]);
@@ -73,12 +73,12 @@
       if (phone) {
         try {
           await subscribe('UiFFMg', { phone_number: phone });
-          message('Check your email and text messages to confirm your VIP and SMS subscriptions. The 20% sale opens November 27 at 2:00 PM CT.');
+          message('You\u2019re on the VIP list. Reply YES to the text we send to confirm SMS. The 20% sale opens November 27 at 2:00 PM CT.');
         } catch (smsError) {
-          message('Your email request was received. Check your inbox to confirm VIP access. The SMS request did not go through; please try that separately later.');
+          message('You\u2019re on the VIP list. The SMS request did not go through; please try that separately later.');
         }
       } else {
-        message('Check your inbox and confirm your email to join the VIP list. The 20% sale opens November 27 at 2:00 PM CT.');
+        message('You\u2019re on the VIP list. The 20% sale opens November 27 at 2:00 PM CT.');
       }
       form.reset();
     } catch (error) {

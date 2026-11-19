@@ -31,7 +31,7 @@
      and never entered the early-access flow that exists for them. A
      form names its own list with data-klaviyo-list; everything else
      keeps the general list. */
-  var KLAVIYO_EARLY_ACCESS_LIST_ID = 'TN58zR';
+  var KLAVIYO_EARLY_ACCESS_LIST_ID = 'TFEDaD';
   var KLAVIYO_REVISION = '2024-10-15';
 
   // -----------------------------------------------------------------

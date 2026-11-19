@@ -130,9 +130,15 @@ window.ASIOR_DROP = {
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
        this file offers a second door, so there is no second door. */
-    LIST_ID: 'TN58zR',
+    LIST_ID: 'TFEDaD',
 
-    /* TN58zR IS DOUBLE OPT-IN, and that changes what the gate may say.
+    /* 2026-11-19: moved from TN58zR (Fall Early Access) to the Email
+       List (TFEDaD). The Black Friday VIP emails, which carry the
+       early-access code, go to the Email List, and TN58zR had 0
+       confirmed members, so every gate signup was stranded PENDING
+       and never received them. The history below is why.
+
+       TN58zR IS DOUBLE OPT-IN, and that changes what the gate may say.
 
        Read back 2026-11-14: opt_in_process "double_opt_in",
        profile_count 0 -- nobody has completed it in the two months
@@ -151,7 +157,7 @@ window.ASIOR_DROP = {
        Klaviyo, or if LIST_ID is pointed at a single opt-in list, and
        the success message stops asking for a confirmation that is no
        longer needed. */
-    LIST_DOUBLE_OPT_IN: true,
+    LIST_DOUBLE_OPT_IN: false,
 
     /* The line above the wordmark. A moment, not an offer.
 
@@ -213,13 +219,11 @@ window.ASIOR_DROP = {
     CTA_SUB: 'email + optional sms \u00b7 20% off november 27',
 
     /* The line at the top of the sheet. */
-    /* The lede names the confirmation step, because the list is
-       double opt-in and the code rides on the flow behind it. The
-       button can promise the offer; the sheet has to say what it
-       takes to get it. */
+    /* The Email List is single opt-in, so there is no confirmation
+       step to name. If LIST_ID ever points back at a double opt-in
+       list, the confirmation sentence comes back with it. */
     LEDE: 'Be first to know when ASIOR Black Friday opens November 27 at 2:00 PM CT. '
-        + 'The 20% discount applies automatically through November 30. '
-        + 'Confirm the email we send to join the VIP list.',
+        + 'The 20% discount applies automatically through November 30.',
     SUBMIT: 'Join the VIP list',
 
     /* The address in the gate's foot. Same one the rest of the site
@@ -379,7 +383,7 @@ window.ASIOR_DROP = {
       /* Fall Early Access. Double opt-in, and the "Early Access" flow
          on it is LIVE -- checked 2026-11-13 -- so a signup here is
          actually answered. */
-      listId: 'TN58zR',
+      listId: 'TFEDaD',
       handles: [],
       opensAt: '',
     },
