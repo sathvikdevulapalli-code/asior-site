@@ -36,6 +36,16 @@
     });
   }
 
+  function sourceProperties() {
+    var params = new URLSearchParams(window.location.search);
+    var properties = { signup_location: 'bfcm_vip_page' };
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (key) {
+      var value = params.get(key);
+      if (value) properties[key] = value.slice(0, 120);
+    });
+    return properties;
+  }
+
   form.addEventListener('submit', async function (event) {
     event.preventDefault();
     if (busy) return;
@@ -52,7 +62,11 @@
     button.disabled = true;
     message('Adding you to the VIP list…');
     try {
-      await subscribe('TN58zR', { email: email });
+      await subscribe('TN58zR', { email: email, properties: sourceProperties() });
+      try {
+        window._learnq = window._learnq || [];
+        window._learnq.push(['identify', { $email: email }]);
+      } catch (ignored) {}
       if (window.fbq) {
         try { window.fbq('track', 'Lead', { content_name: 'BF drop early access' }); } catch (ignored) {}
       }
