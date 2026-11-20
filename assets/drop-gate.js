@@ -242,11 +242,22 @@
              fact is given once, in words, in the sr-only line beside
              it. */
           '<div class="gate-clock g-rise" id="gateClock" style="--in:300ms" hidden>' +
+            /* One colon-separated line with the labels spread
+               beneath it, which is the reference's clock and now
+               /vip's as well. Four separate Anton blocks read as four
+               numbers that happen to be adjacent; one line reads as a
+               time. The digits are aria-hidden and the same fact is
+               given once, in words, in the sr-only line below -- a
+               live region that rewrites itself every second is a
+               screen-reader siren.
+
+               The wrapper keeps the class .gate-clock-row because
+               live() removes it wholesale when the sale starts. */
             '<div class="gate-clock-row" aria-hidden="true">' +
-              '<span class="gate-unit"><b id="ckD">--</b><i>days</i></span>' +
-              '<span class="gate-unit"><b id="ckH">--</b><i>hrs</i></span>' +
-              '<span class="gate-unit"><b id="ckM">--</b><i>min</i></span>' +
-              '<span class="gate-unit"><b id="ckS">--</b><i>sec</i></span>' +
+              '<p class="gate-clock-time" id="ckTime">--:--:--:--</p>' +
+              '<ul class="gate-clock-units">' +
+                '<li>Days</li><li>Hrs</li><li>Mins</li><li>Secs</li>' +
+              '</ul>' +
             '</div>' +
             '<p class="sr-only" id="ckWords"></p>' +
           '</div>' +
@@ -522,8 +533,7 @@
 
     var row = box.querySelector('.gate-clock-row');
     var words = box.querySelector('#ckWords');
-    var d = box.querySelector('#ckD'), h = box.querySelector('#ckH');
-    var m = box.querySelector('#ckM'), sEl = box.querySelector('#ckS');
+    var timeEl = box.querySelector('#ckTime');
 
     function live() {
       /* Past the start. If the sale has also ended, say nothing at
@@ -553,10 +563,9 @@
       var hh = Math.floor((secs % 86400) / 3600);
       var mm = Math.floor((secs % 3600) / 60);
       var ss = secs % 60;
-      if (d) d.textContent = two(dd);
-      if (h) h.textContent = two(hh);
-      if (m) m.textContent = two(mm);
-      if (sEl) sEl.textContent = two(ss);
+      if (timeEl) {
+        timeEl.textContent = two(dd) + ':' + two(hh) + ':' + two(mm) + ':' + two(ss);
+      }
       if (words) {
         words.textContent = 'Opens in ' + dd + ' days, ' + hh + ' hours and ' +
                             mm + ' minutes.';
@@ -604,6 +613,17 @@
   function pumpFilm() {
     var film = root && root.querySelector('#gateFilm');
     if (!film) return;
+
+    /* A loop longer than five seconds is motion nobody asked for, so
+       a visitor whose system asks for less of it gets the still --
+       which is this film's own first frame, so the gate looks the
+       same and simply stops moving. Same rule on /vip. */
+    if (window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      film.removeAttribute('autoplay');
+      try { film.pause(); } catch (ignored) {}
+      return;
+    }
 
     film.addEventListener('playing', function () {
       film.classList.add('is-playing');
