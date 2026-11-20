@@ -215,65 +215,105 @@
         '<div class="gate-core">' +
 
           (CFG.EYEBROW
-            ? '<p class="gate-eyebrow g-rise" style="--in:120ms">' + esc(CFG.EYEBROW) + '</p>'
+            ? '<p class="gate-eyebrow g-rise" style="--in:100ms">' + esc(CFG.EYEBROW) + '</p>'
             : '') +
 
           /* Filled in by tellWhatIsLeft() from the live catalogue, or
-             left hidden. Never written by hand. */
-          '<p class="gate-scarcity g-rise" id="gateScarcity" style="--in:180ms" hidden></p>' +
+             left hidden. Never written by hand. SCARCITY is false, so
+             today it stays empty -- the slot stays because turning the
+             flag back on has to be one flag and nothing else. */
+          '<p class="gate-scarcity g-rise" id="gateScarcity" style="--in:150ms" hidden></p>' +
 
-          /* The mark is a button: it opens the same sheet. Unmarked on
-             purpose -- it looks like the wordmark and nothing else --
-             but a real button rather than a click handler on a
-             heading, so it is reachable from a keyboard. */
-          '<h1 class="gate-wordmark-wrap g-rise" id="gateTitle" style="--in:260ms">' +
+          '<h1 class="gate-wordmark-wrap g-rise" id="gateTitle" style="--in:200ms">' +
             '<button type="button" class="gate-wordmark" id="gateMark" ' +
-                    'aria-label="Asior, members’ entrance">Asior</button>' +
+                    'aria-label="Asior, members\u2019 entrance">Asior</button>' +
           '</h1>' +
 
-          /* The description. It was lost when the sheet went away and
-             the sheet's lede went with it -- this screen is now the
-             only screen, so the one thing the gate has to explain
-             belongs on it. */
+          /* THE CLOCK.
+
+             Written empty and filled by tickClock(). It is the biggest
+             thing on the screen because the founder asked for the gate
+             to be a countdown, and it is allowed to exist at all
+             because the instant it counts to is a real scheduled
+             Shopify discount rather than a number somebody picked.
+
+             aria-hidden on the digits: a live region that rewrites
+             itself every second is a screen-reader siren. The same
+             fact is given once, in words, in the sr-only line beside
+             it. */
+          '<div class="gate-clock g-rise" id="gateClock" style="--in:300ms" hidden>' +
+            '<div class="gate-clock-row" aria-hidden="true">' +
+              '<span class="gate-unit"><b id="ckD">--</b><i>days</i></span>' +
+              '<span class="gate-unit"><b id="ckH">--</b><i>hrs</i></span>' +
+              '<span class="gate-unit"><b id="ckM">--</b><i>min</i></span>' +
+              '<span class="gate-unit"><b id="ckS">--</b><i>sec</i></span>' +
+            '</div>' +
+            '<p class="sr-only" id="ckWords"></p>' +
+          '</div>' +
+
+          /* One line, and only one. What happens when the clock hits
+             zero, in the fewest words that are still true. */
           (CFG.LEDE
-            ? '<p class="gate-blurb g-rise" style="--in:360ms">' + esc(CFG.LEDE) + '</p>'
+            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(CFG.LEDE) + '</p>'
             : '') +
 
-          /* THE FORM IS ON THE SCREEN, not behind a button.
+          /* THE SIGNUP. Email and a button, on one row, and nothing
+             else on the first screen.
 
-             It was behind the CTA, which is how the original worked,
-             and the founder asked for the clicks taken out: a
-             first-time visitor should see the boxes and type, not
-             press a thing to be shown a thing to press. Both fields
-             are here, the description is here, and the lookbook is a
-             strip below rather than another overlay. One screen, one
-             action. */
-          '<form class="gate-form g-rise" id="gateForm" novalidate style="--in:420ms">' +
-            '<label class="sr-only" for="gateEmail">Email address</label>' +
-            '<input class="field" type="email" id="gateEmail" name="email" ' +
-                   'placeholder="email" autocomplete="email" spellcheck="false" required>' +
+             The phone is folded behind a single line rather than
+             sitting on the screen as a second box. It is still a real
+             field in the DOM -- submit() reads #gatePhone and tolerates
+             its absence -- and the TCPA paragraph is inside the fold,
+             beside the field it is about, which is where prior express
+             written consent has to be. Folding the field folds the
+             paragraph with it, so neither appears without the other. */
+          '<form class="gate-form g-rise" id="gateForm" novalidate style="--in:460ms">' +
+            '<div class="gate-row">' +
+              '<label class="sr-only" for="gateEmail">Email address</label>' +
+              '<input class="field" type="email" id="gateEmail" name="email" ' +
+                     'placeholder="email" autocomplete="email" spellcheck="false" required>' +
+              '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || CFG.CTA || 'Enter') + '</button>' +
+            '</div>' +
             (smsOn
-              ? '<label class="sr-only" for="gatePhone">Phone number (optional)</label>' +
-                '<input class="field" type="tel" id="gatePhone" name="phone" ' +
-                       'placeholder="phone (optional)" autocomplete="tel" inputmode="tel">'
+              ? '<details class="gate-sms">' +
+                  '<summary>text me too</summary>' +
+                  '<label class="sr-only" for="gatePhone">Phone number (optional)</label>' +
+                  '<input class="field" type="tel" id="gatePhone" name="phone" ' +
+                         'placeholder="phone (optional)" autocomplete="tel" inputmode="tel">' +
+                  '<p class="gate-consent-sms">' + esc(CFG.SMS.CONSENT || '') + '</p>' +
+                '</details>'
               : '') +
-            '<button type="submit" id="gateBtn">' + esc(CFG.CTA || 'Enter') + '</button>' +
-            '<p class="gate-cta-sub">' + esc(CFG.CTA_SUB || '') + '</p>' +
           '</form>' +
 
-          '<p class="gate-msg g-rise" id="gateMsg" role="status" aria-live="polite" ' +
-             'style="--in:520ms"></p>' +
+          /* The personalised state. Shown instead of the form to
+             somebody we already hold an address for, so a returning
+             visitor is asked once and then only ever shown the clock.
+             Written by build(), never guessed at. */
+          '<p class="gate-known g-rise" id="gateKnown" style="--in:460ms" hidden></p>' +
 
-          /* The consent copy, on the screen beside the field it is
-             about, which is where prior express written consent has
-             to be. Collapsed behind a details element so it is not a
-             wall of small print above the fold, but open-able without
-             leaving the gate and present in the DOM for a reader. */
-          '<div class="gate-fineprint g-rise" style="--in:580ms">' +
-            (smsOn
-              ? '<details><summary>sms terms</summary><p>' + esc(CFG.SMS.CONSENT || '') +
-                ' See our <a href="/privacy-policy.html">Privacy Policy</a> and ' +
-                '<a href="/terms-of-service.html">Terms of Service</a>.</p></details>'
+          '<p class="gate-msg g-rise" id="gateMsg" role="status" aria-live="polite" ' +
+             'style="--in:540ms"></p>' +
+
+          '<div class="gate-fineprint g-rise" style="--in:600ms">' +
+            /* The confirmation step, named BEFORE they hand over an
+               address rather than only after.
+
+               TN58zR is double opt-in and had zero completed profiles
+               when it was read back, so a signup is not a join until
+               they click the link in their inbox -- and the button
+               above promises 20% off. Somebody deciding whether to
+               give an address is entitled to know there is a second
+               step between them and that.
+
+               It used to be a clause in the lede. The lede is one
+               short line now, so it lives here instead, where the
+               email consent sentence already is: still on the screen
+               before the decision, without putting four lines of
+               explanation above the field. Driven by the same flag as
+               the success message, so pointing LIST_ID at a single
+               opt-in list removes both at once. */
+            (LIST_IS_DOUBLE_OPT_IN
+              ? '<p>We send a confirmation email. Click it to join the list.</p>'
               : '') +
             '<p>By signing up, you agree to receive occasional marketing emails. ' +
               'Unsubscribe anytime.</p>' +
@@ -348,6 +388,8 @@
 
     document.addEventListener('keydown', trap, true);
     pumpFilm();
+    startClock();
+    greetKnown();
     tellWhatIsLeft();
   }
 
@@ -429,6 +471,115 @@
     });
   }
 
+  /* ---- the clock -----------------------------------------------------
+
+     Counts to CFG.COUNTDOWN.TO, which is the Shopify discount's own
+     startsAt and nothing else. Every exit here is "draw no clock":
+
+       no config, no TO, a TO that will not parse  -> nothing
+       the instant has passed and ENDS has too     -> nothing
+       the instant has passed, sale still running  -> the live line
+
+     So the gate can never show a timer to a date that does not exist,
+     and it cannot go on counting after the sale, which would be the
+     same lie pointing backwards. A countdown is only honest while the
+     thing it counts to is real and still ahead.
+
+     The ticker clears itself at zero rather than running forever, and
+     admit() clears it too, so a gate that is dismissed leaves no
+     interval behind. */
+  var clockTimer = null;
+
+  function parseWhen(v) {
+    if (!v) return NaN;
+    var t = Date.parse(v);
+    return isFinite(t) ? t : NaN;
+  }
+
+  function two(n) { return (n < 10 ? '0' : '') + n; }
+
+  function stopClock() {
+    if (clockTimer) { clearInterval(clockTimer); clockTimer = null; }
+  }
+
+  function startClock() {
+    var cfg = CFG.COUNTDOWN || {};
+    var to = parseWhen(cfg.TO);
+    var ends = parseWhen(cfg.ENDS);
+    var box = root && root.querySelector('#gateClock');
+    if (!box || !isFinite(to)) return;          /* no date: no clock */
+
+    var row = box.querySelector('.gate-clock-row');
+    var words = box.querySelector('#ckWords');
+    var d = box.querySelector('#ckD'), h = box.querySelector('#ckH');
+    var m = box.querySelector('#ckM'), sEl = box.querySelector('#ckS');
+
+    function live() {
+      /* Past the start. If the sale has also ended, say nothing at
+         all rather than announce a sale that is over. */
+      stopClock();
+      if (isFinite(ends) && Date.now() >= ends) { box.hidden = true; return; }
+      box.classList.add('is-live');
+      if (row) row.remove();
+      var line = String(cfg.LIVE || 'live now');
+      box.insertBefore(mk(line), box.firstChild);
+      if (words) words.textContent = line;
+      box.hidden = false;
+    }
+
+    function mk(text) {
+      var el = document.createElement('p');
+      el.className = 'gate-clock-live';
+      el.textContent = text;
+      return el;
+    }
+
+    function tick() {
+      var left = to - Date.now();
+      if (left <= 0) { live(); return; }
+      var secs = Math.floor(left / 1000);
+      var dd = Math.floor(secs / 86400);
+      var hh = Math.floor((secs % 86400) / 3600);
+      var mm = Math.floor((secs % 3600) / 60);
+      var ss = secs % 60;
+      if (d) d.textContent = two(dd);
+      if (h) h.textContent = two(hh);
+      if (m) m.textContent = two(mm);
+      if (sEl) sEl.textContent = two(ss);
+      if (words) {
+        words.textContent = 'Opens in ' + dd + ' days, ' + hh + ' hours and ' +
+                            mm + ' minutes.';
+      }
+      box.hidden = false;
+    }
+
+    tick();
+    if (!box.hidden && !box.classList.contains('is-live')) {
+      clockTimer = setInterval(tick, 1000);
+    }
+  }
+
+  /* ---- who this is ---------------------------------------------------
+
+     The only personalisation the gate can honestly do. We hold one
+     fact about a returning visitor -- the address they gave -- so
+     somebody who has already joined is not asked a second time. They
+     get the clock and a line saying they are on the list.
+
+     It never guesses. No stored address means the form, exactly as a
+     first-time visitor sees it. */
+  function greetKnown() {
+    var known = lsGet(LS_EMAIL);
+    if (!known) return false;
+    var form = root && root.querySelector('#gateForm');
+    var note = root && root.querySelector('#gateKnown');
+    if (!form || !note) return false;
+    form.hidden = true;
+    note.textContent = 'you\u2019re on the list as ' + known + '.';
+    note.hidden = false;
+    return true;
+  }
+
   /* ---- the film ----------------------------------------------------
 
      Three outcomes, and the gate is presentable in all three:
@@ -498,6 +649,7 @@
      technically displayed. Anything asking something of the reader
      gets long enough to read it. */
   function admit(email, note, hold) {
+    stopClock();
     markOpened(email);
     say(note || 'you\u2019re in.', 'ok');
     document.documentElement.classList.remove('asior-gated');
@@ -615,10 +767,16 @@
          So the gate opens either way, because they gave a real
          address and the request succeeded, and the message names the
          one thing they still have to do. */
+      /* Short, because the clock above says when and the line under
+         it says what. This message only has to carry the one thing
+         still required of them, and the hold is the time it takes to
+         read that -- it was 4000ms for a sentence that repeated the
+         date and the discount, which is four seconds of somebody
+         staring at a wall they have already paid for with an email. */
       admit(email, LIST_IS_DOUBLE_OPT_IN
-        ? 'check your inbox and confirm to join the VIP list. 20% off starts November 27 at 2:00 PM CT; no code needed.'
-        : 'you\u2019re on the VIP list. 20% off starts November 27 at 2:00 PM CT; no code needed.',
-        4000);
+        ? 'check your inbox and confirm to join.'
+        : 'you\u2019re on the list.',
+        LIST_IS_DOUBLE_OPT_IN ? 2600 : 900);
     }).catch(function (err) {
       /* See "THE THREE WAYS THIS COULD TAKE THE WHOLE STORE DOWN" at
          the top. They gave a real address and the request genuinely

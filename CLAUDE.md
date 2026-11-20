@@ -661,14 +661,30 @@ design.
 
 **SMS is an optional field, with its consent beside it.** Its own
 value, its own request, its own Klaviyo list (`UiFFMg` via
-`klaviyoSubscribeSms`). Typing a number is the consent act and the
-TCPA paragraph is visible at the point of collection rather than
-behind a toggle, which is what 47 CFR 64.1200(f) requires of prior
-express written consent — including "not a condition of any
-purchase", the clause most brands miss. `SMS.CONSENT` is compliance,
-not copy. An email alone subscribes no phone number and there are
-tests for exactly that at both widths; leaving the number blank is
-not an error, the gate opens on the email alone.
+`klaviyoSubscribeSms`). Typing a number is the consent act, and the
+TCPA paragraph — including "not a condition of any purchase", the
+clause most brands miss — is what 47 CFR 64.1200(f) requires of prior
+express written consent. `SMS.CONSENT` is compliance, not copy. An
+email alone subscribes no phone number and there are tests for
+exactly that at both widths; leaving the number blank is not an
+error, the gate opens on the email alone.
+
+**Both halves are folded together, and that pairing is the rule.**
+Until 2026-11-20 the number box and its paragraph sat open on the
+screen. The founder asked for the gate stripped to a clock and one
+field, so both now live behind a single "text me too" line, and the
+founder chose that shape over keeping the paragraph permanently
+visible when the trade was put to them.
+
+What makes it compliant is that they move together: the disclosure
+is inside the same `<details>` as the field, so it is on screen
+whenever the field is and can never appear without it. **Never
+unfold one without the other, and never move the paragraph out to
+the fine print while the field stays folded** — a number box with no
+disclosure beside it is the exact thing the rule exists to stop. The
+gate suite asserts the pairing: both inside `.gate-sms`, the closed
+fold no taller than its summary, and on opening, the field and the
+full paragraph both rendered with the paragraph below the field.
 
 **"10% off" on the gate is checked, not assumed.** The Early Access
 flow (`TXCdzE`) on `TN58zR` is live, triggered by Added to List, and
@@ -787,6 +803,62 @@ out". Still no: 89 units across 11 buyable products makes it false,
 and it is self-defeating as well as untrue — it tells people not to
 try to buy the stock that exists, and it is disproved the moment
 anyone gets through the gate and sees a full catalogue.
+
+**The gate is a countdown now, and that is allowed because the date
+is real.** This file bans countdowns, and the reason it gives is
+exact: a countdown to a date nobody set is fake urgency and the FTC
+treats it as deceptive. That ban is about invented dates. `GATE.
+COUNTDOWN.TO` is not one — it is copied from the Shopify discount's
+own `startsAt`:
+
+    DiscountAutomaticNode/1576926707929
+    "Black Friday 2026 - 20% Off", status SCHEDULED
+    startsAt 2026-11-27T20:00:00Z, endsAt 2026-12-01T05:59:00Z
+    20% of AllDiscountItems          (read back 2026-11-19)
+
+So the clock counts to an instant that exists in Shopify and fires
+whether or not anyone is watching. **If that schedule moves in
+Shopify it moves here in the same change**, or the gate is counting
+to nothing.
+
+`startClock()` has one behaviour and three exits, all of them "draw
+no clock": no `TO`, a `TO` that will not parse, or a sale that has
+already ended per `ENDS`. Past `TO` but inside `ENDS` it drops the
+digits and shows `COUNTDOWN.LIVE` instead. **Empty is valid and means
+no countdown renders at all**, the same discipline `NEXT_DROP`
+follows. A timer that goes on counting after the sale is the same lie
+pointing backwards, which is why `ENDS` exists.
+
+The digits are `aria-hidden` and the same fact is given once, in
+words, in an `sr-only` line beside them: a live region that rewrites
+itself every second is a screen-reader siren.
+
+**The clock leads the screen.** The wordmark came down from
+`clamp(3.4rem, 15vw, 8rem)` to `clamp(2.1rem, 8vw, 4rem)` because a
+mark larger than the countdown made the countdown a subtitle.
+
+**The one personalisation the gate does.** `greetKnown()` reads the
+address stored at signup and, if there is one, hides the form and
+says "you're on the list as …". Somebody who already joined is not
+asked twice; they get the clock. No stored address means the form,
+exactly as a first-time visitor sees it. It never guesses at anything
+else, because an address is the only fact the gate holds.
+
+**The double opt-in warning moved, it did not go.** It used to be a
+clause in the lede. The lede is one line now, so the sentence sits in
+the fine print with the email consent copy — still on the screen
+before anybody hands over an address, which is the point: the button
+promises 20% off and there is a confirmation click between them and
+it. Driven by `LIST_DOUBLE_OPT_IN`, like the success message, so
+pointing `LIST_ID` at a single opt-in list removes both at once.
+
+**The hold is the time it takes to read the message, and no more.**
+It was raised to 4000ms when the success copy grew to repeat the date
+and the discount — four seconds of somebody staring at a wall they
+have already paid for with an email, and long enough that the gate
+suite's own 3300ms wait started failing, which is how it was found.
+The message is short again (the clock says when, the lede says what)
+and the hold is 2600ms on a double opt-in list, 900ms otherwise.
 
 **The gate names no discount, and must not.** Every discount in the
 Shopify account was read back on 2026-11-14. The only ACTIVE ones

@@ -209,17 +209,52 @@ window.ASIOR_DROP = {
        read back on 2026-11-14. If that flow is ever paused, this
        copy becomes a promise nothing keeps, so change it in the same
        breath. */
-    CTA: 'Black Friday VIP Access',
-    CTA_SUB: 'email + optional sms \u00b7 20% off november 27',
+    /* ---- the countdown -----------------------------------------
 
-    /* The line at the top of the sheet. */
-    /* The lede names the confirmation step, because the list is
-       double opt-in and the code rides on the flow behind it. The
-       button can promise the offer; the sheet has to say what it
-       takes to get it. */
-    LEDE: 'Be first to know when ASIOR Black Friday opens November 27 at 2:00 PM CT. '
-        + 'The 20% discount applies automatically through November 30. '
-        + 'Confirm the email we send to join the VIP list.',
+       THE ONE DATE ON THIS SITE THAT IS REAL.
+
+       CLAUDE.md bans countdowns, and the reason it gives is exact: a
+       countdown to a date nobody set is the fake-urgency dark pattern
+       the FTC treats as deceptive. That ban is about invented dates.
+       This is not one.
+
+       TO is the Shopify discount's own startsAt, copied from the
+       discount node and nowhere else:
+
+         DiscountAutomaticNode/1576926707929
+         "Black Friday 2026 - 20% Off"
+         status SCHEDULED, startsAt 2026-11-27T20:00:00Z,
+         endsAt 2026-12-01T05:59:00Z, 20% of AllDiscountItems
+         (read back 2026-11-19)
+
+       So the gate is counting to an instant that exists in Shopify
+       and will fire whether or not anybody is watching the clock.
+       EMPTY IS VALID and means NO COUNTDOWN RENDERS AT ALL, the same
+       discipline NEXT_DROP follows. Never put a placeholder here, and
+       never let this drift from the discount: if the schedule moves
+       in Shopify it moves here in the same change, or the gate is
+       counting to nothing.
+
+       ENDS is only used to stop claiming a live sale after it is
+       over. LIVE is what the screen says once TO has passed. */
+    COUNTDOWN: {
+      TO: '2026-11-27T20:00:00Z',
+      ENDS: '2026-12-01T05:59:00Z',
+      LIVE: '20% off everything. No code needed.',
+    },
+
+    CTA: 'Black Friday VIP Access',
+    /* CTA_SUB is gone. The founder asked for the screen stripped to a
+       countdown, a signup and nothing else, and this line was a
+       restatement of the two lines above it. */
+
+    /* One line. The clock above it already says WHEN, so this only
+       has to say WHAT, and the double opt-in instruction belongs in
+       the success message -- which is where admit() puts it -- rather
+       than in front of somebody who has not signed up yet. Four lines
+       of explanation above the field was the wall the founder asked
+       to have taken down. */
+    LEDE: 'nov 27, 2pm ct \u00b7 20% off everything, no code.',
     SUBMIT: 'Join the VIP list',
 
     /* The address in the gate's foot. Same one the rest of the site
