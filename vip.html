@@ -149,6 +149,17 @@
       text-transform: uppercase;
     }
 
+    .offer {
+      margin: 26px 0 0;
+      font-size: 11px;
+      line-height: 1.6;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .offer[hidden] { display: none; }
+    .offer b { color: var(--ink); font-weight: 600; }
+
     /* ---- the form -----------------------------------------------------
        Each input is a rule, not a box: transparent background, no
        border but the bottom one, no radius, nothing the browser drew. */
@@ -349,6 +360,10 @@
       <p class="sr-only" id="clockWords"></p>
     </div>
 
+    <!-- Written by the script below from the MEMBER_OFFER constants.
+         Empty and hidden until there is something true to say. -->
+    <p class="offer rise" id="offer" style="--in:260ms" hidden></p>
+
     <form id="vipForm" novalidate class="rise" style="--in:320ms">
       <label class="field-label" for="vipEmail">Email</label>
       <input class="field" type="email" id="vipEmail" name="email" autocomplete="email" required>
@@ -389,6 +404,32 @@
     var OPENS_AT = '2026-11-27T20:00:00Z';
     var ENDS_AT  = '2026-12-01T05:59:00Z';
     var LIVE_LINE = 'The sale is live';
+
+    /* ---- what the sale actually is ---------------------------------
+
+       PUBLIC_PCT is the automatic discount every visitor gets with no
+       code. It is 20 because that is what the scheduled Shopify
+       discount is set to, and it is the only number on this page that
+       is safe to state today.
+
+       MEMBER_PCT and MEMBER_CODE are the members' offer. BOTH ARE
+       NULL AND MUST STAY NULL UNTIL THE CODE EXISTS IN SHOPIFY, and
+       while either is null this page says nothing about a member
+       discount at all.
+
+       Why it is one code and not "20% plus an extra 10%": every
+       discount in this account, the Black Friday automatic included,
+       is set combinesWith.orderDiscounts FALSE. Two order-level
+       discounts therefore cannot stack. A member entering a 10% code
+       during the sale would get 10% INSTEAD of the automatic 20% --
+       worse off for being a member. The way to give members 30% is a
+       single 30% code that replaces the automatic, which Shopify does
+       by itself because a code outranks an automatic it cannot
+       combine with. Set MEMBER_PCT to the code's real percentage, not
+       to the difference. */
+    var PUBLIC_PCT  = 20;
+    var MEMBER_PCT  = null;
+    var MEMBER_CODE = null;
 
     var box = document.getElementById('clock');
     var timeEl = document.getElementById('clockTime');
@@ -431,6 +472,18 @@
 
     tick();
     if (!box.hidden && timeEl.className !== 'clock-live') timer = setInterval(tick, 1000);
+
+    /* The offer line. Public half always, members' half only once the
+       code is real, and nothing at all if PUBLIC_PCT is cleared. */
+    var offerEl = document.getElementById('offer');
+    if (offerEl && PUBLIC_PCT) {
+      var line = '<b>' + PUBLIC_PCT + '% off</b> everything, applied automatically.';
+      if (MEMBER_PCT && MEMBER_CODE) {
+        line += ' Members get <b>' + MEMBER_PCT + '% off</b> with code ' + MEMBER_CODE + '.';
+      }
+      offerEl.innerHTML = line;
+      offerEl.hidden = false;
+    }
   })();
   </script>
 
