@@ -3827,9 +3827,12 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   cursor: pointer;
   font-family: var(--g-display);
   font-weight: 400;
-  font-size: clamp(3.4rem, 15vw, 8rem);
-  line-height: 0.86;
-  letter-spacing: 0.015em;
+  /* Stood down from clamp(3.4rem, 15vw, 8rem). The clock is the
+     hero of this screen now, and a wordmark larger than the
+     countdown made the countdown the subtitle. */
+  font-size: clamp(2.1rem, 8vw, 4rem);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: #fff;
   /* A very slow breath, under the threshold where it reads as an
@@ -4014,11 +4017,124 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 
 /* On the screen now, over the film, so the field boundaries have to
    hold against moving pictures rather than against a flat sheet. */
+/* ---- the clock ------------------------------------------------------
+
+   The biggest thing on the gate. Anton at a display size with tabular
+   figures, so the digits do not jitter as they tick -- a proportional
+   face makes the whole row twitch once a second, which is the single
+   cheapest-looking thing a countdown can do.
+
+   The units sit on one row with hairline gaps, and each number keeps
+   its own column so 09 and 10 occupy the same width. */
+.gate-clock {
+  width: min(680px, 100%);
+  margin: 2px 0 2px;
+}
+.gate-clock[hidden] { display: none; }
+
+.gate-clock-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* Wide enough that the four values read as four, not as one
+     eight-digit number. Anton is condensed, so a gap that looks
+     generous in the stylesheet still closes up on screen. */
+  gap: clamp(12px, 3.4vw, 46px);
+  align-items: end;
+}
+
+.gate-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gate-unit b {
+  font-family: var(--g-display);
+  font-weight: 400;
+  font-size: clamp(54px, 16vw, 124px);
+  line-height: 0.84;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  color: #fff;
+}
+
+.gate-unit i {
+  font-family: var(--g-mono);
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(232, 232, 234, 0.66);
+}
+
+/* Once the sale is actually live the digits are removed and this one
+   line takes their place. */
+.gate-clock-live {
+  margin: 0;
+  font-family: var(--g-display);
+  font-size: clamp(28px, 6vw, 52px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* ---- the personalised line -----------------------------------------
+   Shown in place of the form to somebody already on the list. */
+.gate-known {
+  margin: 4px 0 0;
+  font-family: var(--g-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(232, 232, 234, 0.82);
+}
+.gate-known[hidden] { display: none; }
+
+/* ---- the signup row -------------------------------------------------
+   Email and the button on one line from 420px up, stacked below it. */
+.gate-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+@media (max-width: 460px) {
+  .gate-row { grid-template-columns: 1fr; }
+}
+
+/* The phone, folded. One line of type until it is wanted, so the
+   first screen is a clock, a field and a button. */
+.gate-sms { margin: 10px 0 0; }
+.gate-sms > summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(232, 232, 234, 0.66);
+  transition: color 200ms var(--ease-out);
+}
+.gate-sms > summary::-webkit-details-marker { display: none; }
+.gate-sms > summary::before { content: "+ "; }
+.gate-sms[open] > summary::before { content: "\2013 "; }
+.gate-sms > summary:hover { color: #fff; }
+.gate-sms .field { margin-top: 10px; }
+.gate-consent-sms {
+  margin: 8px 0 0;
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(232, 232, 234, 0.6);
+  text-align: left;
+}
+
 .gate-form {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: min(380px, 100%);
+  width: min(480px, 100%);
 }
 
 .gate-form .field {
