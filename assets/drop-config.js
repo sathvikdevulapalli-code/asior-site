@@ -255,6 +255,28 @@ window.ASIOR_DROP = {
        of explanation above the field was the wall the founder asked
        to have taken down. */
     LEDE: 'nov 27, 2pm ct \u00b7 20% off everything, no code.',
+
+    /* ---- the members' half -------------------------------------
+
+       The founder's offer is 20% for the whole site and an extra 10%
+       for people who sign up. It cannot be built as two discounts:
+       every discount in this account, the Black Friday automatic
+       included, has combinesWith.orderDiscounts false, so a 10%
+       member code would REPLACE the 20% automatic and leave a member
+       worse off than a stranger. One 30% members-only code is the
+       way -- Shopify lets a code outrank an automatic it cannot
+       combine with, so members who enter it get 30% and everybody
+       else keeps the automatic 20%.
+
+       BOTH KEYS STAY NULL UNTIL THAT CODE EXISTS IN SHOPIFY. While
+       either is null the gate says nothing about a member discount,
+       because a members' offer nobody can redeem is worse than no
+       offer. Fill in the code's real percentage, not the difference,
+       and the line appears on the gate and on /vip. */
+    MEMBER_OFFER: {
+      PCT: null,
+      CODE: null,
+    },
     SUBMIT: 'Join the VIP list',
 
     /* The address in the gate's foot. Same one the rest of the site

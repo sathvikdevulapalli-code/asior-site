@@ -254,7 +254,7 @@
           /* One line, and only one. What happens when the clock hits
              zero, in the fewest words that are still true. */
           (CFG.LEDE
-            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(CFG.LEDE) + '</p>'
+            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(memberLine(CFG.LEDE)) + '</p>'
             : '') +
 
           /* THE SIGNUP. Email and a button, on one row, and nothing
@@ -469,6 +469,17 @@
     }).catch(function () {
       /* No line. Never a guess. */
     });
+  }
+
+  /* The members' half of the offer, appended to the lede only when
+     the code actually exists in Shopify. See MEMBER_OFFER in
+     drop-config.js for why it is one code rather than a 10% top-up:
+     nothing in this account combines, so a 10% code would replace the
+     20% automatic and leave a member worse off than a stranger. */
+  function memberLine(lede) {
+    var m = CFG.MEMBER_OFFER || {};
+    if (!m.PCT || !m.CODE) return lede;
+    return lede + ' members ' + m.PCT + '% with ' + m.CODE + '.';
   }
 
   /* ---- the clock -----------------------------------------------------
