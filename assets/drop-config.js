@@ -130,7 +130,24 @@ window.ASIOR_DROP = {
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
        this file offers a second door, so there is no second door. */
-    LIST_ID: 'TN58zR',
+    /* ONE LIST, FOR EVERYTHING. Email and SMS both land on the
+       Email List and nothing else is written to from this gate.
+
+       TFEDaD was chosen over the three alternatives for a reason that
+       is worth keeping: it is the only SINGLE OPT-IN list on the
+       account, and it already holds 48 real subscribers with a live
+       Email Welcome Series on it. The lists this gate used before --
+       TN58zR (Fall Early Access) and SFuK88 (BFCM 2026 VIP) -- are
+       both DOUBLE opt-in, and TN58zR had a profile_count of ZERO two
+       months after it was created. Every person who ever signed up
+       through the gate was left PENDING, waiting on a confirmation
+       click that mostly never came, which means the signup did not
+       happen and no flow fired.
+
+       Single opt-in makes the subscription real the moment they press
+       the button. Point this at a double opt-in list again and
+       LIST_DOUBLE_OPT_IN below must flip in the same change. */
+    LIST_ID: 'TFEDaD',
 
     /* TN58zR IS DOUBLE OPT-IN, and that changes what the gate may say.
 
@@ -151,7 +168,11 @@ window.ASIOR_DROP = {
        Klaviyo, or if LIST_ID is pointed at a single opt-in list, and
        the success message stops asking for a confirmation that is no
        longer needed. */
-    LIST_DOUBLE_OPT_IN: true,
+    /* False because TFEDaD is single opt-in (read back 2026-11-21).
+       This drives both the pre-signup warning in the fine print and
+       the wording of the success message, so the two can never
+       disagree about whether a confirmation click is still owed. */
+    LIST_DOUBLE_OPT_IN: false,
 
     /* The line above the wordmark. A moment, not an offer.
 
@@ -254,7 +275,7 @@ window.ASIOR_DROP = {
        than in front of somebody who has not signed up yet. Four lines
        of explanation above the field was the wall the founder asked
        to have taken down. */
-    LEDE: 'nov 27, 2pm ct \u00b7 20% off everything, no code.',
+    LEDE: 'nov 27, 2pm ct \u00b7 20% off everything.',
 
     /* ---- the members' half -------------------------------------
 
@@ -274,10 +295,33 @@ window.ASIOR_DROP = {
        offer. Fill in the code's real percentage, not the difference,
        and the line appears on the gate and on /vip. */
     MEMBER_OFFER: {
-      PCT: null,
-      CODE: null,
+      /* ASIOR30 IS REAL. Read back from Shopify 2026-11-21:
+
+           DiscountCodeNode/1578102915289
+           "ASIOR30", status SCHEDULED, 30% off
+           startsAt 2026-11-27T20:00:00Z
+           endsAt   2026-12-01T05:59:00Z
+
+         The same window as the Black Friday automatic to the minute,
+         which is what makes it work. Every discount on this account
+         is combinesWith.orderDiscounts FALSE, so ASIOR30 does not add
+         10% to the automatic 20% -- it REPLACES it, and Shopify lets
+         a code outrank an automatic it cannot combine with. The
+         shopper who enters it pays 30% less; everybody else keeps the
+         automatic 20%. That is the founder's "20% sitewide and an
+         extra 10% for members", built the only way Shopify will
+         actually honour it.
+
+         PCT is the code's real percentage, never the difference. If
+         ASIOR30 is paused or its window moves in Shopify, both keys
+         go back to null in the same change or the gate is promising
+         something nothing will honour. */
+      PCT: 30,
+      CODE: 'ASIOR30',
     },
-    SUBMIT: 'Join the VIP list',
+    /* What the button does, in the words of what they get for it.
+       "Join the VIP list" names a list; this names the reason. */
+    SUBMIT: 'Get 30% off',
 
     /* The address in the gate's foot. Same one the rest of the site
        uses; see SUPPORT_EMAIL in scripts/build.js. */
@@ -307,6 +351,27 @@ window.ASIOR_DROP = {
        OWNER-ACTIONS.md. */
     SMS: {
       ON: true,
+
+      /* REQUIRED, at the founder's instruction on 2026-11-21: the
+         number is how somebody gets the 30% code, so it is not an
+         optional extra on this form any more.
+
+         Two things follow from it and both are load-bearing.
+
+         First, a required field cannot be folded away. The rule has
+         always been that the number and its TCPA disclosure move
+         together; with the field permanently on screen the paragraph
+         is permanently on screen too, which is what 47 CFR
+         64.1200(f) wants anyway.
+
+         Second, "not a condition of any purchase" in CONSENT below
+         stays true and has to. The gate is a marketing wall on public
+         URLs -- checkout is on Shopify's own domain and is not gated
+         at all -- so nobody is required to accept texts in order to
+         buy anything. Do not make SMS a condition of checkout; that
+         sentence would stop being true and the consent would stop
+         being valid. */
+      REQUIRED: true,
       CONSENT: 'By entering your number you agree to receive recurring automated '
              + 'marketing texts from Asior at that number. Consent is not a condition '
              + 'of any purchase. Message frequency varies and message & data rates may '
@@ -436,7 +501,9 @@ window.ASIOR_DROP = {
       /* Fall Early Access. Double opt-in, and the "Early Access" flow
          on it is LIVE -- checked 2026-11-13 -- so a signup here is
          actually answered. */
-      listId: 'TN58zR',
+      /* The one list, like everything else on this site since
+         2026-11-21. See KLAVIYO_EMAIL_LIST_ID in assets/site.js. */
+      listId: 'TFEDaD',
       handles: [],
       opensAt: '',
     },

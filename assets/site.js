@@ -19,19 +19,33 @@
   var SHOPIFY_API_VERSION = '2024-10';
 
   var KLAVIYO_PUBLIC_KEY = 'QV7rBB';
-  var KLAVIYO_EMAIL_LIST_ID = 'TFEDaD';
-  var KLAVIYO_SMS_LIST_ID = 'UiFFMg';
-  /* "Fall Early Access" (double opt-in). Confirmed against the live
-     account on 2026-10-21, along with the flow hanging off it: a live
-     "Early Access" flow triggered by Added to List.
+  /* ONE LIST. Every signup on this site -- the gate, the footer, the
+     sold-out capture, /text, the PDP text block, the campaign
+     waitlist -- joins TFEDaD and nothing else, at the founder's
+     instruction on 2026-11-21.
 
-     The waitlist form used to post to KLAVIYO_EMAIL_LIST_ID, whose
-     flow is "Email Welcome Series with Discount" -- so someone joining
-     a waitlist for early access was put in the general welcome series
-     and never entered the early-access flow that exists for them. A
-     form names its own list with data-klaviyo-list; everything else
-     keeps the general list. */
-  var KLAVIYO_EARLY_ACCESS_LIST_ID = 'TN58zR';
+     It used to be four. The gate went to TN58zR, text signups to
+     UiFFMg, the footer and sold-out capture to TFEDaD, and a BFCM
+     page created on 2026-11-20 added a fifth in SFuK88. One person
+     who gave an address and a number ended up as two profiles on two
+     lists with two consent records, and no single list was the
+     audience -- so no campaign could be sent to "everyone".
+
+     TFEDaD is the one kept because it is the only SINGLE OPT-IN list
+     on the account, with 48 real subscribers and a live welcome flow.
+     The others are double opt-in, and TN58zR had a profile_count of
+     ZERO two months after it was created: every signup it ever took
+     was left PENDING on a confirmation click that never came.
+
+     The three names below are kept as separate constants, all
+     pointing at the same list, so the call sites still read as what
+     they are and splitting them again later is a one-line change
+     rather than a hunt. Do not point one at a double opt-in list
+     without flipping that form's confirmation copy in the same
+     change. */
+  var KLAVIYO_EMAIL_LIST_ID = 'TFEDaD';
+  var KLAVIYO_SMS_LIST_ID = KLAVIYO_EMAIL_LIST_ID;
+  var KLAVIYO_EARLY_ACCESS_LIST_ID = KLAVIYO_EMAIL_LIST_ID;
   var KLAVIYO_REVISION = '2024-10-15';
 
   // -----------------------------------------------------------------
