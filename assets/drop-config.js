@@ -186,7 +186,11 @@ window.ASIOR_DROP = {
 
        Create a Black Friday discount in Shopify and this is where its
        real terms go, in its real words. */
-    EYEBROW: 'black friday',
+    /* Empty since 2026-11-21: the founder asked for the words above
+       the mark to come off. The clock says when and the lede says
+       what; a third line said neither. A string here renders it
+       again. */
+    EYEBROW: '',
 
     /* ---- the restock framing, and why it is not here -------------
 
@@ -275,7 +279,10 @@ window.ASIOR_DROP = {
        than in front of somebody who has not signed up yet. Four lines
        of explanation above the field was the wall the founder asked
        to have taken down. */
-    LEDE: 'nov 27, 2pm ct \u00b7 20% off everything.',
+    /* No date here. The clock directly above it counts to the same
+       instant, so "nov 27, 2pm ct" was the screen saying when twice
+       -- and it pushed the line to two rows on a phone. */
+    LEDE: '20% off sitewide.',
 
     /* ---- the members' half -------------------------------------
 
@@ -319,9 +326,12 @@ window.ASIOR_DROP = {
       PCT: 30,
       CODE: 'ASIOR30',
     },
-    /* What the button does, in the words of what they get for it.
-       "Join the VIP list" names a list; this names the reason. */
-    SUBMIT: 'Get 30% off',
+    /* The FALLBACK only. While MEMBER_OFFER is live the gate computes
+       the label from it ("Get 30% off"), so this is what the button
+       says when there is no member offer to name -- it states what
+       the button does rather than a figure nothing would honour.
+       Never put a percentage here. */
+    SUBMIT: 'Get early access',
 
     /* The address in the gate's foot. Same one the rest of the site
        uses; see SUPPORT_EMAIL in scripts/build.js. */
@@ -349,6 +359,52 @@ window.ASIOR_DROP = {
        the old back-in-stock capture was not -- this form promises no
        message -- but it is why the welcome text is in
        OWNER-ACTIONS.md. */
+    /* ---- THE A/B ---------------------------------------------
+
+       Two versions of the gate's copy, split by a sticky bucket, with
+       the bucket written onto the Klaviyo profile and onto the Gate
+       Unlocked event so the result can actually be read back. An A/B
+       whose variant is not recorded anywhere is just a coin flip.
+
+       WHAT IS BEING TESTED: which number to lead with. Both
+       variants are true and both end at the same place -- the
+       shopper who signs up gets ASIOR30 and pays 30% either way.
+
+         a  the public figure first, then what signing up adds
+            "20% off sitewide. when you sign up, extra 10%."
+         b  the member figure first, the public one as the floor
+            "30% off when you sign up. 20% for everyone else."
+
+       WHAT MAY GO IN A VARIANT: copy, and only copy -- LEDE and
+       SUBMIT. Not the fields, not the consent text, not the list,
+       not whether the number is required. A variant that changes
+       what a visitor agrees to is not an experiment, it is two
+       different privacy policies, and a variant that changes the
+       form changes what the numbers mean.
+
+       HOW TO READ IT: in Klaviyo, segment the list on the
+       gate_variant property, or break the Gate Unlocked metric down
+       by it. The denominator is Gate Shown, which fires once per
+       session per bucket -- without it you have signups per variant
+       and no idea how many people saw each.
+
+       ON: false turns the whole thing off and everybody gets
+       VARIANTS.a. SPLIT is the share who get b. */
+    AB: {
+      ON: true,
+      KEY: 'asior_gate_ab',
+      SPLIT: 0.5,
+      VARIANTS: {
+        a: {},
+        b: {
+          /* Copy only, and no SUBMIT here: the button's label is
+             computed from MEMBER_OFFER so both variants say the same
+             true figure and the test is the lede's framing alone. */
+          LEDE: '30% off when you sign up. 20% for everyone else.',
+        },
+      },
+    },
+
     SMS: {
       ON: true,
 

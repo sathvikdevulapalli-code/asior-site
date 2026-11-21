@@ -636,6 +636,16 @@ to decorate with a play button: if autoplay is refused the gate is
 simply a still photograph. A film is decoration, and decoration
 never keeps anyone out of a shop.
 
+**The film is exempt from `prefers-reduced-motion`, deliberately.** A
+guard was added 2026-11-20 and taken out again 2026-11-21: the
+founder reported the background was not moving for them and this was
+why. Reduce Motion is one tap in iOS accessibility settings and a lot
+of people leave it on, so the guard was silently serving a frozen
+photograph on the one screen whose entire design is the moving film.
+The loop is silent, has no flashing, carries no information and
+nothing depends on seeing it. Every other reduced-motion rule on the
+site stands, including the gate's own transitions.
+
 **A moving background cannot be trusted for contrast.** Measured
 across the whole 8.5s loop rather than on one frame: the poster is
 the *darkest* frame, and later ones take the grass bright enough to
@@ -844,6 +854,41 @@ took the whole first screen on a phone. The labels sit beneath on
 their own row. The wrapper keeps the class `.gate-clock-row` because
 `live()` removes it wholesale when the sale starts, and a test
 asserts the digits are gone at that point.
+
+**What is on the screen, and nothing else.** Stripped 2026-11-21 at
+the founder's request, to the reference: the mark, the clock, one
+line of offer, two fields, the disclosure, one button, one line of
+fine print.
+
+- **No eyebrow.** `EYEBROW: ''`. The clock says when and the lede
+  says what; a word above the mark said neither.
+- **No DAYS/HRS/MINS/SECS row.** Four tracked words under the digits
+  made the clock a table. The colons already say what the groups
+  are, and `#ckWords` still carries the same fact in words for a
+  screen reader, which it always did.
+- **No foot.** The bracket links — instagram, tiktok, the support
+  address, privacy, terms — are gone. On a screen whose one job is a
+  signup, five links at the bottom were five ways to leave first.
+  The privacy link moved into the fine print, beside the consent it
+  governs. Do not restore the foot to get it back.
+- **No date in the lede.** The clock directly above counts to the
+  same instant.
+- **The fields are rules, not boxes.** Transparent, no border but
+  the bottom one. Two outlined boxes over a photograph was four more
+  drawn edges than the screen needed; this is the reference's own
+  treatment and it is what makes the gate read as clean.
+- **The button stays solid.** The fields gave up their outlines so
+  the one control that should be pressed is the only drawn shape
+  left. Making it an outline too would be cleaner and convert worse.
+
+**One line of fine print survives and may not be deleted.** It is the
+email marketing consent and the privacy link, on a form that takes an
+address and a phone number. Asked to strip further, move it. The TCPA
+paragraph by the number is the other half and is separately required.
+`.gate-fineprint` is defined **once** in `site.css` — a second block
+was nearly added 120 lines above it on 2026-11-21, which at equal
+specificity would have lost on document order with half its rules
+silently dead.
 
 **The one personalisation the gate does.** `greetKnown()` reads the
 address stored at signup and, if there is one, hides the form and
@@ -1058,6 +1103,59 @@ rather than from some of them.
 SCHEDULED 2026-11-27T06:00Z to 11-28T05:59Z — it opens fourteen hours
 before the 20% automatic and is worse than `ASIOR30`. Nothing on the
 site names it.
+
+## The gate A/B
+
+`GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split
+by a sticky bucket, with the bucket written onto the **Klaviyo
+profile** (`gate_variant`) and onto the **`Gate Unlocked` event**. An
+experiment whose variant is recorded nowhere is a coin flip; on the
+profile it can be segmented on, on the event it can break down a
+metric, and both answer different questions.
+
+**What is being tested: which number to lead with.** Variant `a` says
+"20% off sitewide. when you sign up, extra 10%."; variant `b` says
+"30% off when you sign up. 20% for everyone else." Both are true and
+both end in the same place — the shopper who signs up enters
+`ASIOR30` and pays 30% either way.
+
+**`Gate Shown` is the denominator and it has to stay.** Signups per
+variant with no impressions per variant is not a result: if `a` is
+shown twice as often it "wins" on volume while losing on rate. It
+fires once per **session**, in `sessionStorage`, for the reason
+`trackArrival()` does — 22 pages of browsing is one visit, and
+counting page views would inflate the denominator in the direction
+that flatters us. A browser refusing storage is bucket `a` and is
+counted in neither column.
+
+**A variant may change copy and nothing else.** `LEDE` and `SUBMIT`.
+Not the fields, not the consent text, not the list, not whether the
+number is required. A variant that changes what somebody agrees to is
+two privacy policies, not an experiment; one that changes the form
+changes what the numbers mean. `ab.js` asserts both variants render
+the same fields, the same required flag and the same two consent
+blocks.
+
+**The experiment does not run unless the member offer is live**, and
+that is what keeps the honesty guarantee whole. Everywhere else the
+30% is computed from `MEMBER_OFFER`, so clearing it in Shopify
+removes the figure everywhere at once. Variant `b` states it in a
+literal string no config change can reach, so with `ASIOR30` pulled
+half of all visitors would go on being promised it. Rather than ban
+literals in variant copy — a rule nobody would remember — the A/B is
+simply off without a live offer, which is also just correct: it is a
+question *about* the member offer.
+
+**The button's label is computed too**, by `submitLabel()`. That was
+the second half of the same bug: gating the A/B fixed variant `b`'s
+lede while `CFG.SUBMIT` still read "Get 30% off" as a literal, so a
+pulled code left every visitor with a lede promising nothing and a
+button promising 30%. **Never type a percentage into `SUBMIT` or into
+a variant.** The fallback says what the button does, not what it is
+worth.
+
+Both holes were found by `offer.js` forcing `MEMBER_OFFER` to null,
+not by reading the code. Keep that test.
 
 ## Build step (`scripts/build.js`)
 

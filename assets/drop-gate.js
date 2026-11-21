@@ -214,6 +214,11 @@
       '<main class="gate-main">' +
         '<div class="gate-core">' +
 
+          /* The eyebrow is gone from the screen at the founder's
+             request on 2026-11-21 -- the clock already says when and
+             the lede says what, so a word above the mark was a third
+             thing saying neither. EYEBROW in drop-config.js is empty;
+             putting a string back there renders it again. */
           (CFG.EYEBROW
             ? '<p class="gate-eyebrow g-rise" style="--in:100ms">' + esc(CFG.EYEBROW) + '</p>'
             : '') +
@@ -255,17 +260,23 @@
                live() removes it wholesale when the sale starts. */
             '<div class="gate-clock-row" aria-hidden="true">' +
               '<p class="gate-clock-time" id="ckTime">--:--:--:--</p>' +
-              '<ul class="gate-clock-units">' +
-                '<li>Days</li><li>Hrs</li><li>Mins</li><li>Secs</li>' +
-              '</ul>' +
+              /* Digits only. The labels row came off on 2026-11-21:
+                 four tracked words under the numbers made the clock
+                 a table rather than a countdown, and the colons
+                 already say what the groups are.
+
+                 Nothing is lost for a screen reader -- the digits are
+                 aria-hidden and #ckWords below carries the same fact
+                 in words ("Opens in N days, N hours and N minutes"),
+                 which it always did. */
             '</div>' +
             '<p class="sr-only" id="ckWords"></p>' +
           '</div>' +
 
           /* One line, and only one. What happens when the clock hits
              zero, in the fewest words that are still true. */
-          (CFG.LEDE
-            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(memberLine(CFG.LEDE)) + '</p>'
+          (v('LEDE')
+            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(memberLine(v('LEDE'))) + '</p>'
             : '') +
 
           /* THE SIGNUP. Email and a button, on one row, and nothing
@@ -297,7 +308,7 @@
                  consent paragraph. */
               (SMS_REQUIRED
                 ? ''
-                : '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || CFG.CTA || 'Enter') + '</button>') +
+                : '<button type="submit" id="gateBtn">' + esc(submitLabel()) + '</button>') +
             '</div>' +
             /* The number, and its disclosure directly under it.
 
@@ -322,7 +333,7 @@
                 '</div>'
               : '') +
             (SMS_REQUIRED
-              ? '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || CFG.CTA || 'Enter') + '</button>'
+              ? '<button type="submit" id="gateBtn">' + esc(submitLabel()) + '</button>'
               : '') +
           '</form>' +
 
@@ -335,30 +346,27 @@
           '<p class="gate-msg g-rise" id="gateMsg" role="status" aria-live="polite" ' +
              'style="--in:540ms"></p>' +
 
-          '<div class="gate-fineprint g-rise" style="--in:600ms">' +
-            /* The confirmation step, named BEFORE they hand over an
-               address rather than only after.
+          /* ONE LINE, AND IT IS THE LAST THING THAT MAY BE CUT.
 
-               TN58zR is double opt-in and had zero completed profiles
-               when it was read back, so a signup is not a join until
-               they click the link in their inbox -- and the button
-               above promises 20% off. Somebody deciding whether to
-               give an address is entitled to know there is a second
-               step between them and that.
+             The founder asked on 2026-11-21 for everything at the
+             bottom of the gate to come off. The foot went entirely
+             and the three paragraphs that used to live here are one
+             sentence -- but a sentence stays, because this is the
+             email marketing consent and the privacy link, on a form
+             that takes an address and a phone number.
 
-               It used to be a clause in the lede. The lede is one
-               short line now, so it lives here instead, where the
-               email consent sentence already is: still on the screen
-               before the decision, without putting four lines of
-               explanation above the field. Driven by the same flag as
-               the success message, so pointing LIST_ID at a single
-               opt-in list removes both at once. */
+             Asked to strip it further, move it; do not delete it.
+             The TCPA paragraph by the number is the other half and
+             is separately required. Driven by LIST_DOUBLE_OPT_IN, so
+             pointing LIST_ID at a double opt-in list puts the
+             confirmation clause back in the same change. */
+          '<p class="gate-fineprint g-rise" style="--in:600ms">' +
             (LIST_IS_DOUBLE_OPT_IN
-              ? '<p>We send a confirmation email. Click it to join the list.</p>'
+              ? 'Confirm the email we send to join. '
               : '') +
-            '<p>By signing up, you agree to receive occasional marketing emails. ' +
-              'Unsubscribe anytime.</p>' +
-          '</div>' +
+            'Marketing emails, unsubscribe anytime. ' +
+            '<a href="/privacy-policy.html">Privacy</a>' +
+          '</p>' +
 
         '</div>' +
 
@@ -385,19 +393,17 @@
            went with the actions block -- and two links do not need a
            dialog. They are links in the foot now, which is one tap
            instead of two and no dead markup. */
-        '<div class="gate-foot g-rise" style="--in:760ms">' +
-          '<span class="gate-foot-left">' +
-            ((CFG.FOLLOW && CFG.FOLLOW.ON ? (CFG.FOLLOW.LINKS || []) : []).map(function (l) {
-              return '<a href="' + esc(l.href) + '" target="_blank" rel="noopener">' +
-                     '<b>[</b> ' + esc(l.label) + ' <b>]</b></a>';
-            }).join('')) +
-          '</span>' +
-          '<span class="gate-foot-right">' +
-            '<a href="mailto:' + esc(SUPPORT) + '">' + esc(SUPPORT) + '</a>' +
-            '<a href="/privacy-policy.html"><b>[</b> privacy <b>]</b></a>' +
-            '<a href="/terms-of-service.html"><b>[</b> terms <b>]</b></a>' +
-          '</span>' +
-        '</div>' +
+        /* NO FOOT. The bracket links -- instagram, tiktok, the
+           support address, privacy, terms -- came off on 2026-11-21
+           at the founder's request. On a screen whose one job is a
+           signup, five links at the bottom were five ways to leave
+           before filling the form in.
+
+           The privacy link did not vanish with them: it moved into
+           the one line of fine print under the button, which is
+           where it belongs anyway -- beside the consent it governs
+           rather than in a row of social links. Do not put the foot
+           back to restore it. */
       '</main>' +
 
       /* ---- the signup sheet ------------------------------------
@@ -432,6 +438,9 @@
     startClock();
     greetKnown();
     tellWhatIsLeft();
+    /* Counted where the gate is actually on the screen, not where it
+       was decided on -- the denominator has to mean "saw it". */
+    countShown();
   }
 
   /* ---- what is actually left ----------------------------------------
@@ -517,16 +526,145 @@
      drop-config.js for why it is one code rather than a 10% top-up:
      nothing in this account combines, so a 10% code would replace the
      20% automatic and leave a member worse off than a stranger. */
+  /* ---- the A/B bucket ------------------------------------------
+
+     Drawn once and remembered, so nobody sees variant a on Monday and
+     variant b on Tuesday -- a visitor who flips between versions is
+     noise in both columns and a worse experience than either.
+
+     A browser that refuses localStorage gets 'a' and is never
+     counted. That is the same rule the overlay's rollout follows: a
+     visitor who cannot be deduplicated is better left out of the
+     numbers than counted wrongly in them. */
+  /* THE EXPERIMENT IS OFF UNLESS THE MEMBER OFFER IS REAL, and that
+     is not a detail -- it is the thing that keeps the honesty
+     guarantee from having a hole in it.
+
+     Everywhere else the rule holds by construction: the lede's member
+     half, the button and the success message are all computed from
+     MEMBER_OFFER, so clearing it in Shopify removes the 30% from all
+     three at once. Variant b breaks that by stating the figure in a
+     literal string ("30% off when you sign up"), which no config
+     change can reach. Pull ASIOR30 and half of all visitors would go
+     on being promised it.
+
+     Rather than ban literals in variant copy -- a rule nobody would
+     remember -- the experiment simply does not run without a live
+     member offer. That is also just correct: this A/B is a question
+     about how to frame the member offer, so with no member offer
+     there is nothing to test and variant a, whose lede names only
+     the public figure, is the right thing to show everyone.
+
+     offer.js proves it: with MEMBER_OFFER nulled, no variant claims
+     a discount anywhere on the screen. */
+  function memberOfferLive() {
+    var m = CFG.MEMBER_OFFER || {};
+    return !!(m.PCT && m.CODE);
+  }
+
+  var AB = (CFG.AB && CFG.AB.ON && memberOfferLive()) ? CFG.AB : null;
+
+  function bucket() {
+    if (!AB) return 'a';
+    var key = AB.KEY || 'asior_gate_ab';
+    try {
+      var seen = localStorage.getItem(key);
+      if (seen === 'a' || seen === 'b') return seen;
+      var pick = Math.random() < (typeof AB.SPLIT === 'number' ? AB.SPLIT : 0.5) ? 'b' : 'a';
+      localStorage.setItem(key, pick);
+      return pick;
+    } catch (err) {
+      return 'a';
+    }
+  }
+
+  var VARIANT = bucket();
+
+  /* THE DENOMINATOR. Signups per variant with no impressions per
+     variant is not a result -- if a is shown twice as often it will
+     "win" on volume while losing on rate. This fires once per
+     SESSION, not per page, for the same reason trackArrival() does:
+     22 pages of browsing is one visit, and counting page views would
+     inflate the denominator and flatter the conversion rate.
+
+     sessionStorage, not localStorage, so it is one per visit rather
+     than one ever. A browser that refuses it is skipped entirely
+     rather than counted on every page. */
+  function countShown() {
+    var k = 'asior_gate_shown';
+    try {
+      if (sessionStorage.getItem(k)) return;
+      sessionStorage.setItem(k, '1');
+    } catch (err) {
+      return;
+    }
+    if (!A.klaviyoTrack) return;
+    try { A.klaviyoTrack('Gate Shown', { variant: VARIANT, source: 'entry_gate' }); }
+    catch (err) { /* a count is never worth an error state */ }
+  }
+
+  /* The variant's copy over the default's. Only the keys a variant
+     actually names are replaced, so VARIANTS.a can be {} and mean
+     "the config as written". */
+  function v(key) {
+    var set = AB && AB.VARIANTS && AB.VARIANTS[VARIANT];
+    return (set && set[key] !== undefined) ? set[key] : CFG[key];
+  }
+
+  /* The automatic everybody gets with no code, from the Shopify
+     discount the clock counts to. The member line states the
+     DIFFERENCE between this and MEMBER_OFFER.PCT, so this has to be
+     the real public number or that difference is wrong. */
+  var PUBLIC_PCT = 20;
+
+  /* The button names the member figure, so it is COMPUTED from
+     MEMBER_OFFER rather than typed -- the same rule as the lede and
+     the success message, and for the same reason.
+
+     This was the second half of the same bug. Gating the A/B on a
+     live member offer fixed variant b's lede, but CFG.SUBMIT still
+     read "Get 30% off" as a literal, so with ASIOR30 pulled every
+     visitor got a lede promising nothing and a button promising 30%.
+     A config value is not safer than a variant value just because it
+     is the default.
+
+     With no live offer it falls back to CFG.SUBMIT, which says what
+     the button does rather than what it is worth. */
+  function submitLabel() {
+    var m = CFG.MEMBER_OFFER || {};
+    var fromVariant = v('SUBMIT');
+    if (m.PCT && m.CODE) return 'Get ' + m.PCT + '% off';
+    return fromVariant || CFG.CTA || 'Enter';
+  }
+
   function memberLine(lede) {
     var m = CFG.MEMBER_OFFER || {};
     if (!m.PCT || !m.CODE) return lede;
-    /* The code itself is NOT named here. It is given in the success
-       message, after they have actually signed up -- printing it on
-       the open screen would hand 30% to everybody who never joins,
-       which is the whole thing this gate exists to trade for. What
-       the lede names is the deal: the public number, and the better
-       one that signing up gets you. */
-    return lede + ' sign up and it\u2019s ' + m.PCT + '%.';
+    /* The founder's own wording, 2026-11-21: "20% off sitewide and
+       when you sign up extra 10%".
+
+       It is accurate as built, which is why it can be written. A
+       signed-up shopper enters ASIOR30 and pays 30% rather than 20%,
+       so the extra ten points are real and they are what signing up
+       buys. What would be false is implying two codes that stack --
+       nothing on this account combines -- and this says nothing of
+       the kind. The code is not named here either; it is handed over
+       in the success message, because printing it on the open screen
+       would give 30% to everyone who never signs up.
+
+       EXTRA is the difference, and it is the only place on the site
+       where a difference is ever stated. It is derived from PCT
+       rather than typed, so the two can never disagree and nobody
+       can set MEMBER_OFFER.PCT to 10 by mistake. */
+    var extra = m.PCT - PUBLIC_PCT;
+    if (extra <= 0) return lede;
+    /* A variant whose lede already leads with the member figure says
+       it once and is left alone. Without this, variant b reads
+       "30% off when you sign up. 20% for everyone else. when you sign
+       up, extra 10%." -- the same offer stated twice, in two framings,
+       which is exactly the muddle the A/B exists to choose between. */
+    if (lede.indexOf(m.PCT + '%') !== -1) return lede;
+    return lede + ' when you sign up, extra ' + extra + '%.';
   }
 
   /* Whether the number is required. The founder asked for it on
@@ -656,16 +794,26 @@
     var film = root && root.querySelector('#gateFilm');
     if (!film) return;
 
-    /* A loop longer than five seconds is motion nobody asked for, so
-       a visitor whose system asks for less of it gets the still --
-       which is this film's own first frame, so the gate looks the
-       same and simply stops moving. Same rule on /vip. */
-    if (window.matchMedia
-        && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      film.removeAttribute('autoplay');
-      try { film.pause(); } catch (ignored) {}
-      return;
-    }
+    /* NO prefers-reduced-motion GUARD HERE, AND THAT IS DELIBERATE.
+
+       One was added on 2026-11-20 and taken out again on 2026-11-21:
+       the founder reported the background was not moving for them,
+       and this was why. Reduce Motion is switched on by a lot of
+       people -- it is one tap in iOS accessibility settings and many
+       leave it on for battery -- so the guard was silently serving a
+       frozen photograph to a large share of visitors on the one
+       screen whose whole design is the moving film.
+
+       The film is the gate. Everything else on this screen is a
+       clock, two fields and a button. Freezing it does not degrade
+       the design, it deletes it.
+
+       Nothing is lost in accessibility terms that matters here: the
+       loop is silent, it has no flashing, it carries no information,
+       and nothing on the screen depends on seeing it. The reduced
+       motion rules elsewhere on the site still stand -- the gate's
+       own transitions are still disabled under that query in
+       site.css, and only the background loop is exempt. */
 
     film.addEventListener('playing', function () {
       film.classList.add('is-playing');
@@ -833,6 +981,13 @@
     var profile = { email: email };
     if (phone) profile.phone_number = phone;
 
+    /* The variant onto the PROFILE, not just the event. An event
+       property can be broken down in a report; a profile property can
+       be segmented on, which is what actually lets them mail the
+       winning half or compare revenue per bucket later. Both, so
+       either question can be answered. */
+    profile.properties = { gate_variant: VARIANT };
+
     var p;
     try {
       p = (listId && A.klaviyoSubscribeToList)
@@ -857,6 +1012,7 @@
             source: 'entry_gate',
             sms_opt_in: !!phone,
             sms_required: SMS_REQUIRED,
+            variant: VARIANT,
           }, { email: email });
         } catch (x) { /* best effort */ }
       }
