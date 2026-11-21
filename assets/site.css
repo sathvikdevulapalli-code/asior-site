@@ -4115,6 +4115,10 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 .gate-form > #gateBtn { margin-top: 4px; }
 .gate-sms-opt {
   margin: 0;
+  /* Left, with the fields it labels. The gate core centres its
+     children and this inherited that, so it floated in the middle
+     of a left-aligned form. */
+  text-align: left;
   font-family: var(--g-mono);
   font-size: 10px;
   letter-spacing: 0.2em;
@@ -4312,6 +4316,27 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 }
 
 .gate-fineprint p { margin: 8px 0 0; }
+
+/* The way out. Quiet, but a real <button> in the tab order with a
+   proper hit area -- a dismiss nobody can find is not a dismiss. */
+.gate-skip {
+  margin: 18px 0 0;
+  padding: 10px 2px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 232, 234, 0.3);
+  border-radius: 0;
+  color: rgba(232, 232, 234, 0.72);
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 200ms var(--ease-out), border-color 200ms var(--ease-out);
+}
+.gate-skip:hover { color: #fff; border-bottom-color: #fff; }
+.gate-skip:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
+.gate-skip:active { transform: translateY(1px); transition-duration: 90ms; }
 .gate-fineprint a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .gate-fineprint a:hover { color: #fff; }
 

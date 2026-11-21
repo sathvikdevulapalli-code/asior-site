@@ -1349,8 +1349,23 @@
      path specifically. Both run: server-side for our own metrics,
      onsite for the flows. */
   function klaviyoOnsite() {
-    window._klOnsite = window._klOnsite || [];
-    return window._klOnsite;
+    /* _learnq. NOT _klOnsite, which is what this returned from
+       2026-10-05 until 2026-11-21 and which is not a thing Klaviyo
+       has ever looked at -- every push went into an array nobody
+       read, silently, for seven weeks.
+
+       That is why Klaviyo logged ZERO Viewed Product events from the
+       week of 2026-10-26 (100, 179, 122, 64, 62, 77, 44, 69 before
+       it, then 0) and why Browse Abandonment never fired: this is
+       the path that sets the __kla_id cookie the flow keys off, and
+       klaviyoIdentify() rides it too, so signups were never stitched
+       to their onsite activity either.
+
+       klaviyo.js replays whatever is in _learnq once it boots, which
+       is why pushing before it loads is safe and why nothing here
+       ever has to wait for it. */
+    window._learnq = window._learnq || [];
+    return window._learnq;
   }
 
   /* Fires the onsite event that Klaviyo's Browse Abandonment flow
@@ -1381,6 +1396,22 @@
         Metadata: item.Price === undefined ? {} : { Price: item.Price },
       }]);
     } catch (err) { /* tracking must never block a real user action */ }
+
+    /* The server-side twin, fired HERE rather than from the page.
+
+       Both pages used to call klaviyoTrack('Viewed Product', ...)
+       themselves with only { product, handle } -- a second event, on
+       the same metric, with a thinner property set than this one. Two
+       call sites for one metric is how they drift, and they had: the
+       onsite shape carried ProductID, Price, ImageURL and URL and the
+       other carried none of them.
+
+       One function now owns the metric and both destinations get the
+       same properties. The onsite push above is what triggers Browse
+       Abandonment; this is what makes the event readable in Klaviyo
+       for a visitor whose cookie the onsite script never set (an ad
+       blocker, or klaviyo.js failing to load). */
+    klaviyoTrack('Viewed Product', item);
   }
 
   /* Onsite counterpart to the Added To Cart event we already post

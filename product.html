@@ -3035,7 +3035,6 @@
     A.wireSmsSignup(relRoot);
 
     A.recordView(product.handle);
-    A.klaviyoTrack('Viewed Product', { product: product.name, handle: product.handle });
     // Onsite twin of the line above. Only this one sets the cookie
     // Klaviyo's Browse Abandonment flow keys off — the Client API
     // event above rides an anonymous_id of our own and can't trigger

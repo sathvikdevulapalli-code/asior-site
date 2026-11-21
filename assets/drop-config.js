@@ -127,6 +127,30 @@ window.ASIOR_DROP = {
        nothing is ever hidden. */
     ON: true,
 
+    /* ---- THE WAY OUT -------------------------------------------
+
+       True since 2026-11-21, and it reverses the 2026-11-14 decision
+       that this gate is a wall with no close control. The founder
+       asked for a clear dismiss so anyone can browse and buy at the
+       public 20% without handing over anything.
+
+       What it adds: a close control, Escape, and a plain "browse the
+       store" link, all of which admit the visitor WITHOUT recording
+       a signup. The signup is still the only way to the 30% code, so
+       the gate still has something to trade -- it just no longer
+       holds the catalogue hostage for it.
+
+       DISMISSED IS REMEMBERED, in the same store as an admitted
+       signup but under its own key. A gate that reappears on every
+       page after being closed is not dismissible, it is a nag.
+
+       False restores the hard wall and nothing else needs undoing.
+       If you set it false, re-read the note on SMS.REQUIRED too: a
+       wall plus a mandatory phone number is the combination that was
+       taken out, not either one alone. */
+    DISMISSIBLE: true,
+    DISMISS_LABEL: 'Browse the store',
+
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
        this file offers a second door, so there is no second door. */
@@ -408,9 +432,19 @@ window.ASIOR_DROP = {
     SMS: {
       ON: true,
 
-      /* REQUIRED, at the founder's instruction on 2026-11-21: the
-         number is how somebody gets the 30% code, so it is not an
-         optional extra on this form any more.
+      /* OPTIONAL AGAIN, 2026-11-21, reversing the instruction given
+         earlier the same day. Requiring it meant a full-screen wall
+         with no way out demanding a phone number before anybody
+         could see a product, which is a conversion problem and a bad
+         look beside a disclosure that says consent is not a
+         condition of purchase.
+
+         Email alone now opens the gate and unlocks the code. The
+         number stays on the screen, with its paragraph, as the
+         optional extra it was built as.
+
+         The note below is kept because it still governs the day
+         anyone sets this true again:
 
          Two things follow from it and both are load-bearing.
 
@@ -427,7 +461,7 @@ window.ASIOR_DROP = {
          buy anything. Do not make SMS a condition of checkout; that
          sentence would stop being true and the consent would stop
          being valid. */
-      REQUIRED: true,
+      REQUIRED: false,
       CONSENT: 'By entering your number you agree to receive recurring automated '
              + 'marketing texts from Asior at that number. Consent is not a condition '
              + 'of any purchase. Message frequency varies and message & data rates may '
