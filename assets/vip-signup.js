@@ -38,7 +38,7 @@
 
   function sourceProperties() {
     var params = new URLSearchParams(window.location.search);
-    var properties = { signup_location: 'bfcm_vip_page' };
+    var properties = { signup_location: 'bfcm_2026_page' };
     ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (key) {
       var value = params.get(key);
       if (value) properties[key] = value.slice(0, 120);
@@ -71,25 +71,25 @@
 
     busy = true;
     button.disabled = true;
-    message('Adding you to the VIP list…');
+    message('Saving your Black Friday signup…');
     try {
-      await subscribe('TN58zR', { email: email, properties: sourceProperties() });
+      await subscribe('SFuK88', { email: email, properties: sourceProperties() });
       try {
         window._learnq = window._learnq || [];
         window._learnq.push(['identify', { $email: email }]);
       } catch (ignored) {}
       if (window.fbq) {
-        try { window.fbq('track', 'Lead', { content_name: 'BF drop early access' }); } catch (ignored) {}
+        try { window.fbq('track', 'Lead', { content_name: 'Black Friday 2026 signup' }); } catch (ignored) {}
       }
       if (phone) {
         try {
           await subscribe('UiFFMg', { phone_number: phone });
-          message('Check your email and text messages to confirm your VIP and SMS subscriptions. The 20% sale opens November 27 at 2:00 PM CT.');
+          message('Check your email and text messages to confirm your subscriptions. The 20% sale opens November 27 at 2:00 PM CT.');
         } catch (smsError) {
-          message('Your email request was received. Check your inbox to confirm VIP access. The SMS request did not go through; please try that separately later.');
+          message('Your email request was received. Check your inbox to confirm it. The SMS request did not go through; please try that separately later.');
         }
       } else {
-        message('Check your inbox and confirm your email to join the VIP list. The 20% sale opens November 27 at 2:00 PM CT.');
+        message('Check your inbox and confirm your email to receive the Black Friday reminder. The 20% sale opens November 27 at 2:00 PM CT.');
       }
       form.reset();
     } catch (error) {
