@@ -8,8 +8,12 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/vip",
-      "destination": "/vip.html"
+      "source": "/pages/black-friday",
+      "destination": "/black-friday.html"
+    },
+    {
+      "source": "/black-friday",
+      "destination": "/black-friday.html"
     },
     {
       "source": "/text",
@@ -29,6 +33,16 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/vip",
+      "destination": "/pages/black-friday",
+      "permanent": false
+    },
+    {
+      "source": "/pages/vip",
+      "destination": "/pages/black-friday",
+      "permanent": false
+    },
     {
       "source": "/index.html",
       "destination": "/",

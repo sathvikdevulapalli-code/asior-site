@@ -125,7 +125,7 @@ window.ASIOR_DROP = {
   GATE: {
     /* The wall. False = assets/drop-gate.js returns immediately and
        nothing is ever hidden. */
-    ON: true,
+    ON: false,
 
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
