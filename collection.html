@@ -347,7 +347,7 @@
        not run yet, so it cannot: it checks the inlined copy of that
        one boolean below instead. The build writes both from the same
        source, and check-slop fails if they disagree. -->
-  <script>(function(){var ON=/*GATE_ON*/false/*END_GATE_ON*/;if(!ON)return;try{
+  <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
     if(localStorage.getItem('asior_gate_opened_at'))return;
     d.classList.add('asior-gate-pending');
