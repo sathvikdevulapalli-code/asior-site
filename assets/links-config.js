@@ -37,7 +37,6 @@ window.ASIOR_LINKS = {
   },
 
   LINKS: [
-    { label: 'Black Friday',    href: '/pages/black-friday?utm_source=instagram&utm_medium=bio&utm_campaign=black_friday', note: '20% off automatically · Nov 27–30' },
     { label: 'Shop all',        href: '/shop.html',        note: 'Everything in stock' },
     { label: 'Fall collection', href: '/collections/fall-collection.html' },
     { label: 'Tops',            href: '/collections/tops.html' },

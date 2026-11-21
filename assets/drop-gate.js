@@ -283,16 +283,46 @@
               '<label class="sr-only" for="gateEmail">Email address</label>' +
               '<input class="field" type="email" id="gateEmail" name="email" ' +
                      'placeholder="email" autocomplete="email" spellcheck="false" required>' +
-              '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || CFG.CTA || 'Enter') + '</button>' +
+              /* THE BUTTON GOES LAST, UNDER EVERY FIELD IT SUBMITS.
+
+                 While the number was optional and folded it could sit
+                 on this row beside the email, because the email was
+                 the whole form. It is not any more: with a required
+                 number below it, a button here reads as belonging to
+                 the email alone and invites a press before the number
+                 is typed -- an error message instead of a signup, on
+                 the one screen standing between a paid click and the
+                 shop. So when the number is required the row is the
+                 email by itself and the button is appended after the
+                 consent paragraph. */
+              (SMS_REQUIRED
+                ? ''
+                : '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || CFG.CTA || 'Enter') + '</button>') +
             '</div>' +
+            /* The number, and its disclosure directly under it.
+
+               It was folded behind a "text me too" line while it was
+               optional. It is required now, so it cannot be folded:
+               a field somebody MUST fill in cannot be behind a
+               control they have to find first, and the TCPA
+               paragraph has to be on screen wherever the field is.
+               The pairing rule is unchanged -- the two still move
+               together, they are simply both open. */
             (smsOn
-              ? '<details class="gate-sms">' +
-                  '<summary>text me too</summary>' +
-                  '<label class="sr-only" for="gatePhone">Phone number (optional)</label>' +
+              ? '<div class="gate-sms' + (SMS_REQUIRED ? ' is-required' : '') + '">' +
+                  (SMS_REQUIRED
+                    ? ''
+                    : '<p class="gate-sms-opt">text me too</p>') +
+                  '<label class="sr-only" for="gatePhone">Mobile number</label>' +
                   '<input class="field" type="tel" id="gatePhone" name="phone" ' +
-                         'placeholder="phone (optional)" autocomplete="tel" inputmode="tel">' +
+                         'placeholder="' + (SMS_REQUIRED ? 'mobile number' : 'phone (optional)') + '" ' +
+                         'autocomplete="tel" inputmode="tel"' +
+                         (SMS_REQUIRED ? ' required' : '') + '>' +
                   '<p class="gate-consent-sms">' + esc(CFG.SMS.CONSENT || '') + '</p>' +
-                '</details>'
+                '</div>'
+              : '') +
+            (SMS_REQUIRED
+              ? '<button type="submit" id="gateBtn">' + esc(CFG.SUBMIT || CFG.CTA || 'Enter') + '</button>'
               : '') +
           '</form>' +
 
@@ -490,8 +520,20 @@
   function memberLine(lede) {
     var m = CFG.MEMBER_OFFER || {};
     if (!m.PCT || !m.CODE) return lede;
-    return lede + ' members ' + m.PCT + '% with ' + m.CODE + '.';
+    /* The code itself is NOT named here. It is given in the success
+       message, after they have actually signed up -- printing it on
+       the open screen would hand 30% to everybody who never joins,
+       which is the whole thing this gate exists to trade for. What
+       the lede names is the deal: the public number, and the better
+       one that signing up gets you. */
+    return lede + ' sign up and it\u2019s ' + m.PCT + '%.';
   }
+
+  /* Whether the number is required. The founder asked for it on
+     2026-11-21: the phone is how somebody gets the 30% code, so it is
+     not an optional extra on this form. False restores the old folded
+     optional field and nothing else needs undoing. */
+  var SMS_REQUIRED = !!(CFG.SMS && CFG.SMS.ON && CFG.SMS.REQUIRED);
 
   /* ---- the clock -----------------------------------------------------
 
@@ -696,6 +738,31 @@
     }, hold || 0);
   }
 
+  /* Klaviyo wants E.164 and will reject anything else, so the number
+     is normalised here rather than posted as typed.
+
+     A bare 10 digits is read as US/Canada, which is who the ads are
+     running to. Anything entered with a + keeps its own country code,
+     because the number is required to get through the gate now and a
+     US-only rule would wall the entire site off from every
+     international visitor -- and the shop ships internationally.
+     Returns '' when it cannot make a plausible number, and the caller
+     treats that as an error rather than sending it. */
+  function e164(value) {
+    var hasPlus = /^\s*\+/.test(value);
+    var digits = String(value).replace(/\D/g, '');
+    if (!digits) return '';
+
+    if (hasPlus) {
+      /* ITU E.164 allows up to 15 digits including the country code,
+         and no real number is under 8. */
+      return (digits.length >= 8 && digits.length <= 15) ? '+' + digits : '';
+    }
+    if (digits.length === 11 && digits.charAt(0) === '1') digits = digits.slice(1);
+    /* NANP: area code and exchange both start 2-9. */
+    return /^[2-9]\d{2}[2-9]\d{6}$/.test(digits) ? '+1' + digits : '';
+  }
+
   function submit(e) {
     e.preventDefault();
     if (busy) return;
@@ -712,20 +779,28 @@
       return;
     }
 
-    /* ---- the SMS half ------------------------------------------
+    /* ---- the number ---------------------------------------------
 
-       A number is optional and typing one is the consent act, with
-       the TCPA paragraph visible beside the field rather than behind
-       a toggle -- which is what prior express written consent needs,
-       and is why this is a field rather than a checkbox.
+       Typing it is the consent act, with the TCPA paragraph on screen
+       beside the field rather than behind a toggle -- which is what
+       prior express written consent needs, and is why this is a field
+       and not a checkbox.
 
-       The number is NEVER derived from the email signup: it is its
-       own value, its own request and its own list, and an email on
-       its own subscribes no phone number. Leaving it blank is not an
-       error, it is just no SMS. */
+       It is REQUIRED now. The gate does not open without it, because
+       the number is what the 30% code is being given for. Nothing
+       about purchase is conditioned on it: the checkout is on
+       Shopify's own domain and is not gated, so "not a condition of
+       any purchase" in the disclosure stays true. */
     var telEl = root.querySelector('#gatePhone');
-    var phone = telEl ? (telEl.value || '').trim() : '';
-    if (phone && !/^[0-9+().\-\s]{7,}$/.test(phone)) {
+    var raw = telEl ? (telEl.value || '').trim() : '';
+    var phone = raw ? e164(raw) : '';
+
+    if (SMS_REQUIRED && !raw) {
+      say('a mobile number is needed for the 30% code.', 'err');
+      try { telEl.focus(); } catch (x) {}
+      return;
+    }
+    if (raw && !phone) {
       say('that number does not look right.', 'err');
       try { telEl.focus(); } catch (x) {}
       return;
@@ -738,31 +813,38 @@
     var camp = campaign() || {};
     var listId = CFG.LIST_ID || camp.listId;
 
-    /* The real subscription, to a list whose flow is live. Nothing is
-       recorded as a signup that Klaviyo did not accept -- the gate
-       opens on the resolved request, never on the click. */
+    /* ONE REQUEST, ONE LIST, BOTH CHANNELS.
+
+       This used to be two calls to two lists: the address to the gate
+       list and then, separately, the number to UiFFMg through
+       klaviyoSubscribeSms. That split one person into two profiles on
+       two lists with two consent records and made the audience
+       impossible to send to as a whole.
+
+       The Client API subscription endpoint takes both contact fields
+       on one profile and grants MARKETING consent for whichever are
+       present, so email and phone land together, on TFEDaD, as one
+       profile. Both consents are real and both were given on this
+       screen -- the email by pressing the button under the consent
+       sentence, the number by typing it under the TCPA paragraph.
+
+       Nothing is recorded as a signup that Klaviyo did not accept:
+       the gate opens on the resolved request, never on the click. */
+    var profile = { email: email };
+    if (phone) profile.phone_number = phone;
+
     var p;
     try {
       p = (listId && A.klaviyoSubscribeToList)
-        ? A.klaviyoSubscribeToList(listId, { email: email })
+        ? A.klaviyoSubscribeToList(listId, profile)
         : Promise.reject(new Error('klaviyo helper or list id missing'));
     } catch (err) {
       p = Promise.reject(err);
     }
 
     p.then(function () {
-      /* The text subscription rides after the email one and cannot
-         hold the door: somebody who gave a valid address is in
-         whether or not the SMS call succeeds. A failed text signup
-         is a missed subscriber; a gate that will not open over one
-         is a missed sale. */
-      if (phone && A.klaviyoSubscribeSms) {
-        try {
-          A.klaviyoSubscribeSms(phone, 'entry_gate').catch(function (err) {
-            try { console.warn('[asior gate] sms subscribe failed:', err && err.message); } catch (x) {}
-          });
-        } catch (x) { /* best effort */ }
-      }
+      /* No second call. The number went up with the address in the
+         one request above, on the one list. */
 
       /* Tracking is a separate, best-effort call: the subscription is
          what matters, and klaviyoTrack swallows its own failures, so
@@ -774,6 +856,7 @@
             campaign: camp.slug || '',
             source: 'entry_gate',
             sms_opt_in: !!phone,
+            sms_required: SMS_REQUIRED,
           }, { email: email });
         } catch (x) { /* best effort */ }
       }
@@ -804,10 +887,27 @@
          read that -- it was 4000ms for a sentence that repeated the
          date and the discount, which is four seconds of somebody
          staring at a wall they have already paid for with an email. */
-      admit(email, LIST_IS_DOUBLE_OPT_IN
-        ? 'check your inbox and confirm to join.'
-        : 'you\u2019re on the list.',
-        LIST_IS_DOUBLE_OPT_IN ? 2600 : 900);
+      /* THE CODE IS GIVEN HERE, on the screen, the moment they are
+         in -- not left to a Klaviyo flow to deliver.
+
+         The button promises 30% off. A promise kept by an email that
+         may be delayed, filtered or simply never built is a promise
+         that quietly goes unkept, which is exactly how the old gate's
+         ASIORTEN claim went wrong. Printing the code is the only
+         delivery that cannot fail. It costs nothing: the gate is a
+         marketing wall on public URLs and has never been security,
+         so a code on it is no more exposed than one in an email.
+
+         MEMBER_OFFER is read, not hardcoded, so if ASIOR30 is pulled
+         in Shopify the key goes null and this sentence disappears
+         with it rather than naming a dead code. */
+      var m = CFG.MEMBER_OFFER || {};
+      var line = (m.PCT && m.CODE)
+        ? 'you\u2019re in \u00b7 ' + m.PCT + '% off with code ' + m.CODE
+        : 'you\u2019re on the list.';
+      if (LIST_IS_DOUBLE_OPT_IN) line = 'check your inbox and confirm to join.';
+
+      admit(email, line, (m.PCT && m.CODE) ? 3200 : (LIST_IS_DOUBLE_OPT_IN ? 2600 : 900));
     }).catch(function (err) {
       /* See "THE THREE WAYS THIS COULD TAKE THE WHOLE STORE DOWN" at
          the top. They gave a real address and the request genuinely

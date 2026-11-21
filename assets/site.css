@@ -4102,9 +4102,25 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   .gate-row { grid-template-columns: 1fr; }
 }
 
-/* The phone, folded. One line of type until it is wanted, so the
-   first screen is a clock, a field and a button. */
+/* The phone. Open and required since 2026-11-21 -- it is what the
+   30% code is given for, so it cannot sit behind a control somebody
+   has to find first, and its TCPA paragraph is on screen with it.
+   The optional, folded shape below still works if SMS.REQUIRED goes
+   back to false. */
 .gate-sms { margin: 10px 0 0; }
+.gate-sms.is-required .field { margin-top: 0; }
+/* The submit is a direct child of the form when the number is
+   required, so it is the last thing in the column rather than sitting
+   on the email's row. It keeps the row button's own height. */
+.gate-form > #gateBtn { margin-top: 4px; }
+.gate-sms-opt {
+  margin: 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(232, 232, 234, 0.66);
+}
 .gate-sms > summary {
   cursor: pointer;
   list-style: none;

@@ -59,7 +59,7 @@ const STATIC_PAGES = [
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
-  '/waitlist.html', '/links', '/drop.html', '/pages/black-friday',
+  '/waitlist.html', '/links', '/drop.html',
 ];
 
 /* Handles that already have a hand-built page at their own URL.

@@ -837,7 +837,7 @@ itself every second is a screen-reader siren.
 `clamp(3.4rem, 15vw, 8rem)` to `clamp(2.1rem, 8vw, 4rem)` because a
 mark larger than the countdown made the countdown a subtitle.
 
-**It is one colon-separated line, matching /vip.** It was four Anton
+**It is one colon-separated line.** It was four Anton
 blocks side by side until 2026-11-20; they read as four numbers that
 happened to be adjacent rather than as a time, and at `16vw` they
 took the whole first screen on a phone. The labels sit beneath on
@@ -933,82 +933,131 @@ shows no product shelf and no date — which is YNC's real state, since
 the only fact this repo or Shopify holds about YNC is the name. Fill
 them only from real data.
 
-## /vip — the paid-ads landing page
+## One funnel: the gate, and nothing beside it
 
-`vip.html`, standalone: it loads none of the storefront's CSS or JS,
-only `ads-config.js`, `ads.js` and `vip-signup.js`. All three Meta ads
-point at it, so unlike every other page here its job is one thing —
-a signup — and every element on it is measured against that.
+There is one entry point and one signup. Every URL leads to the
+storefront, the gate stands in front of all of it, and the gate's form
+is the only place a lead is captured.
 
-**It is the gate's twin, deliberately.** Same panther film, same
-Anton mark, same one-line colon countdown with the labels spread
-beneath, same consent discipline. The founder asked for both screens
-to read as the same thing on 2026-11-20. If you restyle one, restyle
-the other in the same change or they drift apart again.
+**`/vip` and `/black-friday` are gone, with their script.** Deleted
+2026-11-21 at the founder's instruction. `vip.html`,
+`black-friday.html` and `assets/vip-signup.js` are removed, the
+`/pages/black-friday` entry is out of `STATIC_PAGES`, and the Black
+Friday row is out of `links-config.js`. Four URLs — `/vip`,
+`/pages/vip`, `/black-friday`, `/pages/black-friday` — now 302 to `/`
+in `vercel.json`, because the Meta ads point at the first two and a
+deleted landing page is a 404 on paid traffic. They are 302 and not
+301 so the ad URLs are not cached in anybody's browser for good; the
+ads themselves should be repointed at the bare domain.
 
-**The film is the same three outcomes.** MP4 then WebM, each with an
-explicit `codecs=` string, no `poster` attribute and no `controls`,
-for the reasons set out in the gate's section — on an ad landing page
-there is the extra one that a tap which pauses a video is a tap that
-did not fill in the email. `.v-still` carries the first frame, so if
-autoplay is refused the page is a photograph and nothing is missing.
+Do not add a second landing page. A separate page for a campaign is
+how this got to two signup forms, two Klaviyo lists and two sets of
+consent copy that drifted apart. The gate already is the campaign
+page: it has the clock, the offer and the form.
 
-**Under `prefers-reduced-motion` neither film plays.** A background
-that loops for longer than five seconds is motion the visitor did not
-ask for. Both pages pause it and show the still, which is that film's
-own first frame — the screen looks the same, it just stops moving.
-Added 2026-11-20 on /vip and the gate together.
+**Nothing in a `redirects` entry but Vercel's own keys.** A `"//"`
+comment key in one of those objects fails the deploy — Vercel
+validates that schema strictly. Explanations go in this file.
 
-**The wash is what buys the contrast, not the film's brightness.**
-`.column::before`, bound to the column, flat across its height and
-gone by the edges, with the film left at `brightness(0.82)`. Measured
-across the whole loop at both widths: worst case 6.86:1, and the
-smallest type on this page is 10px. `contrast-vip.js` samples 14
-shots and fails under 4.5:1.
+## ONE Klaviyo list
 
-**A contrast probe must hide the words, not their container.**
-`visibility: hidden` on `.column` also hides `.column::before`, so
-the probe then measures bare film and reports the same numbers
-however much the wash changes — it read 2.6:1 and looked like a real
-failure. Hide `.column > *` and `footer > *`. The gate's probe
-carries the same warning for the same reason.
+**`TFEDaD` ("Email List"), for everything.** The gate, the footer, the
+sold-out capture, `/text`, the PDP text block and the campaign
+waitlist all join it and nothing else. `KLAVIYO_EMAIL_LIST_ID`,
+`KLAVIYO_SMS_LIST_ID` and `KLAVIYO_EARLY_ACCESS_LIST_ID` in
+`assets/site.js` are three names for the same id, kept separate so the
+call sites still read as what they are.
 
-**The number is folded and its disclosure is folded with it.** Ayush
-asked on 2026-11-20 that the email consent checkbox and the SMS
-consent text both stay, and both do, word for word. What changed is
-that the TCPA paragraph is no longer five lines of legal text sitting
-between an ad visitor and the only button: the phone field and the
-paragraph live inside one `<details>`, so the disclosure is on screen
-whenever the field is and can never appear without it. **Never unfold
-one without the other.** This is the same shape the gate uses and
-`vip.js` asserts the pairing on both — both inside `details.sms`, the
-closed fold rendering nothing but its summary, and on opening the
-field and the full paragraph with the paragraph below the field.
+It used to be four lists, briefly five. The gate went to `TN58zR`,
+text signups to `UiFFMg`, the footer to `TFEDaD`, and `c040693` added
+`SFuK88`. One person who gave an address and a number became two
+profiles on two lists with two consent records, and no single list was
+the audience — so no campaign could be sent to everyone.
 
-**An error inside the fold opens the fold.** `reveal()` in
-`vip-signup.js` opens any ancestor `<details>` before focusing.
-Focusing a control in a closed fold moves focus nowhere, so without
-it a visitor is told to tick a box they cannot see.
+**`TFEDaD` is the one kept because it is the only SINGLE OPT-IN list
+on the account** (read back 2026-11-21), with 48 real subscribers and
+a live Email Welcome Series. That is the fix for the thing that had
+been quietly breaking every gate signup: `TN58zR` is double opt-in and
+its `profile_count` was **zero** two months after it was created.
+Every person who ever got through the gate was left PENDING on a
+confirmation click that never came, so they never joined and no flow
+fired. `LIST_DOUBLE_OPT_IN` is false to match. Point `LIST_ID` at a
+double opt-in list again and that flag flips in the same change.
 
-**The cookie bar is fixed and was lying across SUBMIT.** `ads.js`
-appends `.ad-consent` bottom-left on every page it runs on; on a
-phone it covered the one control every pound of ad spend is buying a
-tap on. `body:has(.ad-consent:not([hidden]))` makes room for it, and
-only while it is up. Above 780px the bar and the centred foot no
-longer share any horizontal space, so no room is made.
+**One request, both channels.** The gate posts email and
+`phone_number` on one profile in a single Client API subscription.
+That endpoint grants MARKETING consent for whichever contact fields
+are present, and both consents were given on that screen — the email
+by pressing the button under the consent sentence, the number by
+typing it under the TCPA paragraph.
 
-**The page states 20% and nothing else.** `PUBLIC_PCT`, `MEMBER_PCT`
-and `MEMBER_CODE` are inline constants with the same rule as
-`MEMBER_OFFER` in `drop-config.js`: the members' half stays null
-until the code exists in Shopify, and while it is null the page says
-nothing about a member discount. Ayush's ads say "30% off + early
-access"; there is no 30% discount in the account, so the page does
-not claim one. Create it and set both constants to the code's real
-percentage, not the difference.
+## The gate's SMS field is REQUIRED
 
-**`SUBMIT` must be on the first screen at 390×844.** Everything added
-to this page is measured against that, and `vip.js` fails if the
-button's bottom edge falls below the fold or under the cookie bar.
+Founder's instruction, 2026-11-21: the number is how somebody gets the
+30% code, so it is not an optional extra. `SMS.REQUIRED` in
+`drop-config.js`; false restores the old folded optional field and
+nothing else needs undoing.
+
+**A required field cannot be folded.** The rule has always been that
+the number and its TCPA disclosure move together. With the field
+permanently on screen the paragraph is permanently on screen too,
+which is what 47 CFR 64.1200(f) wants anyway. The `<details>` is a
+plain block now.
+
+**The button goes last, under every field it submits.** While the
+number was optional the submit could sit on the email's row. It
+cannot now: with a required field below it, a button there reads as
+belonging to the email alone and invites a press before the number is
+typed — an error message instead of a signup, on the one screen
+between a paid click and the shop.
+
+**"Not a condition of any purchase" stays true and has to.** The gate
+is a marketing wall on public URLs and checkout is on Shopify's own
+domain, ungated, so nobody is required to accept texts in order to
+buy. Do not make SMS a condition of checkout; that sentence would
+stop being true and the consent would stop being valid.
+
+**International numbers are not walled out.** `e164()` in
+`drop-gate.js` reads a bare 10 digits as US/Canada and keeps any
+country code entered with a `+`. A US-only rule was survivable while
+the number was optional; with it required it would lock every
+overseas visitor out of a shop that ships internationally.
+
+## 20% for everyone, 30% for signing up
+
+**`ASIOR30` is real.** Read back from Shopify 2026-11-21:
+
+    DiscountCodeNode/1578102915289
+    "ASIOR30", status SCHEDULED, 30% off
+    startsAt 2026-11-27T20:00:00Z, endsAt 2026-12-01T05:59:00Z
+
+The same window as the Black Friday automatic to the minute, which is
+what makes it work. **It is one 30% code, not 20% plus 10%.** Every
+discount on this account is `combinesWith.orderDiscounts: false`, so a
+10% code during the sale would REPLACE the automatic 20% and leave a
+member worse off than a stranger. Shopify lets a code outrank an
+automatic it cannot combine with, so `ASIOR30` replaces the 20% and
+the shopper pays 30% less. `MEMBER_OFFER.PCT` is the code's real
+percentage, never the difference.
+
+**The lede names the deal; the success message names the code.**
+Printing `ASIOR30` on the open screen would hand 30% to everyone who
+never signs up, which is the whole thing the gate trades for. Giving
+it in the success message rather than leaving it to a Klaviyo flow is
+deliberate: the button promises 30% off, and a promise kept by an
+email that may be delayed, filtered or never built is how the old
+ASIORTEN claim went wrong. A code on a marketing wall is no more
+exposed than one in an email.
+
+**If `ASIOR30` is paused or its window moves, both keys go to null in
+the same change.** `offer.js` proves that when they do, the 30%
+disappears from the lede, the button and the success message together
+rather than from some of them.
+
+**`ASRBF` is a loose end and it is the founder's call.** 25%,
+SCHEDULED 2026-11-27T06:00Z to 11-28T05:59Z — it opens fourteen hours
+before the 20% automatic and is worse than `ASIOR30`. Nothing on the
+site names it.
 
 ## Build step (`scripts/build.js`)
 
