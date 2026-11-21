@@ -837,6 +837,14 @@ itself every second is a screen-reader siren.
 `clamp(3.4rem, 15vw, 8rem)` to `clamp(2.1rem, 8vw, 4rem)` because a
 mark larger than the countdown made the countdown a subtitle.
 
+**It is one colon-separated line, matching /vip.** It was four Anton
+blocks side by side until 2026-11-20; they read as four numbers that
+happened to be adjacent rather than as a time, and at `16vw` they
+took the whole first screen on a phone. The labels sit beneath on
+their own row. The wrapper keeps the class `.gate-clock-row` because
+`live()` removes it wholesale when the sale starts, and a test
+asserts the digits are gone at that point.
+
 **The one personalisation the gate does.** `greetKnown()` reads the
 address stored at signup and, if there is one, hides the form and
 says "you're on the list as …". Somebody who already joined is not
@@ -924,6 +932,83 @@ one flag, one redeploy, nothing else to undo.
 shows no product shelf and no date — which is YNC's real state, since
 the only fact this repo or Shopify holds about YNC is the name. Fill
 them only from real data.
+
+## /vip — the paid-ads landing page
+
+`vip.html`, standalone: it loads none of the storefront's CSS or JS,
+only `ads-config.js`, `ads.js` and `vip-signup.js`. All three Meta ads
+point at it, so unlike every other page here its job is one thing —
+a signup — and every element on it is measured against that.
+
+**It is the gate's twin, deliberately.** Same panther film, same
+Anton mark, same one-line colon countdown with the labels spread
+beneath, same consent discipline. The founder asked for both screens
+to read as the same thing on 2026-11-20. If you restyle one, restyle
+the other in the same change or they drift apart again.
+
+**The film is the same three outcomes.** MP4 then WebM, each with an
+explicit `codecs=` string, no `poster` attribute and no `controls`,
+for the reasons set out in the gate's section — on an ad landing page
+there is the extra one that a tap which pauses a video is a tap that
+did not fill in the email. `.v-still` carries the first frame, so if
+autoplay is refused the page is a photograph and nothing is missing.
+
+**Under `prefers-reduced-motion` neither film plays.** A background
+that loops for longer than five seconds is motion the visitor did not
+ask for. Both pages pause it and show the still, which is that film's
+own first frame — the screen looks the same, it just stops moving.
+Added 2026-11-20 on /vip and the gate together.
+
+**The wash is what buys the contrast, not the film's brightness.**
+`.column::before`, bound to the column, flat across its height and
+gone by the edges, with the film left at `brightness(0.82)`. Measured
+across the whole loop at both widths: worst case 6.86:1, and the
+smallest type on this page is 10px. `contrast-vip.js` samples 14
+shots and fails under 4.5:1.
+
+**A contrast probe must hide the words, not their container.**
+`visibility: hidden` on `.column` also hides `.column::before`, so
+the probe then measures bare film and reports the same numbers
+however much the wash changes — it read 2.6:1 and looked like a real
+failure. Hide `.column > *` and `footer > *`. The gate's probe
+carries the same warning for the same reason.
+
+**The number is folded and its disclosure is folded with it.** Ayush
+asked on 2026-11-20 that the email consent checkbox and the SMS
+consent text both stay, and both do, word for word. What changed is
+that the TCPA paragraph is no longer five lines of legal text sitting
+between an ad visitor and the only button: the phone field and the
+paragraph live inside one `<details>`, so the disclosure is on screen
+whenever the field is and can never appear without it. **Never unfold
+one without the other.** This is the same shape the gate uses and
+`vip.js` asserts the pairing on both — both inside `details.sms`, the
+closed fold rendering nothing but its summary, and on opening the
+field and the full paragraph with the paragraph below the field.
+
+**An error inside the fold opens the fold.** `reveal()` in
+`vip-signup.js` opens any ancestor `<details>` before focusing.
+Focusing a control in a closed fold moves focus nowhere, so without
+it a visitor is told to tick a box they cannot see.
+
+**The cookie bar is fixed and was lying across SUBMIT.** `ads.js`
+appends `.ad-consent` bottom-left on every page it runs on; on a
+phone it covered the one control every pound of ad spend is buying a
+tap on. `body:has(.ad-consent:not([hidden]))` makes room for it, and
+only while it is up. Above 780px the bar and the centred foot no
+longer share any horizontal space, so no room is made.
+
+**The page states 20% and nothing else.** `PUBLIC_PCT`, `MEMBER_PCT`
+and `MEMBER_CODE` are inline constants with the same rule as
+`MEMBER_OFFER` in `drop-config.js`: the members' half stays null
+until the code exists in Shopify, and while it is null the page says
+nothing about a member discount. Ayush's ads say "30% off + early
+access"; there is no 30% discount in the account, so the page does
+not claim one. Create it and set both constants to the code's real
+percentage, not the difference.
+
+**`SUBMIT` must be on the first screen at 390×844.** Everything added
+to this page is measured against that, and `vip.js` fails if the
+button's bottom edge falls below the fold or under the cookie bar.
 
 ## Build step (`scripts/build.js`)
 

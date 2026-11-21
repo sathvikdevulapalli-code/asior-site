@@ -46,17 +46,28 @@
     return properties;
   }
 
+  /* The number and its consent box live inside a <details>. Focusing
+     a control in a collapsed fold does nothing in most browsers, so
+     an error about the SMS box would move focus nowhere and the
+     visitor would be told to tick something they cannot see. Open the
+     fold first; it is a no-op for the fields that are not in one. */
+  function reveal(el) {
+    var d = el && el.closest ? el.closest('details') : null;
+    if (d) d.open = true;
+    if (el && el.focus) el.focus();
+  }
+
   form.addEventListener('submit', async function (event) {
     event.preventDefault();
     if (busy) return;
     var email = emailInput.value.trim();
     var phoneRaw = phoneInput.value.trim();
     var phone = phoneRaw ? e164(phoneRaw) : null;
-    if (!emailInput.checkValidity()) { message('Enter a valid email address.'); emailInput.focus(); return; }
-    if (!emailConsent.checked) { message('Please agree to receive the email updates.'); emailConsent.focus(); return; }
-    if (phoneRaw && !phone) { message('Enter a valid US or Canadian mobile number.'); phoneInput.focus(); return; }
-    if (phoneRaw && !smsConsent.checked) { message('Please check the SMS consent box or clear the phone number.'); smsConsent.focus(); return; }
-    if (!phoneRaw && smsConsent.checked) { message('Enter a mobile number for SMS updates or uncheck SMS consent.'); phoneInput.focus(); return; }
+    if (!emailInput.checkValidity()) { message('Enter a valid email address.'); reveal(emailInput); return; }
+    if (!emailConsent.checked) { message('Please agree to receive the email updates.'); reveal(emailConsent); return; }
+    if (phoneRaw && !phone) { message('Enter a valid US or Canadian mobile number.'); reveal(phoneInput); return; }
+    if (phoneRaw && !smsConsent.checked) { message('Please check the SMS consent box or clear the phone number.'); reveal(smsConsent); return; }
+    if (!phoneRaw && smsConsent.checked) { message('Enter a mobile number for SMS updates or uncheck SMS consent.'); reveal(phoneInput); return; }
 
     busy = true;
     button.disabled = true;
