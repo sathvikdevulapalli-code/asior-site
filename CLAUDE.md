@@ -556,35 +556,33 @@ configuration of it that puts a wall in front of the catalogue, and
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
 
-**The gate is dismissible since 2026-11-21, and that reverses the
-2026-11-14 decision.** It was a real wall — no close control, Escape
-did nothing, the list was the only way through. The founder asked for
-a clear way out so anybody can browse and buy at the public 20%
-without handing over anything, and the hard wall plus the mandatory
-phone number below it was both a conversion problem and an awkward
-pairing with a disclosure that says consent is not a condition of
-purchase.
+**The gate is a wall again, until the drop.** Three calls in nine
+days — wall on 11-14, dismissible on 11-21, wall again on 11-22 —
+and it is the founder's to make. `DISMISSIBLE: false`: no close
+control, no Escape, no backdrop click, and the signup is the only
+way through. `true` restores the exit and nothing else needs
+undoing.
 
-`DISMISSIBLE: true` adds a close control, Escape, and `dismiss()`,
-which admits the visitor without writing a signup: nothing goes to
-LS_OPEN or LS_EMAIL, no Klaviyo subscription is made, and the only
-record is `asior_gate_dismissed` so the screen does not come back on
-the next page. A gate that reappears after being closed is a nag, not
-a dismissible gate. The dismissal IS counted, as `Gate Dismissed`
-with the A/B variant — how many people the gate turns away is the
-point of being able to read it at all.
+**It is not a permanent wall, and that is what makes it
+defensible.** `OPEN_AT` lifts it by itself, defaulting to
+`COUNTDOWN.TO` — the Shopify discount's own `startsAt`. The clock
+the visitor is watching and the instant the wall comes down are
+therefore the same timestamp by construction and cannot drift, so
+the gate can never sit at 00:00:00:00 in front of a sale that has
+already started. Past that moment the gate is never built: the shop
+is revealed exactly as if `GATE.ON` were false, with no deploy and
+nobody awake at 2pm CT.
 
-A backdrop click is deliberately NOT an exit: a misclick on a
-photograph should not count as a decision. The exit is the button and
-the keyboard equivalent of it.
+An empty or unparseable value means no automatic opening. **A date
+that will not parse must never read as "open now"** — that would
+turn a typo into an unlocked storefront. `lock.js` tests a minute
+either side of the drop, deep into the sale, and the typo case.
 
-`DISMISSIBLE: false` restores the wall. If you set it false, re-read
-`SMS.REQUIRED` too — the combination that was taken out was a wall
-*plus* a mandatory phone, not either one alone.
-
-The signup is still the only way to the 30% code, so the gate still
-has something to trade; it just no longer holds the catalogue hostage
-for it.
+One consequence worth knowing: `COUNTDOWN.LIVE` is unreachable with
+the shipped config, because the gate lifts at the same instant the
+live line would appear. It is not dead code — it shows when `OPEN_AT`
+is deliberately set later than the sale starts — and `known.js`
+covers both.
 
 **What it was, and still is structurally:**
 `assets/drop-gate.js` plus `GATE` in `drop-config.js` — a full-screen
@@ -1065,14 +1063,18 @@ are present, and both consents were given on that screen — the email
 by pressing the button under the consent sentence, the number by
 typing it under the TCPA paragraph.
 
-## The gate's SMS field is OPTIONAL
+## The gate's SMS field is REQUIRED
 
-`SMS.REQUIRED: false`. It was set true earlier on 2026-11-21 and
-reversed the same day: requiring it meant a full-screen wall with no
-way out demanding a phone number before anybody could see a product.
-Email alone opens the gate and unlocks the code; the number stays on
-the screen, with its paragraph, as the optional extra it was built
-as.
+`SMS.REQUIRED: true` since 2026-11-22. The phone numbers are the
+point of the gate and the list has to be worth sending to on the
+27th, so an email alone no longer opens it.
+
+The compliance question was settled the last time this was true and
+has not changed: **"not a condition of any purchase" stays accurate**,
+because checkout runs on Shopify's own domain and is not gated —
+nobody has to accept texts to buy anything. Do not make SMS a
+condition of checkout; that sentence would stop being true and the
+consent would stop being valid.
 
 **The button goes last, under both fields, whichever they are.** It
 used to sit on the email's row and move down only when the number

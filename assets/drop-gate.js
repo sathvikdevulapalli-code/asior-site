@@ -90,6 +90,35 @@
 
   if (!CFG || CFG.ON !== true) { reveal(); return; }
 
+  /* ---- THE WALL LIFTS ITSELF AT THE DROP -------------------------
+
+     The storefront is locked until the sale starts and then it is
+     not, with no deploy and nobody awake at 2pm CT to flip a flag.
+     Past this instant the gate is never built: the shop is revealed
+     exactly as if GATE.ON were false.
+
+     The instant defaults to the countdown's own TO, which is the
+     Shopify discount's startsAt. That is deliberate -- the clock the
+     visitor is watching and the moment the wall comes down are then
+     the same timestamp by construction, so the gate cannot sit there
+     reading 00:00:00:00 in front of a sale that has already started.
+     OPEN_AT overrides it only if somebody deliberately wants them to
+     differ.
+
+     An unparseable or empty value means no automatic opening, which
+     is the behaviour this had before: the gate stays up until
+     GATE.ON changes. A date that will not parse must never be read
+     as "open now" -- that would turn a typo into an unlocked
+     storefront. */
+  var openAt = (function () {
+    var raw = CFG.OPEN_AT || (CFG.COUNTDOWN && CFG.COUNTDOWN.TO) || '';
+    if (!raw) return NaN;
+    var t = Date.parse(raw);
+    return isFinite(t) ? t : NaN;
+  })();
+
+  if (isFinite(openAt) && Date.now() >= openAt) { reveal(); return; }
+
   var SUPPORT = CFG.SUPPORT_EMAIL || 'asiorclothing@gmail.com';
 
   /* Whether the list the gate joins needs a confirmation click before

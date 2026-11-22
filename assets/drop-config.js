@@ -148,8 +148,36 @@ window.ASIOR_DROP = {
        If you set it false, re-read the note on SMS.REQUIRED too: a
        wall plus a mandatory phone number is the combination that was
        taken out, not either one alone. */
-    DISMISSIBLE: true,
+    /* FALSE since 2026-11-22: the founder wants the storefront
+       fully locked until the drop, with the number required, so
+       there is no close control, no Escape and no "browse the
+       store". This is the third decision on this in nine days
+       (wall 11-14, dismissible 11-21, wall again 11-22) and it is
+       theirs to make; the code supports either with this one flag
+       and nothing else to undo.
+
+       What does NOT change with it: the wall lifts itself at
+       OPEN_AT below, so it is a wall until the sale and not a
+       permanent one, and the policy pages in ALWAYS_OPEN are never
+       gated. */
+    DISMISSIBLE: false,
     DISMISS_LABEL: 'Browse the store',
+
+    /* ---- THE WALL COMES DOWN BY ITSELF ------------------------
+
+       The instant the storefront stops being locked, with no deploy
+       and nobody awake to do it. Past this moment drop-gate.js
+       reveals the shop and never builds the screen at all.
+
+       It is the countdown's own TO, which is the Shopify discount's
+       startsAt -- so the clock on the gate and the moment the gate
+       lifts are the same instant by construction and cannot drift
+       apart. Leave it empty and the gate stays up until somebody
+       changes GATE.ON, which is the behaviour it had before.
+
+       If the Shopify discount moves, COUNTDOWN.TO moves, and this
+       follows it automatically. */
+    OPEN_AT: '',
 
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
@@ -461,19 +489,19 @@ window.ASIOR_DROP = {
     SMS: {
       ON: true,
 
-      /* OPTIONAL AGAIN, 2026-11-21, reversing the instruction given
-         earlier the same day. Requiring it meant a full-screen wall
-         with no way out demanding a phone number before anybody
-         could see a product, which is a conversion problem and a bad
-         look beside a disclosure that says consent is not a
-         condition of purchase.
+      /* REQUIRED again since 2026-11-22, at the founder's
+         instruction: the phone numbers are the point of the gate,
+         and the list needs to be worth sending to on the 27th.
 
-         Email alone now opens the gate and unlocks the code. The
-         number stays on the screen, with its paragraph, as the
-         optional extra it was built as.
+         The compliance question was settled when this was last
+         true and the answer has not changed: "not a condition of
+         any purchase" in CONSENT below stays accurate, because
+         checkout runs on Shopify's own domain and is not gated.
+         Nobody has to accept texts to buy anything. Do not make SMS
+         a condition of checkout -- that sentence would stop being
+         true and the consent would stop being valid.
 
-         The note below is kept because it still governs the day
-         anyone sets this true again:
+         The rest still governs:
 
          Two things follow from it and both are load-bearing.
 
@@ -490,7 +518,7 @@ window.ASIOR_DROP = {
          buy anything. Do not make SMS a condition of checkout; that
          sentence would stop being true and the consent would stop
          being valid. */
-      REQUIRED: false,
+      REQUIRED: true,
       CONSENT: 'By entering your number you agree to receive recurring automated '
              + 'marketing texts from Asior at that number. Consent is not a condition '
              + 'of any purchase. Message frequency varies and message & data rates may '
