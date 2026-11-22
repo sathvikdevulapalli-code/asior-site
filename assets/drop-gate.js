@@ -679,11 +679,23 @@
        can set MEMBER_OFFER.PCT to 10 by mistake. */
     var extra = m.PCT - PUBLIC_PCT;
     if (extra <= 0) return lede;
-    /* A variant whose lede already leads with the member figure says
-       it once and is left alone. Without this, variant b reads
-       "30% off when you sign up. 20% for everyone else. when you sign
-       up, extra 10%." -- the same offer stated twice, in two framings,
-       which is exactly the muddle the A/B exists to choose between. */
+
+    /* The member framing, composed from the live figures. Ayush asked
+       on 2026-11-22 that every visitor see the version leading with
+       what signing up gets them, because that is what the ads
+       promise. LEDE_MEMBER is a template rather than a sentence so
+       the numbers in it cannot outlive the discount they describe:
+       clear MEMBER_OFFER and this whole branch is skipped and the
+       plain LEDE stands. */
+    var tpl = v('LEDE_MEMBER') || CFG.LEDE_MEMBER;
+    if (tpl) {
+      return String(tpl)
+        .replace('{member}', m.PCT)
+        .replace('{public}', PUBLIC_PCT);
+    }
+
+    /* A variant whose lede already states the member figure says it
+       once and is left alone. */
     if (lede.indexOf(m.PCT + '%') !== -1) return lede;
     return lede + ' when you sign up, extra ' + extra + '%.';
   }

@@ -306,7 +306,20 @@ window.ASIOR_DROP = {
     /* No date here. The clock directly above it counts to the same
        instant, so "nov 27, 2pm ct" was the screen saying when twice
        -- and it pushed the line to two rows on a phone. */
+    /* TWO LEDES, AND NEITHER TYPES A PERCENTAGE.
+
+       LEDE is the fallback: what the screen says when there is no
+       member offer to name. LEDE_MEMBER is used when MEMBER_OFFER is
+       live, with {member} and {public} filled in from it.
+
+       Writing "30% off when you sign up" here directly was a bug for
+       about ten minutes on 2026-11-22: it is the same hole that
+       variant b had, where a figure stated as a literal survives the
+       code being pulled in Shopify and the gate goes on promising
+       something nothing will honour. Every percentage on this screen
+       is computed. Do not type one here. */
     LEDE: '20% off sitewide.',
+    LEDE_MEMBER: '{member}% off when you sign up. {public}% for everyone else.',
 
     /* ---- the members' half -------------------------------------
 
@@ -415,7 +428,23 @@ window.ASIOR_DROP = {
        ON: false turns the whole thing off and everybody gets
        VARIANTS.a. SPLIT is the share who get b. */
     AB: {
-      ON: true,
+      /* OFF since 2026-11-22, at Ayush's request: every visitor now
+         sees the version that leads with what signing up gets them,
+         which is what the ads promise. That wording is the default
+         LEDE above, so with the experiment off everybody gets it.
+
+         Nothing else about the A/B was removed. The bucket, the
+         sticky split, gate_variant on the Klaviyo profile, the
+         Gate Shown denominator and Gate Dismissed all still work --
+         ON: true starts it again, and while it is off every visitor
+         is bucket 'a' and still stamped, so the numbers stay
+         readable rather than going blank.
+
+         If it IS turned back on, variant b must be given its own
+         LEDE again: the default is now b's wording, so as written
+         the two buckets would be identical and the test would
+         measure nothing. */
+      ON: false,
       KEY: 'asior_gate_ab',
       SPLIT: 0.5,
       VARIANTS: {
@@ -424,7 +453,7 @@ window.ASIOR_DROP = {
           /* Copy only, and no SUBMIT here: the button's label is
              computed from MEMBER_OFFER so both variants say the same
              true figure and the test is the lede's framing alone. */
-          LEDE: '30% off when you sign up. 20% for everyone else.',
+          LEDE: '20% off sitewide. when you sign up, extra 10%.',
         },
       },
     },

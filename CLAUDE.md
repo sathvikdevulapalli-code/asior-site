@@ -1154,11 +1154,35 @@ experiment whose variant is recorded nowhere is a coin flip; on the
 profile it can be segmented on, on the event it can break down a
 metric, and both answer different questions.
 
-**What is being tested: which number to lead with.** Variant `a` says
-"20% off sitewide. when you sign up, extra 10%."; variant `b` says
-"30% off when you sign up. 20% for everyone else." Both are true and
-both end in the same place — the shopper who signs up enters
-`ASIOR30` and pays 30% either way.
+**It is OFF as shipped, since 2026-11-22.** Ayush asked that every
+visitor see the version that leads with what signing up gets them,
+because that is what the ads promise. `AB.ON: false`, so everyone
+gets the default lede. The mechanism is untouched — bucket,
+stickiness, `gate_variant` on the profile, `Gate Shown`,
+`Gate Dismissed` — and `ON: true` starts it again. While it is off
+every visitor is bucket `a` and still stamped, so the numbers stay
+readable rather than going blank. `ab.js` forces it back on to test
+the mechanism and asserts the shipped off state separately, the way
+`scarcity.js` covers its flag.
+
+If it is turned back on, give variant `b` its own `LEDE` again: the
+default now carries the member framing, so as written both buckets
+would be identical and the test would measure nothing.
+
+**What it tests: which number to lead with.** Variant `a` is the
+default ("30% off when you sign up. 20% for everyone else."), `b` the
+other order ("20% off sitewide. when you sign up, extra 10%."). Both
+are true and both end in the same place — the shopper who signs up
+enters `ASIOR30` and pays 30% either way.
+
+**No percentage is typed in any lede.** `LEDE` is the fallback for
+when there is no member offer; `LEDE_MEMBER` is a template with
+`{member}` and `{public}` filled from `MEMBER_OFFER` and the public
+figure. Writing "30% off when you sign up" into `LEDE` directly was a
+bug for about ten minutes on 2026-11-22 — the same hole variant `b`
+had, where a literal survives the code being pulled in Shopify and
+the gate goes on promising it. `offer.js` catches it by forcing
+`MEMBER_OFFER` to null.
 
 **`Gate Shown` is the denominator and it has to stay.** Signups per
 variant with no impressions per variant is not a result: if `a` is
@@ -1227,6 +1251,26 @@ The shape Browse Abandonment expects is `ProductName`, `ProductID`,
 `URL`, `ImageURL`, `Price`, plus the lowercase `handle`/`product`
 the existing flow templates read. Renaming any of them silently
 stops the flow.
+
+## `ROLLOUT` does not gate the gate
+
+Reported on 2026-11-22: "`ROLLOUT: 0.5` shows the lock screen to only
+50% of visitors, the other 50% land on the open shop." It does not.
+
+`ROLLOUT` lives in `drop-access.js` and splits the **overlay's**
+`asior_drop_bucket`. `drop-gate.js` never reads it, or that bucket,
+or anything else probabilistic. Its only three exits are `GATE.ON`
+false, an `ALWAYS_OPEN` path, and `opened()` — a browser that has
+already signed up (`asior_gate_opened_at`) or dismissed
+(`asior_gate_dismissed`). `rollout.js` proves it: both buckets forced,
+and 40 fresh visitors, 40 of 40 gated.
+
+So a browser seeing no lock screen has either been through it before
+or visited while `GATE.ON` was false — which it was between `c040693`
+on 2026-11-20 and the fix on 2026-11-21. Clear those two keys to see
+it fresh, or use a private window.
+
+Do not "fix" this by adding a rollout check to the gate.
 
 ## Build step (`scripts/build.js`)
 
