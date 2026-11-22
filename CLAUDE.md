@@ -556,11 +556,40 @@ configuration of it that puts a wall in front of the catalogue, and
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
 
-**The gate is. That is a separate thing, and it is deliberate.**
-`assets/drop-gate.js` plus `GATE` in `drop-config.js` is a real wall:
-a full-screen entry screen on every storefront page, no close
-control, Escape does nothing, and joining the Email list is the only
-way through. The founder asked for it on 2026-11-14, after being told
+**The gate is dismissible since 2026-11-21, and that reverses the
+2026-11-14 decision.** It was a real wall — no close control, Escape
+did nothing, the list was the only way through. The founder asked for
+a clear way out so anybody can browse and buy at the public 20%
+without handing over anything, and the hard wall plus the mandatory
+phone number below it was both a conversion problem and an awkward
+pairing with a disclosure that says consent is not a condition of
+purchase.
+
+`DISMISSIBLE: true` adds a close control, Escape, and `dismiss()`,
+which admits the visitor without writing a signup: nothing goes to
+LS_OPEN or LS_EMAIL, no Klaviyo subscription is made, and the only
+record is `asior_gate_dismissed` so the screen does not come back on
+the next page. A gate that reappears after being closed is a nag, not
+a dismissible gate. The dismissal IS counted, as `Gate Dismissed`
+with the A/B variant — how many people the gate turns away is the
+point of being able to read it at all.
+
+A backdrop click is deliberately NOT an exit: a misclick on a
+photograph should not count as a decision. The exit is the button and
+the keyboard equivalent of it.
+
+`DISMISSIBLE: false` restores the wall. If you set it false, re-read
+`SMS.REQUIRED` too — the combination that was taken out was a wall
+*plus* a mandatory phone, not either one alone.
+
+The signup is still the only way to the 30% code, so the gate still
+has something to trade; it just no longer holds the catalogue hostage
+for it.
+
+**What it was, and still is structurally:**
+`assets/drop-gate.js` plus `GATE` in `drop-config.js` — a full-screen
+entry screen on every storefront page, where joining the Email list
+is the way to the member discount. The founder asked for it on 2026-11-14, after being told
 in those words that it reverses their own earlier instruction not to
 password-protect the live storefront and that it stops new visitors
 buying Fall stock while the $50 free-shipping and 2-piece offers are
@@ -1036,12 +1065,21 @@ are present, and both consents were given on that screen — the email
 by pressing the button under the consent sentence, the number by
 typing it under the TCPA paragraph.
 
-## The gate's SMS field is REQUIRED
+## The gate's SMS field is OPTIONAL
 
-Founder's instruction, 2026-11-21: the number is how somebody gets the
-30% code, so it is not an optional extra. `SMS.REQUIRED` in
-`drop-config.js`; false restores the old folded optional field and
-nothing else needs undoing.
+`SMS.REQUIRED: false`. It was set true earlier on 2026-11-21 and
+reversed the same day: requiring it meant a full-screen wall with no
+way out demanding a phone number before anybody could see a product.
+Email alone opens the gate and unlocks the code; the number stays on
+the screen, with its paragraph, as the optional extra it was built
+as.
+
+**The button goes last, under both fields, whichever they are.** It
+used to sit on the email's row and move down only when the number
+became required — two layouts for one form, and the row version was
+wrong even with the number optional: a button between two fields
+reads as belonging to the one above it, so the phone box under it
+looked like something that happens after submitting.
 
 **A required field cannot be folded.** The rule has always been that
 the number and its TCPA disclosure move together. With the field
@@ -1099,10 +1137,13 @@ the same change.** `offer.js` proves that when they do, the 30%
 disappears from the lede, the button and the success message together
 rather than from some of them.
 
-**`ASRBF` is a loose end and it is the founder's call.** 25%,
-SCHEDULED 2026-11-27T06:00Z to 11-28T05:59Z — it opens fourteen hours
-before the 20% automatic and is worse than `ASIOR30`. Nothing on the
-site names it.
+**`ASRBF` is dead.** Deactivated in Shopify on 2026-11-21 at the
+founder's instruction, via `discountCodeDeactivate` —
+`DiscountCodeNode/1577511420121`, now EXPIRED. It was 25% scheduled
+to open fourteen hours before the 20% automatic, which made it worse
+than `ASIOR30` and live before the sale it belonged to. Nothing on
+the site ever named it. The 20% automatic and `ASIOR30` were read
+back after the change and are both untouched and still SCHEDULED.
 
 ## The gate A/B
 
@@ -1113,11 +1154,35 @@ experiment whose variant is recorded nowhere is a coin flip; on the
 profile it can be segmented on, on the event it can break down a
 metric, and both answer different questions.
 
-**What is being tested: which number to lead with.** Variant `a` says
-"20% off sitewide. when you sign up, extra 10%."; variant `b` says
-"30% off when you sign up. 20% for everyone else." Both are true and
-both end in the same place — the shopper who signs up enters
-`ASIOR30` and pays 30% either way.
+**It is OFF as shipped, since 2026-11-22.** Ayush asked that every
+visitor see the version that leads with what signing up gets them,
+because that is what the ads promise. `AB.ON: false`, so everyone
+gets the default lede. The mechanism is untouched — bucket,
+stickiness, `gate_variant` on the profile, `Gate Shown`,
+`Gate Dismissed` — and `ON: true` starts it again. While it is off
+every visitor is bucket `a` and still stamped, so the numbers stay
+readable rather than going blank. `ab.js` forces it back on to test
+the mechanism and asserts the shipped off state separately, the way
+`scarcity.js` covers its flag.
+
+If it is turned back on, give variant `b` its own `LEDE` again: the
+default now carries the member framing, so as written both buckets
+would be identical and the test would measure nothing.
+
+**What it tests: which number to lead with.** Variant `a` is the
+default ("30% off when you sign up. 20% for everyone else."), `b` the
+other order ("20% off sitewide. when you sign up, extra 10%."). Both
+are true and both end in the same place — the shopper who signs up
+enters `ASIOR30` and pays 30% either way.
+
+**No percentage is typed in any lede.** `LEDE` is the fallback for
+when there is no member offer; `LEDE_MEMBER` is a template with
+`{member}` and `{public}` filled from `MEMBER_OFFER` and the public
+figure. Writing "30% off when you sign up" into `LEDE` directly was a
+bug for about ten minutes on 2026-11-22 — the same hole variant `b`
+had, where a literal survives the code being pulled in Shopify and
+the gate goes on promising it. `offer.js` catches it by forcing
+`MEMBER_OFFER` to null.
 
 **`Gate Shown` is the denominator and it has to stay.** Signups per
 variant with no impressions per variant is not a result: if `a` is
@@ -1156,6 +1221,56 @@ worth.
 
 Both holes were found by `offer.js` forcing `MEMBER_OFFER` to null,
 not by reading the code. Keep that test.
+
+## Klaviyo onsite tracking: the queue is `_learnq`
+
+**`klaviyoOnsite()` returned `window._klOnsite` from 2026-10-05 to
+2026-11-21, and no such array exists in Klaviyo.** Every push went
+into an object nobody read, silently, for seven weeks. Klaviyo's
+onsite queue is `_learnq`; klaviyo.js replays whatever is in it once
+it boots, which is why pushing before it loads is safe.
+
+What that broke, and the evidence: `Viewed Product` ran 100, 179,
+122, 64, 62, 77, 44, 69 events a week through the week of
+2026-10-19, then **0** from 2026-10-26 onward (read back
+2026-11-21). Browse Abandonment never fired, because this is the
+path that sets the `__kla_id` cookie the flow keys off.
+`klaviyoIdentify()` rides the same queue, so signups were never
+stitched to their onsite activity either.
+
+**One function owns the metric.** `klaviyoViewedProduct()` pushes to
+`_learnq` *and* fires the server-side twin. Both pages used to also
+call `klaviyoTrack('Viewed Product', { product, handle })`
+themselves — a second event on the same metric with a thinner
+property set — and the two had already drifted: the onsite shape
+carried `ProductID`, `Price`, `ImageURL` and `URL`, the other
+carried none of them. Two call sites for one metric is how that
+happens. Do not add a third.
+
+The shape Browse Abandonment expects is `ProductName`, `ProductID`,
+`URL`, `ImageURL`, `Price`, plus the lowercase `handle`/`product`
+the existing flow templates read. Renaming any of them silently
+stops the flow.
+
+## `ROLLOUT` does not gate the gate
+
+Reported on 2026-11-22: "`ROLLOUT: 0.5` shows the lock screen to only
+50% of visitors, the other 50% land on the open shop." It does not.
+
+`ROLLOUT` lives in `drop-access.js` and splits the **overlay's**
+`asior_drop_bucket`. `drop-gate.js` never reads it, or that bucket,
+or anything else probabilistic. Its only three exits are `GATE.ON`
+false, an `ALWAYS_OPEN` path, and `opened()` — a browser that has
+already signed up (`asior_gate_opened_at`) or dismissed
+(`asior_gate_dismissed`). `rollout.js` proves it: both buckets forced,
+and 40 fresh visitors, 40 of 40 gated.
+
+So a browser seeing no lock screen has either been through it before
+or visited while `GATE.ON` was false — which it was between `c040693`
+on 2026-11-20 and the fix on 2026-11-21. Clear those two keys to see
+it fresh, or use a private window.
+
+Do not "fix" this by adding a rollout check to the gate.
 
 ## Build step (`scripts/build.js`)
 

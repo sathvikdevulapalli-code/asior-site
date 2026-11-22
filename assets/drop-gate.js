@@ -100,6 +100,11 @@
 
   var LS_OPEN = 'asior_gate_opened_at';
   var LS_EMAIL = 'asior_gate_email';
+  /* Its own key, not LS_OPEN. Both get somebody past the gate, but
+     only one of them means "this person gave us an address", and
+     greetKnown() and any later segmenting must be able to tell them
+     apart. */
+  var LS_DISMISSED = 'asior_gate_dismissed';
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
@@ -115,7 +120,13 @@
 
   function opened() {
     if (memoryOpen) return true;
-    var at = Number(lsGet(LS_OPEN) || 0);
+    /* Either door counts. A signup is remembered under LS_OPEN and a
+       dismissal under LS_DISMISSED, and both mean this visitor has
+       already answered the gate -- a screen that comes back on the
+       next page after being closed is a nag, not a dismissible
+       screen. They stay separate keys so a dismissal is never
+       mistaken for a signup. */
+    var at = Number(lsGet(LS_OPEN) || 0) || Number(lsGet(LS_DISMISSED) || 0);
     if (!at) return false;
     var days = typeof CFG.REMEMBER_DAYS === 'number' ? CFG.REMEMBER_DAYS : 365;
     if (Date.now() - at > days * 864e5) return false;
@@ -294,31 +305,14 @@
               '<label class="sr-only" for="gateEmail">Email address</label>' +
               '<input class="field" type="email" id="gateEmail" name="email" ' +
                      'placeholder="email" autocomplete="email" spellcheck="false" required>' +
-              /* THE BUTTON GOES LAST, UNDER EVERY FIELD IT SUBMITS.
-
-                 While the number was optional and folded it could sit
-                 on this row beside the email, because the email was
-                 the whole form. It is not any more: with a required
-                 number below it, a button here reads as belonging to
-                 the email alone and invites a press before the number
-                 is typed -- an error message instead of a signup, on
-                 the one screen standing between a paid click and the
-                 shop. So when the number is required the row is the
-                 email by itself and the button is appended after the
-                 consent paragraph. */
-              (SMS_REQUIRED
-                ? ''
-                : '<button type="submit" id="gateBtn">' + esc(submitLabel()) + '</button>') +
             '</div>' +
             /* The number, and its disclosure directly under it.
 
-               It was folded behind a "text me too" line while it was
-               optional. It is required now, so it cannot be folded:
-               a field somebody MUST fill in cannot be behind a
-               control they have to find first, and the TCPA
-               paragraph has to be on screen wherever the field is.
-               The pairing rule is unchanged -- the two still move
-               together, they are simply both open. */
+               Open whether or not it is required. The pairing rule
+               is what matters and it is unchanged: the field and the
+               TCPA paragraph are in one block, so the disclosure is
+               on screen wherever the field is and neither can appear
+               without the other. */
             (smsOn
               ? '<div class="gate-sms' + (SMS_REQUIRED ? ' is-required' : '') + '">' +
                   (SMS_REQUIRED
@@ -332,9 +326,18 @@
                   '<p class="gate-consent-sms">' + esc(CFG.SMS.CONSENT || '') + '</p>' +
                 '</div>'
               : '') +
-            (SMS_REQUIRED
-              ? '<button type="submit" id="gateBtn">' + esc(submitLabel()) + '</button>'
-              : '') +
+
+            /* THE BUTTON GOES LAST, UNDER EVERY FIELD IT SUBMITS,
+               whether or not the number is required.
+
+               It used to sit on the email's row and move below only
+               when the number became required -- two layouts for one
+               form, and the row version was wrong even with the
+               number optional: a button between two fields reads as
+               belonging to the one above it, so the phone box under
+               it looked like something that happens after you
+               submit. One position, always. */
+            '<button type="submit" id="gateBtn">' + esc(submitLabel()) + '</button>' +
           '</form>' +
 
           /* The personalised state. Shown instead of the form to
@@ -367,6 +370,21 @@
             'Marketing emails, unsubscribe anytime. ' +
             '<a href="/privacy-policy.html">Privacy</a>' +
           '</p>' +
+
+          /* THE WAY OUT. A real button, not a link styled as one, so
+             it is in the tab order and announced as the control it
+             is. Deliberately quiet and deliberately unmissable --
+             the signup is still the thing being asked for, but
+             nobody has to give an address to see the clothes.
+
+             It says what happens next rather than "no thanks": a
+             decline button makes the reader weigh a refusal, a
+             destination just offers the other door. */
+          (DISMISSIBLE
+            ? '<button type="button" class="gate-skip" id="gateSkip">' +
+                esc(CFG.DISMISS_LABEL || 'Browse the store') +
+              '</button>'
+            : '') +
 
         '</div>' +
 
@@ -420,6 +438,9 @@
     reveal();
 
     root.querySelector('#gateForm').addEventListener('submit', submit);
+
+    var skip = root.querySelector('#gateSkip');
+    if (skip) skip.addEventListener('click', dismiss);
 
     /* The mark no longer opens anything -- the form is already on
        screen -- so it focuses the field instead. Still a button, so
@@ -658,11 +679,23 @@
        can set MEMBER_OFFER.PCT to 10 by mistake. */
     var extra = m.PCT - PUBLIC_PCT;
     if (extra <= 0) return lede;
-    /* A variant whose lede already leads with the member figure says
-       it once and is left alone. Without this, variant b reads
-       "30% off when you sign up. 20% for everyone else. when you sign
-       up, extra 10%." -- the same offer stated twice, in two framings,
-       which is exactly the muddle the A/B exists to choose between. */
+
+    /* The member framing, composed from the live figures. Ayush asked
+       on 2026-11-22 that every visitor see the version leading with
+       what signing up gets them, because that is what the ads
+       promise. LEDE_MEMBER is a template rather than a sentence so
+       the numbers in it cannot outlive the discount they describe:
+       clear MEMBER_OFFER and this whole branch is skipped and the
+       plain LEDE stands. */
+    var tpl = v('LEDE_MEMBER') || CFG.LEDE_MEMBER;
+    if (tpl) {
+      return String(tpl)
+        .replace('{member}', m.PCT)
+        .replace('{public}', PUBLIC_PCT);
+    }
+
+    /* A variant whose lede already states the member figure says it
+       once and is left alone. */
     if (lede.indexOf(m.PCT + '%') !== -1) return lede;
     return lede + ' when you sign up, extra ' + extra + '%.';
   }
@@ -672,6 +705,11 @@
      not an optional extra on this form. False restores the old folded
      optional field and nothing else needs undoing. */
   var SMS_REQUIRED = !!(CFG.SMS && CFG.SMS.ON && CFG.SMS.REQUIRED);
+
+  /* Whether there is a way out that is not a signup. See DISMISSIBLE
+     in drop-config.js for why this exists and what turning it off
+     restores. */
+  var DISMISSIBLE = CFG.DISMISSIBLE !== false;
 
   /* ---- the clock -----------------------------------------------------
 
@@ -838,9 +876,12 @@
   function trap(e) {
     if (!root) return;
 
-    /* Escape is deliberately not wired at all now. There are no
-       sheets left to dismiss -- everything is on the one screen --
-       and the gate itself has no escape by design. */
+    /* Escape closes the gate when there is a way out. It used to do
+       nothing by design, back when the gate was a wall; with a
+       dismiss control on the screen, a keyboard user has to be able
+       to reach the same exit the pointer can. With DISMISSIBLE off
+       it goes back to doing nothing. */
+    if (e.key === 'Escape' && DISMISSIBLE) { e.preventDefault(); dismiss(); return; }
     if (e.key !== 'Tab') return;
 
     var scope = root;
@@ -869,6 +910,34 @@
      third of a second has not been communicated, it has been
      technically displayed. Anything asking something of the reader
      gets long enough to read it. */
+  /* Out without a signup. Separate from admit() on purpose: nothing
+     is written to LS_OPEN or LS_EMAIL, no Klaviyo call is made and no
+     signup event fires, because none of those things happened. The
+     only record is that this person closed the gate, so they are not
+     asked again on the next page.
+
+     It is counted, though. A dismissal is the other half of the A/B's
+     denominator -- knowing how many people the gate turns away is the
+     whole point of being able to read it -- and it carries the same
+     variant as the impression. */
+  function dismiss() {
+    stopClock();
+    lsSet(LS_DISMISSED, String(Date.now()));
+    memoryOpen = true;
+    document.documentElement.classList.remove('asior-gated');
+    if (A.klaviyoTrack) {
+      try { A.klaviyoTrack('Gate Dismissed', { variant: VARIANT, source: 'entry_gate' }); }
+      catch (err) { /* never hold the door shut over a count */ }
+    }
+    if (!root) return;
+    root.classList.add('is-leaving');
+    setTimeout(function () {
+      if (root && root.parentNode) root.parentNode.removeChild(root);
+      root = null;
+      document.removeEventListener('keydown', trap, true);
+    }, 320);
+  }
+
   function admit(email, note, hold) {
     stopClock();
     markOpened(email);
