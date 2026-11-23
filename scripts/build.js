@@ -1160,10 +1160,25 @@ const CART_LINK = '<a href="/cart.html" class="cart-link" aria-label="Cart">'
 
    The two that are left need no caveat: they apply to everyone, they
    stack with each other, and neither one contradicts the other. */
+/* Built from assets/promo-config.js rather than typed, so a discount
+   switched off there cannot survive in the bar. MULTI_BUY went null
+   on 2026-11-23 when "Any 2 pieces 15% off" was deactivated in
+   Shopify for the Black Friday window, and the hardcoded line had
+   already shipped to 21 pages by then -- assets/site.js also strips
+   it at runtime so those pages are right without a rebuild. */
+const MULTI_BUY_OFFER = (() => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'assets', 'promo-config.js'), 'utf8');
+  const m = src.match(/MULTI_BUY:\s*(null|\{)/);
+  if (!m || m[1] === 'null') return null;
+  const pct = (src.match(/MULTI_BUY:\s*\{[\s\S]*?PERCENT:\s*(\d+)/) || [])[1];
+  const qty = (src.match(/MULTI_BUY:\s*\{[\s\S]*?MIN_QTY:\s*(\d+)/) || [])[1];
+  return (pct && qty) ? `Any ${qty} pieces ${pct}% off, applied at checkout` : null;
+})();
+
 const ANNOUNCEMENTS = [
-  'Any 2 pieces 15% off, applied at checkout',
+  MULTI_BUY_OFFER,
   'Free shipping on US orders at $50 and over',
-];
+].filter(Boolean);
 
 const ANNOUNCE_BAR = `  <div class="announce" role="region" aria-label="Announcements">
     <!-- Empty, and invisible, unless NEXT_DROP in launch-config.js has

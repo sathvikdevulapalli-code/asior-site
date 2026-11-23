@@ -2239,11 +2239,34 @@
     var label = threshold.toFixed(2).replace(/\.00$/, '');
     var track = document.querySelector('[data-announce]');
     if (track) {
+      /* THE 2-PIECE MESSAGE COMES OUT WHEN THE DISCOUNT IS OFF.
+
+         It was baked into the announcement bar as static markup on
+         21 pages, so setting MULTI_BUY to null switched off every
+         OTHER mention on the site and left this one shouting an
+         offer Shopify would no longer apply -- which is exactly the
+         drift MULTI_BUY exists to prevent. The build emits the bar
+         from the same flag now, and this removes it at runtime too,
+         so a page built before the change still tells the truth.
+
+         Removed, not hidden: a message left in the DOM is still read
+         aloud, and the rotation would cycle to an empty slot. */
+      var offers = (window.ASIOR_OFFERS || {});
       Array.prototype.slice.call(track.querySelectorAll('.announce-msg')).forEach(function (msg) {
         if (/free shipping on us orders/i.test(msg.textContent)) {
           msg.textContent = 'Free shipping on US orders at $' + label + ' and over';
+        } else if (!offers.MULTI_BUY && /\b2 pieces\b/i.test(msg.textContent)) {
+          if (msg.parentNode) msg.parentNode.removeChild(msg);
         }
       });
+      /* Whatever is left has to start visible. The removed message
+         carried .is-on, so without this the bar would sit blank
+         until the rotation's first tick. */
+      var left = track.querySelectorAll('.announce-msg');
+      if (left.length && !track.querySelector('.announce-msg.is-on')) {
+        left[0].classList.add('is-on');
+        left[0].removeAttribute('aria-hidden');
+      }
     }
     document.querySelectorAll('[data-free-shipping-copy]').forEach(function (el) {
       el.textContent = 'Shipping is free on US orders at $' + label + ' and over.';

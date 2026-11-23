@@ -177,7 +177,7 @@ window.ASIOR_DROP = {
 
        If the Shopify discount moves, COUNTDOWN.TO moves, and this
        follows it automatically. */
-    OPEN_AT: '',
+    OPEN_AT: '',   /* empty = follow COUNTDOWN.TO, which is 19:30Z */
 
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
@@ -315,9 +315,20 @@ window.ASIOR_DROP = {
        ENDS is only used to stop claiming a live sale after it is
        over. LIVE is what the screen says once TO has passed. */
     COUNTDOWN: {
-      TO: '2026-11-27T20:00:00Z',
+      /* 1:30 PM CST -- ASIORLIST's own startsAt, the instant the
+         list can first buy. It was 20:00Z, copied from the 20%
+         automatic that has since been deleted; the 10% public tier
+         still starts at 20:00, but this screen exists to sell early
+         access and the clock has to count to the thing it is
+         selling. */
+      TO: '2026-11-27T19:30:00Z',
       ENDS: '2026-12-01T05:59:00Z',
-      LIVE: '20% off everything. No code needed.',
+      /* Reachable only if OPEN_AT is ever held later than TO. With
+         both at 19:30 the wall lifts the moment this would appear,
+         which is the correct behaviour -- a member who is told
+         "early access is live" needs to be able to walk through the
+         door in the same second. */
+      LIVE: 'Early access is live.',
     },
 
     CTA: 'Black Friday VIP Access',
@@ -346,7 +357,7 @@ window.ASIOR_DROP = {
        code being pulled in Shopify and the gate goes on promising
        something nothing will honour. Every percentage on this screen
        is computed. Do not type one here. */
-    LEDE: '20% off sitewide.',
+    LEDE: '10% off sitewide.',
     LEDE_MEMBER: '{member}% off when you sign up. {public}% for everyone else.',
 
     /* ---- the members' half -------------------------------------
@@ -367,15 +378,29 @@ window.ASIOR_DROP = {
        offer. Fill in the code's real percentage, not the difference,
        and the line appears on the gate and on /vip. */
     MEMBER_OFFER: {
-      /* ASIOR30 IS REAL. Read back from Shopify 2026-11-21:
+      /* ASIORLIST. Read back from Shopify 2026-11-23:
 
-           DiscountCodeNode/1578102915289
-           "ASIOR30", status SCHEDULED, 30% off
-           startsAt 2026-11-27T20:00:00Z
+           DiscountCodeNode/1578520248537
+           "ASIORLIST", status SCHEDULED, 20% off
+           startsAt 2026-11-27T19:30:00Z   (1:30 PM CST)
            endsAt   2026-12-01T05:59:00Z
+           one use per customer, combines with nothing
 
-         The same window as the Black Friday automatic to the minute,
-         which is what makes it work. Every discount on this account
+         THIS REPLACED ASIOR30, WHICH WAS DELETED on 2026-11-23, and
+         the reason is margin rather than preference. Landed cost on
+         the ASR Shorts is $26.00 against $35.99 retail -- a 1.38x
+         markup where the rest of the line runs 1.6x to 2.3x. At 30%
+         off that piece sells for $25.19 and loses 81c a unit before
+         card fees. 20% is the floor, not a starting position: do not
+         raise either tier.
+
+         It opens THIRTY MINUTES before the public tier, and that
+         head start is the real reason to be on the list -- more than
+         the ten extra points. OPEN_AT and COUNTDOWN.TO are both set
+         to 19:30 so the wall lifts exactly when a member can first
+         use the code; lifting it at 20:00 instead would leave the
+         list unable to reach the shop during the only window that
+         belongs to them. Every discount on this account
          is combinesWith.orderDiscounts FALSE, so ASIOR30 does not add
          10% to the automatic 20% -- it REPLACES it, and Shopify lets
          a code outrank an automatic it cannot combine with. The
@@ -388,8 +413,8 @@ window.ASIOR_DROP = {
          ASIOR30 is paused or its window moves in Shopify, both keys
          go back to null in the same change or the gate is promising
          something nothing will honour. */
-      PCT: 30,
-      CODE: 'ASIOR30',
+      PCT: 20,
+      CODE: 'ASIORLIST',
     },
     /* The FALLBACK only. While MEMBER_OFFER is live the gate computes
        the label from it ("Get 30% off"), so this is what the button
