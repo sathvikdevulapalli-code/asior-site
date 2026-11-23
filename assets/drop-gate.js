@@ -661,11 +661,17 @@
     return (set && set[key] !== undefined) ? set[key] : CFG[key];
   }
 
-  /* The automatic everybody gets with no code, from the Shopify
-     discount the clock counts to. The member line states the
-     DIFFERENCE between this and MEMBER_OFFER.PCT, so this has to be
-     the real public number or that difference is wrong. */
-  var PUBLIC_PCT = 20;
+  /* The automatic everybody gets with no code. TEN since
+     2026-11-23: the 20% automatic was deleted and replaced by
+     "Black Friday 2026 - 10% Public"
+     (DiscountAutomaticNode/1578519625945, 10%, startsAt
+     2026-11-27T20:00:00Z), read back the same day.
+
+     The member line states the DIFFERENCE between this and
+     MEMBER_OFFER.PCT, so this has to be the real public number or
+     that difference is wrong -- with 20 left here the gate would
+     have offered "extra 0%". */
+  var PUBLIC_PCT = 10;
 
   /* The button names the member figure, so it is COMPUTED from
      MEMBER_OFFER rather than typed -- the same rule as the lede and

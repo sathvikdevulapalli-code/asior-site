@@ -1108,44 +1108,82 @@ country code entered with a `+`. A US-only rule was survivable while
 the number was optional; with it required it would lock every
 overseas visitor out of a shop that ships internationally.
 
-## 20% for everyone, 30% for signing up
+## Black Friday 2026: 10% public, 20% for the list
 
-**`ASIOR30` is real.** Read back from Shopify 2026-11-21:
+**Rebuilt by Ayush on 2026-11-23 and read back the same day.** Two
+discounts, both SCHEDULED, both `combinesWith` false on all three
+axes. **Do not turn combinations on, do not raise either percentage,
+and do not create a new discount during the window** — one extra
+automatic above 10% silently overrides the public tier.
 
-    DiscountCodeNode/1578102915289
-    "ASIOR30", status SCHEDULED, 30% off
-    startsAt 2026-11-27T20:00:00Z, endsAt 2026-12-01T05:59:00Z
+    DiscountAutomaticNode/1578519625945
+    "Black Friday 2026 - 10% Public", 10% off order, no code
+    startsAt 2026-11-27T20:00:00Z  (2:00 PM CST)
 
-The same window as the Black Friday automatic to the minute, which is
-what makes it work. **It is one 30% code, not 20% plus 10%.** Every
-discount on this account is `combinesWith.orderDiscounts: false`, so a
-10% code during the sale would REPLACE the automatic 20% and leave a
-member worse off than a stranger. Shopify lets a code outrank an
-automatic it cannot combine with, so `ASIOR30` replaces the 20% and
-the shopper pays 30% less. `MEMBER_OFFER.PCT` is the code's real
-percentage, never the difference.
+    DiscountCodeNode/1578520248537
+    "ASIORLIST", 20% off order, one use per customer
+    startsAt 2026-11-27T19:30:00Z  (1:30 PM CST)
 
-**The lede names the deal; the success message names the code.**
-Printing `ASIOR30` on the open screen would hand 30% to everyone who
-never signs up, which is the whole thing the gate trades for. Giving
-it in the success message rather than leaving it to a Klaviyo flow is
-deliberate: the button promises 30% off, and a promise kept by an
-email that may be delayed, filtered or never built is how the old
-ASIORTEN claim went wrong. A code on a marketing wall is no more
-exposed than one in an email.
+    both endsAt 2026-12-01T05:59:00Z
 
-**If `ASIOR30` is paused or its window moves, both keys go to null in
-the same change.** `offer.js` proves that when they do, the 30%
-disappears from the lede, the button and the success message together
-rather than from some of them.
+**`ASIOR30` and the old 20% automatic were DELETED**, and the reason
+is margin, not preference. Landed cost on the ASR Shorts is $26.00
+against $35.99 retail — a 1.38x markup where the rest of the line
+runs 1.6x to 2.3x. At 30% off that piece sells for $25.19 and loses
+81c a unit before card fees. **20% is the floor, not a starting
+position.** The underlying problem is one piece priced so tight that
+it caps every promotion the brand can run; that is a pricing fix at
+the next production run, not something to work around each sale.
 
-**`ASRBF` is dead.** Deactivated in Shopify on 2026-11-21 at the
-founder's instruction, via `discountCodeDeactivate` —
-`DiscountCodeNode/1577511420121`, now EXPIRED. It was 25% scheduled
-to open fourteen hours before the 20% automatic, which made it worse
-than `ASIOR30` and live before the sale it belonged to. Nothing on
-the site ever named it. The 20% automatic and `ASIOR30` were read
-back after the change and are both untouched and still SCHEDULED.
+**The 30-minute head start is the real offer.** `COUNTDOWN.TO` and
+`OPEN_AT` are both 19:30Z — ASIORLIST's own `startsAt` — so the wall
+lifts exactly when a member can first use the code. Lifting it at
+20:00 instead would leave the list unable to reach the shop during
+the only window that belongs to them, which is the whole thing they
+signed up for.
+
+`PUBLIC_PCT` in `drop-gate.js` is **10**. The member line states the
+difference between it and `MEMBER_OFFER.PCT`, so a stale 20 there
+would have the gate offering "extra 0%".
+
+**"Any 2 pieces 15% off" is DEACTIVATED for the window**, and the
+Shopify behaviour behind that is worth remembering: when two
+AUTOMATIC discounts both apply and neither combines, **Shopify gives
+the customer the better one**. Any two-item public cart would have
+taken 15% over the 10% public tier, leaving the 20% list code worth
+only five points more than what anyone off the street gets.
+
+`MULTI_BUY: null` switches off every mention — except that the
+announcement bar had the line **hardcoded into 21 built pages**, so
+nulling the flag alone left the bar advertising a dead discount.
+`build.js` now derives `ANNOUNCEMENTS` from the flag, and
+`syncTimedOfferCopy()` in `site.js` removes the message at runtime so
+pages built before the change are also right. **Turn it back on after
+Nov 30** if it is wanted as a standing offer: in Shopify first, then
+restore the object. Nothing does it automatically.
+
+**The free-shipping threshold follows the public tier.** Shopify
+evaluates `TOTAL_PRICE` for the free-shipping rate *after* discounts.
+`BFCM_WINDOW.FREE_THRESHOLD` is **55.56** ($50 / 0.90) — it was 62.50,
+correct only while the automatic everyone got was 20%. A member using
+ASIORLIST really does need $62.50, but the site quotes the public
+figure because that is the one true for anyone without a code; the
+cart's own bar reads Shopify's live totals, so a member sees the
+truth there. `START` is 1:30 PM CST, with the first tier, not 2:00.
+
+**Still active and fine:** ASIORTEN 10%, two SIGNUP batches at 5%
+(1,800 codes), two AFFILIATE batches at 5%, and the OCU/ReConvert app
+discounts. None can stack onto the Black Friday tiers, because ours
+are set not to combine and combining requires both sides to allow it,
+and all are worth less than 20% so a holder will use ASIORLIST
+instead. ASIORTEN is back in the PDP trustline now that no automatic
+outranks it, and `BFCM_WINDOW` hides it again during the sale — where
+it is worth exactly nothing over the 10% public tier.
+
+**Audience:** `BFCM 2026 - Master Send Audience` in Klaviyo, 285
+members, defined as can-receive-email OR can-receive-SMS, auto
+updating. `BFCM 2026 VIP Early Access` (`SFuK88`) is still empty —
+nothing on the site sends to it.
 
 ## The gate A/B
 

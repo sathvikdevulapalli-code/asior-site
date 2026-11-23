@@ -131,13 +131,32 @@ window.ASIOR_SHIPPING = {
   // words "free shipping" anywhere.
   FREE_THRESHOLD: 50,
 
-  // During the scheduled 20% automatic BFCM sale, Shopify evaluates
-  // TOTAL_PRICE after discounts. $62.50 before the sale discount leaves
-  // $50.00 for the live free-shipping rule.
+  // Shopify evaluates TOTAL_PRICE for the free-shipping rate AFTER
+  // discounts, so during the sale the storefront has to quote a
+  // higher pre-discount number for $50 to survive to checkout.
+  //
+  // The figure changed on 2026-11-23 with the discount rebuild. It
+  // was 62.50, which is $50 / 0.80 -- correct while the automatic
+  // everyone got was 20%. That discount was deleted; the public
+  // tier is 10% now, so the number every visitor needs is
+  // $50 / 0.90 = $55.56.
+  //
+  // A LIST MEMBER using ASIORLIST gets 20% and so really does need
+  // $62.50. The site quotes the public figure, because that is the
+  // one true for anybody who has not entered a code, and quoting
+  // the higher number would tell most shoppers they need $7 more
+  // than they do. The cart's own free-shipping bar reads Shopify's
+  // live cart totals rather than this constant, so a member sees
+  // the truth there regardless.
+  //
+  // START is the moment the first tier opens -- 1:30 PM CST, when
+  // ASIORLIST becomes usable -- not 2:00, because a member
+  // discounting at 1:45 is already in the window where this
+  // adjustment matters.
   BFCM_WINDOW: {
-    START: '2026-11-27T14:00:00-06:00',
+    START: '2026-11-27T13:30:00-06:00',
     END: '2026-11-30T23:59:00-06:00',
-    FREE_THRESHOLD: 62.50,
+    FREE_THRESHOLD: 55.56,
   },
 
   // Fulfilment time — how long before it ships. NOT delivery time.
@@ -344,9 +363,26 @@ window.ASIOR_CARD_FOCUS = {
    on the site disappears.
    =================================================================== */
 window.ASIOR_OFFERS = {
-  MULTI_BUY: {
-    MIN_QTY: 2,
-    PERCENT: 15,
-    VERIFIED: { by: 'created and read back in Shopify Admin', on: '2026-10-26' },
-  },
+  /* NULL since 2026-11-23: "Any 2 pieces 15% off" was DEACTIVATED in
+     Shopify by Ayush for the Black Friday window, and read back as
+     gone on the same day.
+
+     The reason is worth keeping, because it is a Shopify behaviour
+     that will catch the next person: when two AUTOMATIC discounts
+     both apply and neither combines, Shopify gives the customer the
+     BETTER one. So any two-item public cart would silently have
+     taken 15% instead of the 10% public tier, and the 20% list code
+     would have been worth only 5 points more than what anyone off
+     the street gets -- which would have made the whole list offer
+     pointless.
+
+     Nulling it here is not cosmetic. The site advertised it on the
+     product page under Add to bag and in the cart drawer, so
+     leaving this filled would have the storefront promising a
+     discount Shopify will no longer apply.
+
+     TURN IT BACK ON AFTER NOV 30 if it is wanted as a standing
+     offer -- in Shopify first, then restore this object. Nothing
+     does it automatically. */
+  MULTI_BUY: null,
 };
