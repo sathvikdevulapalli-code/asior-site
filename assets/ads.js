@@ -197,11 +197,41 @@
       identify(info.email, info.phone);
       send('SMSOptIn', null, { content_name: info.source || 'signup' }, true);
     },
+    /* InitiateCheckout, from every local exit into Shopify's checkout:
+       the cart page, the cart drawer, product-page Buy it now and the
+       lanyard's Buy.
+
+       ONE PER CHECKOUT CART PER SESSION. Keyed on the Storefront cart
+       id, so a shopper who presses Checkout, comes back and presses it
+       again is still one checkout start, while a new Buy-now cart (a
+       new id) is a new one. The eventID is fixed per cart, so even a
+       second send that slipped past the guard would be deduplicated by
+       Meta. Without an id it is once per page.
+
+       Returns a promise that settles within 150ms, so a caller about to
+       leave the page can give the pixel request a moment to go out.
+       Callers race it against their own redirect; it never rejects and
+       never holds checkout longer than that. */
     beginCheckout: function (cart) {
-      send('InitiateCheckout', 'InitiateCheckout', {
-        value: cart && cart.value, currency: (cart && cart.currency) || 'USD',
-        num_items: cart && cart.quantity,
-      });
+      cart = cart || {};
+      var key = 'asior_ic_' + (cart.id || location.pathname + ':' + Date.now());
+      try {
+        if (cart.id && window.sessionStorage.getItem(key)) return Promise.resolve(false);
+        if (cart.id) window.sessionStorage.setItem(key, '1');
+      } catch (err) { /* storage refused: Meta still dedupes on the fixed eventID */ }
+      if (!allowed()) return Promise.resolve(false);
+      start();
+      var id = cart.id ? 'asior.InitiateCheckout.' + String(cart.id).split('/').pop().split('?')[0] : eid('InitiateCheckout');
+      var props = {
+        value: cart.value, currency: cart.currency || 'USD',
+        num_items: cart.quantity,
+      };
+      if (cart.contentIds && cart.contentIds.length) {
+        props.content_ids = cart.contentIds; props.content_type = 'product';
+      }
+      try { if (window.fbq && cfg.META_PIXEL_ID) window.fbq('track', 'InitiateCheckout', props, { eventID: id }); } catch (err) {}
+      try { if (window.ttq && cfg.TIKTOK_PIXEL_ID) window.ttq.track('InitiateCheckout', props, { event_id: id }); } catch (err) {}
+      return new Promise(function (res) { setTimeout(function () { res(true); }, 150); });
     },
   };
 

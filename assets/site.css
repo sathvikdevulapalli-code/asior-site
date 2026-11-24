@@ -3508,6 +3508,12 @@ body.drop-open {
 }
 /* Optional advertising choice; both actions have the same visual weight. */
 .ad-consent { position:fixed; z-index:11000; bottom:16px; left:16px; width:min(360px,calc(100vw - 32px)); padding:14px; background:var(--surface,#161618); color:var(--ink,#E8E8EA); border:1px solid var(--field-line,#6C6C73); box-sizing:border-box; }
+/* The notice sits at z 11000, above the cart drawer, and on a phone it
+   landed squarely on the drawer's Checkout button: a first-time shopper
+   could not tap Checkout until they dismissed it (found 2026-11-24).
+   While the drawer is open the notice steps aside; it comes back when
+   the drawer closes, and the footer's privacy-choices link is unaffected. */
+html.cart-drawer-locked .ad-consent { display: none; }
 .ad-consent[hidden] { display:none; }
 .ad-consent p { margin:0 0 12px; }
 .ad-consent-copy { font-size:13px; line-height:1.6; }

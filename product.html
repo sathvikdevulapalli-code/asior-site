@@ -1053,6 +1053,31 @@
   }
 
   .pd-measure-table td { color: var(--ink); font-weight: 300; }
+
+  /* Two-unit chart. The scroll box is the safety net: if a future chart
+     has more columns than a phone can hold, it scrolls sideways inside
+     its own box rather than widening the page. */
+  .pd-measure-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .pd-measure-scroll:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+  .pd-measure-table--two th,
+  .pd-measure-table--two td { vertical-align: top; padding-right: 8px; }
+  .pd-measure-table--two td:last-child,
+  .pd-measure-table--two th:last-child { padding-right: 0; }
+  .pd-measure-table .pd-u1,
+  .pd-measure-table .pd-u2 { display: block; white-space: nowrap; }
+  .pd-measure-table .pd-u2 {
+    margin-top: 2px;
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .pd-measure-table thead .pd-u2 { font-size: 9px; letter-spacing: 0.06em; }
   .pd-measure-table tbody tr:last-child th,
   .pd-measure-table tbody tr:last-child td { border-bottom: none; }
 
@@ -1850,11 +1875,12 @@
       ? Math.round(v * 2.54 * 10) / 10
       : Math.round((v / 2.54) * 10) / 10;
     return `
-      <table class="pd-measure-table">
+      <div class="pd-measure-scroll" role="region" aria-label="Size chart" tabindex="0">
+      <table class="pd-measure-table pd-measure-table--two">
         <thead>
           <tr>
             <th scope="col">Size</th>
-            ${chart.columns.map(c => `<th scope="col">${A.escapeHtml(c)} (${chart.unit} / ${other})</th>`).join('')}
+            ${chart.columns.map(c => `<th scope="col">${A.escapeHtml(c)}<span class="pd-u2">${chart.unit} / ${other}</span></th>`).join('')}
           </tr>
         </thead>
         <tbody>
@@ -1867,11 +1893,15 @@
                 const parts = String(v).split(/\s*[-\u2013]\s*/);
                 const nums = parts.map(Number);
                 if (v === null || v === '' || !nums.every(isFinite)) return '<td>\u2014</td>';
-                return `<td>${parts.join('\u2013')} / ${nums.map(conv).join('\u2013')}</td>`;
+                /* Inches on top, centimetres under: two short lines that
+                   never break mid-value, instead of one long one that
+                   wrapped "28-30 / 71.1-76.2" into three rows on a phone. */
+                return `<td><span class="pd-u1">${parts.join('\u2013')}</span><span class="pd-u2">${nums.map(conv).join('\u2013')}</span></td>`;
               }).join('')}
             </tr>`).join('')}
         </tbody>
-      </table>`;
+      </table>
+      </div>`;
   }
 
   function sizeGuideInner(product) {
@@ -2835,6 +2865,20 @@
         // is untouched, so anything added above survives.
         const updated = await A.createBuyNowCart(v.variantId, qty);
         trackPurchaseIntent(v);
+        /* Meta InitiateCheckout, deduped on this cart's id. Raced against
+           a hard 200ms cap and fully guarded: tracking never blocks or
+           breaks the redirect, which is unchanged. */
+        try {
+          if (window.AsiorAds && window.AsiorAds.beginCheckout) {
+            await Promise.race([
+              window.AsiorAds.beginCheckout({
+                id: updated.id, value: v.price * qty, currency: v.currency,
+                quantity: qty, contentIds: [product.handle],
+              }),
+              new Promise(r => setTimeout(r, 200)),
+            ]);
+          }
+        } catch (e) { /* never hold checkout over a count */ }
         location.href = updated.checkoutUrl;
       } catch (err) {
         confirmEl.textContent = "Couldn't start checkout. Try again.";

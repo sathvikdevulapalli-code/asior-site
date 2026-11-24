@@ -841,6 +841,19 @@
       // and no href is rewritten.
       if (e.target.closest('.cart-drawer-checkout')) {
         trackCart('Begin Checkout', { source: 'cart_drawer' });
+        /* Meta InitiateCheckout. Fire-and-forget: the link navigates on
+           its own and is never held or rewritten. */
+        if (window.AsiorAds && window.AsiorAds.beginCheckout && drawerCart) {
+          try {
+            var amt = drawerCart.cost && drawerCart.cost.subtotalAmount;
+            window.AsiorAds.beginCheckout({
+              id: drawerCart.id,
+              value: amt ? parseFloat(amt.amount) : undefined,
+              currency: amt ? amt.currencyCode : 'USD',
+              quantity: drawerCart.totalQuantity,
+            });
+          } catch (err) { /* never block the link */ }
+        }
         return;
       }
 
@@ -1030,7 +1043,9 @@
     }).catch(function () { /* no data, no suggestions */ });
   }
 
+  var drawerCart = null;
   function renderDrawer(cart) {
+    drawerCart = cart;
     var body = drawerEl.querySelector('[data-cart-body]');
     var foot = drawerEl.querySelector('[data-cart-foot]');
     var lines = (cart && cart.lines && cart.lines.edges) || [];

@@ -876,6 +876,18 @@
         // survives untouched.
         const updated = await A.createBuyNowCart(v.variantId, qty);
         trackPurchaseIntent(v);
+        /* Meta InitiateCheckout; same guard and 200ms cap as the PDP. */
+        try {
+          if (window.AsiorAds && window.AsiorAds.beginCheckout) {
+            await Promise.race([
+              window.AsiorAds.beginCheckout({
+                id: updated.id, value: v.price * qty, currency: v.currency,
+                quantity: qty, contentIds: [HANDLE],
+              }),
+              new Promise(r => setTimeout(r, 200)),
+            ]);
+          }
+        } catch (e) { /* never hold checkout over a count */ }
         location.href = updated.checkoutUrl;
       } catch (err) {
         msg.textContent = "Couldn't start checkout. Try again in a moment.";
