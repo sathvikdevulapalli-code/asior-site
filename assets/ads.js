@@ -44,6 +44,41 @@
 
   function allowed() { return asiorAdsAllowed(); }
 
+  /* EVENT IDS (2026-11-24). Every browser event carries an eventID so
+     Meta can deduplicate it against the same event sent server-side
+     (Conversions API, Shopify's app). Before this, nothing here had
+     one, so any CAPI coverage added later would have double-counted.
+     Unique per send; PageView's is per document. */
+  function eid(name) {
+    var r = Math.random().toString(36).slice(2, 10);
+    return 'asior.' + name + '.' + Date.now().toString(36) + '.' + r;
+  }
+
+  /* ADVANCED MATCHING. Meta's event match quality read 0.0/10: every
+     browser event went out with no customer identifier at all. The one
+     identifier this site legitimately holds is an email the visitor
+     typed into one of its own signup forms (Klaviyo popup, gate,
+     footer), kept in this browser only. fbevents.js normalises and
+     SHA-256 hashes it before sending. Never read from anywhere else,
+     never sent when GPC or the opt-out is on (start() checks). */
+  var KNOWN_EMAIL_KEYS = ['asior_known_email', 'asior_gate_email'];
+  function knownEmail() {
+    try {
+      for (var i = 0; i < KNOWN_EMAIL_KEYS.length; i++) {
+        var v = window.localStorage.getItem(KNOWN_EMAIL_KEYS[i]);
+        if (v && /@/.test(v)) return String(v).trim().toLowerCase();
+      }
+    } catch (err) {}
+    return '';
+  }
+  function matchData(extra) {
+    var d = {};
+    var em = String((extra && extra.em) || knownEmail()).trim().toLowerCase();
+    if (em) d.em = em;
+    if (extra && extra.ph) d.ph = String(extra.ph).replace(/[^0-9]/g, '');
+    return d;
+  }
+
   function start() {
     if (started || !allowed()) return;
     started = true;
@@ -64,9 +99,9 @@
         t = b.createElement(e); t.async = true; t.src = v;
         s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
       })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-      window.fbq('init', String(cfg.META_PIXEL_ID));
+      window.fbq('init', String(cfg.META_PIXEL_ID), matchData());
       window.fbq('set', 'autoConfig', false, String(cfg.META_PIXEL_ID));
-      window.fbq('track', 'PageView');
+      window.fbq('track', 'PageView', {}, { eventID: eid('PageView') });
     } catch (err) { /* never block the page */ }
   }
 
@@ -99,11 +134,29 @@
 
   /* One send, fanned out to whichever pixels are configured. Event
      names differ between the two platforms, so both are passed in. */
-  function send(metaEvent, tiktokEvent, props) {
+  function send(metaEvent, tiktokEvent, props, custom) {
     if (!allowed()) return;
     start();
-    try { if (window.fbq && cfg.META_PIXEL_ID) window.fbq('track', metaEvent, props || {}); } catch (err) {}
-    try { if (window.ttq && cfg.TIKTOK_PIXEL_ID) window.ttq.track(tiktokEvent, props || {}); } catch (err) {}
+    var id = eid(metaEvent);
+    try {
+      if (window.fbq && cfg.META_PIXEL_ID) {
+        window.fbq(custom ? 'trackCustom' : 'track', metaEvent, props || {}, { eventID: id });
+      }
+    } catch (err) {}
+    try { if (tiktokEvent && window.ttq && cfg.TIKTOK_PIXEL_ID) window.ttq.track(tiktokEvent, props || {}, { event_id: id }); } catch (err) {}
+    return id;
+  }
+
+  /* Identify after a real signup: remember the address in this browser
+     and re-init with it so every later event on this page and the next
+     ones carries it. */
+  function identify(email, phone) {
+    if (email) {
+      try { window.localStorage.setItem('asior_known_email', String(email).trim().toLowerCase()); } catch (err) {}
+    }
+    if (!allowed()) return;
+    start();
+    try { if (window.fbq && cfg.META_PIXEL_ID) window.fbq('init', String(cfg.META_PIXEL_ID), matchData({ em: email, ph: phone })); } catch (err) {}
   }
 
   /* The public surface. Pages call these the same way they already
@@ -128,6 +181,22 @@
         quantity: item.quantity || 1,
       });
     },
+    /* A signup that actually happened (called on success, never on
+       click). One Lead per address per browser session, whichever form
+       it came through, so the popup's two steps cannot count twice. */
+    lead: function (info) {
+      info = info || {};
+      if (info.email) identify(info.email, info.phone);
+      var key = 'asior_lead_' + (info.email || '').toLowerCase();
+      try { if (window.sessionStorage.getItem(key)) return; window.sessionStorage.setItem(key, '1'); }
+      catch (err) { /* cannot dedupe: still send once for this page */ }
+      send('Lead', 'SubmitForm', { content_name: info.source || 'signup' });
+    },
+    smsOptIn: function (info) {
+      info = info || {};
+      identify(info.email, info.phone);
+      send('SMSOptIn', null, { content_name: info.source || 'signup' }, true);
+    },
     beginCheckout: function (cart) {
       send('InitiateCheckout', 'InitiateCheckout', {
         value: cart && cart.value, currency: (cart && cart.currency) || 'USD',
@@ -135,6 +204,30 @@
       });
     },
   };
+
+  /* KLAVIYO'S POPUP (UJE57B) IS THE SIGNUP, so its outcomes are read
+     from Klaviyo's own documented `klaviyoForms` window event rather
+     than by scraping the form. Klaviyo already counts the form's views
+     and submits in its own form analytics; this only forwards the two
+     conversions an ad platform needs. `submit` carries the email,
+     `stepSubmit` the optional phone. */
+  window.addEventListener('klaviyoForms', function (e) {
+    try {
+      var d = (e && e.detail) || {};
+      var meta = d.metaData || {};
+      var email = meta.$email || meta.email || '';
+      var phone = meta.$phone_number || meta.phone_number || '';
+      var source = 'klaviyo_form_' + (d.formId || 'unknown');
+      if ((d.type === 'submit' || d.type === 'stepSubmit') && email) {
+        window.AsiorAds.lead({ email: email, phone: phone, source: source });
+      }
+      if (d.type === 'stepSubmit' && phone) {
+        var k = 'asior_sms_' + phone;
+        try { if (window.sessionStorage.getItem(k)) return; window.sessionStorage.setItem(k, '1'); } catch (x) {}
+        window.AsiorAds.smsOptIn({ email: email, phone: phone, source: source });
+      }
+    } catch (err) { /* never break a signup over a count */ }
+  });
 
   // A small informational notice does not gate tracking. An opt-out is
   // persisted locally, revokes the current SDK session, and reloads.

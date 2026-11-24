@@ -636,6 +636,9 @@
              number. */
           var where = form.closest('[data-sms-location]');
           await klaviyoSubscribeSms(phone, where ? where.getAttribute('data-sms-location') : null);
+          if (window.AsiorAds && window.AsiorAds.smsOptIn) {
+            try { window.AsiorAds.smsOptIn({ phone: phone, source: 'site_sms_form' }); } catch (e) {}
+          }
           // Double opt-in: accepted, not subscribed. Saying "you're in"
           // here would be a lie until they reply.
           form.classList.add('is-done');
@@ -712,6 +715,9 @@
           klaviyoIdentify(email, {});
           await klaviyoSubscribeToList(listId, { email: email });
           form.classList.add('is-done');
+          if (window.AsiorAds && window.AsiorAds.lead) {
+            try { window.AsiorAds.lead({ email: email, source: 'site_email_form' }); } catch (e) {}
+          }
           /* Both lists this form can reach are double opt-in except the
              general one, so the wording has to be honest about what
              happens next rather than implying it is finished. */

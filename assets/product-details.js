@@ -113,7 +113,12 @@ window.ASIOR_PRODUCT_DETAILS = {
 
   'jaguar-sweats': {
     garment: 'bottom',
-    fabric: null,
+    /* From the owner's "Size Charts.pdf" (2026-11-24), inches, verbatim.
+       Same shape as Shopify's custom.size_chart metafield, which still
+       wins over this whenever it is filled in. */
+    sizeChart: { unit: 'in', columns: ['Front rise', 'Waist', 'Inseam', 'Leg opening'],
+      rows: { S: [11.5, '28-30', 28, 11], M: [11.75, '30-32', 29, 11], L: [12, '32-34', 30, 11] } },
+    fabric: '70% cotton, 400 GSM pre-shrunk fleece', /* Size Charts.pdf; agrees with Shopify's "Cotton Blend Heavyweight Fleece" */
     fit: null,
     model: { height: null, wearing: null },
     measurements: {
@@ -167,6 +172,11 @@ window.ASIOR_PRODUCT_DETAILS = {
 
   'scripture-polo': {
     garment: 'polo',
+    /* From the owner's "Size Charts.pdf" (2026-11-24), inches, verbatim.
+       Same shape as Shopify's custom.size_chart metafield, which still
+       wins over this whenever it is filled in. */
+    sizeChart: { unit: 'in', columns: ['Shoulder', 'Chest', 'Body length', 'Sleeve length'],
+      rows: { S: [16.5, 19.7, 25.2, 9.4], M: [17.3, 20.5, 25.6, 9.8], L: [18.1, 21.3, '26.0', 10.2] } },
     fabric: null,
     fit: null,
     modelInfo: "Models: 5'2\" & 5'7\" wear S · 6'0\" wears M · 6'5\" wears L",
@@ -181,7 +191,12 @@ window.ASIOR_PRODUCT_DETAILS = {
 
   'jag-shorts': {
     garment: 'shorts',
-    fabric: null,
+    /* From the owner's "Size Charts.pdf" (2026-11-24), inches, verbatim.
+       Same shape as Shopify's custom.size_chart metafield, which still
+       wins over this whenever it is filled in. */
+    sizeChart: { unit: 'in', columns: ['Waist', 'Front rise', 'Inseam', 'Leg opening'],
+      rows: { S: ['28-30', 13, 10, 13.5], M: ['32-34', 14, 10.5, 14.5], L: ['36-38', 15, 11, 15.5] } },
+    fabric: '70% cotton, 400 GSM pre-shrunk fleece', /* Size Charts.pdf; agrees with Shopify's "Cotton Blend Heavyweight Fleece" */
     fit: null,
     modelInfo: "Models: 5'2\" & 5'7\" wear S",
     model: { height: null, wearing: null },
@@ -194,6 +209,11 @@ window.ASIOR_PRODUCT_DETAILS = {
 
   'holes-tee': {
     garment: 'top',
+    /* From the owner's "Size Charts.pdf" (2026-11-24), inches, verbatim.
+       Same shape as Shopify's custom.size_chart metafield, which still
+       wins over this whenever it is filled in. */
+    sizeChart: { unit: 'in', columns: ['Chest length', 'Chest width', 'Sleeve (bottom seam)'],
+      rows: { S: [27, 21, 5], M: [28, 22, 6], L: [29, 23, 7] } },
     fabric: null,
     fit: null,
     model: { height: null, wearing: null },

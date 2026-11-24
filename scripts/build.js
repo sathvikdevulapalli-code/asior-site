@@ -1568,6 +1568,12 @@ const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.c
        on the Vercel project or this script 404s harmlessly and counts
        nothing. See OWNER-ACTIONS.md. -->
   <script defer src="/_vercel/insights/script.js"></script>
+  <!-- Vercel Speed Insights (real-user Core Web Vitals). The plain-HTML
+       form of @vercel/speed-insights: this site has no framework and no
+       bundler, so the /next import does not apply. Needs Speed Insights
+       enabled on the Vercel project, or it 404s harmlessly. -->
+  <script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments);};</script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
   <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
   <script defer src="/assets/shopify-analytics.js"></script>
   <!-- Ad pixels. Both files are inert until assets/ads-config.js is
@@ -1610,6 +1616,8 @@ const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.c
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
     if(localStorage.getItem('asior_gate_opened_at'))return;
+    if(location.pathname!=='/')return; /* homepage only: GATE.ONLY_ON */
+    if(localStorage.getItem('asior_gate_dismissed'))return;
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is
