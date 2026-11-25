@@ -249,8 +249,6 @@
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
     if(localStorage.getItem('asior_gate_opened_at'))return;
-    if(location.pathname!=='/')return; /* homepage only: GATE.ONLY_ON */
-    if(localStorage.getItem('asior_gate_dismissed'))return;
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is

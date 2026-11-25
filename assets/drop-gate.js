@@ -155,7 +155,14 @@
        next page after being closed is a nag, not a dismissible
        screen. They stay separate keys so a dismissal is never
        mistaken for a signup. */
-    var at = Number(lsGet(LS_OPEN) || 0) || Number(lsGet(LS_DISMISSED) || 0);
+    /* A dismissal only counts while the gate HAS a way out. Browsers
+       that closed it during the dismissible period (2026-11-21) still
+       carry asior_gate_dismissed, and with DISMISSIBLE false they were
+       walking straight into the open shop -- part of the "half of
+       visitors skip the lock screen" report on 2026-11-24. Only a real
+       signup lets a browser past the wall now. */
+    var at = Number(lsGet(LS_OPEN) || 0) ||
+      (CFG.DISMISSIBLE === false ? 0 : Number(lsGet(LS_DISMISSED) || 0));
     if (!at) return false;
     var days = typeof CFG.REMEMBER_DAYS === 'number' ? CFG.REMEMBER_DAYS : 365;
     if (Date.now() - at > days * 864e5) return false;
@@ -178,29 +185,7 @@
     return false;
   }
 
-  /* ---- 2026-11-24: HOMEPAGE ONLY, AND NO FORM ---------------------
-
-     The owner's audit found visitors split between "a lockdown page"
-     and the open shop: this gate walled every fresh browser on every
-     URL, while browsers that had signed up or dismissed it earlier
-     went straight through, and drop-access.js's overlay split the rest
-     50/50 on ROLLOUT. Klaviyo's live popup (UJE57B) then opened on top
-     of the gate's own form -- two signups on one screen.
-
-     ONLY_ON keeps the film on the homepage, where paid traffic lands,
-     and a product, cart or policy link is never put behind it. FORM
-     false takes the gate's own signup off: the one signup is Klaviyo's
-     UJE57B (same TFEDaD list), and this screen's button enters the
-     shop. Empty ONLY_ON and FORM true restore the old behaviour. */
-  function onlyOnMiss() {
-    var list = CFG.ONLY_ON;
-    if (!list || !list.length) return false;
-    var path = (location.pathname || '/').toLowerCase();
-    return list.indexOf(path) === -1;
-  }
-  var FORM = CFG.FORM !== false;
-
-  if (onlyOnMiss() || alwaysOpen() || opened()) { reveal(); return; }
+  if (alwaysOpen() || opened()) { reveal(); return; }
 
   // -----------------------------------------------------------------
   // The gate itself
@@ -338,7 +323,7 @@
           /* One line, and only one. What happens when the clock hits
              zero, in the fewest words that are still true. */
           (v('LEDE')
-            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(FORM ? memberLine(v('LEDE')) : (CFG.LEDE_NO_FORM || v('LEDE'))) + '</p>'
+            ? '<p class="gate-blurb g-rise" style="--in:380ms">' + esc(memberLine(v('LEDE'))) + '</p>'
             : '') +
 
           /* THE SIGNUP. Email and a button, on one row, and nothing
@@ -351,12 +336,6 @@
              beside the field it is about, which is where prior express
              written consent has to be. Folding the field folds the
              paragraph with it, so neither appears without the other. */
-          (!FORM
-            ? '<div class="gate-form g-rise" style="--in:460ms">' +
-                '<button type="button" id="gateEnter">' + esc(CFG.ENTER_LABEL || 'Shop the collection') + '</button>' +
-              '</div>'
-            : '') +
-          (!FORM ? '' :
           '<form class="gate-form g-rise" id="gateForm" novalidate style="--in:460ms">' +
             '<div class="gate-row">' +
               '<label class="sr-only" for="gateEmail">Email address</label>' +
@@ -395,7 +374,7 @@
                it looked like something that happens after you
                submit. One position, always. */
             '<button type="submit" id="gateBtn">' + esc(submitLabel()) + '</button>' +
-          '</form>') +
+          '</form>' +
 
           /* The personalised state. Shown instead of the form to
              somebody we already hold an address for, so a returning
@@ -420,14 +399,13 @@
              is separately required. Driven by LIST_DOUBLE_OPT_IN, so
              pointing LIST_ID at a double opt-in list puts the
              confirmation clause back in the same change. */
-          (!FORM ? '' :
           '<p class="gate-fineprint g-rise" style="--in:600ms">' +
             (LIST_IS_DOUBLE_OPT_IN
               ? 'Confirm the email we send to join. '
               : '') +
             'Marketing emails, unsubscribe anytime. ' +
             '<a href="/privacy-policy.html">Privacy</a>' +
-          '</p>') +
+          '</p>' +
 
           /* THE WAY OUT. A real button, not a link styled as one, so
              it is in the tab order and announced as the control it
@@ -438,7 +416,7 @@
              It says what happens next rather than "no thanks": a
              decline button makes the reader weigh a refusal, a
              destination just offers the other door. */
-          (DISMISSIBLE && FORM
+          (DISMISSIBLE
             ? '<button type="button" class="gate-skip" id="gateSkip">' +
                 esc(CFG.DISMISS_LABEL || 'Browse the store') +
               '</button>'
@@ -495,10 +473,7 @@
     document.documentElement.classList.add('asior-gated');
     reveal();
 
-    var form = root.querySelector('#gateForm');
-    if (form) form.addEventListener('submit', submit);
-    var enter = root.querySelector('#gateEnter');
-    if (enter) enter.addEventListener('click', dismiss);
+    root.querySelector('#gateForm').addEventListener('submit', submit);
 
     var skip = root.querySelector('#gateSkip');
     if (skip) skip.addEventListener('click', dismiss);
@@ -510,7 +485,6 @@
     var mark = root.querySelector('#gateMark');
     if (mark) {
       mark.addEventListener('click', function () {
-        if (!FORM) { dismiss(); return; }
         var f = root.querySelector('#gateEmail');
         if (f) { try { f.focus(); } catch (e) {} }
       });

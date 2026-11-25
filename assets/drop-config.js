@@ -63,11 +63,7 @@ window.ASIOR_DROP = {
      TRUE since 2026-11-13, paired with UxDQrj being unpublished in
      Klaviyo -- see THE POPUP THAT WAS IN ITS WAY above. Read that
      before changing either one. */
-  /* FALSE since 2026-11-24. With ROLLOUT 0.5 this opened an overlay
-     on exactly half of eligible visitors -- the "half of visitors
-     reach a lockdown page" report -- and it competed with Klaviyo's
-     live BFCM popup (UJE57B), which is now the one signup. */
-  AUTO: false,
+  AUTO: true,
 
   /* Share of ELIGIBLE visitors who get the automatic experience, as a
      fraction. The rest are the control group and see the site exactly
@@ -164,31 +160,8 @@ window.ASIOR_DROP = {
        OPEN_AT below, so it is a wall until the sale and not a
        permanent one, and the policy pages in ALWAYS_OPEN are never
        gated. */
-    /* TRUE since 2026-11-24, at the owner's direction: keep the
-       moving-background homepage, but it is a front door, not a wall.
-       See ONLY_ON and FORM below. */
-    DISMISSIBLE: true,
-
-    /* The gate stands only on these exact paths. Paid ads land on the
-       canonical homepage; every product, cart, account and policy URL
-       goes straight to the page. Empty = every page (the old wall). */
-    ONLY_ON: ['/'],
-
-    /* No signup form on the gate. Klaviyo's live popup UJE57B
-       (homepage, 6s, unrecognised visitors, email -> TFEDaD, optional
-       SMS, reveals ASIORLIST) is the one signup path, and it renders
-       above this screen. Two forms on one screen was the second half
-       of the bug. True restores the gate's own form. */
-    FORM: false,
-    ENTER_LABEL: 'Shop the collection',
-    /* Read back from Shopify 2026-11-24:
-         "Black Friday 2026 - 10% Public" automatic, 10%,
-           2026-11-27T20:00Z -> 2026-12-01T05:59Z
-         ASIORLIST code, 20%, segment "Asior Email + SMS Subscribers",
-           once per customer, 2026-11-27T19:30Z -> 2026-12-01T05:59Z
-       Neither combines: the code REPLACES the 10%, it does not add. */
-    LEDE_NO_FORM: 'black friday: 10% off sitewide, nov 27 2pm – nov 30 11:59pm CST. on the list? 20% instead, from 1:30pm CST.',
-    DISMISS_LABEL: 'Shop the collection',
+    DISMISSIBLE: false,
+    DISMISS_LABEL: 'Browse the store',
 
     /* ---- THE WALL COMES DOWN BY ITSELF ------------------------
 
@@ -533,8 +506,7 @@ window.ASIOR_DROP = {
           /* Copy only, and no SUBMIT here: the button's label is
              computed from MEMBER_OFFER so both variants say the same
              true figure and the test is the lede's framing alone. */
-          /* Retired 2026-11-24: the old 20%/+10% framing describes
-             discounts that no longer exist (ASIOR30 was deleted). */
+          LEDE: '20% off sitewide. when you sign up, extra 10%.',
         },
       },
     },

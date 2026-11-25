@@ -556,23 +556,7 @@ configuration of it that puts a wall in front of the catalogue, and
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
 
-**2026-11-24: the gate is a front door on the homepage, not a wall.**
-The owner's funnel audit reported roughly half of visitors hitting "a
-lockdown page". Root cause, from the code: the gate walled every
-first-time browser on every URL, while browsers that had signed up or
-dismissed it earlier (localStorage) went straight through, and
-`drop-access.js`'s overlay auto-opened for exactly 50% (`ROLLOUT 0.5`).
-Klaviyo's live popup `UJE57B` then opened on top of the gate's own
-form, so a new visitor saw two signups. At the owner's direction:
-`GATE.ONLY_ON: ['/']` (the film shows only on the homepage, where ads
-land; product, cart and policy URLs are never gated, and the head
-bootstrap checks the path too), `GATE.FORM: false` (no gate form: its
-button, "Shop the collection", enters the shop, and Klaviyo `UJE57B`
-is the one signup), `DISMISSIBLE: true`, and the overlay's `AUTO:
-false`. The wall-era notes below are history. `FORM: true`, an empty
-`ONLY_ON` and `DISMISSIBLE: false` restore the old wall.
-
-**(History) The gate is a wall again, until the drop.** Three calls in nine
+**The gate is a wall again, until the drop.** Three calls in nine
 days — wall on 11-14, dismissible on 11-21, wall again on 11-22 —
 and it is the founder's to make. `DISMISSIBLE: false`: no close
 control, no Escape, no backdrop click, and the signup is the only
