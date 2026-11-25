@@ -86,6 +86,13 @@
     try {
       document.documentElement.classList.remove('asior-gate-pending');
     } catch (e) { /* nothing left to try */ }
+    /* Every path that reveals the shop WITHOUT the lock screen on it
+       loads klaviyo.js. The one path that shows the lock screen sets
+       __asiorGateUp first, and then klaviyo.js waits for admit(). */
+    if (!window.__asiorGateUp) loadKlaviyo();
+  }
+  function loadKlaviyo() {
+    try { if (window.asiorLoadKlaviyo) window.asiorLoadKlaviyo(); } catch (e) { /* never block */ }
   }
 
   if (!CFG || CFG.ON !== true) { reveal(); return; }
@@ -458,7 +465,12 @@
            where it belongs anyway -- beside the consent it governs
            rather than in a row of social links. Do not put the foot
            back to restore it. */
-      '</main>' +
+      /* The expression ENDS here. It used to end in "+", which ran it
+         into document.body.appendChild(root) below and glued the text
+         "[object HTMLDivElement]" onto the end of the lock screen --
+         hidden behind the film, but read out by screen readers (found
+         2026-11-25). */
+      '</main>';
 
       /* ---- the signup sheet ------------------------------------
 
@@ -469,6 +481,7 @@
          clause most brands miss, that consent is not a condition of
          purchase. Entering a number is the consent act; leaving it
          blank subscribes nothing and still opens the gate. */
+    window.__asiorGateUp = true;
     document.body.appendChild(root);
     document.documentElement.classList.add('asior-gated');
     reveal();
@@ -983,6 +996,10 @@
   function admit(email, note, hold) {
     stopClock();
     markOpened(email);
+    /* Let klaviyo.js in now. A signup has already identified them
+       (see submit), so Klaviyo's popup does not ask them again. */
+    window.__asiorGateUp = false;
+    loadKlaviyo();
     say(note || 'you\u2019re in.', 'ok');
     document.documentElement.classList.remove('asior-gated');
     if (!root) return;
@@ -1055,7 +1072,7 @@
     var phone = raw ? e164(raw) : '';
 
     if (SMS_REQUIRED && !raw) {
-      say('a mobile number is needed for the 30% code.', 'err');
+      say('add your mobile number to get in.', 'err');
       try { telEl.focus(); } catch (x) {}
       return;
     }
@@ -1127,10 +1144,22 @@
           }, { email: email });
         } catch (x) { /* best effort */ }
       }
-      if (window.fbq) {
-        try { window.fbq('track', 'Lead', { content_name: 'BF drop early access' }); }
-        catch (x) { /* tracking must never block a signup */ }
+      /* Tell Klaviyo's onsite script who this is (queued in _learnq,
+         replayed when klaviyo.js loads in admit), so its own popup
+         treats them as a known subscriber and does not ask again. */
+      if (A.klaviyoIdentify) {
+        try { A.klaviyoIdentify(email, phone ? { phone: phone } : {}); } catch (x) { /* best effort */ }
       }
+      /* Meta Lead, through the one deduped path in ads.js (eventID,
+         hashed email, once per address per session). Falls back to a
+         bare pixel call only if ads.js is not on the page. */
+      try {
+        if (window.AsiorAds && window.AsiorAds.lead) {
+          window.AsiorAds.lead({ email: email, phone: phone, source: 'entry_gate' });
+        } else if (window.fbq) {
+          window.fbq('track', 'Lead', { content_name: 'BF drop early access' });
+        }
+      } catch (x) { /* tracking must never block a signup */ }
       /* "you're in" is true of the SITE and not of the list, and the
          difference matters here.
 
@@ -1169,12 +1198,17 @@
          in Shopify the key goes null and this sentence disappears
          with it rather than naming a dead code. */
       var m = CFG.MEMBER_OFFER || {};
+      /* WHEN the code works is part of the message (2026-11-25): it is
+         scheduled in Shopify, so a member who tried it the moment they
+         got in was told "not valid" at checkout. WINDOW is the code's
+         own schedule in words, and the hold is long enough to read it. */
       var line = (m.PCT && m.CODE)
-        ? 'you\u2019re in \u00b7 ' + m.PCT + '% off with code ' + m.CODE
+        ? 'you\u2019re in \u00b7 ' + m.PCT + '% off with code ' + m.CODE +
+          (m.WINDOW ? ' \u00b7 ' + m.WINDOW : '')
         : 'you\u2019re on the list.';
       if (LIST_IS_DOUBLE_OPT_IN) line = 'check your inbox and confirm to join.';
 
-      admit(email, line, (m.PCT && m.CODE) ? 3200 : (LIST_IS_DOUBLE_OPT_IN ? 2600 : 900));
+      admit(email, line, (m.PCT && m.CODE) ? (m.WINDOW ? 6000 : 3200) : (LIST_IS_DOUBLE_OPT_IN ? 2600 : 900));
     }).catch(function (err) {
       /* See "THE THREE WAYS THIS COULD TAKE THE WHOLE STORE DOWN" at
          the top. They gave a real address and the request genuinely

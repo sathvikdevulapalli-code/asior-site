@@ -2251,8 +2251,15 @@
       && Date.now() <= Date.parse(windowConfig.END));
   }
 
+  /* Past ASIORTEN's Shopify end date. An empty or unparseable value
+     means no end, never "already ended". */
+  function isDiscountCodeExpired() {
+    var ends = Date.parse((window.ASIOR_SHIPPING || {}).ASIORTEN_ENDS || '');
+    return isFinite(ends) && Date.now() >= ends;
+  }
+
   function isDiscountCodeSuppressed() {
-    return isBfcmWindow();
+    return isBfcmWindow() || isDiscountCodeExpired();
   }
 
   function syncTimedOfferCopy() {
@@ -2604,6 +2611,7 @@
     shippingConfig: shippingConfig,
     isBfcmWindow: isBfcmWindow,
     isDiscountCodeSuppressed: isDiscountCodeSuppressed,
+    isDiscountCodeExpired: isDiscountCodeExpired,
     isGeneratedImage: isGeneratedImage,
     compareAtVerified: compareAtVerified,
     leadImage: leadImage,

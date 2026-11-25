@@ -287,7 +287,19 @@
 
 <!-- HEAD:START -->
   <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
-  <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <!-- klaviyo.js, ONE loader, but not while the lock screen is up.
+
+       Klaviyo's live popup UJE57B shows on the homepage 6s after
+       klaviyo.js loads, for any visitor Klaviyo does not recognise.
+       With klaviyo.js loading in the head, it opened on top of the
+       lock screen's own form: two signups on one screen (found
+       2026-11-25). So the lock screen holds the loader back and calls
+       asiorLoadKlaviyo() when the visitor is let in -- after its own
+       signup has identified them, which is what keeps the popup from
+       asking a member a second time. Every page with no lock screen
+       loads it at once, exactly as before. Onsite events queued in
+       _learnq meanwhile are replayed when it arrives. -->
+  <script>(function(){var done=false;window.asiorLoadKlaviyo=function(){if(done)return;done=true;var s=document.createElement('script');s.async=true;s.src='https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB';(document.head||document.documentElement).appendChild(s);};})();</script>
   <!-- A REAL VISITOR COUNT, which nothing else here provides.
 
        Checked 2026-11-14: Shopify reported 50 sessions in 30 days and
@@ -353,9 +365,9 @@
        not run yet, so it cannot: it checks the inlined copy of that
        one boolean below instead. The build writes both from the same
        source, and check-slop fails if they disagree. -->
-  <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
+  <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;var K=function(){try{window.asiorLoadKlaviyo&&window.asiorLoadKlaviyo();}catch(e){}};if(!ON){K();return;}try{
     var d=document.documentElement;
-    if(localStorage.getItem('asior_gate_opened_at'))return;
+    if(localStorage.getItem('asior_gate_opened_at')){K();return;}
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is
@@ -377,8 +389,8 @@
     var p=document.createElement('link');
     p.rel='preload';p.as='image';p.href='/video/gate-poster.jpg';p.fetchPriority='high';
     d.firstChild.appendChild(p);
-    setTimeout(function(){d.classList.remove('asior-gate-pending');},4000);
-  }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}}})();</script>
+    setTimeout(function(){d.classList.remove('asior-gate-pending');if(!window.__asiorGateUp)K();},4000);
+  }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}K();}})();</script>
   <script defer src="/assets/drop-gate.js"></script>
   <!-- HEAD:END -->
 </head>

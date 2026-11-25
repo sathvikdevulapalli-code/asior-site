@@ -62,7 +62,12 @@ or this config file.
 
 ## Discounts
 
-One live code: **ASIORTEN, 10% off, once per customer, no expiry.** It is
+One live code: **ASIORTEN, 10% off, once per customer.** It is **not**
+open-ended: Shopify ends it 2026-12-01T05:59Z (read back 2026-11-24),
+mirrored as `ASIORTEN_ENDS` in `promo-config.js`. Past that instant
+`isDiscountCodeSuppressed()` hides every mention, so the site never
+offers a code checkout refuses; extend it in Shopify and move that one
+constant together. It is
 the only code the site may mention. Any other discount copy is a bug —
 including "5% off", a welcome-signup percentage, or "subscriber
 pricing". None of those exist in Shopify.
@@ -556,6 +561,30 @@ configuration of it that puts a wall in front of the catalogue, and
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
 
+**2026-11-25: the wall stays, one signup at a time.** The founder
+asked for the lock screen exactly as it was (wall, email + phone,
+no close) after a brief homepage-only/no-form version on a branch,
+which was reverted unmerged. Fixed around it:
+- A dismissal (`asior_gate_dismissed`, left by the Nov 21 close
+  button) only counts while `DISMISSIBLE` is true; with it false,
+  only a signup gets past. Those browsers were the "people skip the
+  lock screen" report.
+- **klaviyo.js waits for the lock screen.** One loader,
+  `asiorLoadKlaviyo()` in `HEAD_SHARED`: called at once when no lock
+  screen shows, by `admit()` after a signup, and by the 4s watchdog
+  if the gate never built (`__asiorGateUp`). Klaviyo popup `UJE57B`
+  (homepage, 6s, unrecognised visitors) used to open over the lock
+  screen's form. The gate now `klaviyoIdentify()`s the member before
+  the script loads, so the popup does not ask them again. After the
+  wall lifts at 1:30 PM CT Nov 27, UJE57B is the signup.
+- Overlay `AUTO: false`: for the 50% test bucket it opened a second
+  signup over the shop right after the lock screen signup.
+- Success message carries `MEMBER_OFFER.WINDOW` (when ASIORLIST works,
+  and that it replaces the 10%), held 6s. The missing-phone error no
+  longer says "30%". The gate's markup no longer ends in `+`, which
+  had glued "[object HTMLDivElement]" onto the screen.
+- Gate Lead goes through `AsiorAds.lead` (eventID, hashed email).
+
 **The gate is a wall again, until the drop.** Three calls in nine
 days — wall on 11-14, dismissible on 11-21, wall again on 11-22 —
 and it is the founder's to make. `DISMISSIBLE: false`: no close
@@ -955,7 +984,8 @@ email ask a first-time visitor was asked for the same address three
 ways. On 2026-11-13, at the founder's direction: **`UxDQrj` was
 unpublished** (it duplicates the overlay's job), **`Vtp6MG` was left
 live** (the overlay never asks for a phone number, so it takes nothing
-from SMS capture), and **`AUTO` was set true at `ROLLOUT: 0.5`**.
+from SMS capture), and **`AUTO` was set true at `ROLLOUT: 0.5`** (set false again
+2026-11-25: see the wall section above).
 
 If `UxDQrj` is ever republished, set `AUTO` back to false — otherwise
 the double ask returns. That pairing is the thing to keep straight,

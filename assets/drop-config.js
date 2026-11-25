@@ -63,7 +63,11 @@ window.ASIOR_DROP = {
      TRUE since 2026-11-13, paired with UxDQrj being unpublished in
      Klaviyo -- see THE POPUP THAT WAS IN ITS WAY above. Read that
      before changing either one. */
-  AUTO: true,
+  /* FALSE since 2026-11-25. For the 50% "test" bucket this opened a
+     second signup popup over the shop right after somebody had signed
+     up on the lock screen -- the "half of visitors" report was this,
+     not the lock screen. One signup at a time. */
+  AUTO: false,
 
   /* Share of ELIGIBLE visitors who get the automatic experience, as a
      fraction. The rest are the control group and see the site exactly
@@ -415,6 +419,9 @@ window.ASIOR_DROP = {
          something nothing will honour. */
       PCT: 20,
       CODE: 'ASIORLIST',
+      /* The code's own Shopify schedule, in words, for the success
+         message. Move it in the same change as the discount. */
+      WINDOW: 'works nov 27 1:30pm ct \u2013 nov 30 11:59pm ct, in place of the public 10%',
     },
     /* The FALLBACK only. While MEMBER_OFFER is live the gate computes
        the label from it ("Get 30% off"), so this is what the button

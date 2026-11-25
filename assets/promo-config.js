@@ -153,6 +153,13 @@ window.ASIOR_SHIPPING = {
   // ASIORLIST becomes usable -- not 2:00, because a member
   // discounting at 1:45 is already in the window where this
   // adjustment matters.
+  // ASIORTEN's own end date in Shopify (DiscountCodeNode/1495468474585,
+  // endsAt read back 2026-11-24). Past it the site stops naming the code
+  // anywhere, so nobody is offered a code checkout will refuse. If the
+  // code is extended in Shopify, move this in the same change; empty
+  // means no end.
+  ASIORTEN_ENDS: '2026-12-01T05:59:00Z',
+
   BFCM_WINDOW: {
     START: '2026-11-27T13:30:00-06:00',
     END: '2026-11-30T23:59:00-06:00',
