@@ -608,6 +608,30 @@ and Google indexes every product page exactly as before. It makes a
 first-time human visitor join the list before they see the clothes.
 That is all it does and all it may be described as doing.
 
+**The access code is how we get in, and it is the same kind of
+nothing.** `asior30`, stored in `GATE.PASS_SHA` as a SHA-256 the
+same way `EARLY_ACCESS_CODE_SHA` always was. A folded "Have a code?"
+line under the fine print opens a `type=password` box, and
+`?key=asior30` on any URL does the same thing and strips itself out
+of the address bar with `history.replaceState` so the link is not
+left sitting in a screenshot or a browser history somebody else
+reads. It is **not a password and not security** — the hash is in a
+file anyone can fetch and the pages behind it are public URLs. It
+exists so the founder and Ayush can see their own storefront while
+it is walled, and it may be described as nothing more than that.
+
+It is deliberately **not a signup**: `submitPass()` calls no Klaviyo
+endpoint, stores no address, and fires neither `Gate Unlocked` nor
+`Gate Dismissed`, so using it cannot inflate the one number the gate
+exists to produce. It gets its own storage key,
+`asior_gate_pass`, for the same reason — `opened()` honours all
+three keys, but which one let you in stays readable. A missing
+`crypto.subtle` means **no bypass**, never an open door, which is
+the `OPEN_AT` rule applied to the other input: a case the code
+cannot evaluate resolves to locked. `pass.js` is the suite, 39
+assertions, and it checks the non-code visitor still meets a wall
+with Escape dead and the number required.
+
 **Three things keep the gate from being an outage**, and all three
 have to stay:
 

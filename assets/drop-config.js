@@ -179,6 +179,39 @@ window.ASIOR_DROP = {
        follows it automatically. */
     OPEN_AT: '',   /* empty = follow COUNTDOWN.TO, which is 19:30Z */
 
+    /* ---- THE WAY IN FOR US ------------------------------------
+
+       A code that opens the gate without a signup, so the founder
+       and anyone working on the site can see the storefront while
+       the wall is up. Asked for on 2026-11-26.
+
+       It is the SHA-256 of the code rather than the code itself,
+       which is how EARLY_ACCESS_CODE_SHA did it in launch-config.js
+       before that constant went unread. The current code is
+       'asior30'.
+
+       THIS IS NOT SECURITY AND MUST NEVER BE DESCRIBED AS SECURITY.
+       The check runs in a browser, on pages that are public URLs
+       underneath it. Anyone who opens this file sees the hash, and
+       a hash of a short word is reversed by a dictionary in
+       seconds; curl and a JS-less browser skip the gate entirely
+       whatever the code is. The hash is here because a plaintext
+       password in a public config is embarrassing, not because it
+       protects anything. It is a convenience bypass for the people
+       who built the site.
+
+       Empty disables it: no field, no URL parameter, no way in but
+       the signup. Change the code by replacing the hash --
+       node -e "console.log(require('crypto')
+         .createHash('sha256').update('newcode').digest('hex'))" */
+    PASS_SHA: '671392273c56cf02a0d26ca6584a9b1b8c85eba0a8cea993c7b4e54cfc76d888',
+    PASS_LABEL: 'Have a code?',
+    /* ?key=asior30 on any URL does the same thing, for opening the
+       site on a phone without typing into a small box. It is
+       remembered like a typed code, so the parameter is needed once
+       and then never again. */
+    PASS_PARAM: 'key',
+
     /* Email signup is the only way through, by the founder's choice
        on 2026-11-14 over a code or a choice of both. Nothing else in
        this file offers a second door, so there is no second door. */
