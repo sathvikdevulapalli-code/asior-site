@@ -4337,6 +4337,80 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 .gate-skip:hover { color: #fff; border-bottom-color: #fff; }
 .gate-skip:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
 .gate-skip:active { transform: translateY(1px); transition-duration: 90ms; }
+
+/* ---- the access code -----------------------------------------------
+   For us, not for the shopper, so it is the quietest thing on the
+   screen: one small line that opens a short row. It sits last and
+   carries no emphasis, because a visitor who notices it should read
+   it as staff plumbing rather than as a way around the signup. */
+.gate-pass { margin: 14px 0 0; }
+.gate-pass > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-block;
+  padding: 4px 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(232, 232, 234, 0.45);
+  transition: color 200ms var(--ease-out);
+}
+.gate-pass > summary::-webkit-details-marker { display: none; }
+.gate-pass > summary:hover { color: rgba(232, 232, 234, 0.8); }
+.gate-pass > summary:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
+
+.gate-pass-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin: 10px 0 0;
+  width: min(300px, 100%);
+}
+/* The input is the same rule-not-a-box as the signup fields, so the
+   two do not look like controls from different screens. */
+.gate-pass-row .field {
+  flex: 1;
+  height: 38px;
+  padding: 0 2px 2px;
+  font-family: var(--g-sans);
+  font-size: 16px;            /* 16px or iOS zooms the page on focus */
+  color: #fff;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(232, 232, 234, 0.35);
+  border-radius: 0;
+}
+.gate-pass-row .field::placeholder { color: rgba(232, 232, 234, 0.4); }
+.gate-pass-row .field:focus { outline: none; border-bottom-color: #fff; }
+.gate-pass-row .field:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
+
+.gate-pass-row button {
+  height: 38px;
+  padding: 0 14px;
+  background: none;
+  border: 1px solid rgba(232, 232, 234, 0.35);
+  border-radius: 0;
+  color: rgba(232, 232, 234, 0.85);
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+.gate-pass-row button:hover { border-color: #fff; color: #fff; }
+.gate-pass-row button:focus-visible { outline: 1px solid #fff; outline-offset: 3px; }
+.gate-pass-row button[disabled] { opacity: 0.5; cursor: default; }
+
+.gate-pass-msg {
+  margin: 8px 0 0;
+  font-family: var(--g-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgba(232, 232, 234, 0.7);
+}
+.gate-pass-msg:empty { margin: 0; }
 .gate-fineprint a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .gate-fineprint a:hover { color: #fff; }
 

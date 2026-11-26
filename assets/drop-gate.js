@@ -134,6 +134,10 @@
      greetKnown() and any later segmenting must be able to tell them
      apart. */
   var LS_DISMISSED = 'asior_gate_dismissed';
+  /* Its own key again. A staff bypass is not a signup and not a
+     dismissal, and keeping them apart is what stops somebody later
+     reading the storage and counting us as subscribers. */
+  var LS_PASS = 'asior_gate_pass';
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
@@ -155,7 +159,9 @@
        next page after being closed is a nag, not a dismissible
        screen. They stay separate keys so a dismissal is never
        mistaken for a signup. */
-    var at = Number(lsGet(LS_OPEN) || 0) || Number(lsGet(LS_DISMISSED) || 0);
+    var at = Number(lsGet(LS_OPEN) || 0)
+          || Number(lsGet(LS_DISMISSED) || 0)
+          || Number(lsGet(LS_PASS) || 0);
     if (!at) return false;
     var days = typeof CFG.REMEMBER_DAYS === 'number' ? CFG.REMEMBER_DAYS : 365;
     if (Date.now() - at > days * 864e5) return false;
@@ -178,7 +184,77 @@
     return false;
   }
 
+  /* ---- the code, and the URL form of it ------------------------
+
+     SHA-256 of what was typed against the stored hash. crypto.subtle
+     is only exposed on a secure context, which the live site is; on
+     plain http (a LAN preview) it is absent, so the code path is
+     skipped rather than throwing -- the gate still works, there is
+     just no bypass. That is the right way round: a missing crypto
+     API must never open the door.
+
+     Nothing here is security. See PASS_SHA in drop-config.js. */
+  var PASS_SHA = String(CFG.PASS_SHA || '').toLowerCase();
+
+  function sha256Hex(text) {
+    try {
+      if (!window.crypto || !window.crypto.subtle || !window.TextEncoder) return null;
+      return window.crypto.subtle
+        .digest('SHA-256', new TextEncoder().encode(text))
+        .then(function (buf) {
+          return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+            return ('0' + b.toString(16)).slice(-2);
+          }).join('');
+        });
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function codeOpens(text) {
+    if (!PASS_SHA || !text) return Promise.resolve(false);
+    var p = sha256Hex(String(text).trim());
+    if (!p) return Promise.resolve(false);
+    return p.then(function (hex) { return hex === PASS_SHA; })
+            .catch(function () { return false; });
+  }
+
+  function markPassed() {
+    memoryOpen = true;
+    lsSet(LS_PASS, String(Date.now()));
+  }
+
   if (alwaysOpen() || opened()) { reveal(); return; }
+
+  /* ?key=asior30 opens it and is remembered, so the parameter is
+     needed once per browser rather than on every link. The gate is
+     built in the meantime and taken down when the check resolves --
+     the alternative is holding a blank page on an await, which is
+     the one thing the watchdog exists to prevent. */
+  (function () {
+    var param = CFG.PASS_PARAM || 'key';
+    var fromUrl = '';
+    try { fromUrl = new URLSearchParams(location.search).get(param) || ''; } catch (e) {}
+    if (!fromUrl) return;
+    codeOpens(fromUrl).then(function (ok) {
+      if (!ok) return;
+      markPassed();
+      /* Take the parameter off the address bar so it is not carried
+         into a share, a screenshot or a referrer. */
+      try {
+        var u = new URL(location.href);
+        u.searchParams.delete(param);
+        history.replaceState(null, '', u.pathname + (u.search || '') + (u.hash || ''));
+      } catch (e) {}
+      if (root && root.parentNode) {
+        root.parentNode.removeChild(root);
+        root = null;
+        document.removeEventListener('keydown', trap, true);
+      }
+      document.documentElement.classList.remove('asior-gated');
+      reveal();
+    });
+  })();
 
   // -----------------------------------------------------------------
   // The gate itself
@@ -415,6 +491,33 @@
               '</button>'
             : '') +
 
+          /* THE CODE, folded. It is for us, not for the visitor, so
+             it is one quiet line rather than a second field
+             competing with the signup -- a shopper should read this
+             screen as "join or wait", with no hint that there is a
+             way round it.
+
+             A <details> rather than a permanently open box for the
+             same reason, and because an empty input under the real
+             form reads as something you are supposed to fill in.
+
+             Its own <form> so Enter submits it rather than the
+             signup above, which would try to subscribe the code as
+             an email address. */
+          (PASS_SHA
+            ? '<details class="gate-pass">' +
+                '<summary>' + esc(CFG.PASS_LABEL || 'Have a code?') + '</summary>' +
+                '<form class="gate-pass-row" id="gatePassForm" novalidate>' +
+                  '<label class="sr-only" for="gatePass">Access code</label>' +
+                  '<input class="field" type="password" id="gatePass" name="code" ' +
+                         'autocomplete="off" autocapitalize="off" ' +
+                         'autocorrect="off" spellcheck="false" placeholder="code">' +
+                  '<button type="submit" id="gatePassBtn">Enter</button>' +
+                '</form>' +
+                '<p class="gate-pass-msg" id="gatePassMsg" role="status" aria-live="polite"></p>' +
+              '</details>'
+            : '') +
+
         '</div>' +
 
         /* THE LOOKBOOK IS ON THE SCREEN TOO, as a strip you can swipe,
@@ -470,6 +573,9 @@
 
     var skip = root.querySelector('#gateSkip');
     if (skip) skip.addEventListener('click', dismiss);
+
+    var passForm = root.querySelector('#gatePassForm');
+    if (passForm) passForm.addEventListener('submit', submitPass);
 
     /* The mark no longer opens anything -- the form is already on
        screen -- so it focuses the field instead. Still a button, so
@@ -971,6 +1077,44 @@
       root = null;
       document.removeEventListener('keydown', trap, true);
     }, 320);
+  }
+
+  /* The code path. Deliberately separate from admit(): no Klaviyo
+     call, no email stored, no signup event, because none of that
+     happened -- somebody on the team typed a password. Counting it
+     as a signup would quietly inflate the only number this gate
+     exists to produce. */
+  function submitPass(e) {
+    e.preventDefault();
+    var input = root && root.querySelector('#gatePass');
+    var btn = root && root.querySelector('#gatePassBtn');
+    var msg = root && root.querySelector('#gatePassMsg');
+    if (!input) return;
+    var typed = (input.value || '').trim();
+    if (!typed) { input.focus(); return; }
+
+    if (btn) btn.disabled = true;
+    if (msg) msg.textContent = '';
+
+    codeOpens(typed).then(function (ok) {
+      if (!ok) {
+        if (btn) btn.disabled = false;
+        if (msg) msg.textContent = 'that code does not work.';
+        input.value = '';
+        try { input.focus(); } catch (x) {}
+        return;
+      }
+      markPassed();
+      stopClock();
+      document.documentElement.classList.remove('asior-gated');
+      if (!root) return;
+      root.classList.add('is-leaving');
+      setTimeout(function () {
+        if (root && root.parentNode) root.parentNode.removeChild(root);
+        root = null;
+        document.removeEventListener('keydown', trap, true);
+      }, 320);
+    });
   }
 
   function admit(email, note, hold) {
