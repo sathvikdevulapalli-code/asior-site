@@ -120,9 +120,11 @@ window.ASIOR_LAUNCH = {
        ASR Sweats        asr-sweats        Product/10463312183513
 
      Membership is this handle list, resolved against the live
-     catalogue at build time, the same way CATEGORIES works -- so it
-     needs no collection in Shopify Admin, which this repo does not
-     write to. It is NOT in the nav: Ayush corrected that the same
+     catalogue at build time, the same way CATEGORIES works. A Shopify
+     collection with the same handle and the same two products was
+     created on 2026-11-27 at the founder's OK (Collection/
+     495165407449); move this entry to SHOPIFY_COLLECTIONS to make
+     Shopify the source of membership instead. It is NOT in the nav: Ayush corrected that the same
      morning. build.js generates /collections/black-friday-exclusives
      .html from it for the row's View all.
 

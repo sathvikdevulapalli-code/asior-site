@@ -1283,9 +1283,12 @@ Added 2026-11-27 at Ayush's request.
   FRIDAY EXCLUSIVES directly **above** Fall, same layout, with a View
   all to `/collections/black-friday-exclusives.html`, which `build.js`
   generates from the handle list like `CATEGORIES`. It is **not in
-  the nav**. No Shopify collection was created: this repo does not
-  write to Shopify Admin. If one is made there, switch the entry to
-  `SHOPIFY_COLLECTIONS`. Null the key to remove row, page and link.
+  the nav**. A matching Shopify collection was created at the
+  founder's explicit OK on 2026-11-27 (`Collection/495165407449`,
+  manual, handle `black-friday-exclusives`, both sweats), so the
+  products are no longer collection-less in Shopify. The site still
+  reads the config list, deliberately, on drop day; switching the
+  entry to `SHOPIFY_COLLECTIONS` would make Shopify the source. Null the key to remove row, page and link.
 - **`PREORDER_SHIP`**: handle → shipping window, copied from each
   product's Shopify description ("In Production: Ships in 4-6
   weeks"). Every card for such a handle gets a PREORDER badge and
