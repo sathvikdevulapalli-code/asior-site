@@ -2383,6 +2383,19 @@
     return (d ? d + 'd ' : '') + (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x;
   }
   function saleShowing() { return saleLive() || salePreview(); }
+  /* "Add yours": puts the free lanyard in the bag. Shopify's automatic
+     "free lanyard with any order" makes it $0 once something else is in
+     the cart. */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-add-lanyard]');
+    if (!b || b.disabled) return;
+    e.preventDefault();
+    b.disabled = true; b.textContent = 'Adding\u2026';
+    addToShopifyCart(LANYARD_VARIANT, 1).then(function () {
+      b.textContent = 'Added';
+      if (/cart\.html/.test(location.pathname)) location.reload();
+    }).catch(function () { b.disabled = false; b.textContent = 'Try again'; });
+  });
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-sale-signup]');
     if (!b) return;
@@ -2472,13 +2485,17 @@
       /* EXTRA10 (Shopify, 2026-11-27) combines only with the public
          10%, so 20% is the most any order gets -- said plainly, with
          how to use it. */
-      prop.innerHTML = '<span class="sale-deal">Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</span>';
+      prop.innerHTML = '<span class="sale-deal">Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</span>'
+        + '<span class="sale-lanyard">Every Black Friday order gets a free lanyard. '
+        + '<button type="button" class="sale-signup" data-add-lanyard>Add yours</button></span>';
     }
     /* The same offer beside the cart's checkout clock. */
     var cartClock = document.querySelector('.sale-clock--cart');
     if (cartClock && !document.querySelector('.sale-signup--cart')) {
       cartClock.insertAdjacentHTML('beforebegin', '<p class="sale-signup sale-signup--cart">'
-        + 'Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</p>');
+        + 'Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</p>'
+        + '<p class="sale-signup sale-signup--cart sale-lanyard">Every Black Friday order gets a free lanyard. '
+        + '<button type="button" class="sale-signup" data-add-lanyard>Add yours</button></p>');
     }
     /* A ribbon on every card that can be bought (Amazon's "deal" tag,
        in our type): top-right, clear of the badges top-left. */
@@ -2520,21 +2537,24 @@
      ones charged. A price that already carries a verified compare-at
      is left alone. */
   var SALE_PCT = 10;
+  /* Lanyards are 40% off on their own (Shopify automatic, 2026-11-27). */
+  var SALE_PCT_BY_HANDLE = { 'jag-lanyard': 40 };
+  var LANYARD_VARIANT = 'gid://shopify/ProductVariant/49167909355737';
   /* Shopify rounds a percentage discount DOWN to the cent: read back on
      a live cart 2026-11-27, 10% of $42.99 came off as $4.29 (total
      $38.70) and 20% as $8.59. Rounding to nearest showed $38.69 -- a
      cent below what checkout charges. Floor matches it exactly. */
-  function saleCents(c) { return c - Math.floor(c * SALE_PCT / 100); }
+  function saleCents(c, pct) { return c - Math.floor(c * (pct || SALE_PCT) / 100); }
   function fmtMoney(c) {
     var s = (c / 100).toFixed(2);
     return '$' + (s.slice(-3) === '.00' ? s.slice(0, -3) : s);
   }
-  function salePriceHTML(text) {
+  function salePriceHTML(text, pct) {
     var m = String(text).match(/^\s*(From\s+)?\$\s?([\d,]+(?:\.\d{1,2})?)\s*$/i);
     if (!m) return null;
     var cents = Math.round(parseFloat(m[2].replace(/,/g, '')) * 100);
     if (!cents) return null;
-    var was = fmtMoney(cents), now = fmtMoney(saleCents(cents));
+    var was = fmtMoney(cents), now = fmtMoney(saleCents(cents, pct));
     /* "$39.99" next to "$36" reads as a typo: keep the cents whenever
        the regular price shows them. */
     if (/\./.test(m[2]) && now.indexOf('.') === -1) now += '.00';
@@ -2554,7 +2574,10 @@
         if (!el.hasAttribute('data-sale-html')) return;
       }
       if (el.hasAttribute('data-sale-html') && el.getAttribute('data-sale-html') === el.innerHTML) return;
-      var html = salePriceHTML(el.textContent);
+      var card = el.closest && el.closest('[data-handle]');
+      var handle = card ? card.getAttribute('data-handle')
+        : (/lanyard/.test(location.pathname) ? 'jag-lanyard' : '');
+      var html = salePriceHTML(el.textContent, SALE_PCT_BY_HANDLE[handle]);
       if (!html) return;
       if (el.id === 'pdPrice') html += '<span class="deal-chip">Black Friday deal</span>';
       el.setAttribute('data-orig-html', el.innerHTML);
