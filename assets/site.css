@@ -4920,3 +4920,41 @@ a.bf-marquee:focus-visible { outline: 2px solid var(--sale-ink); outline-offset:
 .product-img { position: relative; }
 @media (max-width: 600px) { .deal-chip { display: none; } }
 .announce-sale > span[aria-hidden] { margin: 0 10px; }
+
+/* ---- the marquee, quieter (founder, 2026-11-27: "too much, hurts my
+   eyes, too big -- smaller, still moving, less stand-out"). A thin
+   oxblood band, small light type, slower; still a band of colour you
+   cannot miss, no longer a siren. ---------------------------------- */
+.bf-marquee {
+  height: 28px;
+  background: #4a0d14;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.bf-marquee-run span {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .2em;
+  padding: 0 26px;
+  color: rgba(255, 255, 255, .88);
+}
+.bf-marquee-run i { font-size: 7px; opacity: .45; }
+.bf-marquee .bf-clock { font-weight: 600; color: #fff; }
+.bf-marquee-track { animation-duration: 70s; }
+.announce:has(.announce-sale) { background: #141416; }
+.announce-sale { font-size: 11px !important; font-weight: 500; letter-spacing: .16em; color: rgba(232,232,234,.9) !important; }
+.sale-signup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  color: var(--sale-red-ink);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+.sale-signup:hover { color: #fff; }
+.sale-signup--cart { margin: 0 0 12px; font-size: 13px; }

@@ -401,7 +401,11 @@ ${bannerFiles.map((f, i) => `    <img src="/images/${flat(f) ? f + '-1200' : f}.
     html = html.replace('<body class="page--hero">', '<body>');
   }
 
-  const grid = sortForMerchandising(c.products)
+  /* The sale pages keep the order their config gives (exclusives
+     first); every other collection takes the merchandising sort. */
+  const keepOrder = (BF_EXCLUSIVES && c.slug === BF_EXCLUSIVES.slug)
+    || (LAUNCH.SALE_PAGE && c.slug === LAUNCH.SALE_PAGE.slug);
+  const grid = (keepOrder ? c.products : sortForMerchandising(c.products))
     .map((p, i) => shopCard(p, i < 4, CARD_SIZES.row))
     .filter(Boolean)
     .join('\n') + '\n';
@@ -1315,10 +1319,13 @@ function withLocalPhotos(p) {
 const ALL_COLLECTIONS = [
   ...CATEGORIES.map(c => ({ ...c, source: 'config' })),
   ...(BF_EXCLUSIVES ? [{ ...BF_EXCLUSIVES, source: 'config' }] : []),
+  ...(LAUNCH.SALE_PAGE ? [{ ...LAUNCH.SALE_PAGE, source: 'config' }] : []),
   ...SHOPIFY_COLLECTIONS.map(c => ({ ...c, source: 'shopify' })),
 ];
 
 const NAV_LINKS = [
+  /* Black Friday first while SALE_PAGE is set (founder, 2026-11-27). */
+  ...(LAUNCH.SALE_PAGE ? [[LAUNCH.SALE_PAGE.name, `/collections/${LAUNCH.SALE_PAGE.slug}.html`]] : []),
   ['Shop all', '/shop.html'],
   /* Accessories is deliberately NOT in the header.
 
@@ -2076,19 +2083,30 @@ function renderShopGrid(products) {
   // First row is the LCP candidate — eager, same rule the live render
   // uses. Everything below the fold stays lazy.
   const ordered = sortForMerchandising(products);
+  const byH = new Map(ordered.map(p => [p.handle, p]));
+  /* Black Friday exclusives, then Fall, then the founder's order for the
+     rest (SHOP_REST_ORDER), then everything else. */
+  const bfHandles = (BF_EXCLUSIVES && BF_EXCLUSIVES.handles) || [];
+  const bf = bfHandles.map(h => byH.get(h)).filter(Boolean);
   const fallHandles = new Set((LAUNCH.FALL_PRODUCTS || []).map(p => p.handle));
   const fall = ordered.filter(p => fallHandles.has(p.handle));
-  const other = ordered.filter(p => !fallHandles.has(p.handle));
+  const used = new Set([...bf, ...fall].map(p => p.handle));
+  const restFirst = (LAUNCH.SHOP_REST_ORDER || []).map(h => byH.get(h)).filter(p => p && !used.has(p.handle));
+  restFirst.forEach(p => used.add(p.handle));
+  const other = [...restFirst, ...ordered.filter(p => !used.has(p.handle))];
   const cards = (items, offset) => items
     .map((p, i) => shopCard(p, offset + i < 3))
     .filter(Boolean)
     .join('\n');
   const sections = [];
+  if (bf.length) {
+    sections.push(`<h2 class="shop-grid-heading">Black Friday exclusives</h2>\n${cards(bf, 0)}`);
+  }
   if (fall.length) {
-    sections.push(`<h2 class="shop-grid-heading">Fall collection</h2>\n${cards(fall, 0)}`);
+    sections.push(`<h2 class="shop-grid-heading">Fall collection</h2>\n${cards(fall, bf.length)}`);
   }
   if (other.length) {
-    sections.push(`<h2 class="shop-grid-heading">More from Asior</h2>\n${cards(other, fall.length)}`);
+    sections.push(`<h2 class="shop-grid-heading">More from Asior</h2>\n${cards(other, bf.length + fall.length)}`);
   }
   return sections.join('\n') + '\n';
 }

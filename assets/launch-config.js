@@ -185,6 +185,21 @@ window.ASIOR_LAUNCH = {
     oli05388: [2400, 3600], oli05395: [2400, 3600],
   },
 
+  /* Shop all's order after Black Friday exclusives and Fall (founder,
+     2026-11-27): these four first, then everything else in
+     merchandising order. */
+  /* The Black Friday page: the two exclusives, then the Fall
+     collection, on one page, first in the nav (founder, 2026-11-27).
+     Its slug is not /black-friday -- that URL 302s to / for the Meta
+     ads (vercel.json). Null the key to take page and nav link down. */
+  SALE_PAGE: {
+    slug: 'black-friday-sale',
+    name: 'Black Friday',
+    handles: ['black-jag-sweats', 'asr-sweats', 'scripture-polo', 'jag-shorts', 'holes-tee', 'asr-shorts'],
+  },
+
+  SHOP_REST_ORDER: ['jaguar-sweats', 'jaguar-crewneck', 'ja-yu-blossom-tee', 'kova-eternal-lotus-graphic-t-shirt'],
+
   SHOPIFY_COLLECTIONS: [
     { slug: 'jag', name: 'JAG' },
     { slug: 'fall-collection', name: 'Fall Collection' },

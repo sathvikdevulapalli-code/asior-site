@@ -185,7 +185,10 @@ window.ASIOR_SHIPPING = {
       // signing up takes it to 20% in all (ASIORLIST replaces the 10%;
       // nothing stacks).
       // Founder, 2026-11-27: no '10% off' anywhere, just the sale.
-      MARQUEE: ['Massive Black Friday sale', 'Ends in {countdown}', '20% off sitewide when you sign up', 'Shop Black Friday exclusives'],
+      // 'Fall collection under $40' is true at sale prices: $38.70, $36.90,
+      // $36.00, $36.00 (Shopify, 2026-11-27). 'Sitewide' would not be --
+      // the Set is $72 and the sweats $41-42 on sale.
+      MARQUEE: ['Massive Black Friday sale', 'Fall collection under $40', 'Ends in {countdown}', 'Sign up for an extra 10% off'],
     },
   },
 

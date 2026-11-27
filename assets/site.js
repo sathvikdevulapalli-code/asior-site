@@ -2383,6 +2383,12 @@
     return (d ? d + 'd ' : '') + (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x;
   }
   function saleShowing() { return saleLive() || salePreview(); }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-sale-signup]');
+    if (!b) return;
+    e.preventDefault();
+    if (window.AsiorDrop && window.AsiorDrop.openSaleForm) window.AsiorDrop.openSaleForm('sale-button');
+  });
 
   var saleTicker = null;
   function tickSale() {
@@ -2391,7 +2397,7 @@
          own, at the same instant the Shopify discounts stop applying. */
       clearInterval(saleTicker); saleTicker = null;
       var m = document.querySelector('.bf-marquee'); if (m) m.remove();
-      document.querySelectorAll('.sale-clock, .sale-tag, .sale-ribbon, .deal-chip').forEach(function (el) { el.remove(); });
+      document.querySelectorAll('.sale-clock, .sale-tag, .sale-ribbon, .deal-chip, .sale-signup--cart').forEach(function (el) { el.remove(); });
       document.querySelectorAll('[data-orig-announce]').forEach(function (t) {
         t.innerHTML = t.getAttribute('data-orig-announce'); t.removeAttribute('data-orig-announce');
       });
@@ -2456,7 +2462,14 @@
     if (prop && !prop.querySelector('.sale-deal')) {
       if (!prop.hasAttribute('data-orig-prop')) prop.setAttribute('data-orig-prop', prop.innerHTML);
       prop.classList.add('is-sale');
-      prop.innerHTML = '<span class="sale-deal">Massive Black Friday sale. This price ends when the timer does.</span>';
+      prop.innerHTML = '<button type="button" class="sale-deal sale-signup" data-sale-signup>'
+        + 'Sign up for an extra 10% off <span aria-hidden="true">\u2192</span></button>';
+    }
+    /* The same offer beside the cart's checkout clock. */
+    var cartClock = document.querySelector('.sale-clock--cart');
+    if (cartClock && !document.querySelector('.sale-signup--cart')) {
+      cartClock.insertAdjacentHTML('beforebegin', '<button type="button" class="sale-signup sale-signup--cart" data-sale-signup>'
+        + 'Sign up for an extra 10% off <span aria-hidden="true">\u2192</span></button>');
     }
     /* A ribbon on every card that can be bought (Amazon's "deal" tag,
        in our type): top-right, clear of the badges top-left. */

@@ -232,11 +232,11 @@
     var sms = (m.gate.SMS && m.gate.SMS.CONSENT) || '';
     return '<div class="drop-view drop-view--intro" data-view="intro">'
       + '<p class="drop-eyebrow drop-eyebrow--sale">Black Friday</p>'
-      + '<h2 class="drop-title" id="dropTitle">' + esc(m.pct) + '% off sitewide.</h2>'
-      + '<p class="drop-sub">Everything is already marked down. Sign up and your code takes the whole order to '
+      + '<h2 class="drop-title" id="dropTitle">An extra 10% off.</h2>'
+      + '<p class="drop-sub">Everything is already on sale. Sign up and your code takes the whole order to '
       +   esc(m.pct) + '% off. Ends Monday.</p>'
       + '<div class="drop-actions" data-drop-sale-actions>'
-      +   '<button type="button" class="drop-btn drop-btn--primary" data-drop-sale-open>Get ' + esc(m.pct) + '% off</button>'
+      +   '<button type="button" class="drop-btn drop-btn--primary" data-drop-sale-open>Get the extra 10%</button>'
       +   '<button type="button" class="drop-btn drop-btn--ghost" data-drop-close>Shop the sale</button>'
       + '</div>'
       + '<form class="drop-sale-form" data-drop-sale-form novalidate hidden>'
@@ -838,8 +838,19 @@
   armAuto();
 
   /* A small public surface, for /drop.html and for testing. */
+  /* Straight to the sale form, from a button elsewhere on the page
+     ("Sign up for an extra 10% off" on the product page and the cart).
+     Falls back to the plain intro outside the sale. */
+  function openSaleForm(source) {
+    open(source || 'sale-button');
+    var f = root && root.querySelector('[data-drop-sale-form]');
+    var acts = root && root.querySelector('[data-drop-sale-actions]');
+    if (f) { f.hidden = false; if (acts) acts.hidden = true; var i = f.querySelector('input'); if (i) { try { i.focus(); } catch (e) {} } }
+  }
+
   window.AsiorDrop = {
     open: open,
+    openSaleForm: openSaleForm,
     close: close,
     bucket: bucket,
     activeCampaign: activeCampaign,

@@ -1411,6 +1411,27 @@ flat lays; photographs fade up as they decode (`wireImageFade`).
 - **Still declined:** "restocked" (no units added) and markdowns deeper
   than the real discounts (20% is already the margin floor on ASR Shorts).
 
+### Same day, ~1 PM CT (founder)
+
+- **The marquee is quiet now:** 28px, oxblood `#4a0d14`, 10.5px type,
+  70s loop. "Too much, hurts my eyes." Same words: Massive Black Friday
+  sale / Fall collection under $40 / Ends in {countdown} / Sign up for
+  an extra 10% off. "Under $40" is only claimed of Fall (true at sale
+  prices); "$40 or lower sitewide" was asked for and is false.
+- **"Sign up for an extra 10% off"** replaces the PDP sale line and
+  sits above the cart's clock; both open the popup on its form
+  (`AsiorDrop.openSaleForm`). Popup: "An extra 10% off." -- true, the
+  code takes the order from 10% to 20% in all.
+- **Shop all:** Black Friday exclusives, then Fall, then
+  `SHOP_REST_ORDER` (JAG Sweats, JAG Crewneck, Blossom, Lotus), then
+  the rest -- the same in the build and the live render, which used to
+  drop the headings.
+- **`SALE_PAGE`**: `/collections/black-friday-sale.html`, "Black
+  Friday", first in the nav: the two exclusives then the four Fall
+  pieces, in config order. Not called a restock page.
+- JAG Set was set to DRAFT in Shopify at 12:57 CT, so it is off the
+  site; that was done in Admin, not here.
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split
