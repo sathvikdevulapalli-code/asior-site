@@ -588,6 +588,29 @@
     document.documentElement.classList.add('asior-gated');
     reveal();
 
+    /* The wall comes down on an OPEN page too. Somebody sitting on
+       the gate at 1:59 must not be left behind a wall at 2:01 until
+       they think to reload. Independent of the clock (which can be
+       absent), checked every second and on tab return, since a
+       backgrounded tab throttles timers. */
+    if (isFinite(openAt)) {
+      var liftTimer = null;
+      var liftNow = function () {
+        if (Date.now() < openAt) return;
+        if (liftTimer) { clearInterval(liftTimer); liftTimer = null; }
+        document.removeEventListener('visibilitychange', liftNow);
+        stopClock();
+        memoryOpen = true;
+        document.removeEventListener('keydown', trap, true);
+        if (root && root.parentNode) root.parentNode.removeChild(root);
+        root = null;
+        document.documentElement.classList.remove('asior-gated');
+        reveal();
+      };
+      liftTimer = setInterval(liftNow, 1000);
+      document.addEventListener('visibilitychange', liftNow);
+    }
+
     root.querySelector('#gateForm').addEventListener('submit', submit);
 
     var skip = root.querySelector('#gateSkip');
