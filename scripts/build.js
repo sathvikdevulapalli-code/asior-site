@@ -59,7 +59,7 @@ const STATIC_PAGES = [
   '/manufacturing.html', '/privacy-policy.html', '/terms-of-service.html',
   '/shipping-policy.html', '/refund-policy.html',
   '/lanyard.html', '/text.html', '/archive.html', '/about.html',
-  '/waitlist.html', '/links', '/drop.html',
+  '/waitlist.html', '/links', '/drop.html', '/extra10',
 ];
 
 /* Handles that already have a hand-built page at their own URL.
@@ -1695,7 +1695,7 @@ const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.c
        before anything reads storage. -->
   <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
     ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
-      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
+      if(!ok){window.__asiorMemStorage=true;try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
     /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
@@ -1794,7 +1794,7 @@ const HEAD_PAGES = [
   'terms-of-service.html', 'fall-collection.html', 'lanyard.html',
   'shipping-policy.html', 'refund-policy.html',
   'text.html', 'index.html', 'archive.html', 'about.html', '404.html',
-  'links.html',
+  'links.html', 'extra10.html',
   'collection.html',
   /* The campaign page needs the shared head like any other: it is a
      real indexable page with the same analytics and the same DROP
@@ -1822,6 +1822,7 @@ const SHARED_MARKUP_PAGES = [
   ['refund-policy.html', HEADER_MINIMAL],
   ['fall-collection.html', HEADER_FULL],
   ['text.html', HEADER_FULL],
+  ['extra10.html', HEADER_FULL],
   ['waitlist.html', HEADER_FULL],
   ['drop.html', HEADER_FULL],
   ['archive.html', HEADER_FULL],

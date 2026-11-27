@@ -88,6 +88,7 @@ window.ASIOR_LAUNCH = {
       'kova-eternal-lotus-graphic-t-shirt', 'jaguar-crewneck', 'jag-set-1',
     ] },
     { slug: 'bottoms', name: 'Bottoms', handles: [
+      'black-jag-sweats', 'asr-sweats',   /* founder, 2026-11-27 */
       'jag-shorts', 'asr-shorts', 'jaguar-sweats', 'jag-set-1',
     ] },
     { slug: 'accessories', name: 'Accessories', handles: [

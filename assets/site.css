@@ -4958,3 +4958,20 @@ a.bf-marquee:focus-visible { outline: 2px solid var(--sale-ink); outline-offset:
 }
 .sale-signup:hover { color: #fff; }
 .sale-signup--cart { margin: 0 0 12px; font-size: 13px; }
+/* One bar only (2026-11-27): the sale lines flip in the announcement
+   bar. The sign-up line is a real button, so it has to receive taps --
+   messages are pointer-events: none by default. */
+.announce-msg.announce-sale.is-on { pointer-events: auto; }
+.announce-signup {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.announce-signup:hover { color: #fff; }
+a.announce-signup { text-decoration: none; }

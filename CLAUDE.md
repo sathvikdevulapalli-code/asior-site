@@ -1432,6 +1432,30 @@ flat lays; photographs fade up as they decode (`wireImageFade`).
 - JAG Set was set to DRAFT in Shopify at 12:57 CT, so it is off the
   site; that was done in Admin, not here.
 
+### Same day, ~1:15 PM CT (founder)
+
+- **One bar.** The scrolling band is gone; the announcement bar flips
+  between "Massive Black Friday sale · Ends in {clock}", "Fall
+  collection under $40" and "Sign up for an extra 10% off" (a link to
+  `/extra10`), and reverts to free shipping when the sale ends.
+- **`/extra10`** (`extra10.html`): "Get an extra 10% off. Free." The
+  founder asked for a page for it, which is a second landing page --
+  so it shares everything with the gate and popup: `GATE.LIST_ID`,
+  `GATE.SMS.CONSENT` read at run time, `MEMBER_OFFER` for the code,
+  shown only while the sale is live.
+- **The popup opens on arrival for everyone during the sale** (first
+  page, 3s), never over the gate, never for a browser that cannot keep
+  storage (it could not remember a close); "I'm already signed up"
+  closes it for good.
+- Shop all's Fall and Black Friday sections use the whole catalogue:
+  the "recently viewed" rail had been removing the pieces a shopper
+  had looked at, so Fall showed only the Holes Tee. That rail is now
+  headed "Get it before the sale ends". Both sweats are in Bottoms.
+- **Not done, waiting on the founder:** lanyards 40% off with a free
+  lanyard on every order, and a 10% code that stacks. The lanyard sits
+  at -5 units (oversold) and a stacking 10% takes the floor past 20%,
+  which the margin note on ASR Shorts says loses money.
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split

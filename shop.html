@@ -674,7 +674,7 @@
        before anything reads storage. -->
   <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
     ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
-      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
+      if(!ok){window.__asiorMemStorage=true;try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
     /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
@@ -937,7 +937,7 @@
             <div class="product-img" data-alt-src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_7357_800x.jpg.webp?v=1793251158"><img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/c238690e-aa15-4ed1-8bff-171421a7d453_a3c99b4c-b008-4269-910c-0703a1fd3e28_1200x.jpg.webp?v=1775235470" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/c238690e-aa15-4ed1-8bff-171421a7d453_a3c99b4c-b008-4269-910c-0703a1fd3e28_400x.jpg.webp?v=1775235470 400w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/c238690e-aa15-4ed1-8bff-171421a7d453_a3c99b4c-b008-4269-910c-0703a1fd3e28_800x.jpg.webp?v=1775235470 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/c238690e-aa15-4ed1-8bff-171421a7d453_a3c99b4c-b008-4269-910c-0703a1fd3e28_1200x.jpg.webp?v=1775235470 1200w" sizes="(max-width: 768px) calc((100vw - 40px) / 2), calc((100vw - 76px) / 4)" alt="Asior &quot;Blossom&quot; Tee" width="1066" height="1600" loading="lazy" decoding="async"></div>
           </a>
           <a class="product-peek btn btn--sm" data-sizes="ja-yu-blossom-tee" href="/products/ja-yu-blossom-tee.html" aria-expanded="false" aria-label="Choose a size for &quot;Blossom&quot; Tee">Choose a size</a>
-          <div class="quick-add" data-handle="ja-yu-blossom-tee" data-name="&quot;Blossom&quot; Tee" data-choose="1"><button type="button" class="qa-size" data-size="S" aria-label="Choose size S for &quot;Blossom&quot; Tee">S</button><button type="button" class="qa-size" data-size="M" aria-label="Choose size M for &quot;Blossom&quot; Tee">M</button><button type="button" class="qa-size" data-size="L" aria-label="Choose size L for &quot;Blossom&quot; Tee">L</button></div>
+          <div class="quick-add" data-handle="ja-yu-blossom-tee" data-name="&quot;Blossom&quot; Tee" data-choose="1"><button type="button" class="qa-size" data-size="S" aria-label="Choose size S for &quot;Blossom&quot; Tee">S</button><button type="button" class="qa-size unavailable" data-size="M" disabled aria-label="Size M, sold out">M</button><button type="button" class="qa-size" data-size="L" aria-label="Choose size L for &quot;Blossom&quot; Tee">L</button></div>
         </div>
         <a class="product-link" href="/products/ja-yu-blossom-tee.html">
           <div class="product-title">&quot;Blossom&quot; Tee</div>
@@ -951,7 +951,7 @@
             <div class="product-img" data-alt-src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_1553_Original_800x.jpg.webp?v=1775526537"><img src="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_1625_1200x.jpg.webp?v=1775526460" srcset="https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_1625_400x.jpg.webp?v=1775526460 400w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_1625_800x.jpg.webp?v=1775526460 800w, https://cdn.shopify.com/s/files/1/0751/4495/4073/files/IMG_1625_1200x.jpg.webp?v=1775526460 1200w" sizes="(max-width: 768px) calc((100vw - 40px) / 2), calc((100vw - 76px) / 4)" alt="Asior &quot;Lotus&quot; Tee" width="1536" height="2048" loading="lazy" decoding="async"></div>
           </a>
           <a class="product-peek btn btn--sm" data-sizes="kova-eternal-lotus-graphic-t-shirt" href="/products/kova-eternal-lotus-graphic-t-shirt.html" aria-expanded="false" aria-label="Choose a size for &quot;Lotus&quot; Tee">Choose a size</a>
-          <div class="quick-add" data-handle="kova-eternal-lotus-graphic-t-shirt" data-name="&quot;Lotus&quot; Tee" data-choose="1"><button type="button" class="qa-size" data-size="S" aria-label="Choose size S for &quot;Lotus&quot; Tee">S</button><button type="button" class="qa-size" data-size="M" aria-label="Choose size M for &quot;Lotus&quot; Tee">M</button><button type="button" class="qa-size" data-size="L" aria-label="Choose size L for &quot;Lotus&quot; Tee">L</button></div>
+          <div class="quick-add" data-handle="kova-eternal-lotus-graphic-t-shirt" data-name="&quot;Lotus&quot; Tee" data-choose="1"><button type="button" class="qa-size" data-size="S" aria-label="Choose size S for &quot;Lotus&quot; Tee">S</button><button type="button" class="qa-size" data-size="M" aria-label="Choose size M for &quot;Lotus&quot; Tee">M</button><button type="button" class="qa-size unavailable" data-size="L" disabled aria-label="Size L, sold out">L</button></div>
         </div>
         <a class="product-link" href="/products/kova-eternal-lotus-graphic-t-shirt.html">
           <div class="product-title">&quot;Lotus&quot; Tee</div>
@@ -1353,12 +1353,17 @@
        exclusives, Fall, then SHOP_REST_ORDER, then the rest. The live
        render used to draw one flat list and drop the headings. */
     const L = window.ASIOR_LAUNCH || {};
-    const byH = new Map(mainCatalog.map(p => [p.handle, p]));
+    /* Black Friday and Fall are drawn from the WHOLE catalogue, never
+       thinned by "pick up where you left off": a shopper who had looked
+       at the Polo and both shorts saw a Fall section holding only the
+       Holes Tee (founder, 2026-11-27). Only the rest is de-duplicated. */
+    const byH = new Map(catalog.map(p => [p.handle, p]));
     const bf = ((L.BF_EXCLUSIVES && L.BF_EXCLUSIVES.handles) || []).map(h => byH.get(h)).filter(Boolean);
     const fallSet = new Set((L.FALL_PRODUCTS || []).map(p => p.handle));
-    const fall = mainCatalog.filter(p => fallSet.has(p.handle));
+    const fall = catalog.filter(p => fallSet.has(p.handle));
     const used = new Set([...bf, ...fall].map(p => p.handle));
-    const first = (L.SHOP_REST_ORDER || []).map(h => byH.get(h)).filter(p => p && !used.has(p.handle));
+    const restPool = new Map(mainCatalog.map(p => [p.handle, p]));
+    const first = (L.SHOP_REST_ORDER || []).map(h => restPool.get(h)).filter(p => p && !used.has(p.handle));
     first.forEach(p => used.add(p.handle));
     const rest = [...first, ...mainCatalog.filter(p => !used.has(p.handle))];
     let n = 0;
@@ -1406,7 +1411,7 @@
     // rule renderGrid() already uses for the main grid, applied here.
     const section = document.getElementById('shopRecent');
     section.innerHTML = `
-      <h2 class="rail-label">Pick Up Where You Left Off</h2>
+      <h2 class="rail-label">Get it before the sale ends</h2>
       <div class="shop-grid" id="shopRecentGrid">${seen.map((p, i) => card(p, i < 3, A.CARD_SIZES.grid)).join('')}</div>`;
     const recentGrid = document.getElementById('shopRecentGrid');
     bindQuickAdd(recentGrid);

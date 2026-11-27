@@ -12,6 +12,10 @@
       "destination": "/text.html"
     },
     {
+      "source": "/extra10",
+      "destination": "/extra10.html"
+    },
+    {
       "source": "/links",
       "destination": "/links.html"
     },

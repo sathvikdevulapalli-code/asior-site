@@ -2425,7 +2425,14 @@
   function renderSaleMarquee(live) {
     var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
     var existing = document.querySelector('.bf-marquee');
-    var show = !!(sale && sale.MARQUEE && (live || salePreview()));
+    /* NO SEPARATE BAND since 2026-11-27 ("just delete it -- only ONE bar
+       at the top"). Its words now cycle in the announcement bar; this
+       only reports whether the sale is showing, and removes a band
+       left by an older page. */
+    if (existing) existing.remove();
+    if (sale && sale.MARQUEE && (live || salePreview())) { startSaleTicker(); return true; }
+    return false;
+    var show = false;
     if (!show) { if (existing) existing.remove(); return false; }
     if (existing) return true;
     var bits = sale.MARQUEE;
@@ -2653,10 +2660,20 @@
           track.setAttribute('data-orig-announce', track.innerHTML);
           /* Not data-sale-line: that marks the bar's old sale message,
              which the code below removes while the marquee is up. */
-          track.innerHTML = '<p class="announce-msg is-on announce-sale">'
-            + 'Massive Black Friday sale <span aria-hidden="true">\u00b7</span> Ends in '
-            + '<b data-sale-clock aria-hidden="true">' + saleClockText() + '</b>'
-            + '<span class="sr-only">Monday at 9 PM Central</span></p>';
+          /* The sale's lines, one at a time, flipping in place (the
+             bar's own rotation, wireAnnounce). The first carries the
+             clock; the sign-up line opens the popup's form. */
+          var lines = [
+            'Massive Black Friday sale <span aria-hidden="true">\u00b7</span> Ends in '
+              + '<b data-sale-clock aria-hidden="true">' + saleClockText() + '</b>'
+              + '<span class="sr-only">Monday at 9 PM Central</span>',
+            'Fall collection under $40',
+            '<a class="announce-signup" href="/extra10">Sign up for an extra 10% off</a>'
+          ];
+          track.innerHTML = lines.map(function (h, k) {
+            return '<p class="announce-msg announce-sale' + (k === 0 ? ' is-on' : '') + '"'
+              + (k === 0 ? '' : ' aria-hidden="true"') + '>' + h + '</p>';
+          }).join('');
         }
         saleOn = false;
       }

@@ -174,12 +174,19 @@
 
   function autoEligible() {
     if (!CFG.AUTO) return false;
-    if (bucket() !== 'test') return false;
+    /* A browser that will not keep storage cannot remember a close, so
+       an automatic popup would come back on every page. Not for them. */
+    if (window.__asiorMemStorage) return false;
+    /* During the sale everybody is shown it, on arrival (founder,
+       2026-11-27); the A/B split applies the rest of the year. */
+    if (bucket() !== 'test' && !saleOffer()) return false;
     if (subscribed()) return false;
     if (dismissedRecently()) return false;
     if (midPurchase()) return false;
     var pages = Number(ssGet(SS_PAGES) || 0);
-    var minPages = (CFG.TRIGGER && CFG.TRIGGER.minPages) || 1;
+    /* First page during the sale: "come up when you first get to the
+       site" (founder, 2026-11-27). Two pages the rest of the year. */
+    var minPages = saleOffer() ? 1 : ((CFG.TRIGGER && CFG.TRIGGER.minPages) || 1);
     if (pages < minPages) return false;
     return true;
   }
@@ -239,6 +246,7 @@
       +   '<button type="button" class="drop-btn drop-btn--primary" data-drop-sale-open>Get the extra 10%</button>'
       +   '<button type="button" class="drop-btn drop-btn--ghost" data-drop-close>Shop the sale</button>'
       + '</div>'
+      + '<button type="button" class="drop-continue" data-drop-already>I\u2019m already signed up</button>'
       + '<form class="drop-sale-form" data-drop-sale-form novalidate hidden>'
       +   '<label class="sr-only" for="dropSaleEmail">Email address</label>'
       +   '<input class="field" type="email" id="dropSaleEmail" placeholder="email" autocomplete="email" spellcheck="false">'
@@ -285,6 +293,7 @@
     A.klaviyoSubscribeToList(listId, profile).then(function () {
       /* The code is shown only once Klaviyo has accepted the signup. */
       try { localStorage.setItem('asior_gate_email', email || phone); } catch (e) {}
+      lsSet(LS_SUBSCRIBED, '1');
       emit('Drop Sale Signup', { sms_opt_in: !!phone });
       form.hidden = true;
       var acts = root.querySelector('[data-drop-sale-actions]'); if (acts) acts.hidden = true;
@@ -360,6 +369,14 @@
       if (e.target.closest('[data-drop-explore]')) { e.preventDefault(); showShop(); return; }
       if (e.target.closest('[data-drop-back]')) { e.preventDefault(); showIntro(); return; }
       if (e.target.closest('[data-drop-access-link]')) { emit('Drop Access CTA'); return; }
+      if (e.target.closest('[data-drop-already]')) {
+        /* Never shown again to somebody who says they are on the list. */
+        e.preventDefault();
+        lsSet(LS_SUBSCRIBED, '1');
+        emit('Drop Already Subscribed');
+        close('already');
+        return;
+      }
       if (e.target.closest('[data-drop-sale-open]')) {
         e.preventDefault();
         var f = root.querySelector('[data-drop-sale-form]');
@@ -784,6 +801,13 @@
          seconds, and interrupting them then is the thing this is most
          careful not to do. */
       if (midPurchase()) return;
+      /* Never over the entry gate: it has its own form, and two stacked
+         sign-ups is the double ask this file exists to avoid. Waits
+         and tries again once the gate is down. */
+      if (document.documentElement.classList.contains('asior-gated') || document.querySelector('.gate-root')) {
+        setTimeout(function () { fire(why); }, 1500);
+        return;
+      }
       fired = true;
       cleanup();
       open(why);
@@ -792,7 +816,7 @@
     /* Engaged time, not wall-clock. The timer only advances while the
        tab is actually visible. */
     var elapsed = 0, last = Date.now(), timer = null;
-    var want = (CFG.TRIGGER && CFG.TRIGGER.delayMs) || 10000;
+    var want = saleOffer() ? 3000 : ((CFG.TRIGGER && CFG.TRIGGER.delayMs) || 10000);
 
     function tick() {
       if (document.visibilityState === 'visible') elapsed += Date.now() - last;

@@ -225,7 +225,7 @@
        before anything reads storage. -->
   <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
     ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
-      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
+      if(!ok){window.__asiorMemStorage=true;try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
     /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
@@ -442,7 +442,7 @@
       <ul class="arch-colllist">
         <!-- COLLINDEX:START -->
         <li><a href="/collections/tops.html"><span>Tops</span><span class="n">5 pieces</span></a></li>
-        <li><a href="/collections/bottoms.html"><span>Bottoms</span><span class="n">3 pieces</span></a></li>
+        <li><a href="/collections/bottoms.html"><span>Bottoms</span><span class="n">5 pieces</span></a></li>
         <li><a href="/collections/accessories.html"><span>Accessories</span><span class="n">2 pieces</span></a></li>
         <li><a href="/collections/black-friday-exclusives.html"><span>Black Friday Exclusives</span><span class="n">2 pieces</span></a></li>
         <li><a href="/collections/black-friday-sale.html"><span>Black Friday</span><span class="n">6 pieces</span></a></li>

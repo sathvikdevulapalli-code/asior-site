@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<title>An Extra 10% Off | Asior</title>
+<meta name="description" content="Sign up for free and get an extra 10% off the Asior Black Friday sale.">
+<meta name="theme-color" content="#0B0B0C">
+<link rel="canonical" href="https://asiorclothing.com/extra10">
+
+<!-- Open Graph. Social crawlers never run JavaScript, so these have to be
+     real tags in the served HTML or a shared link renders as a bare URL.
+     This page exists to be the destination of an Instagram or TikTok bio
+     link, so what it looks like when pasted matters more here than on
+     most pages. -->
+<meta property="og:site_name" content="Asior">
+<meta property="og:type" content="website">
+<meta property="og:title" content="An Extra 10% Off | Asior">
+<meta property="og:description" content="Sign up for free and get an extra 10% off the Asior Black Friday sale.">
+<meta property="og:url" content="https://asiorclothing.com/extra10">
+<meta property="og:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ASIOR streetwear campaign">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://asiorclothing.com/assets/og-default.jpg">
+<meta name="twitter:image:alt" content="ASIOR streetwear campaign">
+
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preload" href="assets/site.js" as="script">
+<style>
+  @media (hover: hover) and (pointer: fine) {
+    header nav a:hover::after { width: 100%; }
+  }
+
+  @keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .textpage {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 6vh 20px 14vh;
+    animation: pageFadeIn 700ms var(--ease-out) both;
+  }
+
+  .textpage h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 6vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+  }
+
+  .textpage-lede {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--muted);
+    margin: 0 0 30px;
+  }
+
+  /* What the list actually is, in the words a person would use. No
+     discount is offered here, because there is no signup code to
+     redeem — see the comment on SMS_CONSENT in scripts/build.js. */
+  .textpage-what {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+    border-top: 1px solid var(--line);
+  }
+
+  .textpage-what li {
+    font-family: var(--font-body);
+    font-size: var(--t-sm);
+    line-height: 1.6;
+    color: var(--muted);
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .textpage-what strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .textpage-number {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-top: 30px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .textpage { animation: none; }
+  }
+  .x10 { text-align: left; }
+  .x10 h1 span { color: var(--sale-red-ink, #FF5A66); }
+  .x10-eyebrow { margin: 0 0 14px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--sale-red-ink, #FF5A66); }
+  .x10-form { display: flex; flex-direction: column; gap: 16px; }
+  .x10-form .field { height: 52px; padding: 0 2px; font-size: 16px; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--field-line); border-radius: 0; }
+  .x10-form .field:focus { outline: none; border-bottom-color: var(--ink); }
+  .x10-form .btn { margin-top: 6px; min-height: 52px; }
+  .x10-consent { margin: 0; font-size: 11px; line-height: 1.6; color: var(--muted); }
+  .x10-consent a { color: inherit; }
+  .x10-msg { margin: 0; font-size: 13px; color: var(--ink); }
+  .x10-msg:empty { display: none; }
+  .x10-done[hidden] { display: none; }
+  .x10-code { display: inline-block; margin: 0 0 18px; padding: 16px 26px; border: 1px dashed var(--ink); font-size: 30px; font-weight: 700; letter-spacing: .24em; user-select: all; }
+</style>
+
+<!-- HEAD:START -->
+  <link rel="preconnect" href="https://static.klaviyo.com" crossorigin>
+  <script async src="https://static.klaviyo.com/onsite/js/QV7rBB/klaviyo.js?company_id=QV7rBB"></script>
+  <!-- A REAL VISITOR COUNT, which nothing else here provides.
+
+       Checked 2026-11-14: Shopify reported 50 sessions in 30 days and
+       attributed 100% of them to "direct" -- not one to social. That
+       is not Shopify being wrong, it is Shopify having nothing to go
+       on: Instagram's in-app browser sends no document.referrer, so
+       unless the inbound URL carries UTM parameters there is nothing
+       to attribute with. Klaviyo is no second opinion either; its
+       Active on Site metric fired 5 times in the same 30 days,
+       because it only counts profiles Klaviyo already knows.
+
+       Vercel counts at the edge, on the request itself, so it is
+       immune to the referrer being stripped, to ad blockers, and to
+       the gate. It is the only number here that answers "how many
+       people actually arrived".
+
+       NEEDS ONE CLICK FROM THE OWNER: Web Analytics has to be enabled
+       on the Vercel project or this script 404s harmlessly and counts
+       nothing. See OWNER-ACTIONS.md. -->
+  <script defer src="/_vercel/insights/script.js"></script>
+  <link rel="preconnect" href="https://monorail-edge.shopifysvc.com">
+  <script defer src="/assets/shopify-analytics.js"></script>
+  <!-- Ad pixels. Both files are inert until assets/ads-config.js is
+       explicitly enabled AND verified AND consented to, so shipping
+       them loads no third-party script and sends nothing. The config
+       is loaded first because ads.js reads it synchronously; no
+       preconnect to the ad networks, because nothing should be
+       warming a connection to a pixel that is switched off. -->
+  <script defer src="/assets/ads-config.js"></script>
+  <script defer src="/assets/ads.js"></script>
+  <!-- DROP ACCESS. Config first, because drop-access.js reads it
+       synchronously; both deferred so neither blocks first paint, and
+       both no-op entirely when ASIOR_DROP.ENABLED is false. The
+       automatic trigger is a separate switch (AUTO) and ships off --
+       see the long note at the top of drop-config.js about the two
+       Klaviyo popups that are already live on every page. -->
+  <script defer src="/assets/drop-config.js"></script>
+  <script defer src="/assets/drop-access.js"></script>
+  <!-- THE ENTRY GATE. A wall, unlike the overlay above it. Read the
+       header of assets/drop-gate.js before touching any of this.
+
+       The bootstrap below is INLINE and SYNCHRONOUS on purpose: a
+       deferred script cannot hide the page until after the storefront
+       has already painted, and a wall that appears a beat after the
+       clothes is not a wall. It adds a class that hides <body> via
+       the .asior-gate-pending rule in site.css.
+
+       The watchdog is the reason that is safe. If drop-gate.js fails
+       to load, throws, or is slow, nothing else would ever remove
+       that class and every visitor would sit looking at a blank page
+       -- the whole site, down, from one bad deploy. So the same
+       inline script that hides the page schedules its own
+       unconditional reveal. A broken gate shows the shop. It never
+       shows nothing.
+
+       It reads ASIOR_DROP.GATE.ON from the deferred config, which has
+       not run yet, so it cannot: it checks the inlined copy of that
+       one boolean below instead. The build writes both from the same
+       source, and check-slop fails if they disagree. -->
+  <!-- STORAGE THAT REFUSES MUST NOT STOP A SALE (2026-11-27). Some
+       browsers throw on any localStorage/sessionStorage access when
+       cookies or site data are blocked, and a dozen call sites across
+       the site assumed it worked -- on the product page that left Add
+       to bag disabled for those shoppers. Rather than guard every call,
+       this swaps in an in-memory stand-in for the visit when the real
+       one refuses. Nothing is persisted, which is what the shopper's
+       own setting asked for; everything else works. First in <head>,
+       before anything reads storage. -->
+  <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
+    ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
+      if(!ok){window.__asiorMemStorage=true;try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
+  <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
+    var d=document.documentElement;
+    /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
+       stamped below by the build) drop-gate.js never builds the gate,
+       so hiding the page and preloading its film and fonts would only
+       delay every page view of the sale. 0 = no automatic opening. */
+    var OPEN=/*GATE_OPEN_MS*/1795809600000/*END_GATE_OPEN_MS*/;if(OPEN&&Date.now()>=OPEN)return;
+    /* The password is remembered; a signup no longer opens anything
+       (2026-11-27), so asior_gate_opened_at is not a reason to skip. */
+    if(localStorage.getItem('asior_gate_pass'))return;
+    d.classList.add('asior-gate-pending');
+    /* The gate's assets are fetched HERE, not from static <link>s in
+       this head, because only this line knows whether the gate is
+       about to appear. Three faces and a poster is 102KB, and a
+       visitor who is already through the gate never sees any of it --
+       preloading them on every page spent that on every page view of
+       every admitted customer, for a screen they will not be shown.
+       Injected only on the paint where the gate actually renders.
+
+       crossorigin is required on a font preload even same-origin:
+       font fetches are always CORS-mode, and a preload without it is
+       made in the wrong mode, ignored, and quietly fetched twice. */
+    ['/fonts/anton-latin.woff2','/fonts/inter-tight-var-latin.woff2',
+     '/fonts/courier-prime-400-latin.woff2'].forEach(function(h){
+      var l=document.createElement('link');
+      l.rel='preload';l.as='font';l.type='font/woff2';l.href=h;l.crossOrigin='anonymous';
+      d.firstChild.appendChild(l);
+    });
+    var p=document.createElement('link');
+    p.rel='preload';p.as='image';p.href='/video/gate-poster.jpg';p.fetchPriority='high';
+    d.firstChild.appendChild(p);
+    setTimeout(function(){d.classList.remove('asior-gate-pending');},4000);
+  }catch(e){try{document.documentElement.classList.remove('asior-gate-pending');}catch(x){}}})();</script>
+  <script defer src="/assets/drop-gate.js"></script>
+  <!-- HEAD:END -->
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- HEADER:START -->
+  <div class="announce" role="region" aria-label="Announcements">
+    <!-- Empty, and invisible, unless NEXT_DROP in launch-config.js has
+         a name and a real opensAt. assets/site.js fills it; nothing
+         here renders a placeholder, because a countdown with no date
+         behind it is the fake timer CLAUDE.md bans. -->
+    <p class="announce-drop" data-drop-countdown></p>
+    <div class="announce-track" data-announce>
+      <p class="announce-msg is-on">Free shipping on US orders at $50 and over</p>
+    </div>
+  </div>
+  <header class="site-header">
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
+
+    <nav class="nav-main" id="siteNav">
+      <button type="button" class="nav-close" id="navClose" aria-label="Close menu">Close</button>
+      <a href="/collections/black-friday-sale.html">Black Friday</a>
+      <a href="/shop.html">Shop all</a>
+      <a href="/collections/tops.html">Tops</a>
+      <a href="/collections/bottoms.html">Bottoms</a>
+      <a href="/waitlist.html">Waitlist</a>
+    </nav>
+
+    <a class="mark" href="/" aria-label="Asior, home"><span class="mark-text">Asior</span></a>
+
+    <div class="header-right">
+      <!-- Static, not a picker. One market is enabled in Shopify, so a
+           dropdown here would offer a choice that does not exist. -->
+      <span class="market" aria-label="Market: United States, US dollars">United States (US $)</span>
+      <button type="button" class="search-toggle" id="searchToggle"
+              aria-expanded="false" aria-controls="searchPanel" aria-label="Search our store">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="9" cy="9" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+          <line x1="13.6" y1="13.6" x2="18" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></line>
+        </svg>
+      </button>
+      <a href="/cart.html" class="cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="cart-count">0</span></a>
+    </div>
+  </header>
+
+  <!-- Search, as a panel from the top of the page rather than its own
+       route. Markup ships with every page so it works the moment the
+       icon is pressed; assets/site.js fetches the catalogue the first
+       time it opens and nothing before that. -->
+  <div class="search-panel" id="searchPanel" hidden>
+    <div class="search-panel-in" role="dialog" aria-modal="true" aria-labelledby="searchHeading">
+      <div class="search-panel-head">
+        <h2 class="search-heading" id="searchHeading">Search our store</h2>
+        <button type="button" class="search-close" id="searchClose" aria-label="Close search">Close</button>
+      </div>
+      <label class="search-field">
+        <span class="sr-only">Search products</span>
+        <input type="search" id="searchInput" autocomplete="off" placeholder="What are you looking for?">
+      </label>
+      <p class="search-status" id="searchStatus" role="status" aria-live="polite"></p>
+      <div class="search-results shop-grid" id="searchResults"></div>
+    </div>
+  </div>
+  <!-- HEADER:END -->
+
+  <main id="main">
+
+  <!-- /extra10: the sign-up page the founder asked for on 2026-11-27
+       ("a page saying get an extra 10% off for free, then a Klaviyo
+       sign-up"). It is NOT a second funnel: same list (GATE.LIST_ID,
+       TFEDaD), same consent wording (read from drop-config.js at run
+       time, never typed here), same code (GATE.MEMBER_OFFER). The code
+       is shown only while the sale is live; afterwards the page simply
+       confirms the signup. -->
+  <section class="textpage x10">
+    <p class="x10-eyebrow">Black Friday</p>
+    <h1>Get an extra 10% off.<br><span>Free.</span></h1>
+    <p class="textpage-lede" id="x10Lede">Everything is already on sale. Sign up and your code takes the whole order to 20% off.</p>
+
+    <form class="x10-form" id="x10Form" novalidate>
+      <label class="sr-only" for="x10Email">Email address</label>
+      <input class="field" type="email" id="x10Email" placeholder="email" autocomplete="email" spellcheck="false">
+      <label class="sr-only" for="x10Phone">Mobile number</label>
+      <input class="field" type="tel" id="x10Phone" placeholder="mobile number" autocomplete="tel" inputmode="tel">
+      <p class="x10-consent" id="x10Sms"></p>
+      <button type="submit" class="btn" id="x10Btn">Get my code</button>
+      <p class="x10-consent">Marketing emails, unsubscribe anytime. <a href="/privacy-policy.html">Privacy</a></p>
+      <p class="x10-msg" id="x10Msg" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="x10-done" id="x10Done" hidden>
+      <p class="x10-eyebrow">your code</p>
+      <p class="x10-code" id="x10Code"></p>
+      <p class="textpage-lede" id="x10DoneLine"></p>
+      <a class="btn" href="/collections/black-friday-sale.html">Shop the sale</a>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- FOOTER:START -->
+  <!-- The brand signature's strongest placement. Shopping is finished
+       by the time anyone is here, so the pattern can be loud without
+       costing a sale. Decorative only: no text sits on it. -->
+  <div class="leo leo-band footer-leo" aria-hidden="true"></div>
+  <footer class="site-footer" id="order">
+    <div class="footer-cols">
+      <div class="fcol fcol--brand">
+        <div class="fmark"><span class="mark-text">Asior</span></div>
+        <p class="fsupport">Support: <a href="mailto:asiorclothing@gmail.com">asiorclothing@gmail.com</a></p>
+        <!-- About, the lookbook and the archive had no inbound link
+             anywhere after the nav was cut to the reference's four
+             items: they sat in the sitemap with nothing pointing at
+             them. They live here rather than in the nav so the header
+             still matches the reference. -->
+        <ul class="flinks flinks--brand">
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/community.html">Lookbook</a></li>
+          <li><a href="/archive.html">Archive</a></li>
+          <!-- The half of DROP ACCESS that cannot annoy anybody: it
+               opens only because somebody asked. It is an <a> to the
+               real campaign page, so it still works with no
+               JavaScript and is a real destination for a crawler;
+               drop-access.js intercepts the click and opens the
+               overlay instead when it is running. -->
+          <li><a href="/drop.html" data-drop-open="footer">Drop access</a></li>
+        </ul>
+        <div class="social">
+          <a href="https://www.instagram.com/asior_clothing/" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@asiorclothing.com" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 3h-3v12.1a2.7 2.7 0 1 1-2-2.6v-3.1a5.8 5.8 0 1 0 5 5.7V9.4a7.5 7.5 0 0 0 4 1.2V7.5c-2.1-.2-3.7-1.8-4-4.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Customer service</h2>
+        <ul class="flinks">
+          <li><a href="/contact.html">Contact us</a></li>
+          <!-- Shopify's own hosted customer accounts. Not a login form
+               of ours and no customer API is called from this repo. -->
+          <li><a href="/account.html">Account</a></li>
+          <li><a href="/manufacturing.html">Manufacturing</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol">
+        <h2 class="fhead">Terms</h2>
+        <ul class="flinks">
+          <li><a href="/terms-of-service.html">Terms of Service</a></li>
+          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="/privacy-policy.html#your-privacy-choices" data-asior-privacy-choices>Your Privacy Choices</a></li>
+          <li><a href="/shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="/refund-policy.html">Refunds and Returns</a></li>
+          <li><a href="/contact.html">Contact Information</a></li>
+          <li><a href="/text.html">Text List</a></li>
+        </ul>
+      </div>
+
+      <div class="fcol fcol--signup">
+        <h2 class="fhead">Join the community</h2>
+        <p class="fsignup-copy">Stay in the loop with occasional ASIOR updates.</p>
+        <div class="email-signup" data-email-location="footer">
+      <form class="sms-form email-form" data-email-signup novalidate>
+        <label class="sr-only" for="email-footer">Email address</label>
+        <input class="field" type="email" id="email-footer" name="email" placeholder="Email address"
+               autocomplete="email" spellcheck="false" required>
+        <button type="submit">Join</button>
+        <p class="sms-msg" data-email-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="email-consent">By signing up, you agree to receive occasional marketing emails. Unsubscribe anytime.</p>
+    </div>
+        <div class="sms-signup sms-signup--footer" data-sms-location="footer">
+      
+      <form class="sms-form" data-sms-signup novalidate>
+        <label class="sr-only" for="sms-footer">Mobile number</label>
+        <input class="field" type="tel" id="sms-footer" name="phone" placeholder="Mobile number"
+               autocomplete="tel" inputmode="tel" maxlength="20" required>
+        <button type="submit">Sign up</button>
+        <p class="sms-msg" data-sms-msg role="status" aria-live="polite"></p>
+      </form>
+      <p class="consent">
+        By signing up you agree to receive recurring automated marketing texts from
+        ASIOR at the number provided. Consent is not a condition of purchase. Message
+        frequency varies. Message and data rates may apply. Reply STOP to cancel, HELP
+        for help. See our <a href="/terms-of-service.html">Terms</a> and
+        <a href="/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
+      </div>
+    </div>
+
+    <div class="footer-base">&copy; ASIOR 2026</div>
+  </footer>
+  <!-- FOOTER:END -->
+
+<script src="assets/site.js"></script>
+<script src="assets/launch-config.js"></script>
+<script src="assets/promo-config.js"></script>
+<script>
+/* After DOMContentLoaded: drop-config.js is deferred in <head>, so it
+   has not run yet when this inline script is parsed. */
+document.addEventListener('DOMContentLoaded', function () {
+  var A = window.Asior || {};
+  var G = (window.ASIOR_DROP && window.ASIOR_DROP.GATE) || {};
+  var m = G.MEMBER_OFFER || {};
+  var live = !!(A.saleShowing && A.saleShowing() && m.CODE);
+  document.getElementById('x10Sms').textContent = (G.SMS && G.SMS.CONSENT) || '';
+  if (!live) {
+    /* Outside the sale there is no extra 10% to promise. */
+    document.querySelector('.x10 h1').innerHTML = 'Get first word<br><span>on what is next.</span>';
+    document.getElementById('x10Lede').textContent = 'New drops and sales, before anyone else.';
+    document.getElementById('x10Btn').textContent = 'Sign up';
+  }
+  function e164(v) {
+    var plus = /^\s*\+/.test(v), d = String(v).replace(/\D/g, '');
+    if (!d) return '';
+    if (plus) return (d.length >= 8 && d.length <= 15) ? '+' + d : '';
+    if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+    return /^[2-9]\d{2}[2-9]\d{6}$/.test(d) ? '+1' + d : '';
+  }
+  var busy = false;
+  document.getElementById('x10Form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    var msg = document.getElementById('x10Msg');
+    var email = document.getElementById('x10Email').value.trim();
+    var raw = document.getElementById('x10Phone').value.trim();
+    var phone = raw ? e164(raw) : '';
+    if (!email && !raw) { msg.textContent = 'enter an email or a mobile number.'; return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = 'that email does not look right.'; return; }
+    if (raw && !phone) { msg.textContent = 'that number does not look right.'; return; }
+    if (!A.klaviyoSubscribeToList || !G.LIST_ID) { msg.textContent = 'that did not go through. try again in a moment.'; return; }
+    var profile = {}; if (email) profile.email = email; if (phone) profile.phone_number = phone;
+    busy = true; msg.textContent = 'one moment\u2026';
+    A.klaviyoSubscribeToList(G.LIST_ID, profile).then(function () {
+      try { localStorage.setItem('asior_gate_email', email || phone); } catch (x) {}
+      if (A.klaviyoTrack) { try { A.klaviyoTrack('Extra 10 Signup', { source: 'extra10_page', sms_opt_in: !!phone }, email ? { email: email } : { phone_number: phone }); } catch (x) {} }
+      document.getElementById('x10Form').hidden = true;
+      var done = document.getElementById('x10Done');
+      if (live) {
+        document.getElementById('x10Code').textContent = m.CODE;
+        document.getElementById('x10DoneLine').textContent = 'Enter it at checkout for ' + m.PCT + '% off your order. One use per customer.';
+      } else {
+        document.getElementById('x10Code').hidden = true;
+        document.querySelector('.x10-done .x10-eyebrow').textContent = 'you are on the list';
+        document.getElementById('x10DoneLine').textContent = 'We will be in touch.';
+      }
+      done.hidden = false;
+    }).catch(function () { msg.textContent = 'that did not go through. try again in a moment.'; })
+      .then(function () { busy = false; });
+  });
+});
+</script>
+</body>
+</html>
