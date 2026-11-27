@@ -375,7 +375,7 @@ window.ASIOR_DROP = {
          the password (PASS_SHA above) and ASIORLIST works from then;
          the clock and the wall wait for the public tier at 2:00. */
       TO: '2026-11-27T20:00:00Z',
-      ENDS: '2026-12-01T05:59:00Z',
+      ENDS: '2026-12-01T03:00:00Z',   /* both discounts end Cyber Monday 9 PM CST, set 2026-11-27 */
       /* Reachable only if OPEN_AT is ever held later than TO. With
          both at 20:00 the wall lifts the moment this would appear,
          which is the correct behaviour -- a member who is told

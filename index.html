@@ -1001,9 +1001,28 @@
        not run yet, so it cannot: it checks the inlined copy of that
        one boolean below instead. The build writes both from the same
        source, and check-slop fails if they disagree. -->
+  <!-- STORAGE THAT REFUSES MUST NOT STOP A SALE (2026-11-27). Some
+       browsers throw on any localStorage/sessionStorage access when
+       cookies or site data are blocked, and a dozen call sites across
+       the site assumed it worked -- on the product page that left Add
+       to bag disabled for those shoppers. Rather than guard every call,
+       this swaps in an in-memory stand-in for the visit when the real
+       one refuses. Nothing is persisted, which is what the shopper's
+       own setting asked for; everything else works. First in <head>,
+       before anything reads storage. -->
+  <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
+    ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
+      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
-    if(localStorage.getItem('asior_gate_opened_at'))return;
+    /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
+       stamped below by the build) drop-gate.js never builds the gate,
+       so hiding the page and preloading its film and fonts would only
+       delay every page view of the sale. 0 = no automatic opening. */
+    var OPEN=/*GATE_OPEN_MS*/1795809600000/*END_GATE_OPEN_MS*/;if(OPEN&&Date.now()>=OPEN)return;
+    /* The password is remembered; a signup no longer opens anything
+       (2026-11-27), so asior_gate_opened_at is not a reason to skip. */
+    if(localStorage.getItem('asior_gate_pass'))return;
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is
@@ -1148,14 +1167,11 @@
           <a class="product-link" href="/products/black-jag-sweats.html" tabindex="-1" aria-hidden="true">
             <div class="product-img" data-alt-src="/images/flat/oli05413-800.webp"><img src="/images/flat/oli05412-1200.webp" srcset="/images/flat/oli05412-400.webp 400w, /images/flat/oli05412-800.webp 800w, /images/flat/oli05412-1200.webp 1200w" sizes="(max-width: 768px) 48vw, 25vw" alt="Asior Black JAG Sweats" width="2400" height="3600" loading="lazy" decoding="async"></div>
           </a>
-          <span class="product-badge">Preorder</span>
-          <a class="product-peek btn btn--sm" data-sizes="black-jag-sweats" href="/products/black-jag-sweats.html" aria-expanded="false" aria-label="Choose a size for Black JAG Sweats">Choose a size</a>
-          <div class="quick-add" data-handle="black-jag-sweats" data-name="Black JAG Sweats"><button type="button" class="qa-size" data-variant-id="gid://shopify/ProductVariant/51909523996889" data-size="S" aria-label="Add size S to cart">S</button><button type="button" class="qa-size" data-variant-id="gid://shopify/ProductVariant/51909524029657" data-size="M" aria-label="Add size M to cart">M</button><button type="button" class="qa-size" data-variant-id="gid://shopify/ProductVariant/51909524062425" data-size="L" aria-label="Add size L to cart">L</button></div>
+          
         </div>
         <a class="product-link" href="/products/black-jag-sweats.html">
           <div class="product-title">Black JAG Sweats</div>
           <div class="product-price tnum">$45.99</div>
-          <div class="product-state">Preorder · ships in 4–6 weeks</div>
         </a>
       </div>
 
@@ -1164,14 +1180,11 @@
           <a class="product-link" href="/products/asr-sweats.html" tabindex="-1" aria-hidden="true">
             <div class="product-img" data-alt-src="/images/flat/oli05424-800.webp"><img src="/images/flat/oli05419-1200.webp" srcset="/images/flat/oli05419-400.webp 400w, /images/flat/oli05419-800.webp 800w, /images/flat/oli05419-1200.webp 1200w" sizes="(max-width: 768px) 48vw, 25vw" alt="Asior ASR Sweats" width="2377" height="3600" loading="lazy" decoding="async"></div>
           </a>
-          <span class="product-badge">Preorder</span>
-          <a class="product-peek btn btn--sm" data-sizes="asr-sweats" href="/products/asr-sweats.html" aria-expanded="false" aria-label="Choose a size for ASR Sweats">Choose a size</a>
-          <div class="quick-add" data-handle="asr-sweats" data-name="ASR Sweats"><button type="button" class="qa-size" data-variant-id="gid://shopify/ProductVariant/51909530976473" data-size="S" aria-label="Add size S to cart">S</button><button type="button" class="qa-size" data-variant-id="gid://shopify/ProductVariant/51909531009241" data-size="M" aria-label="Add size M to cart">M</button><button type="button" class="qa-size" data-variant-id="gid://shopify/ProductVariant/51909531042009" data-size="L" aria-label="Add size L to cart">L</button></div>
+          
         </div>
         <a class="product-link" href="/products/asr-sweats.html">
           <div class="product-title">ASR Sweats</div>
           <div class="product-price tnum">$45.99</div>
-          <div class="product-state">Preorder · ships in 4–6 weeks</div>
         </a>
       </div>
   <!-- BFXGRID:END -->

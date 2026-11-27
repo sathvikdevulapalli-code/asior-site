@@ -274,9 +274,28 @@
        not run yet, so it cannot: it checks the inlined copy of that
        one boolean below instead. The build writes both from the same
        source, and check-slop fails if they disagree. -->
+  <!-- STORAGE THAT REFUSES MUST NOT STOP A SALE (2026-11-27). Some
+       browsers throw on any localStorage/sessionStorage access when
+       cookies or site data are blocked, and a dozen call sites across
+       the site assumed it worked -- on the product page that left Add
+       to bag disabled for those shoppers. Rather than guard every call,
+       this swaps in an in-memory stand-in for the visit when the real
+       one refuses. Nothing is persisted, which is what the shopper's
+       own setting asked for; everything else works. First in <head>,
+       before anything reads storage. -->
+  <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
+    ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
+      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
-    if(localStorage.getItem('asior_gate_opened_at'))return;
+    /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
+       stamped below by the build) drop-gate.js never builds the gate,
+       so hiding the page and preloading its film and fonts would only
+       delay every page view of the sale. 0 = no automatic opening. */
+    var OPEN=/*GATE_OPEN_MS*/1795809600000/*END_GATE_OPEN_MS*/;if(OPEN&&Date.now()>=OPEN)return;
+    /* The password is remembered; a signup no longer opens anything
+       (2026-11-27), so asior_gate_opened_at is not a reason to skip. */
+    if(localStorage.getItem('asior_gate_pass'))return;
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is
@@ -379,7 +398,7 @@
         <p class="contact-intro">Need help with an order or have a question? Send us a message
           and include your order number if it&rsquo;s about an order.</p>
 
-        <form class="contact-form" id="contactForm" method="post" action="https://asiorclothing.com/contact#contact_form" target="contact-target">
+        <form class="contact-form" id="contactForm" novalidate>
           <input type="hidden" name="form_type" value="contact">
           <input type="hidden" name="utf8" value="&#10003;">
           <!-- [measured] Name and Email side by side, Message full
@@ -522,13 +541,26 @@
 
   const contactForm = document.getElementById('contactForm');
   const contactConfirm = document.getElementById('contactConfirm');
-  // Let the form actually submit (to the hidden iframe target above) instead
-  // of preventing it, that's what sends the message to Shopify for real.
-  contactForm.addEventListener('submit', () => {
-    setTimeout(() => {
-      contactForm.style.display = 'none';
-      contactConfirm.classList.add('show');
-    }, 500);
+  /* The form used to POST to asiorclothing.com/contact -- which is this
+     static Vercel site, not Shopify, so nothing received it -- and then
+     said "Message sent" after half a second either way. Every message
+     was lost (found 2026-11-27). Until a real form backend exists, it
+     hands the message to the shopper's own mail app, addressed and
+     filled in, and says that is what happened. */
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!contactForm.reportValidity()) return;
+    const name = contactForm.querySelector('[name="contact[name]"]').value.trim();
+    const email = contactForm.querySelector('[name="contact[email]"]').value.trim();
+    const msgEl = contactForm.querySelector('textarea');
+    const body = (msgEl ? msgEl.value.trim() : '') + '\n\n' + name + (email ? ' <' + email + '>' : '');
+    const to = 'asiorclothing@gmail.com';
+    location.href = 'mailto:' + to + '?subject=' + encodeURIComponent('Asior: message from ' + (name || 'the site'))
+      + '&body=' + encodeURIComponent(body);
+    contactForm.style.display = 'none';
+    contactConfirm.innerHTML = 'Your email app should open with the message ready to send. '
+      + 'If it did not, write to <a href="mailto:' + to + '">' + to + '</a>.';
+    contactConfirm.classList.add('show');
   });
 </script>
 

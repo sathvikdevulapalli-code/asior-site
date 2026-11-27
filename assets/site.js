@@ -207,11 +207,24 @@
     }
   }
 
+  /* Storage that throws (blocked cookies, some private modes) must
+     never be the reason somebody cannot buy. */
+  function cartIdGet() { try { return localStorage.getItem('shopify_cart_id'); } catch (e) { return memCartId; } }
+  function cartIdSet(id) { memCartId = id; try { localStorage.setItem('shopify_cart_id', id); } catch (e) {} }
+  function cartIdClear() { memCartId = null; try { localStorage.removeItem('shopify_cart_id'); } catch (e) {} }
+  var memCartId = null;
+
   async function getOrCreateCart() {
-    var existingId = localStorage.getItem('shopify_cart_id');
+    var existingId = cartIdGet();
     if (existingId) {
-      var data = await shopifyFetch('query($id: ID!) { cart(id: $id) { id checkoutUrl totalQuantity } }', { id: existingId });
-      if (data.cart) return data.cart;
+      /* A saved id from weeks ago can be expired, completed, or from a
+         previous API shape. Any of those is answered by a fresh cart,
+         never by an error in front of the shopper (2026-11-27). */
+      try {
+        var data = await shopifyFetch('query($id: ID!) { cart(id: $id) { id checkoutUrl totalQuantity } }', { id: existingId });
+        if (data && data.cart) return data.cart;
+      } catch (err) { /* fall through to a new cart */ }
+      cartIdClear();
     }
     /* Attributes go on at creation. They cannot be added later without
        a second round trip on every add-to-cart, and the first touch is
@@ -224,19 +237,30 @@
        has had before, from a different confident assumption about the
        API. The retry drops the attributes and keeps the cart. */
     var created = await createCart(cartAttributes());
-    localStorage.setItem('shopify_cart_id', created.id);
+    cartIdSet(created.id);
     return created;
   }
 
   async function addToShopifyCart(variantId, qty) {
-    var cart = await getOrCreateCart();
-    var data = await shopifyFetch(
-      'mutation($cartId: ID!, $lines: [CartLineInput!]!) {' +
+    var ADD = 'mutation($cartId: ID!, $lines: [CartLineInput!]!) {' +
       '  cartLinesAdd(cartId: $cartId, lines: $lines) { cart { id checkoutUrl totalQuantity } }' +
-      '}',
-      { cartId: cart.id, lines: [{ merchandiseId: variantId, quantity: qty }] }
-    );
-    var updated = data.cartLinesAdd.cart;
+      '}';
+    var cart = await getOrCreateCart();
+    var updated = null;
+    try {
+      var data = await shopifyFetch(ADD, { cartId: cart.id, lines: [{ merchandiseId: variantId, quantity: qty }] });
+      updated = data && data.cartLinesAdd && data.cartLinesAdd.cart;
+    } catch (err) { updated = null; }
+    if (!updated) {
+      /* The saved cart died between the lookup and the add (expired,
+         or already checked out in another tab). One retry on a brand
+         new cart; if that fails too, the error is real and is thrown. */
+      cartIdClear();
+      cart = await getOrCreateCart();
+      var again = await shopifyFetch(ADD, { cartId: cart.id, lines: [{ merchandiseId: variantId, quantity: qty }] });
+      updated = again.cartLinesAdd.cart;
+      if (!updated) throw new Error('cartLinesAdd returned no cart');
+    }
     renderCartCount(updated.totalQuantity, true);
     return updated;
   }
@@ -414,7 +438,7 @@
   }
 
   async function refreshCartCount() {
-    var id = localStorage.getItem('shopify_cart_id');
+    var id = cartIdGet();
     if (!id) return;
     try {
       var data = await shopifyFetch('query($id: ID!) { cart(id: $id) { totalQuantity } }', { id: id });
@@ -778,7 +802,7 @@
   var drawerBusy = false;
 
   async function fetchCartForDrawer() {
-    var id = localStorage.getItem('shopify_cart_id');
+    var id = cartIdGet();
     if (!id) return null;
     var data = await shopifyFetch(
       'query($id: ID!) {' +
@@ -2207,7 +2231,13 @@
        includes the sold-out rule -- a product with nothing left in any
        size has no row and falls through to the quick view, which is
        where the restock signup lives. */
-    var quickAdd = (!p.soldOut && p.sizes && p.sizes.length)
+    /* A preorder is bought from its product page, where the shipping
+       window is stated beside the button -- never from the grid, where
+       the founder asked (2026-11-27) for the card not to say preorder.
+       So it gets neither the size row nor the quick view: the card is
+       a link and nothing else. */
+    var preorderCard = !!p.shipLine;
+    var quickAdd = (!preorderCard && !p.soldOut && p.sizes && p.sizes.length)
       ? '<div class="quick-add" data-handle="' + escapeAttr(p.handle) + '" data-name="' + escapeAttr(p.name) + '"'
         + (p.needsChoice ? ' data-choose="1"' : '') + '>'
         + p.sizes.map(function (s) {
@@ -2236,7 +2266,7 @@
        wireCardSizeReveal), data-peek opens the page's quick view
        dialog (wired per page). A product on a single Title variant has
        no row to reveal, so it keeps the dialog. */
-    var peek = opts.peek === false ? ''
+    var peek = (opts.peek === false || preorderCard) ? ''
       : quickAdd
         ? '<a class="product-peek btn btn--sm" data-sizes="' + escapeAttr(p.handle) + '" href="/products/' + encodeURIComponent(p.handle) + '.html" aria-expanded="false" aria-label="Choose a size for ' + escapeAttr(p.name) + '">Choose a size</a>'
         : '<a class="product-peek btn btn--sm" data-peek="' + escapeAttr(p.handle) + '" href="/products/' + encodeURIComponent(p.handle) + '.html" aria-label="Quick view of ' + escapeAttr(p.name) + '">Quick view</a>';
@@ -2247,7 +2277,7 @@
        wording may only be used if it opens a working restock signup,
        and the grid card does not have one. The product page does. */
     var badge = p.soldOut ? '<span class="product-badge product-badge--sold">Sold out</span>'
-      : (p.shipLine ? '<span class="product-badge">Preorder</span>' : '');
+      : '';
 
     return '\n      <div class="product" data-handle="' + escapeAttr(p.handle) + '">'
       + '<div class="product-frame">'
@@ -2262,11 +2292,7 @@
          the reference stacks them. */
       + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
       + '<div class="product-price tnum">' + p.priceLabel + '</div>'
-      + (p.isPreorder
-        ? '<div class="product-state">' + escapeHtml(p.shipLine
-            ? 'Preorder \u00b7 ' + p.shipLine.charAt(0).toLowerCase() + p.shipLine.slice(1)
-            : 'Preorder') + '</div>'
-        : '')
+      + (p.isPreorder && !p.shipLine ? '<div class="product-state">Preorder</div>' : '')
       + '</a></div>';
   }
 
@@ -2341,6 +2367,49 @@
     } catch (e) { return /[?&]sale=preview\b/.test(location.search); }
   }
 
+  /* ---- time left, shared by the marquee, the PDP and the cart ----- */
+  function saleEndsAt() {
+    var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
+    return sale ? Date.parse(sale.UNTIL) : NaN;
+  }
+  function saleClockText() {
+    var left = saleEndsAt() - Date.now();
+    if (!isFinite(left) || left <= 0) return '00:00:00';
+    var s = Math.floor(left / 1000);
+    var d = Math.floor(s / 86400);
+    var h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    /* Days once there is more than one: "3d 04:12:33" reads as a date,
+       "76:12:33" reads as a typo. */
+    return (d ? d + 'd ' : '') + (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (x < 10 ? '0' : '') + x;
+  }
+  function saleShowing() { return saleLive() || salePreview(); }
+
+  var saleTicker = null;
+  function tickSale() {
+    if (!saleShowing() || (saleEndsAt() - Date.now()) <= 0) {
+      /* The sale is over: every trace of it comes off the page on its
+         own, at the same instant the Shopify discounts stop applying. */
+      clearInterval(saleTicker); saleTicker = null;
+      var m = document.querySelector('.bf-marquee'); if (m) m.remove();
+      document.querySelectorAll('.sale-clock, .sale-tag').forEach(function (el) { el.remove(); });
+      restoreSalePrices();
+      return;
+    }
+    var t = saleClockText();
+    document.querySelectorAll('[data-sale-clock]').forEach(function (el) {
+      /* nodeValue, not textContent: rewriting the text node in place is
+         a characterData change, which watchSale's observer ignores, so
+         the clock does not re-run the markdown pass every second. */
+      if (el.firstChild && el.firstChild.nodeType === 3) { if (el.firstChild.nodeValue !== t) el.firstChild.nodeValue = t; }
+      else el.textContent = t;
+    });
+  }
+  function startSaleTicker() {
+    if (saleTicker) return;
+    tickSale();
+    saleTicker = setInterval(tickSale, 1000);
+  }
+
   function renderSaleMarquee(live) {
     var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
     var existing = document.querySelector('.bf-marquee');
@@ -2348,21 +2417,160 @@
     if (!show) { if (existing) existing.remove(); return false; }
     if (existing) return true;
     var bits = sale.MARQUEE;
-    var unit = bits.map(function (b) { return '<span>' + escapeHtml(b) + '</span>'; })
-      .join('<i aria-hidden="true">\u2726</i>') + '<i aria-hidden="true">\u2726</i>';
+    var unit = bits.map(function (b) {
+      return '<span>' + escapeHtml(b).replace('{countdown}',
+        '<b class="bf-clock" data-sale-clock>' + saleClockText() + '</b>') + '</span>';
+    }).join('<i aria-hidden="true">✦</i>') + '<i aria-hidden="true">✦</i>';
     var el = document.createElement('div');
     el.className = 'bf-marquee';
     el.setAttribute('role', 'region');
     el.setAttribute('aria-label', 'Sale');
-    /* One copy is read; the repeats exist only to fill the loop. */
-    el.innerHTML = '<p class="sr-only">' + escapeHtml(bits.join('. ')) + '</p>'
+    /* One copy is read, once, with no ticking clock in it -- a live
+       region rewriting itself every second is a screen-reader siren. */
+    el.innerHTML = '<p class="sr-only">' + escapeHtml(bits.join('. ').replace('Ends in {countdown}', 'Ends Monday at 9 PM Central')) + '</p>'
       + '<div class="bf-marquee-track" aria-hidden="true">'
-      + '<div class="bf-marquee-run">' + unit + unit + unit + unit + '</div>'
-      + '<div class="bf-marquee-run">' + unit + unit + unit + unit + '</div>'
+      + '<div class="bf-marquee-run">' + unit + unit + unit + '</div>'
+      + '<div class="bf-marquee-run">' + unit + unit + unit + '</div>'
       + '</div>';
     document.body.insertBefore(el, document.body.firstChild);
+    startSaleTicker();
     return true;
   }
+
+  /* ---- the countdown beside the buy button and the checkout button -- */
+  function mountSaleClocks() {
+    if (!saleShowing()) return;
+    /* The Fall row says it is on sale, in words, while it is. Not
+       "restock": nothing was restocked (Shopify, 2026-11-27). */
+    var fallTitle = document.querySelector('#lineup .home-row-title');
+    if (fallTitle && !fallTitle.querySelector('.sale-tag')) {
+      fallTitle.insertAdjacentHTML('beforeend', '<span class="sale-tag"> \u00b7 Black Friday prices</span>');
+    }
+    [['#addBtn', 'pd'], ['#checkoutBtn', 'cart'], ['.cart-drawer-checkout', 'drawer']].forEach(function (pair) {
+      document.querySelectorAll(pair[0]).forEach(function (btn) {
+        var prev = btn.previousElementSibling;
+        if (prev && prev.classList && prev.classList.contains('sale-clock')) return;
+        var p = document.createElement('p');
+        p.className = 'sale-clock sale-clock--' + pair[1];
+        p.innerHTML = '<span class="sale-clock-dot" aria-hidden="true"></span>Black Friday sale ends in '
+          + '<b data-sale-clock aria-hidden="true">' + saleClockText() + '</b>'
+          + '<span class="sr-only">Monday at 9 PM Central</span>';
+        btn.parentNode.insertBefore(p, btn);
+      });
+    });
+    startSaleTicker();
+  }
+
+  /* ---- the markdown ---------------------------------------------------
+
+     Every price on a card and on the product page shows the regular
+     price struck through and the price after the public 10% -- which is
+     what anyone actually pays at checkout, because the Shopify automatic
+     takes 10% off the whole order. Both numbers are real: the regular
+     price is the price, and the sale price is it less 10% rounded the
+     way Shopify rounds a percentage (to the cent, half up).
+
+     Display only, and only inside the discount's window, so it cannot
+     outlive the discount: at 9 PM tickSale() puts the original prices
+     back. The cart keeps showing Shopify's own totals, which are the
+     ones charged. A price that already carries a verified compare-at
+     is left alone. */
+  var SALE_PCT = 10;
+  function saleCents(c) { return c - Math.round(c * SALE_PCT / 100); }
+  function fmtMoney(c) {
+    var s = (c / 100).toFixed(2);
+    return '$' + (s.slice(-3) === '.00' ? s.slice(0, -3) : s);
+  }
+  function salePriceHTML(text) {
+    var m = String(text).match(/^\s*(From\s+)?\$\s?([\d,]+(?:\.\d{1,2})?)\s*$/i);
+    if (!m) return null;
+    var cents = Math.round(parseFloat(m[2].replace(/,/g, '')) * 100);
+    if (!cents) return null;
+    var was = fmtMoney(cents), now = fmtMoney(saleCents(cents));
+    return (m[1] ? 'From ' : '')
+      + '<span class="compare"><span class="sr-only">Was </span>' + was + '</span>'
+      + '<span class="sale-price"><span class="sr-only">Now </span>' + now + '</span>';
+  }
+  function applySalePrices(root) {
+    if (!saleShowing()) return;
+    (root || document).querySelectorAll('.product-price, #pdPrice, .pd-price').forEach(function (el) {
+      if (el.querySelector('.compare') && el.getAttribute('data-sale-html') !== el.innerHTML) {
+        /* someone else's compare-at: leave it */
+        if (!el.hasAttribute('data-sale-html')) return;
+      }
+      if (el.hasAttribute('data-sale-html') && el.getAttribute('data-sale-html') === el.innerHTML) return;
+      var html = salePriceHTML(el.textContent);
+      if (!html) return;
+      el.setAttribute('data-orig-html', el.innerHTML);
+      el.innerHTML = html;
+      el.setAttribute('data-sale-html', el.innerHTML);
+      el.classList.add('is-on-sale');
+    });
+  }
+  function restoreSalePrices() {
+    document.querySelectorAll('[data-orig-html]').forEach(function (el) {
+      if (el.getAttribute('data-sale-html') === el.innerHTML) el.innerHTML = el.getAttribute('data-orig-html');
+      el.removeAttribute('data-orig-html'); el.removeAttribute('data-sale-html');
+      el.classList.remove('is-on-sale');
+    });
+  }
+
+  /* Cards and the PDP price are re-rendered by several scripts, so the
+     markdown and the clocks follow the DOM rather than each renderer. */
+  var saleObserverOn = false;
+  function watchSale() {
+    if (saleObserverOn || !saleShowing()) return;
+    saleObserverOn = true;
+    var pending = false;
+    var run = function () { pending = false; applySalePrices(document); mountSaleClocks(); };
+    run();
+    try {
+      new MutationObserver(function () {
+        if (pending || !saleShowing()) return;
+        pending = true;
+        (window.requestAnimationFrame || setTimeout)(run);
+      }).observe(document.body, { childList: true, subtree: true });
+    } catch (e) { /* no observer: the first pass stands */ }
+  }
+
+  /* ---- photographs arrive rather than pop (2026-11-27) ---------------
+     A card's photograph used to snap in the instant it finished
+     downloading, which on a slow phone is the page assembling itself in
+     front of the shopper. It now fades up as it decodes. The hidden
+     state is only switched on from here, so a visitor without
+     JavaScript is never shown blank tiles; anything already decoded is
+     marked at once; an error counts as arrived; and a 3s net reveals
+     whatever is left, so no photograph can stay invisible. */
+  (function wireImageFade() {
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var root = document.documentElement;
+      var SEL = '.product-img > img, .pd-gallery img, .coll-banner img';
+      var mark = function (img) { img.classList.add('is-in'); };
+      var markDone = function (scope) {
+        (scope || document).querySelectorAll(SEL).forEach(function (img) {
+          if (img.complete) mark(img);
+        });
+      };
+      root.classList.add('img-fade');
+      markDone();
+      document.addEventListener('load', function (e) { if (e.target && e.target.tagName === 'IMG') mark(e.target); }, true);
+      document.addEventListener('error', function (e) { if (e.target && e.target.tagName === 'IMG') mark(e.target); }, true);
+      document.addEventListener('DOMContentLoaded', function () { markDone(); });
+      setInterval(function () {
+        document.querySelectorAll(SEL).forEach(function (img) {
+          if (img.classList.contains('is-in')) return;
+          if (img.complete) { mark(img); return; }
+          /* Only a photograph on screen starts the 3s net; one further
+             down has not been asked for yet and fades when it loads. */
+          var r = img.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > (window.innerHeight || 800)) return;
+          if (!img.dataset.fadeT) img.dataset.fadeT = String(Date.now());
+          else if (Date.now() - Number(img.dataset.fadeT) > 3000) mark(img);
+        });
+      }, 700);
+    } catch (e) { try { document.documentElement.classList.remove('img-fade'); } catch (x) {} }
+  })();
 
   function syncTimedOfferCopy() {
     var threshold = Number(shippingConfig().FREE_THRESHOLD);
@@ -2424,9 +2632,9 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', syncTimedOfferCopy);
+    document.addEventListener('DOMContentLoaded', function () { syncTimedOfferCopy(); watchSale(); });
   } else {
-    syncTimedOfferCopy();
+    syncTimedOfferCopy(); watchSale();
   }
 
   function freeShippingActive() {
@@ -2740,6 +2948,8 @@
     PRODUCT_CARD_FIELDS: PRODUCT_CARD_FIELDS,
     normalizeProduct: normalizeProduct,
     withLocalPhotos: withLocalPhotos,
+    cartIdGet: cartIdGet,
+    saleShowing: function () { return saleShowing(); },
     productCard: productCard,
     wireHoverSwap: wireHoverSwap,
     internationalLine: internationalLine,

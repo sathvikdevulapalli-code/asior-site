@@ -155,7 +155,11 @@ window.ASIOR_SHIPPING = {
   // adjustment matters.
   BFCM_WINDOW: {
     START: '2026-11-27T13:30:00-06:00',
-    END: '2026-11-30T23:59:00-06:00',
+    // 9 PM CST on Cyber Monday. Both Shopify discounts end at
+    // 2026-12-01T03:00:00Z, set at the founder's direction on 2026-11-27
+    // (briefly 9 PM Black Friday, then moved), so this window, the
+    // marquee's countdown and the discounts all end at the same instant.
+    END: '2026-11-30T21:00:00-06:00',
     FREE_THRESHOLD: 55.56,
     // THE SALE, SAID ONCE AT THE TOP OF EVERY PAGE. Both Black Friday
     // discounts are order-level and only show at checkout, so a card
@@ -170,12 +174,17 @@ window.ASIOR_SHIPPING = {
     // If the discount moves or ends in Shopify, this moves with it.
     SALE_LINE: {
       FROM: '2026-11-27T20:00:00Z',
-      UNTIL: '2026-12-01T05:59:00Z',
+      UNTIL: '2026-12-01T03:00:00Z',   // both discounts' endsAt, read back 2026-11-27
       TEXT: 'Black Friday: 10% off everything, taken off at checkout',
       // The red marquee at the very top, same window, same terms. Each
       // phrase is a true statement of the public automatic; none names
       // a code. Empty array or null and the marquee never renders.
-      MARQUEE: ['Black Friday Sale', '10% off everything', 'Taken off at checkout'],
+      // {countdown} is replaced, every second, by the time left until
+      // UNTIL -- the real end of both discounts. The founder's wording:
+      // 10% is already off every price (the strikethroughs), and
+      // signing up takes it to 20% in all (ASIORLIST replaces the 10%;
+      // nothing stacks).
+      MARQUEE: ['Black Friday sale', '20% off sitewide when you sign up', 'Ends in {countdown}'],
     },
   },
 

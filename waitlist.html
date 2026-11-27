@@ -266,9 +266,28 @@
        not run yet, so it cannot: it checks the inlined copy of that
        one boolean below instead. The build writes both from the same
        source, and check-slop fails if they disagree. -->
+  <!-- STORAGE THAT REFUSES MUST NOT STOP A SALE (2026-11-27). Some
+       browsers throw on any localStorage/sessionStorage access when
+       cookies or site data are blocked, and a dozen call sites across
+       the site assumed it worked -- on the product page that left Add
+       to bag disabled for those shoppers. Rather than guard every call,
+       this swaps in an in-memory stand-in for the visit when the real
+       one refuses. Nothing is persisted, which is what the shopper's
+       own setting asked for; everything else works. First in <head>,
+       before anything reads storage. -->
+  <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
+    ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
+      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
-    if(localStorage.getItem('asior_gate_opened_at'))return;
+    /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
+       stamped below by the build) drop-gate.js never builds the gate,
+       so hiding the page and preloading its film and fonts would only
+       delay every page view of the sale. 0 = no automatic opening. */
+    var OPEN=/*GATE_OPEN_MS*/1795809600000/*END_GATE_OPEN_MS*/;if(OPEN&&Date.now()>=OPEN)return;
+    /* The password is remembered; a signup no longer opens anything
+       (2026-11-27), so asior_gate_opened_at is not a reason to skip. */
+    if(localStorage.getItem('asior_gate_pass'))return;
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is
@@ -406,7 +425,7 @@
       </div>
 
       <div class="wl-pane" id="wlPanelEmail" role="tabpanel" aria-labelledby="wlTabEmail">
-        <form class="sms-form email-form" data-email-signup data-klaviyo-list="TN58zR" novalidate>
+        <form class="sms-form email-form" data-email-signup data-klaviyo-list="TFEDaD" novalidate>
           <label class="sr-only" for="wl-email">Email address</label>
           <input class="field" type="email" id="wl-email" name="email" placeholder="Email address"
                  autocomplete="email" inputmode="email" required>

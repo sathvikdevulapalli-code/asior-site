@@ -4673,3 +4673,181 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   .gate-pass { margin: 18px 0 14px; }
   .gate-pass-row .field { height: 46px; }
 }
+
+/* ---- Black Friday: the markdown and the clocks (2026-11-27) ---------
+   Sale prices in a red light enough to read on the black page (the
+   band's own #C1121F is 3.4:1 on --bg, too low for 14px type; this is
+   6.6:1). Everything here is drawn by site.js only inside the
+   discount's window and taken off at the instant it ends. */
+:root { --sale-red-ink: #FF5A66; }
+.is-on-sale .compare,
+.product-price.is-on-sale .compare {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  margin-right: 8px;
+  font-weight: 400;
+}
+.is-on-sale .sale-price {
+  color: var(--sale-red-ink);
+  font-weight: 600;
+}
+
+.bf-marquee .bf-clock {
+  display: inline-block;
+  min-width: 11.5ch;           /* digits change width; the run must not jitter */
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.sale-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: var(--sale-red);
+  color: var(--sale-ink);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.sale-clock b {
+  margin-left: auto;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .08em;
+}
+.sale-clock-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--sale-ink);
+  flex: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sale-clock-dot { animation: sale-pulse 1.6s var(--ease-inout) infinite; }
+}
+@keyframes sale-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+.sale-clock--drawer { margin: 0 0 10px; }
+
+/* ---- the size picker on a card, redrawn 2026-11-27 ------------------
+   The founder found it "kinda weird", and three things made it so: the
+   + jumped to the opposite corner as a big white disc when opened, the
+   sizes floated as loose boxes over a dark fade, and on a phone the
+   tap that opened it left a sticky hover lighting up whichever chip
+   landed under the finger (it was always XL).
+
+   Now: one segmented bar across the foot of the photograph, equal
+   cells divided by hairlines, solid enough to read on any frame. The
+   control stays in its corner, rises just clear of the bar and turns
+   from + to x where it is. */
+.product-frame { --qa-h: 44px; }
+.product-frame .quick-add {
+  gap: 0;
+  padding: 0;
+  height: var(--qa-h);
+  flex-wrap: nowrap;
+  align-items: stretch;
+  background: rgba(11, 11, 12, .9);
+  border-top: 1px solid rgba(232, 232, 234, .16);
+  transform: translateY(8px);
+  transition: opacity 160ms var(--ease-out), transform 220ms var(--ease-out), visibility 0s linear 220ms;
+}
+.product-frame .quick-add::before { display: none; }
+.product.is-picking .product-frame .quick-add {
+  transform: none;
+  transition: opacity 160ms var(--ease-out), transform 220ms var(--ease-out), visibility 0s;
+}
+.product .product-frame .qa-size {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid rgba(232, 232, 234, .14);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.product .product-frame .qa-size:first-child { border-left: 0; }
+.product .product-frame .qa-size.unavailable { color: rgba(232, 232, 234, .32); text-decoration: line-through; }
+.product .product-frame .qa-size:not(.unavailable):hover { background: transparent; color: var(--ink); border-color: rgba(232, 232, 234, .14); }
+@media (hover: hover) and (pointer: fine) {
+  .product .product-frame .qa-size:not(.unavailable):hover { background: var(--ink); color: var(--bg); }
+}
+.product .product-frame .qa-size:not(.unavailable):active { background: var(--ink); color: var(--bg); }
+.product .product-frame .qa-size[data-left]::after { top: auto; bottom: 3px; font-size: 8px; }
+.product-frame .quick-add { padding-bottom: 0; }
+.product-frame .quick-add .qa-msg { margin: auto; }
+
+.product.is-picking .product-peek {
+  top: auto;
+  bottom: calc(var(--qa-h) + 10px);
+  background: var(--bg);
+  color: var(--ink);
+  border-color: rgba(232, 232, 234, .5);
+}
+.product .product-peek { transition: opacity 180ms var(--ease-out), bottom 220ms var(--ease-out), background 180ms var(--ease-out); }
+.product .product-peek::before,
+.product .product-peek::after { transition: transform 220ms var(--ease-out); }
+@media (max-width: 760px) {
+  .product-frame { --qa-h: 40px; }
+  .product .product-frame .qa-size { font-size: 11px; letter-spacing: .06em; }
+}
+
+/* ---- the popup during the sale: the discount, the form, the code ---- */
+.drop-eyebrow--sale { color: var(--sale-red-ink); }
+.drop-sale-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 22px;
+  max-width: 420px;
+}
+.drop-sale-form[hidden], .drop-sale-done[hidden], .drop-actions[hidden] { display: none; }
+.drop-sale-form .field {
+  height: 50px;
+  padding: 0 2px;
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--field-line);
+  border-radius: 0;
+}
+.drop-sale-form .field:focus { outline: none; border-bottom-color: var(--ink); }
+.drop-consent { margin: 0; font-size: 10.5px; line-height: 1.55; color: var(--muted); }
+.drop-consent a { color: inherit; text-decoration: underline; }
+.drop-sale-msg { margin: 0; font-size: 12px; color: var(--ink); min-height: 1em; }
+.drop-sale-msg:empty { min-height: 0; }
+.drop-sale-done { margin-top: 22px; }
+.drop-code {
+  display: inline-block;
+  margin: 6px 0 14px;
+  padding: 14px 22px;
+  border: 1px dashed var(--ink);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: .24em;
+  user-select: all;
+}
+
+/* ---- photographs fade up as they decode (see wireImageFade) -------- */
+html.img-fade .product-img > img:not(.alt-shot),
+html.img-fade .pd-gallery img,
+html.img-fade .coll-banner img {
+  opacity: 0;
+  transition: opacity .55s var(--ease-img), transform 1.1s cubic-bezier(.16, .7, .2, 1);
+}
+html.img-fade .product-img > img.is-in:not(.alt-shot),
+html.img-fade .pd-gallery img.is-in,
+html.img-fade .coll-banner img.is-in { opacity: 1; }
+.sale-tag { color: var(--sale-red-ink); }

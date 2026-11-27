@@ -1333,6 +1333,62 @@ Added 2026-11-27 at Ayush's request.
   `PRODUCT_CARD_FIELDS` asks for 8 images like the build does.
   Before, JAG Shorts' tile swapped after load.
 
+## Black Friday, as finally shipped (2026-11-27, founder's calls)
+
+**The sale ends Mon Nov 30, 9 PM CT (`2026-12-01T03:00Z`).** Both
+Shopify discounts were moved there (briefly 9 PM Black Friday, then
+Cyber Monday). `SALE_LINE.UNTIL`, `BFCM_WINDOW.END` and
+`COUNTDOWN.ENDS` all say the same instant; if one moves, all move, or
+the countdown becomes a fake timer. The founder first asked for a
+timer to 9 PM Friday while the sale ran on; that was declined as a
+false deadline, and they chose to move the real end instead.
+
+**ASIORLIST works for every customer.** It was limited to the Shopify
+segment "Asior Email + SMS Subscribers" (Shopify's own marketing
+status), which people who sign up through Klaviyo on this site are
+not in -- they would have been shown the code and refused at
+checkout. Context is now all buyers, still one use per customer.
+
+**The offer as stated:** everything shows its regular price struck
+through and the price after the public 10% (display only, computed
+the way Shopify rounds, inside the sale window only -- `applySalePrices`
+in `site.js`); signing up makes it 20% in all (ASIORLIST replaces the
+10%, nothing stacks). The red bar scrolls "Black Friday sale / 20% off
+sitewide when you sign up / Ends in {countdown}", and the same clock
+sits above Add to bag, the cart's Check out and the drawer's Checkout.
+Everything comes off by itself at the end instant, on an open page too.
+Strikethroughs larger than the real 10%, or former prices higher than
+the regular price, were asked for and not built (fake reference
+pricing).
+
+**The popup offers the discount.** During the sale `drop-access.js`
+shows "20% off sitewide" with an email-or-phone form and prints
+ASIORLIST once Klaviyo accepts the signup; outside the window it
+reverts to its old copy.
+
+**Preorders are not labelled on cards** (founder): the two sweats'
+cards are plain links with no quick-add, so the shipping window is
+always read on the product page -- Preorder button, "Ships in 4–6
+weeks" -- before anyone can buy.
+
+**No "restock" wording.** Asked for "fall collection restock" on
+2026-11-27; Shopify showed no units added since Nov 16. The Fall row
+reads "Fall collection · Black Friday prices" during the sale instead.
+
+**Fixes found while testing:** the related-products rail threw on every
+product page (lite query lacked variants); the contact form posted to
+this static site and every message was lost -- it now opens the
+shopper's mail app addressed to the support inbox; the waitlist email
+form joined the dead double opt-in list `TN58zR`, now `TFEDaD`; the
+gate's markup leaked "[object HTMLDivElement]"; storage that refuses
+(blocked cookies) left Add to bag disabled -- an inline shim at the top
+of `HEAD_SHARED` swaps in memory storage; an expired saved cart id now
+yields a fresh cart instead of an error; after the gate's opening
+instant the head bootstrap no longer hides the page or preloads gate
+assets (`GATE_OPEN_MS`, stamped by the build). Card size picker
+redrawn as one segmented bar; Tops/Bottoms banners are the concrete
+flat lays; photographs fade up as they decode (`wireImageFade`).
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split

@@ -356,9 +356,14 @@ function renderCollectionPage(template, c) {
      'none'  = no banner, products start under the title. */
   const BANNER_STYLE = 'strip';
 
+  /* Since 2026-11-27: the concrete flat lays, at the founder's ask --
+     "some of the banners aren't as good as I thought, tops and bottoms".
+     Three unrelated lifestyle frames (stairs, a meter wall, a sofa)
+     read as a collage; two flat lays from one shoot read as one
+     banner, and they show the garments the page is selling. */
   const BANNERS = {
-    tops: ['look-02', 'look-01', 'look-03'],
-    bottoms: ['look-03', 'look-01', 'look-02'],
+    tops: ['flat/oli05395', 'flat/oli05388'],
+    bottoms: ['flat/oli05382', 'flat/oli05424'],
     accessories: ['look-02'],
   };
   /* Where the shallow band is taken from, vertically. Tops crop high
@@ -367,22 +372,24 @@ function renderCollectionPage(template, c) {
   /* Barely any crop left to place, so these only nudge it. */
   /* Per cell, so the repeated photograph is not the same crop twice. */
   const BANNER_FOCUS = {
-    tops:    ['24%', '22%', '46%'],
-    bottoms: ['52%', '60%', '56%'],
+    tops:    ['50%', '45%'],
+    bottoms: ['45%', '50%'],
   };
   const bannerFiles = BANNERS[c.slug] || BANNERS.tops;
   const bannerFocus = BANNER_FOCUS[c.slug] || [];
   /* Accessories has never carried one; BANNER_STYLE turns the rest off. */
   const compactBanner = c.slug === 'accessories' || BANNER_STYLE === 'none';
   const bannerAlt = c.slug === 'tops'
-    ? 'Asior Fall tops worn on a city street'
+    ? 'Asior Scripture Polo and Holes Tee laid flat on concrete'
     : c.slug === 'bottoms'
-      ? 'Asior Fall shorts worn on a city street'
+      ? 'Asior JAG and ASR shorts and sweats laid flat on concrete'
       : 'Asior model in black streetwear on a city street';
   /* alt on the first frame only: the strip is one picture of one
      subject, so a screen reader should hear it described once. */
-  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair">
-${bannerFiles.map((f, i) => `    <img src="/images/${f}.jpg" alt="${i === 0 ? bannerAlt : ''}"`
+  const flat = f => f.startsWith('flat/');
+  const bannerHtml = compactBanner ? '' : `  <div class="coll-banner coll-banner--wide coll-banner--pair" style="grid-template-columns: repeat(${bannerFiles.length}, 1fr)">
+${bannerFiles.map((f, i) => `    <img src="/images/${flat(f) ? f + '-1200' : f}.jpg" alt="${i === 0 ? bannerAlt : ''}"`
+    + (flat(f) ? ` srcset="/images/${f}-800.webp 800w, /images/${f}-1200.webp 1200w, /images/${f}-2000.webp 2000w" sizes="${Math.round(100 / bannerFiles.length)}vw"` : '')
     + `${i === 0 ? '' : ' aria-hidden="true"'} width="800" height="1200"`
     + ` style="object-position: center ${bannerFocus[i] || '40%'}"`
     + ` ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`).join('\n')}
@@ -1670,9 +1677,28 @@ const HEAD_SHARED_RAW = `  <link rel="preconnect" href="https://static.klaviyo.c
        not run yet, so it cannot: it checks the inlined copy of that
        one boolean below instead. The build writes both from the same
        source, and check-slop fails if they disagree. -->
+  <!-- STORAGE THAT REFUSES MUST NOT STOP A SALE (2026-11-27). Some
+       browsers throw on any localStorage/sessionStorage access when
+       cookies or site data are blocked, and a dozen call sites across
+       the site assumed it worked -- on the product page that left Add
+       to bag disabled for those shoppers. Rather than guard every call,
+       this swaps in an in-memory stand-in for the visit when the real
+       one refuses. Nothing is persisted, which is what the shopper's
+       own setting asked for; everything else works. First in <head>,
+       before anything reads storage. -->
+  <script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
+    ['localStorage','sessionStorage'].forEach(function(n){var ok=false;try{var s=window[n];s.setItem('__asior_t','1');s.removeItem('__asior_t');ok=true}catch(e){}
+      if(!ok){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e){}}});})();</script>
   <script>(function(){var ON=/*GATE_ON*/true/*END_GATE_ON*/;if(!ON)return;try{
     var d=document.documentElement;
-    if(localStorage.getItem('asior_gate_opened_at'))return;
+    /* Past the instant the wall lifts (GATE.OPEN_AT, else COUNTDOWN.TO,
+       stamped below by the build) drop-gate.js never builds the gate,
+       so hiding the page and preloading its film and fonts would only
+       delay every page view of the sale. 0 = no automatic opening. */
+    var OPEN=/*GATE_OPEN_MS*/0/*END_GATE_OPEN_MS*/;if(OPEN&&Date.now()>=OPEN)return;
+    /* The password is remembered; a signup no longer opens anything
+       (2026-11-27), so asior_gate_opened_at is not a reason to skip. */
+    if(localStorage.getItem('asior_gate_pass'))return;
     d.classList.add('asior-gate-pending');
     /* The gate's assets are fetched HERE, not from static <link>s in
        this head, because only this line knows whether the gate is
@@ -1725,10 +1751,29 @@ function gateOnFromConfig() {
 }
 
 const GATE_ON = gateOnFromConfig();
+
+/* The gate's opening instant, for the bootstrap. Same source and same
+   rule as drop-gate.js: OPEN_AT, else COUNTDOWN.TO; anything that will
+   not parse is 0, which means "no automatic opening" -- never "open". */
+function gateOpenMsFromConfig() {
+  try {
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(fs.readFileSync(path.join(ROOT, 'assets', 'drop-config.js'), 'utf8'), sandbox);
+    const g = (sandbox.window.ASIOR_DROP || {}).GATE || {};
+    const t = Date.parse(g.OPEN_AT || (g.COUNTDOWN && g.COUNTDOWN.TO) || '');
+    return isFinite(t) ? t : 0;
+  } catch (err) { return 0; }
+}
+const GATE_OPEN_MS = gateOpenMsFromConfig();
 const HEAD_SHARED = HEAD_SHARED_RAW.replace(
   '/*GATE_ON*/true/*END_GATE_ON*/',
   '/*GATE_ON*/' + GATE_ON + '/*END_GATE_ON*/'
+).replace(
+  '/*GATE_OPEN_MS*/0/*END_GATE_OPEN_MS*/',
+  '/*GATE_OPEN_MS*/' + GATE_OPEN_MS + '/*END_GATE_OPEN_MS*/'
 );
+console.log(`  gate: opens by itself at ${GATE_OPEN_MS ? new Date(GATE_OPEN_MS).toISOString() : 'never (no date)'}`);
 console.log(`  gate: GATE.ON is ${GATE_ON}; head bootstrap stamped to match`);
 
 /* Every page gets the shared head, including the two that carry no
@@ -2004,8 +2049,10 @@ function shopCard(p, eager, sizes) {
      Its row would be four dead chips and no way forward; the quick
      view carries the restock signup, which is the only thing a
      shopper can still do with it. */
-  const sizeRow = soldOut ? '' : quickAddRow(p, name);
-  const trigger = sizeRow
+  /* Preorders are bought from their product page, where the window is
+     stated; the card is a plain link (see productCard in site.js). */
+  const sizeRow = (soldOut || shipLine) ? '' : quickAddRow(p, name);
+  const trigger = shipLine ? '' : sizeRow
     ? `<a class="product-peek btn btn--sm" data-sizes="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-expanded="false" aria-label="Choose a size for ${esc(name)}">Choose a size</a>`
     : `<a class="product-peek btn btn--sm" data-peek="${esc(p.handle)}" href="/products/${esc(p.handle)}.html" aria-label="Quick view of ${esc(name)}">Quick view</a>`;
 
@@ -2016,12 +2063,12 @@ function shopCard(p, eager, sizes) {
             <div class="product-img"${altAttr}>${media}</div>
           </a>
 ${soldOut ? '          <span class="product-badge product-badge--sold">Sold out</span>\n'
-  : (shipLine ? '          <span class="product-badge">Preorder</span>\n' : '')}          ${trigger}
+  : ''}          ${trigger}
 ${sizeRow ? `          ${sizeRow}\n` : ''}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
-${isPreorder ? `          <div class="product-state">${shipLine ? esc('Preorder \u00b7 ' + shipLine.charAt(0).toLowerCase() + shipLine.slice(1)) : 'Preorder'}</div>\n` : ''}        </a>
+${isPreorder && !shipLine ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
       </div>`;
 }
 

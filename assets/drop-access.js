@@ -209,6 +209,91 @@
     return v.charAt(0) === '/' ? v : '/' + v;
   }
 
+  /* ---- Black Friday: the popup offers the discount, not "access" ----
+
+     Founder, 2026-11-27: "what does this popup even mean, get early
+     access for what -- say get discount". During the sale it says what
+     signing up is worth and hands the code over the moment Klaviyo
+     accepts the signup. Everything here is read from config rather
+     than typed: the code and its percentage from GATE.MEMBER_OFFER,
+     the window from SALE_LINE (Asior.saleShowing), so after 9 PM CT --
+     when ASIORLIST stops working -- the popup goes back to its old
+     copy instead of offering a code nothing will honour. */
+  function memberOffer() {
+    var g = (window.ASIOR_DROP && window.ASIOR_DROP.GATE) || {};
+    var m = g.MEMBER_OFFER || {};
+    return (m.PCT && m.CODE) ? { pct: m.PCT, code: m.CODE, gate: g } : null;
+  }
+  function saleOffer() {
+    return !!(memberOffer() && A.saleShowing && A.saleShowing());
+  }
+  function saleIntroHTML() {
+    var m = memberOffer();
+    var sms = (m.gate.SMS && m.gate.SMS.CONSENT) || '';
+    return '<div class="drop-view drop-view--intro" data-view="intro">'
+      + '<p class="drop-eyebrow drop-eyebrow--sale">Black Friday</p>'
+      + '<h2 class="drop-title" id="dropTitle">' + esc(m.pct) + '% off sitewide.</h2>'
+      + '<p class="drop-sub">Everything is already marked down. Sign up and your code takes the whole order to '
+      +   esc(m.pct) + '% off. Ends Monday.</p>'
+      + '<div class="drop-actions" data-drop-sale-actions>'
+      +   '<button type="button" class="drop-btn drop-btn--primary" data-drop-sale-open>Get ' + esc(m.pct) + '% off</button>'
+      +   '<button type="button" class="drop-btn drop-btn--ghost" data-drop-close>Shop the sale</button>'
+      + '</div>'
+      + '<form class="drop-sale-form" data-drop-sale-form novalidate hidden>'
+      +   '<label class="sr-only" for="dropSaleEmail">Email address</label>'
+      +   '<input class="field" type="email" id="dropSaleEmail" placeholder="email" autocomplete="email" spellcheck="false">'
+      +   '<label class="sr-only" for="dropSalePhone">Mobile number</label>'
+      +   '<input class="field" type="tel" id="dropSalePhone" placeholder="mobile number" autocomplete="tel" inputmode="tel">'
+      +   '<p class="drop-consent">' + esc(sms) + '</p>'
+      +   '<button type="submit" class="drop-btn drop-btn--primary">Get my code</button>'
+      +   '<p class="drop-consent">Marketing emails, unsubscribe anytime. <a href="/privacy-policy.html">Privacy</a></p>'
+      +   '<p class="drop-sale-msg" role="status" aria-live="polite"></p>'
+      + '</form>'
+      + '<div class="drop-sale-done" data-drop-sale-done hidden>'
+      +   '<p class="drop-eyebrow">your code</p>'
+      +   '<p class="drop-code">' + esc(m.code) + '</p>'
+      +   '<p class="drop-sub">Enter it at checkout for ' + esc(m.pct) + '% off your order. One use per customer.</p>'
+      +   '<button type="button" class="drop-btn drop-btn--primary" data-drop-close>Shop the sale</button>'
+      + '</div>'
+      + '</div>';
+  }
+  function e164(v) {
+    var plus = /^\s*\+/.test(v), d = String(v).replace(/\D/g, '');
+    if (!d) return '';
+    if (plus) return (d.length >= 8 && d.length <= 15) ? '+' + d : '';
+    if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+    return /^[2-9]\d{2}[2-9]\d{6}$/.test(d) ? '+1' + d : '';
+  }
+  var saleBusy = false;
+  function submitSale(form) {
+    if (saleBusy) return;
+    var m = memberOffer();
+    var msg = form.querySelector('.drop-sale-msg');
+    var email = (form.querySelector('#dropSaleEmail').value || '').trim();
+    var raw = (form.querySelector('#dropSalePhone').value || '').trim();
+    var phone = raw ? e164(raw) : '';
+    if (!email && !raw) { msg.textContent = 'enter an email or a mobile number.'; return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = 'that email does not look right.'; return; }
+    if (raw && !phone) { msg.textContent = 'that number does not look right.'; return; }
+    var listId = m.gate.LIST_ID;
+    if (!listId || !A.klaviyoSubscribeToList) { msg.textContent = 'that did not go through. try again in a moment.'; return; }
+    var profile = {};
+    if (email) profile.email = email;
+    if (phone) profile.phone_number = phone;
+    saleBusy = true;
+    msg.textContent = 'one moment\u2026';
+    A.klaviyoSubscribeToList(listId, profile).then(function () {
+      /* The code is shown only once Klaviyo has accepted the signup. */
+      try { localStorage.setItem('asior_gate_email', email || phone); } catch (e) {}
+      emit('Drop Sale Signup', { sms_opt_in: !!phone });
+      form.hidden = true;
+      var acts = root.querySelector('[data-drop-sale-actions]'); if (acts) acts.hidden = true;
+      var done = root.querySelector('[data-drop-sale-done]'); if (done) done.hidden = false;
+    }).catch(function () {
+      msg.textContent = 'that did not go through. try again in a moment.';
+    }).then(function () { saleBusy = false; });
+  }
+
   function shell() {
     var camp = activeCampaign();
     var heroHTML = '';
@@ -235,7 +320,9 @@
       +   '</button>'
       +   heroHTML
       +   '<div class="drop-body">'
-      +     '<div class="drop-view drop-view--intro" data-view="intro">'
+      +     (saleOffer()
+              ? saleIntroHTML()
+              : '<div class="drop-view drop-view--intro" data-view="intro">'
       +       '<p class="drop-eyebrow">Asior / Drop access</p>'
       +       '<h2 class="drop-title" id="dropTitle">The next drop starts here.</h2>'
       +       '<p class="drop-sub">First access to upcoming pieces and limited releases.</p>'
@@ -244,7 +331,7 @@
       +         '<a class="drop-btn drop-btn--ghost" href="' + escA(campaignHref(camp)) + '" data-drop-access-link>Get early access</a>'
       +       '</div>'
       +       '<button type="button" class="drop-continue" data-drop-close>Continue shopping</button>'
-      +     '</div>'
+      +     '</div>')
       +     '<div class="drop-view drop-view--shop" data-view="shop" hidden>'
       +       '<div class="drop-shop-head">'
       +         '<button type="button" class="drop-back" data-drop-back>'
@@ -273,6 +360,20 @@
       if (e.target.closest('[data-drop-explore]')) { e.preventDefault(); showShop(); return; }
       if (e.target.closest('[data-drop-back]')) { e.preventDefault(); showIntro(); return; }
       if (e.target.closest('[data-drop-access-link]')) { emit('Drop Access CTA'); return; }
+      if (e.target.closest('[data-drop-sale-open]')) {
+        e.preventDefault();
+        var f = root.querySelector('[data-drop-sale-form]');
+        var acts = root.querySelector('[data-drop-sale-actions]');
+        if (f) { f.hidden = false; if (acts) acts.hidden = true; var i = f.querySelector('input'); if (i) i.focus(); }
+        emit('Drop Sale CTA');
+        return;
+      }
+    });
+    root.addEventListener('submit', function (e) {
+      var f = e.target.closest('[data-drop-sale-form]');
+      if (!f) return;
+      e.preventDefault();
+      submitSale(f);
     });
     return root;
   }
