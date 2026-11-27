@@ -4975,3 +4975,4 @@ a.bf-marquee:focus-visible { outline: 2px solid var(--sale-ink); outline-offset:
 }
 .announce-signup:hover { color: #fff; }
 a.announce-signup { text-decoration: none; }
+p.sale-signup--cart { border: 0; cursor: default; }

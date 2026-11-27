@@ -2469,14 +2469,16 @@
     if (prop && !prop.querySelector('.sale-deal')) {
       if (!prop.hasAttribute('data-orig-prop')) prop.setAttribute('data-orig-prop', prop.innerHTML);
       prop.classList.add('is-sale');
-      prop.innerHTML = '<button type="button" class="sale-deal sale-signup" data-sale-signup>'
-        + 'Sign up for an extra 10% off <span aria-hidden="true">\u2192</span></button>';
+      /* EXTRA10 (Shopify, 2026-11-27) combines only with the public
+         10%, so 20% is the most any order gets -- said plainly, with
+         how to use it. */
+      prop.innerHTML = '<span class="sale-deal">Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</span>';
     }
     /* The same offer beside the cart's checkout clock. */
     var cartClock = document.querySelector('.sale-clock--cart');
     if (cartClock && !document.querySelector('.sale-signup--cart')) {
-      cartClock.insertAdjacentHTML('beforebegin', '<button type="button" class="sale-signup sale-signup--cart" data-sale-signup>'
-        + 'Sign up for an extra 10% off <span aria-hidden="true">\u2192</span></button>');
+      cartClock.insertAdjacentHTML('beforebegin', '<p class="sale-signup sale-signup--cart">'
+        + 'Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</p>');
     }
     /* A ribbon on every card that can be bought (Amazon's "deal" tag,
        in our type): top-right, clear of the badges top-left. */
@@ -2672,6 +2674,7 @@
               + '<b data-sale-clock aria-hidden="true">' + saleClockText() + '</b>'
               + '<span class="sr-only">Monday at 9 PM Central</span>',
             'Fall collection under $40',
+            'Code EXTRA10 stacks with the sale <span aria-hidden="true">\u00b7</span> 20% off',
             '<a class="announce-signup" href="/extra10">Sign up for an extra 10% off</a>'
           ];
           track.innerHTML = lines.map(function (h, k) {
