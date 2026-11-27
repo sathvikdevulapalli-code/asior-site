@@ -1456,6 +1456,23 @@ flat lays; photographs fade up as they decode (`wireImageFade`).
   at -5 units (oversold) and a stacking 10% takes the floor past 20%,
   which the margin note on ASR Shorts says loses money.
 
+### Shopify visitor tracking was not landing (fixed 2026-11-27)
+
+Shopify Analytics showed 19 sessions in 14 days and none on drop day.
+`assets/shopify-analytics.js` posted single events to Monorail's
+`/v1/produce` with a page-view payload Hydrogen never sends and
+camelCase custom events; Monorail validates against the schema and
+`no-cors` hid every rejection. It now mirrors
+`@shopify/hydrogen-react`'s `sendShopifyAnalytics`: a batch to
+`/unstable/produce_batch`, `trekkie_storefront_page_view/1.4` with
+`appClientId: '6167201'`, title, currency and contentLanguage, plus
+snake_case `custom_storefront_customer_tracking/1.2` events
+(`page_rendered`, `product_page_rendered`, `product_added_to_cart`).
+The sandbox cannot reach Monorail, so delivery was checked by
+intercepting the request, not by Shopify's reports; read the
+Sessions report back after a deploy to confirm. This supersedes the
+"session number is not the instrument" note under Attribution.
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split

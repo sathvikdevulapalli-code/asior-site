@@ -110,21 +110,34 @@
   function uniqToken() { return token('_shopify_y', 60 * 60 * 24 * 365); }
   function visitToken() { return token('_shopify_s', 60 * 30); }
 
-  /* Fire and forget. keepalive so an event sent as the customer
-     navigates away still leaves the browser — the add-to-cart beacon
-     is immediately followed by a redirect to checkout, which is
-     exactly the case that would otherwise be dropped. */
-  function send(schemaId, payload) {
-    if (!allowed()) return;
+  /* ---- the wire format: Shopify Hydrogen's own, exactly ------------
+
+     Rewritten 2026-11-27. Shopify Analytics showed 19 sessions in two
+     weeks and none on drop day: the previous version posted single
+     events to /v1/produce with a page-view payload Hydrogen never sends
+     (no appClientId, no title/currency/contentLanguage, extra keys) and
+     camelCase custom events, and Monorail validates every payload
+     against its schema. With mode 'no-cors' the rejections were
+     invisible. This now mirrors @shopify/hydrogen-react's
+     sendShopifyAnalytics: a batch to /unstable/produce_batch, the
+     trekkie page view (appClientId 6167201 is Hydrogen's) plus the
+     snake_case custom events, which is what feeds Sessions, Online
+     store visitors and "added to cart" in Shopify Analytics. */
+  var BATCH = 'https://monorail-edge.shopifysvc.com/unstable/produce_batch';
+
+  function sendBatch(events) {
+    if (!allowed() || !events.length) return;
+    var now = Date.now();
     var body = JSON.stringify({
-      schema_id: schemaId,
-      payload: payload,
-      metadata: { event_created_at_ms: Date.now() },
+      events: events.map(function (e) {
+        return { schema_id: e.schema, payload: e.payload, metadata: { event_created_at_ms: now } };
+      }),
+      metadata: { event_sent_at_ms: now },
     });
     try {
-      fetch(ENDPOINT, {
+      fetch(BATCH, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },  // avoids a CORS preflight
+        headers: { 'Content-Type': 'text/plain' },  // no CORS preflight
         body: body,
         keepalive: true,
         mode: 'no-cors',
@@ -133,86 +146,114 @@
     } catch (err) { /* analytics never throws */ }
   }
 
-  /* Fields every event carries. appName 'headless' is what tells
-     Shopify these came from a custom storefront rather than a theme. */
-  function base() {
+  function lang() {
+    var l = (document.documentElement.lang || navigator.language || 'en').slice(0, 2);
+    return l.toUpperCase();
+  }
+
+  /* trekkie_storefront_page_view/1.4 -- the session event. */
+  function pageViewPayload(pageType, resourceId) {
     var c = config();
-    return {
-      shopId: c.SHOP_ID,
-      hydrogenSubchannelId: c.STOREFRONT_ID,
+    var p = {
+      appClientId: '6167201',
       isMerchantRequest: false,
-      appName: 'headless',
-      url: location.href,
-      path: location.pathname,
-      search: location.search,
-      referrer: document.referrer || '',
+      hydrogenSubchannelId: String(c.STOREFRONT_ID || '0'),
+      isPersistentCookie: true,
       uniqToken: uniqToken(),
       visitToken: visitToken(),
       microSessionId: uuid(),
       microSessionCount: 1,
-      isPersistentCookie: !!readCookie('_shopify_y'),
-      navigationType: 'navigate',
-      navigationApi: 'PerformanceNavigationTiming',
-      eventType: 'page_view',
+      url: location.href,
+      path: location.pathname,
+      search: location.search,
+      referrer: document.referrer || '',
+      title: document.title || '',
+      shopId: Number(c.SHOP_ID),
+      currency: 'USD',
+      contentLanguage: lang(),
     };
+    if (pageType) p.pageType = pageType;
+    if (resourceId) { p.resourceType = 'product'; p.resourceId = resourceId; }
+    return p;
   }
 
-  function customBase(eventName) {
+  /* custom_storefront_customer_tracking/1.2 -- the funnel events. */
+  function customPayload(eventName, extra) {
     var c = config();
-    return {
-      source: 'headless',
-      shopId: c.SHOP_ID,
-      hydrogenSubchannelId: c.STOREFRONT_ID,
-      eventName: eventName,
-      event_name: eventName,
-      eventTime: Date.now(),
-      eventId: uuid(),
-      url: location.href,
+    var p = {
+      source: 'hydrogen',
+      asset_version_id: '2024.10.0',
+      hydrogenSubchannelId: String(c.STOREFRONT_ID || '0'),
+      is_persistent_cookie: true,
+      deprecated_visit_token: visitToken(),
+      unique_token: uniqToken(),
+      event_time: Date.now(),
+      event_id: uuid(),
+      event_source_url: location.href,
       referrer: document.referrer || '',
-      uniqToken: uniqToken(),
-      visitToken: visitToken(),
-      isPersistentCookie: !!readCookie('_shopify_y'),
-      ccpaEnforced: false,
-      gdprEnforced: false,
+      user_agent: navigator.userAgent,
+      navigation_type: 'navigate',
+      navigation_api: 'PerformanceNavigationTiming',
+      shop_id: Number(c.SHOP_ID),
+      currency: 'USD',
+      ccpa_enforced: false,
+      gdpr_enforced: false,
+      gdpr_enforced_as_string: 'false',
+      analytics_allowed: true,
+      marketing_allowed: true,
+      sale_of_data_allowed: true,
+      is_merchant_request: false,
+      event_name: eventName,
     };
+    for (var k in (extra || {})) p[k] = extra[k];
+    return p;
+  }
+
+  function gid(kind, v) {
+    if (!v) return null;
+    v = String(v);
+    return v.indexOf('gid://') === 0 ? v : 'gid://shopify/' + kind + '/' + v;
+  }
+
+  function productJSON(item) {
+    return JSON.stringify({
+      product_gid: gid('Product', item.resourceId) || '',
+      variant_gid: gid('ProductVariant', item.variantId) || '',
+      name: item.name || item.handle,
+      variant: item.variantTitle || '',
+      brand: 'Asior',
+      price: typeof item.price === 'number' ? String(item.price) : '',
+      quantity: item.quantity || 1,
+      category: '',
+      sku: '',
+    });
   }
 
   /* --- public surface, attached to window rather than exported ----- */
-
+  var PAGE_EVENT = { index: 'page_rendered', collection: 'collection_page_rendered', product: 'page_rendered', cart: 'page_rendered' };
   function pageView(pageType) {
-    var p = base();
-    p.pageType = pageType || 'index';
-    send(SCHEMA_PAGE_VIEW, p);
+    sendBatch([
+      { schema: SCHEMA_PAGE_VIEW, payload: pageViewPayload(pageType || 'index') },
+      { schema: SCHEMA_CUSTOM, payload: customPayload(PAGE_EVENT[pageType] || 'page_rendered', { page_type: pageType || 'index' }) },
+    ]);
   }
-
   function productView(product) {
     if (!product || !product.handle) return;
-    var p = customBase('product_view');
-    p.pageType = 'product';
-    p.resourceId = product.resourceId || null;
-    p.handle = product.handle;
-    p.productTitle = product.name || null;
-    if (typeof product.price === 'number' && isFinite(product.price)) {
-      p.price = product.price;
-      p.currency = product.currency || 'USD';
-    }
-    send(SCHEMA_CUSTOM, p);
+    sendBatch([{ schema: SCHEMA_CUSTOM, payload: customPayload('product_page_rendered', {
+      page_type: 'product', products: [productJSON(product)],
+    }) }]);
   }
-
   function addToCart(item) {
     if (!item || !item.handle) return;
-    var p = customBase('add_to_cart');
-    p.pageType = 'product';
-    p.handle = item.handle;
-    p.productTitle = item.name || null;
-    p.variantId = item.variantId || null;
-    p.quantity = item.quantity || 1;
-    if (typeof item.price === 'number' && isFinite(item.price)) {
-      p.price = item.price;
-      p.currency = item.currency || 'USD';
-      p.totalValue = item.price * (item.quantity || 1);
-    }
-    send(SCHEMA_CUSTOM, p);
+    var qty = item.quantity || 1;
+    var cart = null;
+    try { cart = localStorage.getItem('shopify_cart_id'); } catch (e) {}
+    sendBatch([{ schema: SCHEMA_CUSTOM, payload: customPayload('product_added_to_cart', {
+      page_type: 'product',
+      products: [productJSON(item)],
+      total_value: typeof item.price === 'number' ? item.price * qty : 0,
+      cart_token: cart ? String(cart).split('/').pop().split('?')[0] : '',
+    }) }]);
   }
 
   window.AsiorAnalytics = {
