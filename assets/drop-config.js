@@ -177,7 +177,7 @@ window.ASIOR_DROP = {
 
        If the Shopify discount moves, COUNTDOWN.TO moves, and this
        follows it automatically. */
-    OPEN_AT: '',   /* empty = follow COUNTDOWN.TO, which is 19:30Z */
+    OPEN_AT: '',   /* empty = follow COUNTDOWN.TO, which is 20:00Z */
 
     /* ---- THE WAY IN FOR US ------------------------------------
 
@@ -187,8 +187,20 @@ window.ASIOR_DROP = {
 
        It is the SHA-256 of the code rather than the code itself,
        which is how EARLY_ACCESS_CODE_SHA did it in launch-config.js
-       before that constant went unread. The current code is
-       'asior30'.
+       before that constant went unread.
+
+       SINCE 2026-11-27 IT IS ALSO THE EARLY-ACCESS PASSWORD. The list
+       is sent it and gets in at 1:30 PM CT, half an hour before the
+       clock lifts the wall for everybody at 2:00. It is deliberately
+       NOT ASIORLIST: a password that leaks costs early entry, a code
+       that leaks costs 20% margin, and one screenshot should not hand
+       out both. Assume it leaks -- someone always posts it -- and
+       that is acceptable for a 30-minute window.
+
+       The plaintext is not written in this repo any more (the old
+       staff code was, and the repo is readable). The founder and
+       Ayush have it. Matching is case-insensitive, so the hash is of
+       the lowercased password.
 
        THIS IS NOT SECURITY AND MUST NEVER BE DESCRIBED AS SECURITY.
        The check runs in a browser, on pages that are public URLs
@@ -204,14 +216,13 @@ window.ASIOR_DROP = {
        the signup. Change the code by replacing the hash --
        node -e "console.log(require('crypto')
          .createHash('sha256').update('newcode').digest('hex'))" */
-    PASS_SHA: '671392273c56cf02a0d26ca6584a9b1b8c85eba0a8cea993c7b4e54cfc76d888',
-    /* The box's accessible name, not a line of copy. Nothing on the
-       gate advertises the code: pressing the Asior mark reveals the
-       field, so a screen reader needs a name for it and a shopper
-       reading the screen sees no hint that there is a way round the
-       wall. */
-    PASS_LABEL: 'Access code',
-    /* ?key=asior30 on any URL does the same thing, for opening the
+    PASS_SHA: '346793476af7c0a55cfa62abc42b77c3fd87086b08fe6fdd628bfdda4e1d7cab',
+    /* The visible label over the box, under the clock. It was a
+       hidden accessible name while the box was a staff-only door
+       behind the mark; on drop day it is the members' door and is
+       on screen, at Ayush's request, in his words. */
+    PASS_LABEL: 'have a password?',
+    /* ?key=<password> on any URL does the same thing, for opening the
        site on a phone without typing into a small box. It is
        remembered like a typed code, so the parameter is needed once
        and then never again. */
@@ -353,16 +364,20 @@ window.ASIOR_DROP = {
        ENDS is only used to stop claiming a live sale after it is
        over. LIVE is what the screen says once TO has passed. */
     COUNTDOWN: {
-      /* 1:30 PM CST -- ASIORLIST's own startsAt, the instant the
-         list can first buy. It was 20:00Z, copied from the 20%
-         automatic that has since been deleted; the 10% public tier
-         still starts at 20:00, but this screen exists to sell early
-         access and the clock has to count to the thing it is
-         selling. */
-      TO: '2026-11-27T19:30:00Z',
+      /* 2:00 PM CST -- the PUBLIC tier's startsAt:
+           DiscountAutomaticNode/1578519625945
+           "Black Friday 2026 - 10% Public", SCHEDULED,
+           startsAt 2026-11-27T20:00:00Z   (read back 2026-11-27)
+
+         It was 19:30Z, ASIORLIST's start, until drop morning. That
+         let the public in at the same instant as the list, so the
+         head start was price only. The list now gets in at 1:30 with
+         the password (PASS_SHA above) and ASIORLIST works from then;
+         the clock and the wall wait for the public tier at 2:00. */
+      TO: '2026-11-27T20:00:00Z',
       ENDS: '2026-12-01T05:59:00Z',
       /* Reachable only if OPEN_AT is ever held later than TO. With
-         both at 19:30 the wall lifts the moment this would appear,
+         both at 20:00 the wall lifts the moment this would appear,
          which is the correct behaviour -- a member who is told
          "early access is live" needs to be able to walk through the
          door in the same second. */
@@ -581,7 +596,15 @@ window.ASIOR_DROP = {
          buy anything. Do not make SMS a condition of checkout; that
          sentence would stop being true and the consent would stop
          being valid. */
-      REQUIRED: true,
+      /* FALSE since drop morning, 2026-11-27, with EITHER below. */
+      REQUIRED: false,
+      /* EMAIL OR PHONE. Ayush, 2026-11-27: a required phone number
+         is where most people abandon a signup form, so a valid email,
+         a valid number, or both is a signup. Each field keeps its own
+         disclosure beside it -- the TCPA paragraph under the number,
+         the email consent under the button -- so nothing about
+         consent changes, only which field is mandatory. */
+      EITHER: true,
       CONSENT: 'By entering your number you agree to receive recurring automated '
              + 'marketing texts from Asior at that number. Consent is not a condition '
              + 'of any purchase. Message frequency varies and message & data rates may '
@@ -640,7 +663,12 @@ window.ASIOR_DROP = {
        twice; a shared computer forgets after a year. */
     REMEMBER_DAYS: 365,
 
-    /* THE OUTAGE FUSE. Email is the only way in, so Klaviyo being
+    /* NOT READ SINCE 2026-11-27. A signup no longer opens the gate,
+       so there is no door for a fuse to hold open; a Klaviyo failure
+       just asks the visitor to try again. What follows is the old
+       reasoning, kept for the day signups unlock again.
+
+       THE OUTAGE FUSE. Email is the only way in, so Klaviyo being
        down is Asior being down -- every visitor, no sales, until it
        comes back.
 

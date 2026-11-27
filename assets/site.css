@@ -4113,6 +4113,9 @@ html.asior-gated body { overflow: hidden; height: 100%; }
    required, so it is the last thing in the column rather than sitting
    on the email's row. It keeps the row button's own height. */
 .gate-form > #gateBtn { margin-top: 4px; }
+/* A signed-up visitor sees the clock and the password box, not the
+   form again. [hidden] has to win over .gate-form's own display. */
+.gate-form[hidden] { display: none; }
 .gate-sms-opt {
   margin: 0;
   /* Left, with the fields it labels. The gate core centres its
@@ -4338,20 +4341,17 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 .gate-skip:focus-visible { outline: 1px solid #fff; outline-offset: 4px; }
 .gate-skip:active { transform: translateY(1px); transition-duration: 90ms; }
 
-/* ---- the access code -----------------------------------------------
-   For us, not for the shopper, so it is the quietest thing on the
-   screen: one small line that opens a short row. It sits last and
-   carries no emphasis, because a visitor who notices it should read
-   it as staff plumbing rather than as a way around the signup. */
-/* Hidden until the mark is pressed, and [hidden] is enforced rather
-   than left to the UA default -- a later `display` on .gate-pass
-   would otherwise silently put the box on the screen for everyone,
-   which is the one thing this must never do. */
-.gate-pass { margin: 16px 0 0; }
+/* ---- the password ---------------------------------------------------
+   The early-access door since 2026-11-27: on screen, under the clock,
+   labelled. Quiet next to the signup button, which is still the one
+   solid shape on the screen -- the password is for people who were
+   sent one, and they are looking for it. */
+.gate-pass { margin: 14px 0 6px; }
 .gate-pass[hidden] { display: none !important; }
 
 .gate-pass-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: flex-end;
   margin: 0 auto;              /* on the mark's axis, not off to one side */
@@ -4360,7 +4360,8 @@ html.asior-gated body { overflow: hidden; height: 100%; }
 /* The input is the same rule-not-a-box as the signup fields, so the
    two do not look like controls from different screens. */
 .gate-pass-row .field {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;               /* or the input's intrinsic width wraps the button */
   height: 38px;
   padding: 0 2px 2px;
   font-family: var(--g-sans);
@@ -4370,6 +4371,18 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   border: 0;
   border-bottom: 1px solid rgba(232, 232, 234, 0.35);
   border-radius: 0;
+}
+/* The label sits on its own line over the box, small, in the same
+   system mono as the clock's lines -- visible since 2026-11-27, when
+   the box became the early-access door rather than a staff one. */
+.gate-pass-label {
+  flex: 0 0 100%;
+  margin: 0 0 -4px;
+  text-align: left;
+  font-family: var(--g-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(232, 232, 234, 0.82);
 }
 .gate-pass-row .field::placeholder { color: rgba(232, 232, 234, 0.4); }
 .gate-pass-row .field:focus { outline: none; border-bottom-color: #fff; }

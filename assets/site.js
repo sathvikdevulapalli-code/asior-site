@@ -2039,7 +2039,13 @@
         name: displayName(node.handle, node.title),
         image: lead,
         altImage: orderImages(all).filter(function (im) { return im.url !== firstUrl; })[0] || null,
-        isPreorder: /\[preorder\]/i.test(node.title),
+        /* A [PREORDER] title, or a shipping window in PREORDER_SHIP
+           (launch-config.js), copied from the product's own Shopify
+           description. The window rides on the card so a shopper
+           adding from a grid knows before it is in the bag. */
+        shipLine: ((window.ASIOR_LAUNCH || {}).PREORDER_SHIP || {})[node.handle] || '',
+        isPreorder: /\[preorder\]/i.test(node.title)
+          || !!((window.ASIOR_LAUNCH || {}).PREORDER_SHIP || {})[node.handle],
         soldOut: variants.length > 0 && variants.every(function (v) { return !v.availableForSale; }),
         priceLabel: minPrice === maxPrice
           ? (compare
@@ -2168,7 +2174,8 @@
        says "Sold out", because the spec is explicit that the Notify Me
        wording may only be used if it opens a working restock signup,
        and the grid card does not have one. The product page does. */
-    var badge = p.soldOut ? '<span class="product-badge product-badge--sold">Sold out</span>' : '';
+    var badge = p.soldOut ? '<span class="product-badge product-badge--sold">Sold out</span>'
+      : (p.shipLine ? '<span class="product-badge">Preorder</span>' : '');
 
     return '\n      <div class="product" data-handle="' + escapeAttr(p.handle) + '">'
       + '<div class="product-frame">'
@@ -2183,7 +2190,11 @@
          the reference stacks them. */
       + '<div class="product-title">' + escapeHtml(p.name) + '</div>'
       + '<div class="product-price tnum">' + p.priceLabel + '</div>'
-      + (p.isPreorder ? '<div class="product-state">Preorder</div>' : '')
+      + (p.isPreorder
+        ? '<div class="product-state">' + escapeHtml(p.shipLine
+            ? 'Preorder \u00b7 ' + p.shipLine.charAt(0).toLowerCase() + p.shipLine.slice(1)
+            : 'Preorder') + '</div>'
+        : '')
       + '</a></div>';
   }
 
@@ -2259,6 +2270,23 @@
           if (msg.parentNode) msg.parentNode.removeChild(msg);
         }
       });
+      /* The Black Friday line, first, inside the discount's own
+         window and never outside it. See SALE_LINE in
+         promo-config.js. Idempotent: wireAnnounce() calls this too. */
+      var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
+      var saleOn = sale && Date.now() >= Date.parse(sale.FROM) && Date.now() < Date.parse(sale.UNTIL);
+      var saleEl = track.querySelector('[data-sale-line]');
+      if (saleOn && !saleEl && sale.TEXT) {
+        var cur = track.querySelector('.announce-msg.is-on');
+        if (cur) { cur.classList.remove('is-on'); cur.setAttribute('aria-hidden', 'true'); }
+        saleEl = document.createElement('p');
+        saleEl.className = 'announce-msg is-on';
+        saleEl.setAttribute('data-sale-line', '');
+        saleEl.textContent = sale.TEXT;
+        track.insertBefore(saleEl, track.firstChild);
+      } else if (!saleOn && saleEl && saleEl.parentNode) {
+        saleEl.parentNode.removeChild(saleEl);
+      }
       /* Whatever is left has to start visible. The removed message
          carried .is-on, so without this the bar would sit blank
          until the rotation's first tick. */

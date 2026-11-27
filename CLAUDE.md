@@ -556,6 +556,40 @@ configuration of it that puts a wall in front of the catalogue, and
 who has started buying. A waitlist that costs a sale is worse than no
 waitlist.
 
+### Drop day, 2026-11-27: a signup is not a key. This overrides anything below it.
+
+Ayush signed up on the gate with his own details and was let straight
+into the store, so "early access" was worth nothing. At his request,
+relayed by the founder:
+
+- **Signing up opens nothing.** It joins `TFEDaD`, says so, hides the
+  form, and leaves the gate up with the clock running.
+  `asior_gate_opened_at` is **no longer read** by `opened()`, so
+  everyone who signed up on an earlier build is gated again.
+  `asior_gate_dismissed` counts only while `DISMISSIBLE` is true. On a
+  Klaviyo failure the visitor is asked to retry; `FAIL_OPEN_ON_ERROR`
+  is no longer read, because there is no door for it to hold open.
+- **The password is the early-access door, and it is on the screen**:
+  a box labelled "have a password?" directly under the clock. This
+  reverses the hidden-behind-the-mark rule further down, on purpose.
+  The mark still focuses it. Matching is case-insensitive (the hash is
+  of the lowercased word). It is **not ASIORLIST**, so a leaked
+  password costs early entry and no margin. The plaintext is no longer
+  written anywhere in this repo; the founder and Ayush hold it. The
+  old staff code was retired with it.
+- **The clock and the wall are at 20:00Z (2:00 PM CT)**, the public
+  10% tier's `startsAt`. The list gets in at 1:30 with the password,
+  when ASIORLIST starts. The "30-minute head start" paragraph under
+  Black Friday below is superseded: the head start is now the
+  password, not an early clock.
+- **Email OR phone.** `SMS.EITHER: true`, `SMS.REQUIRED: false`. A
+  valid email, a valid number, or both. Each field keeps its own
+  consent beside it, unchanged. The "SMS field is REQUIRED" section
+  below is superseded.
+
+Still a velvet rope, not security: the hash is public and curl walks
+past. Assume the password leaks; for 30 minutes that is acceptable.
+
 **The gate is a wall again, until the drop.** Three calls in nine
 days — wall on 11-14, dismissible on 11-21, wall again on 11-22 —
 and it is the founder's to make. `DISMISSIBLE: false`: no close
@@ -1114,6 +1148,9 @@ typing it under the TCPA paragraph.
 
 ## The gate's SMS field is REQUIRED
 
+*Superseded on 2026-11-27: email OR phone, `SMS.EITHER`. See "Drop
+day" under DROP ACCESS. The consent reasoning below still holds.*
+
 `SMS.REQUIRED: true` since 2026-11-22. The phone numbers are the
 point of the gate and the list has to be worth sending to on the
 27th, so an email alone no longer opens it.
@@ -1184,6 +1221,9 @@ position.** The underlying problem is one piece priced so tight that
 it caps every promotion the brand can run; that is a pricing fix at
 the next production run, not something to work around each sale.
 
+*Superseded 2026-11-27: `COUNTDOWN.TO` is 20:00Z and the password
+covers 1:30 to 2:00. See "Drop day" under DROP ACCESS.*
+
 **The 30-minute head start is the real offer.** `COUNTDOWN.TO` and
 `OPEN_AT` are both 19:30Z — ASIORLIST's own `startsAt` — so the wall
 lifts exactly when a member can first use the code. Lifting it at
@@ -1233,6 +1273,31 @@ it is worth exactly nothing over the 10% public tier.
 members, defined as can-receive-email OR can-receive-SMS, auto
 updating. `BFCM 2026 VIP Early Access` (`SFuK88`) is still empty —
 nothing on the site sends to it.
+
+## Black Friday Exclusives, preorder on the card, the sale line
+
+Added 2026-11-27 at Ayush's request.
+
+- **`BF_EXCLUSIVES`** in `launch-config.js`: Black JAG Sweats and ASR
+  Sweats (both ACTIVE, $45.99, S/M/L). A homepage row headed BLACK
+  FRIDAY EXCLUSIVES directly **above** Fall, same layout, with a View
+  all to `/collections/black-friday-exclusives.html`, which `build.js`
+  generates from the handle list like `CATEGORIES`. It is **not in
+  the nav**. No Shopify collection was created: this repo does not
+  write to Shopify Admin. If one is made there, switch the entry to
+  `SHOPIFY_COLLECTIONS`. Null the key to remove row, page and link.
+- **`PREORDER_SHIP`**: handle → shipping window, copied from each
+  product's Shopify description ("In Production: Ships in 4-6
+  weeks"). Every card for such a handle gets a PREORDER badge and
+  "Preorder · ships in 4–6 weeks" under the price, at build and on
+  live re-render, so a shopper adding from a grid knows before it is
+  in the bag. `build.js` warns if the description stops saying it.
+  Never add a window the description does not state.
+- **`BFCM_WINDOW.SALE_LINE`** in `promo-config.js`: "Black Friday: 10%
+  off everything, taken off at checkout", first in the announcement
+  bar from the public tier's `startsAt` to its `endsAt` and nowhere
+  else. Both BF discounts are order-level, so without it a card shows
+  full price and nothing says a sale is on. Names no code.
 
 ## The gate A/B
 

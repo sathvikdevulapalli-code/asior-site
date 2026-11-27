@@ -66,7 +66,7 @@
       "permanent": true
     },
     {
-      "source": "/collections/:slug(tops|bottoms|accessories|jag|fall-collection|all-of-our-products|ja-yu-collection)",
+      "source": "/collections/:slug(tops|bottoms|accessories|jag|fall-collection|all-of-our-products|ja-yu-collection|black-friday-exclusives)",
       "destination": "/collections/:slug.html",
       "permanent": true
     },

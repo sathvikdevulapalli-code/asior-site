@@ -52,13 +52,11 @@
       and this file clears it the moment the gate is actually on
       screen. A broken gate shows the shop. It never shows nothing.
 
-   2. KLAVIYO IS DOWN. Email is the only way through, so an outage at
-      Klaviyo is an outage at Asior. FAIL_OPEN_ON_ERROR admits a
-      visitor whose submission genuinely failed to reach Klaviyo --
-      after they typed a real address and after the attempt really
-      failed, not instead of asking. It is not a loophole a visitor
-      can find; it is a fuse. Set it false and a Klaviyo outage closes
-      the shop.
+   2. KLAVIYO IS DOWN. No longer an outage. Until 2026-11-27 email
+      was the only way through and FAIL_OPEN_ON_ERROR admitted anybody
+      whose signup failed. A signup opens nothing now -- the password
+      and the clock are the only ways past -- so a Klaviyo failure
+      just asks them to try again. The flag is no longer read.
 
    3. THE LEGAL PAGES. ALWAYS_OPEN keeps the privacy policy, terms,
       refund and shipping policies reachable. A privacy policy behind
@@ -159,19 +157,23 @@
        next page after being closed is a nag, not a dismissible
        screen. They stay separate keys so a dismissal is never
        mistaken for a signup. */
-    var at = Number(lsGet(LS_OPEN) || 0)
-          || Number(lsGet(LS_DISMISSED) || 0)
-          || Number(lsGet(LS_PASS) || 0);
+    /* A SIGNUP IS NOT A KEY. Changed 2026-11-27, drop day: Ayush
+       signed up with his own details and walked straight into the
+       store, which made early access worth nothing. Signing up now
+       adds somebody to the list and nothing else; the password is
+       the only way through before OPEN_AT. So LS_OPEN is no longer
+       read here at all -- which also re-gates everybody who signed
+       up on an earlier build, as it has to.
+
+       A dismissal only counts while the gate is dismissible. With
+       DISMISSIBLE false, a key written on 11-21 (when it briefly was)
+       must not still be letting that browser past the wall. */
+    var at = Number(lsGet(LS_PASS) || 0)
+          || (CFG.DISMISSIBLE !== false ? Number(lsGet(LS_DISMISSED) || 0) : 0);
     if (!at) return false;
     var days = typeof CFG.REMEMBER_DAYS === 'number' ? CFG.REMEMBER_DAYS : 365;
     if (Date.now() - at > days * 864e5) return false;
     return true;
-  }
-
-  function markOpened(email) {
-    memoryOpen = true;
-    lsSet(LS_OPEN, String(Date.now()));
-    if (email) lsSet(LS_EMAIL, email);
   }
 
   /* ---- where it never stands ------------------------------------- */
@@ -213,7 +215,9 @@
 
   function codeOpens(text) {
     if (!PASS_SHA || !text) return Promise.resolve(false);
-    var p = sha256Hex(String(text).trim());
+    /* Lowercased: it is read out of a text message on a phone, and
+       iOS capitalises the first letter of whatever is typed. */
+    var p = sha256Hex(String(text).trim().toLowerCase());
     if (!p) return Promise.resolve(false);
     return p.then(function (hex) { return hex === PASS_SHA; })
             .catch(function () { return false; });
@@ -226,7 +230,7 @@
 
   if (alwaysOpen() || opened()) { reveal(); return; }
 
-  /* ?key=asior30 opens it and is remembered, so the parameter is
+  /* ?key=<password> opens it and is remembered, so the parameter is
      needed once per browser rather than on every link. The gate is
      built in the meantime and taken down when the check resolves --
      the alternative is holding a blank page on an await, which is
@@ -389,6 +393,38 @@
             '<p class="sr-only" id="ckWords"></p>' +
           '</div>' +
 
+          /* THE PASSWORD, ON THE SCREEN, UNDER THE CLOCK.
+
+             Until 2026-11-27 this box was hidden behind the Asior
+             mark and nothing advertised it, because it was a staff
+             bypass. On drop day it became the early-access door: the
+             list is sent a password, it lets them in at 1:30, and
+             everybody else waits for the clock at 2:00. Ayush asked
+             for it in plain sight, labelled "have a password?", so a
+             member who opens the site does not have to know a trick.
+
+             It is a velvet rope, not security. The hash is in a public
+             file, and curl walks past the gate. A leaked password
+             costs early entry and nothing else -- it is deliberately
+             not ASIORLIST, so a screenshot of it hands out no discount.
+
+             Its own <form> so Enter submits it rather than the
+             signup, which would try to subscribe the password as an
+             email address. */
+          (PASS_SHA
+            ? '<div class="gate-pass g-rise" id="gatePassBox" style="--in:340ms">' +
+                '<form class="gate-pass-row" id="gatePassForm" novalidate>' +
+                  '<label class="gate-pass-label" for="gatePass">' +
+                    esc(CFG.PASS_LABEL || 'have a password?') + '</label>' +
+                  '<input class="field" type="password" id="gatePass" name="code" ' +
+                         'autocomplete="off" autocapitalize="off" ' +
+                         'autocorrect="off" spellcheck="false" placeholder="password">' +
+                  '<button type="submit" id="gatePassBtn">Enter</button>' +
+                '</form>' +
+                '<p class="gate-pass-msg" id="gatePassMsg" role="status" aria-live="polite"></p>' +
+              '</div>'
+            : '') +
+
           /* One line, and only one. What happens when the clock hits
              zero, in the fewest words that are still true. */
           (v('LEDE')
@@ -409,7 +445,8 @@
             '<div class="gate-row">' +
               '<label class="sr-only" for="gateEmail">Email address</label>' +
               '<input class="field" type="email" id="gateEmail" name="email" ' +
-                     'placeholder="email" autocomplete="email" spellcheck="false" required>' +
+                     'placeholder="email" autocomplete="email" spellcheck="false"' +
+                     (EITHER ? '' : ' required') + '>' +
             '</div>' +
             /* The number, and its disclosure directly under it.
 
@@ -422,10 +459,10 @@
               ? '<div class="gate-sms' + (SMS_REQUIRED ? ' is-required' : '') + '">' +
                   (SMS_REQUIRED
                     ? ''
-                    : '<p class="gate-sms-opt">text me too</p>') +
+                    : '<p class="gate-sms-opt">' + (EITHER ? 'or' : 'text me too') + '</p>') +
                   '<label class="sr-only" for="gatePhone">Mobile number</label>' +
                   '<input class="field" type="tel" id="gatePhone" name="phone" ' +
-                         'placeholder="' + (SMS_REQUIRED ? 'mobile number' : 'phone (optional)') + '" ' +
+                         'placeholder="' + (SMS_REQUIRED || EITHER ? 'mobile number' : 'phone (optional)') + '" ' +
                          'autocomplete="tel" inputmode="tel"' +
                          (SMS_REQUIRED ? ' required' : '') + '>' +
                   '<p class="gate-consent-sms">' + esc(CFG.SMS.CONSENT || '') + '</p>' +
@@ -489,41 +526,6 @@
             ? '<button type="button" class="gate-skip" id="gateSkip">' +
                 esc(CFG.DISMISS_LABEL || 'Browse the store') +
               '</button>'
-            : '') +
-
-          /* THE CODE, behind the mark. It is for us, not for the
-             visitor, so there is no line on the screen advertising
-             it: pressing the Asior wordmark reveals it, which is
-             what the mark has always been for -- it carried the
-             label "members' entrance" back when it opened the
-             signup sheet, and it is a door again.
-
-             Nothing visible replaces the old "Have a code?" summary.
-             A shopper reads this screen as "join or wait" with no
-             hint that there is a way round it, and the two people
-             who need the box know where it is. PASS_LABEL is the
-             box's accessible name now rather than a line of copy.
-
-             Hidden rather than folded, so there is no phantom
-             summary in the tab ring: trap() filters on offsetParent,
-             so the field joins the Tab cycle the moment it is shown
-             and is absent before that.
-
-             Its own <form> so Enter submits it rather than the
-             signup above, which would try to subscribe the code as
-             an email address. */
-          (PASS_SHA
-            ? '<div class="gate-pass" id="gatePassBox" hidden>' +
-                '<form class="gate-pass-row" id="gatePassForm" novalidate>' +
-                  '<label class="sr-only" for="gatePass">' +
-                    esc(CFG.PASS_LABEL || 'Access code') + '</label>' +
-                  '<input class="field" type="password" id="gatePass" name="code" ' +
-                         'autocomplete="off" autocapitalize="off" ' +
-                         'autocorrect="off" spellcheck="false" placeholder="code">' +
-                  '<button type="submit" id="gatePassBtn">Enter</button>' +
-                '</form>' +
-                '<p class="gate-pass-msg" id="gatePassMsg" role="status" aria-live="polite"></p>' +
-              '</div>'
             : '') +
 
         '</div>' +
@@ -860,6 +862,15 @@
      optional field and nothing else needs undoing. */
   var SMS_REQUIRED = !!(CFG.SMS && CFG.SMS.ON && CFG.SMS.REQUIRED);
 
+  /* EMAIL OR PHONE, EITHER ONE. Ayush, 2026-11-27: requiring both is
+     where most people abandon a signup form, so a valid address alone,
+     a valid number alone, or both, is a signup. Overrides REQUIRED.
+     The consent copy does not move: the TCPA paragraph still sits
+     directly under the number box, and the email line under the
+     button, so whichever field is filled in has its disclosure on
+     screen beside it. */
+  var EITHER = !!(CFG.SMS && CFG.SMS.ON && CFG.SMS.EITHER) && !SMS_REQUIRED;
+
   /* Whether there is a way out that is not a signup. See DISMISSIBLE
      in drop-config.js for why this exists and what turning it off
      restores. */
@@ -880,8 +891,8 @@
      thing it counts to is real and still ahead.
 
      The ticker clears itself at zero rather than running forever, and
-     admit() clears it too, so a gate that is dismissed leaves no
-     interval behind. */
+     dismiss() and the password clear it too, so a gate that comes
+     down leaves no interval behind. */
   var clockTimer = null;
 
   function parseWhen(v) {
@@ -1060,16 +1071,7 @@
     el.className = 'gate-msg' + (kind ? ' is-' + kind : '');
   }
 
-  /* `hold` is how long the message stays up before the gate leaves.
-
-     It used to be 320ms for everything, which was fine while the
-     message only said "you're in" -- nobody needs to read that. It is
-     not fine now: on a double opt-in list the message carries the one
-     action still required of them, and a line that is on screen for a
-     third of a second has not been communicated, it has been
-     technically displayed. Anything asking something of the reader
-     gets long enough to read it. */
-  /* Out without a signup. Separate from admit() on purpose: nothing
+  /* Out without a signup. Separate from a signup on purpose: nothing
      is written to LS_OPEN or LS_EMAIL, no Klaviyo call is made and no
      signup event fires, because none of those things happened. The
      only record is that this person closed the gate, so they are not
@@ -1114,19 +1116,21 @@
      design. Somebody who opened the code box by accident has to be
      able to get back to the signup. */
   function closePass() {
-    var box = root && root.querySelector('#gatePassBox');
-    if (!box || box.hidden) return false;
-    var f = root.querySelector('#gatePass');
+    /* The box is always on the screen now, so Escape no longer hides
+       it: it clears what was typed and hands focus back to the mark.
+       It still never closes the gate. Returns false when there is
+       nothing to clear, so Escape falls through to its normal job. */
+    var f = root && root.querySelector('#gatePass');
+    if (!f || document.activeElement !== f || !f.value) return false;
     var msg = root.querySelector('#gatePassMsg');
-    if (f) f.value = '';
+    f.value = '';
     if (msg) msg.textContent = '';
-    box.hidden = true;
     var mark = root.querySelector('#gateMark');
     if (mark) { try { mark.focus(); } catch (e) {} }
     return true;
   }
 
-  /* The code path. Deliberately separate from admit(): no Klaviyo
+  /* The code path. Deliberately separate from a signup: no Klaviyo
      call, no email stored, no signup event, because none of that
      happened -- somebody on the team typed a password. Counting it
      as a signup would quietly inflate the only number this gate
@@ -1146,7 +1150,7 @@
     codeOpens(typed).then(function (ok) {
       if (!ok) {
         if (btn) btn.disabled = false;
-        if (msg) msg.textContent = 'that code does not work.';
+        if (msg) msg.textContent = 'that password does not work.';
         input.value = '';
         try { input.focus(); } catch (x) {}
         return;
@@ -1164,21 +1168,21 @@
     });
   }
 
-  function admit(email, note, hold) {
-    stopClock();
-    markOpened(email);
-    say(note || 'you\u2019re in.', 'ok');
-    document.documentElement.classList.remove('asior-gated');
-    if (!root) return;
-    setTimeout(function () {
-      if (!root) return;
-      root.classList.add('is-leaving');
-      setTimeout(function () {
-        if (root && root.parentNode) root.parentNode.removeChild(root);
-        root = null;
-        document.removeEventListener('keydown', trap, true);
-      }, 320);
-    }, hold || 0);
+  /* A signup that went through. Says so, remembers the contact so the
+     next page greets them rather than asking again, and leaves the
+     gate standing. Nothing is written to LS_OPEN. */
+  function confirmSignup(contact, note) {
+    busy = false;
+    if (contact) lsSet(LS_EMAIL, contact);
+    say(note || 'you\u2019re on the list.', 'ok');
+    var btn = root && root.querySelector('#gateBtn');
+    if (btn) btn.disabled = false;
+    /* The form goes; the message above stays as the one line saying
+       so. greetKnown() is for the NEXT page, where there is no
+       message -- running it here put two "on the list" lines on
+       screen at once. */
+    var form = root && root.querySelector('#gateForm');
+    if (form) form.hidden = true;
   }
 
   /* Klaviyo wants E.164 and will reject anything else, so the number
@@ -1212,11 +1216,21 @@
     var input = root.querySelector('#gateEmail');
     var btn = root.querySelector('#gateBtn');
     var email = (input.value || '').trim();
+    var telEl = root.querySelector('#gatePhone');
+    var raw = telEl ? (telEl.value || '').trim() : '';
+    var phone = raw ? e164(raw) : '';
 
-    /* A real address, checked before anything is sent. The gate is
-       pointless if "a" opens it, and a bounced address is worse than
-       no address. */
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    /* Either one is enough when EITHER is set; neither is not. */
+    if (EITHER && !email && !raw) {
+      say('enter an email or a mobile number.', 'err');
+      try { input.focus(); } catch (x) {}
+      return;
+    }
+
+    /* A real address, checked before anything is sent -- when one is
+       given, or always when the email is the required field. A
+       bounced address is worse than no address. */
+    if ((email || !EITHER) && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
       say('that email does not look right.', 'err');
       try { input.focus(); } catch (x) {}
       return;
@@ -1227,19 +1241,11 @@
        Typing it is the consent act, with the TCPA paragraph on screen
        beside the field rather than behind a toggle -- which is what
        prior express written consent needs, and is why this is a field
-       and not a checkbox.
-
-       It is REQUIRED now. The gate does not open without it, because
-       the number is what the 30% code is being given for. Nothing
-       about purchase is conditioned on it: the checkout is on
-       Shopify's own domain and is not gated, so "not a condition of
-       any purchase" in the disclosure stays true. */
-    var telEl = root.querySelector('#gatePhone');
-    var raw = telEl ? (telEl.value || '').trim() : '';
-    var phone = raw ? e164(raw) : '';
-
+       and not a checkbox. Nothing about purchase is conditioned on
+       it: checkout is on Shopify's own domain and is not gated, so
+       "not a condition of any purchase" stays true. */
     if (SMS_REQUIRED && !raw) {
-      say('a mobile number is needed for the 30% code.', 'err');
+      say('a mobile number is needed too.', 'err');
       try { telEl.focus(); } catch (x) {}
       return;
     }
@@ -1273,7 +1279,8 @@
 
        Nothing is recorded as a signup that Klaviyo did not accept:
        the gate opens on the resolved request, never on the click. */
-    var profile = { email: email };
+    var profile = {};
+    if (email) profile.email = email;
     if (phone) profile.phone_number = phone;
 
     /* The variant onto the PROFILE, not just the event. An event
@@ -1308,7 +1315,7 @@
             sms_opt_in: !!phone,
             sms_required: SMS_REQUIRED,
             variant: VARIANT,
-          }, { email: email });
+          }, email ? { email: email } : { phone_number: phone });
         } catch (x) { /* best effort */ }
       }
       if (window.fbq) {
@@ -1354,21 +1361,21 @@
          with it rather than naming a dead code. */
       var m = CFG.MEMBER_OFFER || {};
       var line = (m.PCT && m.CODE)
-        ? 'you\u2019re in \u00b7 ' + m.PCT + '% off with code ' + m.CODE
+        ? 'you\u2019re on the list \u00b7 ' + m.PCT + '% off with code ' + m.CODE
         : 'you\u2019re on the list.';
       if (LIST_IS_DOUBLE_OPT_IN) line = 'check your inbox and confirm to join.';
 
-      admit(email, line, (m.PCT && m.CODE) ? 3200 : (LIST_IS_DOUBLE_OPT_IN ? 2600 : 900));
+      /* THE GATE STAYS UP. Since 2026-11-27 a signup is a signup and
+         not a key: it joins the list and says so, and the splash
+         stays exactly where it is, clock running, password box still
+         there. See opened(). */
+      confirmSignup(email || phone, line);
     }).catch(function (err) {
-      /* See "THE THREE WAYS THIS COULD TAKE THE WHOLE STORE DOWN" at
-         the top. They gave a real address and the request genuinely
-         failed; holding the door shut now loses the sale and the
-         signup both. */
-      if (CFG.FAIL_OPEN_ON_ERROR !== false) {
-        try { console.warn('[asior gate] signup failed, admitting anyway:', err && err.message); } catch (x) {}
-        admit(email, 'you\u2019re in. we could not save your email just now.', 2400);
-        return;
-      }
+      /* No fail-open any more. FAIL_OPEN_ON_ERROR existed because a
+         signup used to be the only way in, so Klaviyo being down was
+         Asior being down. A signup opens nothing now, so a failure
+         costs nobody the shop -- it just has to be retried. */
+      try { console.warn('[asior gate] signup failed:', err && err.message); } catch (x) {}
       busy = false;
       btn.disabled = false;
       say('that did not go through. try again in a moment.', 'err');
@@ -1392,7 +1399,7 @@
     /* For a founder who has locked themselves out while testing:
        AsiorGate.reset() in the console puts the gate back. */
     reset: function () {
-      try { localStorage.removeItem(LS_OPEN); localStorage.removeItem(LS_EMAIL); } catch (e) {}
+      try { [LS_OPEN, LS_EMAIL, LS_PASS, LS_DISMISSED].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
       memoryOpen = false;
       location.reload();
     },

@@ -157,6 +157,22 @@ window.ASIOR_SHIPPING = {
     START: '2026-11-27T13:30:00-06:00',
     END: '2026-11-30T23:59:00-06:00',
     FREE_THRESHOLD: 55.56,
+    // THE SALE, SAID ONCE AT THE TOP OF EVERY PAGE. Both Black Friday
+    // discounts are order-level and only show at checkout, so a card
+    // reads $42.99 and nothing on the page says a sale is running
+    // (Ayush, 2026-11-27). This line goes first in the announcement
+    // bar between FROM and UNTIL and nowhere outside them. It is the
+    // public automatic's own window and terms, read back 2026-11-27:
+    //   DiscountAutomaticNode/1578519625945 "Black Friday 2026 - 10%
+    //   Public", 10% off the order, no code, SCHEDULED,
+    //   startsAt 2026-11-27T20:00:00Z, endsAt 2026-12-01T05:59:00Z
+    // It names no code: ASIORLIST is for the list and is sent to them.
+    // If the discount moves or ends in Shopify, this moves with it.
+    SALE_LINE: {
+      FROM: '2026-11-27T20:00:00Z',
+      UNTIL: '2026-12-01T05:59:00Z',
+      TEXT: 'Black Friday: 10% off everything, taken off at checkout',
+    },
   },
 
   // Fulfilment time — how long before it ships. NOT delivery time.

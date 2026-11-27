@@ -113,6 +113,39 @@ window.ASIOR_LAUNCH = {
      the two empty defaults every new Shopify store ships with.
      Generating pages for them would publish two permanently empty
      URLs into the sitemap. */
+  /* BLACK FRIDAY EXCLUSIVES -- the homepage row directly above Fall,
+     asked for by Ayush on 2026-11-27. The two preorder sweats, both
+     ACTIVE in Shopify at $45.99 in S/M/L (read back 2026-11-27):
+       Black JAG Sweats  black-jag-sweats  Product/10463329321177
+       ASR Sweats        asr-sweats        Product/10463312183513
+
+     Membership is this handle list, resolved against the live
+     catalogue at build time, the same way CATEGORIES works -- so it
+     needs no collection in Shopify Admin, which this repo does not
+     write to. It is NOT in the nav: Ayush corrected that the same
+     morning. build.js generates /collections/black-friday-exclusives
+     .html from it for the row's View all.
+
+     Set to null when the preorder window closes and the row, its
+     page and its View all link all go with it. */
+  BF_EXCLUSIVES: {
+    slug: 'black-friday-exclusives',
+    name: 'Black Friday Exclusives',
+    handles: ['black-jag-sweats', 'asr-sweats'],
+  },
+
+  /* Preorder shipping windows, shown on the CARD so somebody adding
+     from a grid knows before it is in their bag. Each one is copied
+     from the product's own Shopify description -- "In Production:
+     Ships in 4-6 weeks" on both, read back 2026-11-27 -- and build.js
+     warns at build time if the description stops saying it. Never
+     add a window here that Shopify's description does not state: a
+     shipping date is a promise the FTC Mail Order Rule holds us to. */
+  PREORDER_SHIP: {
+    'black-jag-sweats': 'Ships in 4\u20136 weeks',
+    'asr-sweats': 'Ships in 4\u20136 weeks',
+  },
+
   SHOPIFY_COLLECTIONS: [
     { slug: 'jag', name: 'JAG' },
     { slug: 'fall-collection', name: 'Fall Collection' },

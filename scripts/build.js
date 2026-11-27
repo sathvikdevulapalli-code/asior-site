@@ -1243,8 +1243,32 @@ const VERIFIED_COMPARE_AT = Array.isArray(LAUNCH.VERIFIED_COMPARE_AT)
 /* Filled by the collection pass, read by the sitemap. */
 let GENERATED_COLLECTIONS = [];
 
+/* The homepage's Black Friday row and its View all page. A config
+   handle list like CATEGORIES, but never in the nav. */
+const BF_EXCLUSIVES = LAUNCH.BF_EXCLUSIVES || null;
+
+/* Preorder windows by handle, copied from each product's Shopify
+   description. See PREORDER_SHIP in launch-config.js. */
+const PREORDER_SHIP = LAUNCH.PREORDER_SHIP || {};
+
+/* A window in the config that the product's own description no longer
+   states is a shipping promise nobody is backing. Warn loudly. */
+function checkPreorderShip(products) {
+  const byHandle = new Map(products.map(p => [p.handle, p]));
+  for (const [handle, line] of Object.entries(PREORDER_SHIP)) {
+    const p = byHandle.get(handle);
+    if (!p) { console.warn(`  ! PREORDER_SHIP: ${handle} is not Active in the catalog`); continue; }
+    const desc = String(p.descriptionHtml || '').replace(/<[^>]+>/g, ' ').replace(/[\u2013\u2014]/g, '-');
+    const want = line.replace(/[\u2013\u2014]/g, '-').replace(/^ships\s+(out\s+)?in\s+/i, '').trim();
+    if (!desc.toLowerCase().includes(want.toLowerCase())) {
+      console.warn(`  ! PREORDER_SHIP: ${handle} says "${line}" but its Shopify description does not`);
+    }
+  }
+}
+
 const ALL_COLLECTIONS = [
   ...CATEGORIES.map(c => ({ ...c, source: 'config' })),
+  ...(BF_EXCLUSIVES ? [{ ...BF_EXCLUSIVES, source: 'config' }] : []),
   ...SHOPIFY_COLLECTIONS.map(c => ({ ...c, source: 'shopify' })),
 ];
 
@@ -1892,7 +1916,8 @@ function shopCard(p, eager, sizes) {
     : `From $${min}`;
 
   const name = displayName(p);
-  const isPreorder = /\[preorder\]/i.test(p.title);
+  const shipLine = PREORDER_SHIP[p.handle] || '';
+  const isPreorder = /\[preorder\]/i.test(p.title) || !!shipLine;
   const soldOut = variants.length > 0 && variants.every(v => !v.availableForSale);
 
   const img = leadImage(p);
@@ -1951,12 +1976,13 @@ function shopCard(p, eager, sizes) {
           <a class="product-link" href="/products/${esc(p.handle)}.html" tabindex="-1" aria-hidden="true">
             <div class="product-img"${altAttr}>${media}</div>
           </a>
-${soldOut ? '          <span class="product-badge product-badge--sold">Sold out</span>\n' : ''}          ${trigger}
+${soldOut ? '          <span class="product-badge product-badge--sold">Sold out</span>\n'
+  : (shipLine ? '          <span class="product-badge">Preorder</span>\n' : '')}          ${trigger}
 ${sizeRow ? `          ${sizeRow}\n` : ''}        </div>
         <a class="product-link" href="/products/${esc(p.handle)}.html">
           <div class="product-title">${esc(name)}</div>
           <div class="product-price tnum">${priceLabel}</div>
-${isPreorder ? '          <div class="product-state">Preorder</div>\n' : ''}        </a>
+${isPreorder ? `          <div class="product-state">${shipLine ? esc('Preorder \u00b7 ' + shipLine.charAt(0).toLowerCase() + shipLine.slice(1)) : 'Preorder'}</div>\n` : ''}        </a>
       </div>`;
 }
 
@@ -2138,10 +2164,21 @@ function syncLineup(products) {
   let next = replaceBetween(html, '<!-- LINEUPGRID:START -->', '<!-- LINEUPGRID:END -->', rows);
   if (next === null) throw new Error('index.html: LINEUPGRID markers missing');
 
+  /* Black Friday Exclusives, above Fall. Empty when the config is
+     null or none of its handles is Active -- index.html hides an
+     empty row rather than showing a heading over nothing. */
+  const bf = BF_EXCLUSIVES
+    ? BF_EXCLUSIVES.handles.map(h => byHandle.get(h)).filter(Boolean)
+    : [];
+  const bfRows = bf.map(p => shopCard(p, false, CARD_SIZES.row))
+    .filter(Boolean).join('\n') + '\n';
+  next = replaceBetween(next, '<!-- BFXGRID:START -->', '<!-- BFXGRID:END -->', bfRows);
+  if (next === null) throw new Error('index.html: BFXGRID markers missing');
+
   /* The rest of the catalogue, under its own honest heading. Nothing
      is hidden by narrowing the Fall row -- these are the same cards,
      one section further down, no longer claiming to be Fall. */
-  const fallSet = new Set(fall.map(p => p.handle));
+  const fallSet = new Set([...fall, ...bf].map(p => p.handle));
   const rest = sortForMerchandising(products).filter(p => !fallSet.has(p.handle));
   const restRows = rest.map(p => shopCard(p, false, CARD_SIZES.row))
     .filter(Boolean).join('\n') + '\n';
@@ -2149,7 +2186,7 @@ function syncLineup(products) {
   if (next === null) throw new Error('index.html: RESTGRID markers missing');
 
   if (next !== html) fs.writeFileSync(target, next);
-  return fall.length + rest.length;
+  return fall.length + bf.length + rest.length;
 }
 
 function syncShopGrid(products) {
@@ -2429,7 +2466,8 @@ function syncSiteJsonLd() {
     console.log(`✓ bespoke-page JSON-LD written for ${syncBespokeJsonLd(products)} product(s)`);
     console.log(`✓ homepage hero: ${syncHero()} campaign frame`);
     console.log(`✓ Organization + WebSite JSON-LD on the home page: ${syncSiteJsonLd()}`);
-    console.log(`✓ homepage: ${syncLineup(products)} pieces across the Fall row and the rest`);
+    checkPreorderShip(products);
+    console.log(`✓ homepage: ${syncLineup(products)} pieces across the Black Friday, Fall and other rows`);
     console.log(`✓ shop.html catalogue pre-rendered with ${syncShopGrid(products)} products`);
     console.log(`✓ archive.html listed ${syncArchive(products)} products`);
 
