@@ -2536,9 +2536,13 @@
     /* "$39.99" next to "$36" reads as a typo: keep the cents whenever
        the regular price shows them. */
     if (/\./.test(m[2]) && now.indexOf('.') === -1) now += '.00';
+    /* Sale price only, in red, no struck-through regular price -- the
+       founder's call on 2026-11-27 ("I don't want them to see the
+       original price"). It is still the true price after the public
+       discount, rounded the way Shopify rounds. */
+    void was;
     return (m[1] ? 'From ' : '')
-      + '<span class="compare"><span class="sr-only">Was </span>' + was + '</span>'
-      + '<span class="sale-price"><span class="sr-only">Now </span>' + now + '</span>';
+      + '<span class="sale-price"><span class="sr-only">Sale price </span>' + now + '</span>';
   }
   function applySalePrices(root) {
     if (!saleShowing()) return;
