@@ -406,7 +406,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 26px;
   }
 
   .home-row-title {
@@ -760,8 +760,10 @@
        a margin the banner did not have, so the two did not read as one
        page. The row gap carries the separation. */
     .home-row { padding: 0; }
-    .home-row + .home-row { padding-top: 34px; }
-    .home-row:last-of-type { padding-bottom: 34px; }
+    .home-row + .home-row { padding-top: 56px; }
+    .home-row:last-of-type { padding-bottom: 56px; }
+    /* The first row is not flush against the hero's bottom edge. */
+    #bfx, #bfx[hidden] + .home-row { padding-top: 32px; }
 
     /* Taller and narrower on a phone: a wide landscape crop at 390px
        would cut both figures out of a frame whose subject reads across

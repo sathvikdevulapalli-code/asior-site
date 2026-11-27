@@ -1311,6 +1311,23 @@ Added 2026-11-27 at Ayush's request.
   Garment-to-photo matching was done against the Shopify descriptions;
   remove an entry to go back to Shopify's photos.
 
+- **The red BLACK FRIDAY SALE marquee** (founder, 2026-11-27). A
+  `--sale-red` band above the announcement bar, phrases from
+  `SALE_LINE.MARQUEE`, scrolling; still under reduced motion, paused
+  on hover. It is the one colour besides photographs and the one extra
+  ambient motion, both by the founder's explicit call, and both exist
+  only inside the public discount's window (`saleLive()` in `site.js`).
+  While it shows, the bar's own sale line is dropped. `?sale=preview`
+  shows it early for an audit, for that tab only.
+- **Spacing pass, same day.** Caption 14px under the photograph, price
+  6px under it, grid row gap 48px (36px on a phone). On a phone the
+  photographs stay edge to edge but captions and row headings are
+  inset 12/16px.
+- **The client tile now matches the build's.** `leadImage` in
+  `site.js` carries the same crop-fit rule as `build.js`, and
+  `PRODUCT_CARD_FIELDS` asks for 8 images like the build does.
+  Before, JAG Shorts' tile swapped after load.
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split

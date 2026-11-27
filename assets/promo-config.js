@@ -172,6 +172,10 @@ window.ASIOR_SHIPPING = {
       FROM: '2026-11-27T20:00:00Z',
       UNTIL: '2026-12-01T05:59:00Z',
       TEXT: 'Black Friday: 10% off everything, taken off at checkout',
+      // The red marquee at the very top, same window, same terms. Each
+      // phrase is a true statement of the public automatic; none names
+      // a code. Empty array or null and the marquee never renders.
+      MARQUEE: ['Black Friday Sale', '10% off everything', 'Taken off at checkout'],
     },
   },
 

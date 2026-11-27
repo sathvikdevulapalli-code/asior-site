@@ -1924,10 +1924,38 @@
         : all.filter(function (im) { return im.url.indexOf(pick) !== -1; })[0];
       if (want && !isGeneratedImage(want)) return want;
     }
-    if (featured && !isGeneratedImage(featured)) return featured;
-    var real = all.filter(function (im) { return !isGeneratedImage(im); })[0];
-    if (real) return real;
-    return featured || all[0] || null;
+    var reals = all.filter(function (im) { return !im.local && !isGeneratedImage(im); });
+    var chosen = (featured && !isGeneratedImage(featured)) ? featured : reals[0];
+    if (!chosen) return featured || all[0] || null;
+
+    /* THE SAME CROP RULE AS THE BUILD (leadImage in scripts/build.js).
+       If the chosen photograph would lose more than TILE_CROP_LIMIT to
+       the tile and another real one fits measurably better, use that.
+       Without this the pre-rendered card showed the better fit and the
+       live re-render swapped it back a moment after load -- JAG Shorts
+       on the homepage flipped from jag-shorts-steps to 30-DSCF7711.
+       A local flat lay is never a candidate unless it is the lead. */
+    var crop = tileCrop(chosen);
+    if (crop !== null && crop > TILE_CROP_LIMIT) {
+      var best = chosen, bestCrop = crop;
+      reals.forEach(function (im) {
+        var c = tileCrop(im);
+        if (c !== null && c < bestCrop) { best = im; bestCrop = c; }
+      });
+      if (best.url !== chosen.url && bestCrop < crop - 0.02) return best;
+    }
+    return chosen;
+  }
+
+  /* Mirrors of TILE_RATIO / tileCrop / TILE_CROP_LIMIT in build.js. */
+  var TILE_RATIO = 2 / 3;
+  var TILE_CROP_LIMIT = 0.10;
+  function tileCrop(im) {
+    if (!im || !im.width || !im.height) return null;
+    var r = im.width / im.height;
+    return r < TILE_RATIO
+      ? 1 - (im.width / TILE_RATIO) / im.height
+      : 1 - (im.height * TILE_RATIO) / im.width;
   }
 
   /* ---- flat lays served from this repo ------------------------------
@@ -2004,7 +2032,10 @@
     createdAt
     options { name values }
     featuredImage { ${IMAGE_FIELDS} }
-    images(first: 2) { edges { node { ${IMAGE_FIELDS} } } }
+    # 8, the same as the build's catalogue query: leadImage's crop rule
+    # chooses among these, and with only 2 the browser could not see
+    # the frame the build had picked, so the tile changed after load.
+    images(first: 8) { edges { node { ${IMAGE_FIELDS} } } }
     variants(first: 20) {
       edges { node {
         id availableForSale price { amount } compareAtPrice { amount }
@@ -2286,6 +2317,53 @@
     return isBfcmWindow();
   }
 
+  /* ---- the Black Friday marquee --------------------------------------
+
+     A red band above everything, the words BLACK FRIDAY SALE running
+     across it. Asked for by the founder on 2026-11-27.
+
+     It is on screen only while the public tier is actually running --
+     SALE_LINE.FROM to UNTIL in promo-config.js, which is the Shopify
+     discount's own startsAt/endsAt -- so it can never announce a sale
+     that has not started or has ended. ?sale=preview shows it early
+     for an audit (remembered for the tab, in sessionStorage) and is
+     not linked anywhere. Under prefers-reduced-motion it stands still.
+     The words are the discount's real terms and name no code. */
+  function saleLive() {
+    var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
+    return !!(sale && Date.now() >= Date.parse(sale.FROM) && Date.now() < Date.parse(sale.UNTIL));
+  }
+
+  function salePreview() {
+    try {
+      if (/[?&]sale=preview\b/.test(location.search)) sessionStorage.setItem('asior_sale_preview', '1');
+      return sessionStorage.getItem('asior_sale_preview') === '1';
+    } catch (e) { return /[?&]sale=preview\b/.test(location.search); }
+  }
+
+  function renderSaleMarquee(live) {
+    var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
+    var existing = document.querySelector('.bf-marquee');
+    var show = !!(sale && sale.MARQUEE && (live || salePreview()));
+    if (!show) { if (existing) existing.remove(); return false; }
+    if (existing) return true;
+    var bits = sale.MARQUEE;
+    var unit = bits.map(function (b) { return '<span>' + escapeHtml(b) + '</span>'; })
+      .join('<i aria-hidden="true">\u2726</i>') + '<i aria-hidden="true">\u2726</i>';
+    var el = document.createElement('div');
+    el.className = 'bf-marquee';
+    el.setAttribute('role', 'region');
+    el.setAttribute('aria-label', 'Sale');
+    /* One copy is read; the repeats exist only to fill the loop. */
+    el.innerHTML = '<p class="sr-only">' + escapeHtml(bits.join('. ')) + '</p>'
+      + '<div class="bf-marquee-track" aria-hidden="true">'
+      + '<div class="bf-marquee-run">' + unit + unit + unit + unit + '</div>'
+      + '<div class="bf-marquee-run">' + unit + unit + unit + unit + '</div>'
+      + '</div>';
+    document.body.insertBefore(el, document.body.firstChild);
+    return true;
+  }
+
   function syncTimedOfferCopy() {
     var threshold = Number(shippingConfig().FREE_THRESHOLD);
     var label = threshold.toFixed(2).replace(/\.00$/, '');
@@ -2315,7 +2393,10 @@
          window and never outside it. See SALE_LINE in
          promo-config.js. Idempotent: wireAnnounce() calls this too. */
       var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
-      var saleOn = sale && Date.now() >= Date.parse(sale.FROM) && Date.now() < Date.parse(sale.UNTIL);
+      var saleOn = saleLive();
+      /* The red marquee carries the sale when it is on screen; the bar
+         would only say it a second time in smaller type. */
+      if (renderSaleMarquee(saleOn)) saleOn = false;
       var saleEl = track.querySelector('[data-sale-line]');
       if (saleOn && !saleEl && sale.TEXT) {
         var cur = track.querySelector('.announce-msg.is-on');

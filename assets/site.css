@@ -912,7 +912,8 @@ html.cart-drawer-locked { overflow: hidden; }
      tight under its own photograph and ours has to clear a caption
      plus a price, and at 12px a price was nearer the next product's
      picture than its own. 26px is the smallest that still groups. */
-  gap: 26px 12px;
+  gap: 48px 12px;   /* 26px row gap until 2026-11-27: a price sat nearer
+                       the next photograph than read as intended */
 }
 
 .coll-head {
@@ -1963,8 +1964,9 @@ body {
   white-space: normal;
   /* The caption belongs to the photograph above it, not to the row
      below: tight to its picture, and the air goes into the grid's row
-     gap instead. */
-  margin-top: 10px;
+     gap instead. 14px since 2026-11-27: at 10px the name sat on the
+     photograph's edge and read as cramped. */
+  margin-top: 14px;
 
   /* One line, always.
 
@@ -2008,7 +2010,7 @@ body {
   /* 2px read as the price being part of the name rather than a fact
      about it. 5px separates them without letting the price drift
      toward the next row. */
-  margin-top: 5px;
+  margin-top: 6px;
 }
 
 
@@ -4582,4 +4584,79 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   margin: 0;
   font-size: 14px;
   color: var(--muted);
+}
+
+
+/* ===================================================================
+   2026-11-27 -- THE BLACK FRIDAY MARQUEE, AND A SPACING PASS.
+
+   Both asked for by the founder on drop day: a red BLACK FRIDAY SALE
+   band moving across the top, and more room around the type -- names
+   were sitting on their photographs and, on a phone, captions and row
+   headings ran to the very edge of the screen.
+
+   The red is the one colour on the site besides the photographs, and
+   it exists only while the sale does: assets/site.js draws the band
+   inside the Shopify discount's own window and removes it after.
+   =================================================================== */
+:root {
+  --sale-red: #C1121F;     /* white on it is 5.9:1 */
+  --sale-ink: #FFFFFF;
+}
+
+.bf-marquee {
+  position: relative;
+  z-index: 61;             /* over the announcement bar's 60 */
+  height: 38px;
+  overflow: hidden;
+  background: var(--sale-red);
+  color: var(--sale-ink);
+  display: flex;
+  align-items: center;
+}
+.bf-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: bf-marquee 38s linear infinite;
+}
+.bf-marquee:hover .bf-marquee-track { animation-play-state: paused; }
+.bf-marquee-run {
+  display: flex;
+  align-items: center;
+  flex: none;
+  white-space: nowrap;
+}
+.bf-marquee-run span {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  padding: 0 22px;
+}
+.bf-marquee-run i {
+  font-style: normal;
+  font-size: 10px;
+  opacity: .8;
+}
+@keyframes bf-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bf-marquee { justify-content: center; }
+  .bf-marquee-track { animation: none; width: auto; }
+  .bf-marquee-run + .bf-marquee-run { display: none; }
+}
+
+/* ---- spacing --------------------------------------------------------- */
+.product-state { margin-top: 8px; line-height: 1.5; }
+
+@media (max-width: 768px) {
+  /* Photographs stay edge to edge; the words under them do not. A
+     caption at x=0 on a phone reads as a layout error, not a choice. */
+  .shop-grid { row-gap: 36px; }
+  .product > .product-link:last-child { padding: 4px 12px 8px; }
+  .home-row-head,
+  .shop-grid-heading { padding-left: 16px; padding-right: 16px; }
 }
