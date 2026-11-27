@@ -1389,6 +1389,28 @@ assets (`GATE_OPEN_MS`, stamped by the build). Card size picker
 redrawn as one segmented bar; Tops/Bottoms banners are the concrete
 flat lays; photographs fade up as they decode (`wireImageFade`).
 
+### Same day, later (founder, ~12:40 CT)
+
+- **The sale started early:** both discounts' `startsAt` moved to
+  `2026-11-27T18:40Z` ("apply all the sales right now"); `SALE_LINE.FROM`
+  and `BFCM_WINDOW.START` follow. The gate still lifts at 20:00Z.
+  Read back on a real Storefront cart: $42.99 polo, automatic -$4.29 =
+  $38.70; with ASIORLIST -$8.59 = $34.40. Shopify rounds the discount
+  **down** to the cent, and `saleCents()` does the same.
+- **Shopify images only.** `LOCAL_PHOTOS` is `{}`; the flat lays live
+  on the lookbook (13 frames, leading) and the Tops/Bottoms banners,
+  never as product photographs. JAG Set leads with its own first photo
+  so it no longer shares a tile with the Crewneck.
+- **"10% off" is said nowhere.** "Massive Black Friday sale" on the red
+  bar (a link to Black Friday Exclusives), the grey bar (with the live
+  clock, replacing free shipping for the window), the gate lede; a red
+  "Black Friday deal" ribbon on every buyable card and a deal chip by
+  the PDP price; the PDP's ASIORTEN line becomes a red sale line.
+- The hover photograph used to stay shown after one hover; it now fades
+  back out. Image tiles show a faint sheen until the photograph loads.
+- **Still declined:** "restocked" (no units added) and markdowns deeper
+  than the real discounts (20% is already the margin floor on ASR Shorts).
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split

@@ -1060,7 +1060,12 @@ html.cart-drawer-locked { overflow: hidden; }
               transform var(--dur-image) var(--ease-img);
 }
 
-.product-img .alt-shot.ready { opacity: 1; transform: none; }
+.product-img .alt-shot.ready { opacity: 0; }
+/* Shown only while the pointer is on the card. It used to be shown
+   for good the moment it loaded, so after one hover a card kept its
+   second photograph until hovered again (founder, 2026-11-27). */
+.product-frame:hover .product-img .alt-shot.ready,
+.product-img:hover .alt-shot.ready { opacity: 1; transform: none; }
 
 .product-frame { position: relative; }
 .product-link { display: block; text-decoration: none; color: var(--ink); }
@@ -4851,3 +4856,67 @@ html.img-fade .product-img > img.is-in:not(.alt-shot),
 html.img-fade .pd-gallery img.is-in,
 html.img-fade .coll-banner img.is-in { opacity: 1; }
 .sale-tag { color: var(--sale-red-ink); }
+
+/* ---- Black Friday: ribbon, deal chip, bars (2026-11-27) ------------ */
+a.bf-marquee { text-decoration: none; color: var(--sale-ink); }
+a.bf-marquee:focus-visible { outline: 2px solid var(--sale-ink); outline-offset: -4px; }
+.announce-sale {
+  color: #fff !important;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-size: 12px !important;
+}
+.announce-sale b { font-variant-numeric: tabular-nums; color: var(--sale-red-ink); margin-left: 6px; }
+.announce:has(.announce-sale) { background: #1a0b0d; }
+
+.product-frame .sale-ribbon {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  z-index: 3;
+  padding: 5px 10px 5px 12px;
+  background: var(--sale-red);
+  color: var(--sale-ink);
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  line-height: 1;
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%);
+  pointer-events: none;
+}
+@media (max-width: 760px) {
+  .product-frame .sale-ribbon { top: 8px; font-size: 9px; padding: 4px 8px 4px 11px; letter-spacing: .1em; }
+}
+.deal-chip {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 7px;
+  background: var(--sale-red);
+  color: var(--sale-ink);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.pd-signup-prop.is-sale { color: var(--sale-red-ink); font-weight: 600; }
+
+/* ---- loading: a quiet sheen on a tile until its photograph arrives -- */
+@media (prefers-reduced-motion: no-preference) {
+  html.img-fade .product-img:not(:has(> img.is-in))::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(232, 232, 234, .06) 50%, transparent 70%);
+    background-size: 220% 100%;
+    animation: tile-sheen 1.4s linear infinite;
+    pointer-events: none;
+  }
+}
+@keyframes tile-sheen { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.product-img { position: relative; }
+@media (max-width: 600px) { .deal-chip { display: none; } }
+.announce-sale > span[aria-hidden] { margin: 0 10px; }

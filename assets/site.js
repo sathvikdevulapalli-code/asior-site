@@ -2391,7 +2391,13 @@
          own, at the same instant the Shopify discounts stop applying. */
       clearInterval(saleTicker); saleTicker = null;
       var m = document.querySelector('.bf-marquee'); if (m) m.remove();
-      document.querySelectorAll('.sale-clock, .sale-tag').forEach(function (el) { el.remove(); });
+      document.querySelectorAll('.sale-clock, .sale-tag, .sale-ribbon, .deal-chip').forEach(function (el) { el.remove(); });
+      document.querySelectorAll('[data-orig-announce]').forEach(function (t) {
+        t.innerHTML = t.getAttribute('data-orig-announce'); t.removeAttribute('data-orig-announce');
+      });
+      document.querySelectorAll('[data-orig-prop]').forEach(function (t) {
+        t.innerHTML = t.getAttribute('data-orig-prop'); t.removeAttribute('data-orig-prop'); t.classList.remove('is-sale');
+      });
       restoreSalePrices();
       return;
     }
@@ -2421,10 +2427,12 @@
       return '<span>' + escapeHtml(b).replace('{countdown}',
         '<b class="bf-clock" data-sale-clock>' + saleClockText() + '</b>') + '</span>';
     }).join('<i aria-hidden="true">✦</i>') + '<i aria-hidden="true">✦</i>';
-    var el = document.createElement('div');
+    /* The whole band is a link to the Black Friday exclusives -- the
+       founder asked for them at the top of the sale (2026-11-27). */
+    var el = document.createElement('a');
     el.className = 'bf-marquee';
-    el.setAttribute('role', 'region');
-    el.setAttribute('aria-label', 'Sale');
+    el.href = '/collections/black-friday-exclusives.html';
+    el.setAttribute('aria-label', 'Massive Black Friday sale. Shop Black Friday exclusives');
     /* One copy is read, once, with no ticking clock in it -- a live
        region rewriting itself every second is a screen-reader siren. */
     el.innerHTML = '<p class="sr-only">' + escapeHtml(bits.join('. ').replace('Ends in {countdown}', 'Ends Monday at 9 PM Central')) + '</p>'
@@ -2442,9 +2450,23 @@
     if (!saleShowing()) return;
     /* The Fall row says it is on sale, in words, while it is. Not
        "restock": nothing was restocked (Shopify, 2026-11-27). */
+    /* The product page's free-shipping / ASIORTEN line becomes the
+       sale line while the sale runs. */
+    var prop = document.getElementById('pdSignupProp');
+    if (prop && !prop.querySelector('.sale-deal')) {
+      if (!prop.hasAttribute('data-orig-prop')) prop.setAttribute('data-orig-prop', prop.innerHTML);
+      prop.classList.add('is-sale');
+      prop.innerHTML = '<span class="sale-deal">Massive Black Friday sale. This price ends when the timer does.</span>';
+    }
+    /* A ribbon on every card that can be bought (Amazon's "deal" tag,
+       in our type): top-right, clear of the badges top-left. */
+    document.querySelectorAll('.product .product-frame').forEach(function (f) {
+      if (f.querySelector('.sale-ribbon') || f.querySelector('.product-badge--sold')) return;
+      f.insertAdjacentHTML('afterbegin', '<span class="sale-ribbon">Black Friday deal</span>');
+    });
     var fallTitle = document.querySelector('#lineup .home-row-title');
     if (fallTitle && !fallTitle.querySelector('.sale-tag')) {
-      fallTitle.insertAdjacentHTML('beforeend', '<span class="sale-tag"> \u00b7 Black Friday prices</span>');
+      fallTitle.insertAdjacentHTML('beforeend', '<span class="sale-tag"> \u00b7 on sale</span>');
     }
     [['#addBtn', 'pd'], ['#checkoutBtn', 'cart'], ['.cart-drawer-checkout', 'drawer']].forEach(function (pair) {
       document.querySelectorAll(pair[0]).forEach(function (btn) {
@@ -2468,7 +2490,7 @@
      what anyone actually pays at checkout, because the Shopify automatic
      takes 10% off the whole order. Both numbers are real: the regular
      price is the price, and the sale price is it less 10% rounded the
-     way Shopify rounds a percentage (to the cent, half up).
+     way Shopify rounds a percentage (down, to the cent).
 
      Display only, and only inside the discount's window, so it cannot
      outlive the discount: at 9 PM tickSale() puts the original prices
@@ -2476,7 +2498,11 @@
      ones charged. A price that already carries a verified compare-at
      is left alone. */
   var SALE_PCT = 10;
-  function saleCents(c) { return c - Math.round(c * SALE_PCT / 100); }
+  /* Shopify rounds a percentage discount DOWN to the cent: read back on
+     a live cart 2026-11-27, 10% of $42.99 came off as $4.29 (total
+     $38.70) and 20% as $8.59. Rounding to nearest showed $38.69 -- a
+     cent below what checkout charges. Floor matches it exactly. */
+  function saleCents(c) { return c - Math.floor(c * SALE_PCT / 100); }
   function fmtMoney(c) {
     var s = (c / 100).toFixed(2);
     return '$' + (s.slice(-3) === '.00' ? s.slice(0, -3) : s);
@@ -2487,6 +2513,9 @@
     var cents = Math.round(parseFloat(m[2].replace(/,/g, '')) * 100);
     if (!cents) return null;
     var was = fmtMoney(cents), now = fmtMoney(saleCents(cents));
+    /* "$39.99" next to "$36" reads as a typo: keep the cents whenever
+       the regular price shows them. */
+    if (/\./.test(m[2]) && now.indexOf('.') === -1) now += '.00';
     return (m[1] ? 'From ' : '')
       + '<span class="compare"><span class="sr-only">Was </span>' + was + '</span>'
       + '<span class="sale-price"><span class="sr-only">Now </span>' + now + '</span>';
@@ -2501,6 +2530,7 @@
       if (el.hasAttribute('data-sale-html') && el.getAttribute('data-sale-html') === el.innerHTML) return;
       var html = salePriceHTML(el.textContent);
       if (!html) return;
+      if (el.id === 'pdPrice') html += '<span class="deal-chip">Black Friday deal</span>';
       el.setAttribute('data-orig-html', el.innerHTML);
       el.innerHTML = html;
       el.setAttribute('data-sale-html', el.innerHTML);
@@ -2602,9 +2632,21 @@
          promo-config.js. Idempotent: wireAnnounce() calls this too. */
       var sale = ((window.ASIOR_SHIPPING || {}).BFCM_WINDOW || {}).SALE_LINE;
       var saleOn = saleLive();
-      /* The red marquee carries the sale when it is on screen; the bar
-         would only say it a second time in smaller type. */
-      if (renderSaleMarquee(saleOn)) saleOn = false;
+      /* During the sale the grey bar says the sale and its clock,
+         instead of free shipping (founder, 2026-11-27). The original
+         messages are kept on the element and put back when it ends. */
+      if (renderSaleMarquee(saleOn)) {
+        if (!track.hasAttribute('data-orig-announce')) {
+          track.setAttribute('data-orig-announce', track.innerHTML);
+          /* Not data-sale-line: that marks the bar's old sale message,
+             which the code below removes while the marquee is up. */
+          track.innerHTML = '<p class="announce-msg is-on announce-sale">'
+            + 'Massive Black Friday sale <span aria-hidden="true">\u00b7</span> Ends in '
+            + '<b data-sale-clock aria-hidden="true">' + saleClockText() + '</b>'
+            + '<span class="sr-only">Monday at 9 PM Central</span></p>';
+        }
+        saleOn = false;
+      }
       var saleEl = track.querySelector('[data-sale-line]');
       if (saleOn && !saleEl && sale.TEXT) {
         var cur = track.querySelector('.announce-msg.is-on');

@@ -154,7 +154,7 @@ window.ASIOR_SHIPPING = {
   // discounting at 1:45 is already in the window where this
   // adjustment matters.
   BFCM_WINDOW: {
-    START: '2026-11-27T13:30:00-06:00',
+    START: '2026-11-27T12:40:00-06:00',
     // 9 PM CST on Cyber Monday. Both Shopify discounts end at
     // 2026-12-01T03:00:00Z, set at the founder's direction on 2026-11-27
     // (briefly 9 PM Black Friday, then moved), so this window, the
@@ -173,9 +173,9 @@ window.ASIOR_SHIPPING = {
     // It names no code: ASIORLIST is for the list and is sent to them.
     // If the discount moves or ends in Shopify, this moves with it.
     SALE_LINE: {
-      FROM: '2026-11-27T20:00:00Z',
+      FROM: '2026-11-27T18:40:00Z',   // both discounts' startsAt, moved to now at the founder's direction
       UNTIL: '2026-12-01T03:00:00Z',   // both discounts' endsAt, read back 2026-11-27
-      TEXT: 'Black Friday: 10% off everything, taken off at checkout',
+      TEXT: 'Massive Black Friday sale',
       // The red marquee at the very top, same window, same terms. Each
       // phrase is a true statement of the public automatic; none names
       // a code. Empty array or null and the marquee never renders.
@@ -184,7 +184,8 @@ window.ASIOR_SHIPPING = {
       // 10% is already off every price (the strikethroughs), and
       // signing up takes it to 20% in all (ASIORLIST replaces the 10%;
       // nothing stacks).
-      MARQUEE: ['Black Friday sale', '20% off sitewide when you sign up', 'Ends in {countdown}'],
+      // Founder, 2026-11-27: no '10% off' anywhere, just the sale.
+      MARQUEE: ['Massive Black Friday sale', 'Ends in {countdown}', '20% off sitewide when you sign up', 'Shop Black Friday exclusives'],
     },
   },
 
@@ -370,7 +371,9 @@ window.ASIOR_ANALYTICS = {
 window.ASIOR_CARD_IMAGE = {
   // Real photo uploaded to Shopify 2026-10-28 (Ayush's crewneck + sweats
   // shot). Leads the grid instead of the hash-named PNG render.
-  'jag-set-1': 'jag-set-crewneck-sweats',
+  // The Set's own first photograph since 2026-11-27: the shared
+  // crewneck+sweats shot made the Set and the Crewneck identical tiles.
+  'jag-set-1': '99F17712-C6FC-4D73-AF52-37BBEDB849D9',
   // Same real photo, also added to the Crewneck in Shopify 2026-10-28:
   // it shows the crewneck worn. Replaces a hash-named PNG render.
   'jaguar-crewneck': 'jag-set-crewneck-sweats',

@@ -170,14 +170,12 @@ window.ASIOR_LAUNCH = {
      The OLI05419 and OLI05424 frames also show other pieces beside the
      one named. Remove an entry and that product is back on Shopify's
      photos with no other change. */
-  LOCAL_PHOTOS: {
-    'black-jag-sweats': { lead: 'oli05412', hover: 'oli05413', extra: ['oli05418'] },
-    'asr-sweats':       { lead: 'oli05419', hover: 'oli05424' },
-    'jag-shorts':       { hover: 'oli05428', extra: ['oli05410'] },
-    'asr-shorts':       { hover: 'oli05406', extra: ['oli05426'] },
-    'holes-tee':        { hover: 'oli05388' },
-    'scripture-polo':   { hover: 'oli05395' },
-  },
+  /* EMPTY since 2026-11-27, at the founder's instruction: product
+     photographs are Shopify's only ("change images to be only the
+     images that are in Shopify"). The mechanism stays; an entry here
+     would put a repo-hosted frame in front of Shopify's again. */
+  LOCAL_PHOTOS: {},
+
   /* Pixel sizes of the originals, so every <img> carries real
      dimensions and the tile-crop measurement works. */
   LOCAL_PHOTO_SIZES: {

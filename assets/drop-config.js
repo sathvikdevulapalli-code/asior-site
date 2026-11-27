@@ -410,8 +410,8 @@ window.ASIOR_DROP = {
        code being pulled in Shopify and the gate goes on promising
        something nothing will honour. Every percentage on this screen
        is computed. Do not type one here. */
-    LEDE: '10% off sitewide.',
-    LEDE_MEMBER: '{member}% off when you sign up. {public}% for everyone else.',
+    LEDE: 'Massive Black Friday sale.',
+    LEDE_MEMBER: 'Massive Black Friday sale. {member}% off sitewide when you sign up.',
 
     /* ---- the members' half -------------------------------------
 
