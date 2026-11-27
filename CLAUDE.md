@@ -1299,6 +1299,18 @@ Added 2026-11-27 at Ayush's request.
   else. Both BF discounts are order-level, so without it a card shows
   full price and nothing says a sale is on. Names no code.
 
+- **`LOCAL_PHOTOS`** in `launch-config.js`: the concrete flat lays
+  Ayush sent on 2026-11-27, in `images/flat/` at 400/800/1200/2000
+  wide, used **site-side** (founder's choice; nothing uploaded to
+  Shopify, so cart and checkout keep Shopify's images). `lead` is the
+  tile, first PDP frame and OG image (only the two BF sweats); `hover`
+  is the card's second photograph and next PDP frame; `extra` adds PDP
+  frames. One rewrite, `withLocalPhotos`, in `site.js` and mirrored in
+  `build.js`, so every renderer sees the frames as ordinary images. A
+  local frame is never a crop-fit tile candidate unless named `lead`.
+  Garment-to-photo matching was done against the Shopify descriptions;
+  remove an entry to go back to Shopify's photos.
+
 ## The gate A/B
 
 `GATE.AB` in `drop-config.js`. Two versions of the gate's copy, split

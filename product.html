@@ -1727,7 +1727,9 @@
          dropped. CLAUDE.md: such an image is never the first PDP
          frame, but deleting it is the founder's call in Shopify
          Admin, not this file's. */
-      images: A.orderImages(node.images.edges.map(e => e.node)),
+      /* Flat lays from LOCAL_PHOTOS go in front of / beside Shopify's
+         photographs; see withLocalPhotos in assets/site.js. */
+      images: A.orderImages((A.withLocalPhotos ? A.withLocalPhotos(node) : node).images.edges.map(e => e.node)),
       description: descriptionFromHtml(node.descriptionHtml),
       optionNames,
       variants,

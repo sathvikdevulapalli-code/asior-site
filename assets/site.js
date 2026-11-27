@@ -1930,6 +1930,46 @@
     return featured || all[0] || null;
   }
 
+  /* ---- flat lays served from this repo ------------------------------
+
+     LOCAL_PHOTOS in launch-config.js. Rewrites a raw Storefront product
+     node so every renderer after it -- card, quick view, product page --
+     sees the local frames as ordinary images, in the order: lead, hover,
+     extras, then Shopify's own photographs. scripts/build.js carries the
+     same function (withLocalPhotos) for the pre-rendered pages; the two
+     must agree, as card() and shopCard() must. */
+  function localPhoto(name, alt) {
+    var size = ((window.ASIOR_LAUNCH || {}).LOCAL_PHOTO_SIZES || {})[name] || [];
+    var base = '/images/flat/' + name;
+    return {
+      url: base + '-1200.jpg', altText: alt || '', width: size[0] || null, height: size[1] || null,
+      w400: base + '-400.webp', w800: base + '-800.webp',
+      w1200: base + '-1200.webp', w2000: base + '-2000.webp',
+      local: true,
+    };
+  }
+
+  function withLocalPhotos(node) {
+    try {
+      var cfg = node && ((window.ASIOR_LAUNCH || {}).LOCAL_PHOTOS || {})[node.handle];
+      if (!cfg) return node;
+      var alt = 'Asior ' + displayName(node.handle, node.title);
+      var orig = ((node.images && node.images.edges) || []).map(function (e) { return e.node; });
+      var lead = cfg.lead ? localPhoto(cfg.lead, alt) : leadImage(node.featuredImage, orig, node.handle);
+      var rest = orig.filter(function (im) { return im && (!lead || im.url !== lead.url); });
+      var list = [lead]
+        .concat(cfg.hover ? [localPhoto(cfg.hover, alt)] : [])
+        .concat((cfg.extra || []).map(function (n) { return localPhoto(n, alt); }))
+        .concat(rest)
+        .filter(Boolean);
+      var out = {};
+      for (var k in node) out[k] = node[k];
+      if (cfg.lead) out.featuredImage = lead;
+      out.images = { edges: list.map(function (n) { return { node: n }; }) };
+      return out;
+    } catch (err) { return node; }   /* a photo map must never cost a card */
+  }
+
   /* A product's images, real photographs first, generated renders last
      and never dropped. Used wherever a list of frames is rendered in
      order (the PDP gallery, the quick view) so the first frame is a
@@ -1999,6 +2039,7 @@
      malformed product rather than throwing, so one bad record cannot
      take down every other tile on the page. */
   function normalizeProduct(node) {
+    node = withLocalPhotos(node);
     try {
       var variants = node.variants.edges.map(function (v) { return v.node; });
       var prices = variants.map(function (v) { return parseFloat(v.price.amount); });
@@ -2617,6 +2658,7 @@
     orderImages: orderImages,
     PRODUCT_CARD_FIELDS: PRODUCT_CARD_FIELDS,
     normalizeProduct: normalizeProduct,
+    withLocalPhotos: withLocalPhotos,
     productCard: productCard,
     wireHoverSwap: wireHoverSwap,
     internationalLine: internationalLine,

@@ -146,6 +146,45 @@ window.ASIOR_LAUNCH = {
     'asr-sweats': 'Ships in 4\u20136 weeks',
   },
 
+  /* FLAT LAYS, served from this repo rather than Shopify.
+
+     The concrete-floor flat lays Ayush sent on 2026-11-27 (OLI05382-
+     OLI05428), in images/flat/ at 400/800/1200/2000 wide. The founder
+     chose to use them site-side, so nothing is uploaded to Shopify
+     Admin: cart and checkout keep Shopify's own images.
+
+     Per handle:
+       lead   becomes the grid tile, the first product-page frame and
+              the OG image -- used only for the two Black Friday
+              sweats, whose Shopify photos are phone shots
+       hover  the card's second photograph (the hover swap) and the
+              next product-page frame
+       extra  further product-page frames, after those two
+
+     Matched against each product's Shopify description, 2026-11-27:
+     ASR Sweats has taping on the LEFT leg and the ASR print on the
+     right, which is the left pair in OLI05419; Black JAG Sweats is the
+     dark-script pair (OLI05412/05418) with its taped side in OLI05413.
+     The OLI05419 and OLI05424 frames also show other pieces beside the
+     one named. Remove an entry and that product is back on Shopify's
+     photos with no other change. */
+  LOCAL_PHOTOS: {
+    'black-jag-sweats': { lead: 'oli05412', hover: 'oli05413', extra: ['oli05418'] },
+    'asr-sweats':       { lead: 'oli05419', hover: 'oli05424' },
+    'jag-shorts':       { hover: 'oli05428', extra: ['oli05410'] },
+    'asr-shorts':       { hover: 'oli05406', extra: ['oli05426'] },
+    'holes-tee':        { hover: 'oli05388' },
+    'scripture-polo':   { hover: 'oli05395' },
+  },
+  /* Pixel sizes of the originals, so every <img> carries real
+     dimensions and the tile-crop measurement works. */
+  LOCAL_PHOTO_SIZES: {
+    oli05412: [2400, 3600], oli05413: [2400, 3600], oli05418: [2400, 3600],
+    oli05419: [2377, 3600], oli05424: [2400, 3600], oli05428: [2400, 3600],
+    oli05410: [2400, 3600], oli05406: [2400, 3600], oli05426: [2400, 3600],
+    oli05388: [2400, 3600], oli05395: [2400, 3600],
+  },
+
   SHOPIFY_COLLECTIONS: [
     { slug: 'jag', name: 'JAG' },
     { slug: 'fall-collection', name: 'Fall Collection' },

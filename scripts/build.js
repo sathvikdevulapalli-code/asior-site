@@ -613,7 +613,10 @@ const CARD_IMAGE = (() => {
 
 function leadImage(p) {
   const all = ((p.images && p.images.edges) || []).map(e => e.node);
-  const real = all.filter(im => im && im.url && !isGeneratedImage(im));
+  /* A local flat lay is the tile only when LOCAL_PHOTOS names it as the
+     lead (withLocalPhotos then makes it featuredImage). It is never a
+     crop-fit candidate, or a hover frame would quietly become a tile. */
+  const real = all.filter(im => im && im.url && !im.local && !isGeneratedImage(im));
   const featured = p.featuredImage;
 
   const pick = CARD_IMAGE[p.handle];
@@ -1264,6 +1267,42 @@ function checkPreorderShip(products) {
       console.warn(`  ! PREORDER_SHIP: ${handle} says "${line}" but its Shopify description does not`);
     }
   }
+}
+
+/* Flat lays served from this repo. Mirror of withLocalPhotos in
+   assets/site.js -- see LOCAL_PHOTOS in launch-config.js. `url` is
+   absolute because it feeds the OG tag and the Product JSON-LD; the
+   rendition URLs are root-relative so a local preview shows them. */
+const LOCAL_PHOTOS = LAUNCH.LOCAL_PHOTOS || {};
+const LOCAL_PHOTO_SIZES = LAUNCH.LOCAL_PHOTO_SIZES || {};
+
+function localPhoto(name, alt) {
+  const size = LOCAL_PHOTO_SIZES[name] || [];
+  const rel = `/images/flat/${name}`;
+  if (!fs.existsSync(path.join(ROOT, `images/flat/${name}-1200.jpg`))) {
+    console.warn(`  ! LOCAL_PHOTOS: images/flat/${name}-1200.jpg is missing`);
+    return null;
+  }
+  return {
+    url: `${BASE}${rel}-1200.jpg`, altText: alt, width: size[0] || null, height: size[1] || null,
+    w400: `${rel}-400.webp`, w800: `${rel}-800.webp`, w1200: `${rel}-1200.webp`,
+    w1600: `${rel}-2000.webp`, w2000: `${rel}-2000.webp`,
+    local: true,
+  };
+}
+
+function withLocalPhotos(p) {
+  const cfg = LOCAL_PHOTOS[p.handle];
+  if (!cfg) return p;
+  const alt = `Asior ${displayName(p)}`;
+  const orig = ((p.images && p.images.edges) || []).map(e => e.node);
+  const lead = cfg.lead ? localPhoto(cfg.lead, alt) : leadImage(p);
+  const rest = orig.filter(im => im && (!lead || im.url !== lead.url));
+  const list = [lead, cfg.hover ? localPhoto(cfg.hover, alt) : null,
+    ...(cfg.extra || []).map(n => localPhoto(n, alt)), ...rest].filter(Boolean);
+  const out = { ...p, images: { edges: list.map(node => ({ node })) } };
+  if (cfg.lead && lead) out.featuredImage = lead;
+  return out;
 }
 
 const ALL_COLLECTIONS = [
@@ -2449,7 +2488,7 @@ function syncSiteJsonLd() {
   }
 
   try {
-    const products = await fetchProducts();
+    const products = (await fetchProducts()).map(withLocalPhotos);
     const template = fs.readFileSync(path.join(ROOT, 'product.html'), 'utf8');
     const outDir = path.join(ROOT, 'products');
     fs.mkdirSync(outDir, { recursive: true });
