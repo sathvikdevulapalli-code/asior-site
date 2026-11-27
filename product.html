@@ -1733,7 +1733,12 @@
       description: descriptionFromHtml(node.descriptionHtml),
       optionNames,
       variants,
-      isPreorder: /\[preorder\]/i.test(node.title),
+      /* A [PREORDER] title, or a window in PREORDER_SHIP copied from the
+         Shopify description -- the same rule as the grid card, so a
+         piece badged Preorder on the homepage is not "Add to bag" here. */
+      shipLine: ((window.ASIOR_LAUNCH || {}).PREORDER_SHIP || {})[node.handle] || '',
+      isPreorder: /\[preorder\]/i.test(node.title)
+        || !!((window.ASIOR_LAUNCH || {}).PREORDER_SHIP || {})[node.handle],
     };
   }
 
@@ -2201,7 +2206,9 @@
 
     // A preorder with no stated date defaults you to the FTC's 30-day
     // rule. If a real window is set in product-details.js, say it.
-    const preorderNote = details && details.shipBy
+    const preorderNote = product.shipLine
+      ? `You'll be charged now. ${product.shipLine}.`
+      : details && details.shipBy
       ? `You'll be charged now. This drop is expected to ship ${A.escapeHtml(details.shipBy)}.`
       : "You'll be charged now and it ships as soon as this drop is ready. Ships in 1-2 business days via USPS after that.";
 
@@ -2545,7 +2552,7 @@
         // which made the one control that buys the product read as a
         // dead grey box and was the single clearest complaint about
         // this page.
-        btn.textContent = 'Add to bag';
+        btn.textContent = product.isPreorder ? 'Preorder' : 'Add to bag';
         btn.disabled = true;
         // Buy Now keeps its own label while disabled: two buttons both
         // reading "Select a Size" says the same thing twice and hides
@@ -2555,7 +2562,7 @@
         // does and is disabled until a size is chosen. It used to be
         // relabelled "Select a Size" here, which left the two Add to
         // Cart controls on the same page reading differently.
-        if (stickyBtn) { stickyBtn.textContent = 'Add to bag'; stickyBtn.disabled = true; }
+        if (stickyBtn) { stickyBtn.textContent = product.isPreorder ? 'Preorder' : 'Add to bag'; stickyBtn.disabled = true; }
         return;
       }
       const sold = !v || !v.available;
