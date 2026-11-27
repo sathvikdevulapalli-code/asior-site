@@ -205,7 +205,12 @@ window.ASIOR_DROP = {
        node -e "console.log(require('crypto')
          .createHash('sha256').update('newcode').digest('hex'))" */
     PASS_SHA: '671392273c56cf02a0d26ca6584a9b1b8c85eba0a8cea993c7b4e54cfc76d888',
-    PASS_LABEL: 'Have a code?',
+    /* The box's accessible name, not a line of copy. Nothing on the
+       gate advertises the code: pressing the Asior mark reveals the
+       field, so a screen reader needs a name for it and a shopper
+       reading the screen sees no hint that there is a way round the
+       wall. */
+    PASS_LABEL: 'Access code',
     /* ?key=asior30 on any URL does the same thing, for opening the
        site on a phone without typing into a small box. It is
        remembered like a typed code, so the parameter is needed once
