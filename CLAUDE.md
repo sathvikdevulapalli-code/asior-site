@@ -610,12 +610,35 @@ That is all it does and all it may be described as doing.
 
 **The access code is how we get in, and it is the same kind of
 nothing.** `asior30`, stored in `GATE.PASS_SHA` as a SHA-256 the
-same way `EARLY_ACCESS_CODE_SHA` always was. A folded "Have a code?"
-line under the fine print opens a `type=password` box, and
-`?key=asior30` on any URL does the same thing and strips itself out
-of the address bar with `history.replaceState` so the link is not
-left sitting in a screenshot or a browser history somebody else
-reads. It is **not a password and not security** — the hash is in a
+same way `EARLY_ACCESS_CODE_SHA` always was. `?key=asior30` on any
+URL opens the gate and strips itself out of the address bar with
+`history.replaceState`, so the link is not left sitting in a
+screenshot or a browser history somebody else reads.
+
+**The other way in is the Asior mark**, asked for on 2026-11-27.
+Pressing the wordmark reveals a `type=password` box; **nothing on
+the screen says the box is there**, which is the point. There was a
+folded "Have a code?" line under the fine print for a day and it
+told every shopper that the wall had a way round it. The mark is
+the better door because it is invisible to somebody who does not
+already know, and it is what the mark was always for — its
+accessible name has read "members' entrance" since the form lived
+behind it. `PASS_LABEL` is the box's accessible name now, not a
+line of copy. Do not put the visible line back.
+
+The box is `hidden`, not folded, so there is no phantom summary in
+the tab ring — `trap()` filters on `offsetParent`, so the field
+joins the Tab cycle when shown and is absent before. `.gate-pass
+[hidden]` is `display: none !important` on purpose: a later
+`display` rule on `.gate-pass` would otherwise put the box on
+screen for everyone, which is the one thing it must never do.
+**Escape closes the box and never the gate**, clearing what was
+typed and returning focus to the mark — the same rule the signup
+sheet followed, because a thing you can open with no keyboard way
+out is a trap in the accessibility sense, where the gate itself is
+one by design. With no code configured the mark falls back to
+focusing the email field, so it is never a button that does
+nothing. It is **not a password and not security** — the hash is in a
 file anyone can fetch and the pages behind it are public URLs. It
 exists so the founder and Ayush can see their own storefront while
 it is walled, and it may be described as nothing more than that.
@@ -628,8 +651,10 @@ exists to produce. It gets its own storage key,
 three keys, but which one let you in stays readable. A missing
 `crypto.subtle` means **no bypass**, never an open door, which is
 the `OPEN_AT` rule applied to the other input: a case the code
-cannot evaluate resolves to locked. `pass.js` is the suite, 39
-assertions, and it checks the non-code visitor still meets a wall
+cannot evaluate resolves to locked. `pass.js` is the suite, 55
+assertions, and it checks that no line on the screen mentions a
+code, that Enter in the box submits the code rather than the
+signup above it, and that the non-code visitor still meets a wall
 with Escape dead and the number required.
 
 **Three things keep the gate from being an outage**, and all three

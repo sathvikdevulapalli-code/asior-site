@@ -491,31 +491,39 @@
               '</button>'
             : '') +
 
-          /* THE CODE, folded. It is for us, not for the visitor, so
-             it is one quiet line rather than a second field
-             competing with the signup -- a shopper should read this
-             screen as "join or wait", with no hint that there is a
-             way round it.
+          /* THE CODE, behind the mark. It is for us, not for the
+             visitor, so there is no line on the screen advertising
+             it: pressing the Asior wordmark reveals it, which is
+             what the mark has always been for -- it carried the
+             label "members' entrance" back when it opened the
+             signup sheet, and it is a door again.
 
-             A <details> rather than a permanently open box for the
-             same reason, and because an empty input under the real
-             form reads as something you are supposed to fill in.
+             Nothing visible replaces the old "Have a code?" summary.
+             A shopper reads this screen as "join or wait" with no
+             hint that there is a way round it, and the two people
+             who need the box know where it is. PASS_LABEL is the
+             box's accessible name now rather than a line of copy.
+
+             Hidden rather than folded, so there is no phantom
+             summary in the tab ring: trap() filters on offsetParent,
+             so the field joins the Tab cycle the moment it is shown
+             and is absent before that.
 
              Its own <form> so Enter submits it rather than the
              signup above, which would try to subscribe the code as
              an email address. */
           (PASS_SHA
-            ? '<details class="gate-pass">' +
-                '<summary>' + esc(CFG.PASS_LABEL || 'Have a code?') + '</summary>' +
+            ? '<div class="gate-pass" id="gatePassBox" hidden>' +
                 '<form class="gate-pass-row" id="gatePassForm" novalidate>' +
-                  '<label class="sr-only" for="gatePass">Access code</label>' +
+                  '<label class="sr-only" for="gatePass">' +
+                    esc(CFG.PASS_LABEL || 'Access code') + '</label>' +
                   '<input class="field" type="password" id="gatePass" name="code" ' +
                          'autocomplete="off" autocapitalize="off" ' +
                          'autocorrect="off" spellcheck="false" placeholder="code">' +
                   '<button type="submit" id="gatePassBtn">Enter</button>' +
                 '</form>' +
                 '<p class="gate-pass-msg" id="gatePassMsg" role="status" aria-live="polite"></p>' +
-              '</details>'
+              '</div>'
             : '') +
 
         '</div>' +
@@ -577,13 +585,18 @@
     var passForm = root.querySelector('#gatePassForm');
     if (passForm) passForm.addEventListener('submit', submitPass);
 
-    /* The mark no longer opens anything -- the form is already on
-       screen -- so it focuses the field instead. Still a button, so
-       it is still reachable from a keyboard, and a tap on the big
-       obvious thing does something useful rather than nothing. */
+    /* The mark is the way to the code box, which is the only thing
+       on this screen not on this screen. Asked for on 2026-11-27,
+       and it is what the mark was for originally -- it opened the
+       signup sheet when the form was behind an action, and its
+       accessible name has said "members' entrance" ever since.
+
+       With no code configured it falls back to focusing the email,
+       so the mark never becomes a button that does nothing. */
     var mark = root.querySelector('#gateMark');
     if (mark) {
       mark.addEventListener('click', function () {
+        if (PASS_SHA && openPass()) return;
         var f = root.querySelector('#gateEmail');
         if (f) { try { f.focus(); } catch (e) {} }
       });
@@ -1017,6 +1030,11 @@
   function trap(e) {
     if (!root) return;
 
+    /* The code box first: Escape shuts it and stops there, so a
+       dismissible gate is not also closed by the same press, and a
+       walled one is not closed at all. */
+    if (e.key === 'Escape' && closePass()) { e.preventDefault(); return; }
+
     /* Escape closes the gate when there is a way out. It used to do
        nothing by design, back when the gate was a wall; with a
        dismiss control on the screen, a keyboard user has to be able
@@ -1077,6 +1095,35 @@
       root = null;
       document.removeEventListener('keydown', trap, true);
     }, 320);
+  }
+
+  /* Reveal the box and put the cursor in it. Returns false when
+     there is nothing to reveal, so the mark can fall back. */
+  function openPass() {
+    var box = root && root.querySelector('#gatePassBox');
+    if (!box) return false;
+    box.hidden = false;
+    var f = root.querySelector('#gatePass');
+    if (f) { try { f.focus(); } catch (e) {} }
+    return true;
+  }
+
+  /* Escape closes the BOX and never the gate. That is the same rule
+     the signup sheet followed: a dialog with no keyboard exit is a
+     trap in the accessibility sense, where the gate itself is one by
+     design. Somebody who opened the code box by accident has to be
+     able to get back to the signup. */
+  function closePass() {
+    var box = root && root.querySelector('#gatePassBox');
+    if (!box || box.hidden) return false;
+    var f = root.querySelector('#gatePass');
+    var msg = root.querySelector('#gatePassMsg');
+    if (f) f.value = '';
+    if (msg) msg.textContent = '';
+    box.hidden = true;
+    var mark = root.querySelector('#gateMark');
+    if (mark) { try { mark.focus(); } catch (e) {} }
+    return true;
   }
 
   /* The code path. Deliberately separate from admit(): no Klaviyo
