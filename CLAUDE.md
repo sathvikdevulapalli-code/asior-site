@@ -585,7 +585,9 @@ relayed by the founder:
 - **Email OR phone.** `SMS.EITHER: true`, `SMS.REQUIRED: false`. A
   valid email, a valid number, or both. Each field keeps its own
   consent beside it, unchanged. The "SMS field is REQUIRED" section
-  below is superseded.
+  below is superseded. No word between the two fields (the founder
+  took the "or" off), and on a phone the boxes are 54px tall with more
+  air around the consent paragraph.
 
 Still a velvet rope, not security: the hash is public and curl walks
 past. Assume the password leaks; for 30 minutes that is acceptable.

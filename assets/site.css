@@ -4660,3 +4660,16 @@ html.asior-gated body { overflow: hidden; height: 100%; }
   .home-row-head,
   .shop-grid-heading { padding-left: 16px; padding-right: 16px; }
 }
+
+/* ---- the gate's form on a phone, 2026-11-27 --------------------------
+   More room for the email and number: taller boxes, more air between
+   them and around the consent paragraph, the full column width. */
+@media (max-width: 759px) {
+  .gate-form { gap: 22px; width: 100%; }
+  .gate-form .field { height: 54px; font-size: 17px; }
+  .gate-sms { margin-top: 4px; }
+  .gate-consent-sms { margin-top: 10px; font-size: 10.5px; line-height: 1.6; }
+  .gate-form > #gateBtn { margin-top: 8px; min-height: 52px; }
+  .gate-pass { margin: 18px 0 14px; }
+  .gate-pass-row .field { height: 46px; }
+}

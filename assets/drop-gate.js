@@ -459,7 +459,11 @@
               ? '<div class="gate-sms' + (SMS_REQUIRED ? ' is-required' : '') + '">' +
                   (SMS_REQUIRED
                     ? ''
-                    : '<p class="gate-sms-opt">' + (EITHER ? 'or' : 'text me too') + '</p>') +
+                    /* No word between the two fields when either is
+                       enough: the founder asked for the "or" to come
+                       off on 2026-11-27. Two empty boxes already read
+                       as two ways to sign up. */
+                    : (EITHER ? '' : '<p class="gate-sms-opt">text me too</p>')) +
                   '<label class="sr-only" for="gatePhone">Mobile number</label>' +
                   '<input class="field" type="tel" id="gatePhone" name="phone" ' +
                          'placeholder="' + (SMS_REQUIRED || EITHER ? 'mobile number' : 'phone (optional)') + '" ' +
@@ -564,7 +568,12 @@
            where it belongs anyway -- beside the consent it governs
            rather than in a row of social links. Do not put the foot
            back to restore it. */
-      '</main>' +
+      '</main>';
+
+    /* The markup used to end in a dangling `+`, so the statement below
+       was concatenated into innerHTML: the gate attached itself and the
+       words "[object HTMLDivElement]" were rendered inside it, under
+       the fold on a phone. Fixed 2026-11-27. */
 
       /* ---- the signup sheet ------------------------------------
 
