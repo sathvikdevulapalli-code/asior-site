@@ -4978,3 +4978,15 @@ a.announce-signup { text-decoration: none; }
 p.sale-signup--cart { border: 0; cursor: default; }
 .sale-lanyard { display: block; margin-top: 8px; color: var(--ink); font-weight: 500; }
 .sale-lanyard .sale-signup { color: var(--sale-red-ink); }
+
+/* Black Friday: the sign-up button under the sale line (PDP, cart). */
+.sale-cta {
+  display: block; width: 100%; box-sizing: border-box;
+  margin: 8px 0 10px; padding: 12px 14px;
+  border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  font: 500 12px/1.2 Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: .08em; text-transform: uppercase; text-align: center;
+  text-decoration: none; border-radius: 0;
+}
+.sale-cta:hover { background: var(--ink); color: var(--bg); }
+.sale-cta--cart { margin-top: 0; }

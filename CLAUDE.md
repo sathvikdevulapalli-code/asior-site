@@ -1658,3 +1658,5 @@ and check both desktop and mobile viewports.
   end instead of guessing past them.
 - Don't touch live/production files (Shopify Admin, Klaviyo campaigns)
   without flagging it explicitly first.
+
+- **EXTRA10 is not named on the site** (founder, 2026-11-27 2 PM). The PDP, cart and bar say "Sign up free for an extra 10% off" with a button that opens the popup form (or /extra10); signup yields ASIORLIST. EXTRA10 still works in Shopify.

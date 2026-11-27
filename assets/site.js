@@ -2399,8 +2399,12 @@
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-sale-signup]');
     if (!b) return;
-    e.preventDefault();
-    if (window.AsiorDrop && window.AsiorDrop.openSaleForm) window.AsiorDrop.openSaleForm('sale-button');
+    /* Opens the popup's form in place; without it, the link goes to
+       /extra10, so the button always leads to a signup. */
+    if (window.AsiorDrop && window.AsiorDrop.openSaleForm) {
+      e.preventDefault();
+      window.AsiorDrop.openSaleForm('sale-button');
+    }
   });
 
   var saleTicker = null;
@@ -2485,7 +2489,8 @@
       /* EXTRA10 (Shopify, 2026-11-27) combines only with the public
          10%, so 20% is the most any order gets -- said plainly, with
          how to use it. */
-      prop.innerHTML = '<span class="sale-deal">Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</span>'
+      prop.innerHTML = '<span class="sale-deal">Sign up and get an extra 10% off, 20% in all.</span>'
+        + '<a class="sale-cta" href="/extra10" data-sale-signup>Sign up free for an extra 10% off</a>'
         + '<span class="sale-lanyard">Every Black Friday order gets a free lanyard. '
         + '<button type="button" class="sale-signup" data-add-lanyard>Add yours</button></span>';
     }
@@ -2493,7 +2498,8 @@
     var cartClock = document.querySelector('.sale-clock--cart');
     if (cartClock && !document.querySelector('.sale-signup--cart')) {
       cartClock.insertAdjacentHTML('beforebegin', '<p class="sale-signup sale-signup--cart">'
-        + 'Enter <strong>EXTRA10</strong> at checkout. It stacks with the sale for 20% off.</p>'
+        + 'Sign up and get an extra 10% off, 20% in all.</p>'
+        + '<a class="sale-cta sale-cta--cart" href="/extra10" data-sale-signup>Sign up free for an extra 10% off</a>'
         + '<p class="sale-signup sale-signup--cart sale-lanyard">Every Black Friday order gets a free lanyard. '
         + '<button type="button" class="sale-signup" data-add-lanyard>Add yours</button></p>');
     }
@@ -2697,8 +2703,8 @@
               + '<b data-sale-clock aria-hidden="true">' + saleClockText() + '</b>'
               + '<span class="sr-only">Monday at 9 PM Central</span>',
             'Fall collection under $40',
-            'Code EXTRA10 stacks with the sale <span aria-hidden="true">\u00b7</span> 20% off',
-            '<a class="announce-signup" href="/extra10">Sign up for an extra 10% off</a>'
+            'Free lanyard with every order',
+            '<a class="announce-signup" href="/extra10">Sign up free for an extra 10% off</a>'
           ];
           track.innerHTML = lines.map(function (h, k) {
             return '<p class="announce-msg announce-sale' + (k === 0 ? ' is-on' : '') + '"'
