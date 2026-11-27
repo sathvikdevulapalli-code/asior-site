@@ -216,7 +216,7 @@ window.ASIOR_DROP = {
        the signup. Change the code by replacing the hash --
        node -e "console.log(require('crypto')
          .createHash('sha256').update('newcode').digest('hex'))" */
-    PASS_SHA: '346793476af7c0a55cfa62abc42b77c3fd87086b08fe6fdd628bfdda4e1d7cab',
+    PASS_SHA: '38f4bb989819d554d8f451f0b4b2e419006f4b1c5a41037c25349c71f532eba8',
     /* The visible label over the box, under the clock. It was a
        hidden accessible name while the box was a staff-only door
        behind the mark; on drop day it is the members' door and is
